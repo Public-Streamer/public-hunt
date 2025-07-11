@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Bot, Sparkles, Clock } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Bot, Sparkles, Clock } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 interface AIAgentProps {
   onFAQUpdate: (faqs: any[]) => void;
@@ -10,9 +10,11 @@ interface AIAgentProps {
 
 const AIAgent: React.FC<AIAgentProps> = ({ onFAQUpdate }) => {
   const [isActive, setIsActive] = useState(true);
-  const [lastActivity, setLastActivity] = useState<string>('');
+  const [lastActivity, setLastActivity] = useState<string>("");
   const [answeredToday, setAnsweredToday] = useState(0);
   const [topTopics, setTopTopics] = useState<string[]>([]);
+
+  console.log("Added ui");
 
   useEffect(() => {
     // Simulate AI agent activity
@@ -25,26 +27,26 @@ const AIAgent: React.FC<AIAgentProps> = ({ onFAQUpdate }) => {
 
   const checkForNewQuestions = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke('ai-agent', {
-        body: { action: 'CHECK_QUESTIONS' }
+      const { data, error } = await supabase.functions.invoke("ai-agent", {
+        body: { action: "CHECK_QUESTIONS" },
       });
-      
+
       if (error) throw error;
-      
+
       if (data?.newAnswers) {
-        setAnsweredToday(prev => prev + data.newAnswers);
+        setAnsweredToday((prev) => prev + data.newAnswers);
         setLastActivity(new Date().toLocaleTimeString());
       }
-      
+
       if (data?.topTopics) {
         setTopTopics(data.topTopics);
       }
-      
+
       if (data?.updatedFAQs) {
         onFAQUpdate(data.updatedFAQs);
       }
     } catch (error) {
-      console.error('AI Agent error:', error);
+      console.error("AI Agent error:", error);
     }
   };
 
@@ -54,8 +56,11 @@ const AIAgent: React.FC<AIAgentProps> = ({ onFAQUpdate }) => {
         <CardTitle className="flex items-center gap-2 text-lg">
           <Bot className="h-5 w-5 text-purple-600" />
           AI Assistant
-          <Badge variant={isActive ? 'default' : 'secondary'} className="ml-auto">
-            {isActive ? 'Online' : 'Offline'}
+          <Badge
+            variant={isActive ? "default" : "secondary"}
+            className="ml-auto"
+          >
+            {isActive ? "Online" : "Offline"}
           </Badge>
         </CardTitle>
       </CardHeader>
@@ -64,14 +69,14 @@ const AIAgent: React.FC<AIAgentProps> = ({ onFAQUpdate }) => {
           <Sparkles className="h-4 w-4" />
           <span>Answered {answeredToday} questions today</span>
         </div>
-        
+
         {lastActivity && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Clock className="h-4 w-4" />
             <span>Last active: {lastActivity}</span>
           </div>
         )}
-        
+
         {topTopics.length > 0 && (
           <div>
             <p className="text-sm font-medium mb-2">Trending Topics:</p>
@@ -84,9 +89,10 @@ const AIAgent: React.FC<AIAgentProps> = ({ onFAQUpdate }) => {
             </div>
           </div>
         )}
-        
+
         <div className="text-xs text-muted-foreground pt-2 border-t">
-          🤖 Automatically answering questions and updating FAQs based on community needs
+          🤖 Automatically answering questions and updating FAQs based on
+          community needs
         </div>
       </CardContent>
     </Card>
