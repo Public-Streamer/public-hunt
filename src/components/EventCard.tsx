@@ -1,0 +1,163 @@
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Calendar, Clock, DollarSign, Users, Video, Heart, MessageCircle, Share2 } from 'lucide-react';
+import SocialMediaSection from './SocialMediaSection';
+import TicketPurchaseModal from './TicketPurchaseModal';
+import { useState } from 'react';
+
+interface Event {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  date: string;
+  time: string;
+  duration: string;
+  viewers: number;
+  streamerCount: number;
+  isLive: boolean;
+  thumbnail: string;
+}
+
+interface EventCardProps {
+  event: Event;
+  onPurchase?: (eventId: string) => void;
+  onWatch?: (eventId: string) => void;
+}
+
+const EventCard: React.FC<EventCardProps> = ({ event, onPurchase, onWatch }) => {
+  const [showSocial, setShowSocial] = useState(false);
+  const [showPurchaseModal, setShowPurchaseModal] = useState(false);
+  const navigate = useNavigate();
+
+  const handleCardClick = () => {
+    navigate(`/event/${event.id}`);
+  };
+
+  const handleAction = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (event.isLive) {
+      onWatch?.(event.id);
+    } else {
+      setShowPurchaseModal(true);
+    }
+  };
+
+  const handleSocialClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowSocial(!showSocial);
+  };
+
+  const handlePurchaseSuccess = () => {
+    onPurchase?.(event.id);
+  };
+
+  return (
+    <div>
+      <Card className="hover:shadow-lg transition-shadow duration-300 overflow-hidden cursor-pointer" onClick={handleCardClick}>
+        <div className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100 relative">
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Video className="h-16 w-16 text-purple-500" />
+          </div>
+          {event.isLive && (
+            <Badge className="absolute top-2 left-2 bg-red-600 text-white">
+              <div className="w-2 h-2 bg-white rounded-full mr-1 animate-pulse" />
+              LIVE
+            </Badge>
+          )}
+          <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-sm">
+            {event.streamerCount} cameras
+          </div>
+        </div>
+        
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg font-semibold line-clamp-2">
+            {event.title}
+          </CardTitle>
+          <p className="text-sm text-gray-600 line-clamp-2">
+            {event.description}
+          </p>
+        </CardHeader>
+        
+        <CardContent className="pt-0">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between text-sm text-gray-600">
+              <div className="flex items-center">
+                <Calendar className="h-4 w-4 mr-1" />
+                {event.date}
+              </div>
+              <div className="flex items-center">
+                <Clock className="h-4 w-4 mr-1" />
+                {event.time}
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4 text-sm text-gray-600">
+                <span className="flex items-center">
+                  <Users className="h-4 w-4 mr-1" />
+                  {event.viewers}
+                </span>
+                <span>{event.duration}</span>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <span className="text-lg font-bold text-green-600 flex items-center">
+                  <DollarSign className="h-4 w-4" />
+                  {event.price}
+                </span>
+              </div>
+            </div>
+            
+            <Button 
+              onClick={handleAction}
+              className={`w-full ${event.isLive ? 'bg-red-600 hover:bg-red-700' : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700'}`}
+            >
+              {event.isLive ? 'Watch Now' : 'Buy Ticket'}
+            </Button>
+            
+            <div className="flex items-center justify-between border-t pt-3">
+              <Button variant="ghost" size="sm" className="flex items-center space-x-1" onClick={(e) => e.stopPropagation()}>
+                <Heart className="h-4 w-4" />
+                <span>Like</span>
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="flex items-center space-x-1"
+                onClick={handleSocialClick}
+              >
+                <MessageCircle className="h-4 w-4" />
+                <span>Comments</span>
+              </Button>
+              <Button variant="ghost" size="sm" className="flex items-center space-x-1" onClick={(e) => e.stopPropagation()}>
+                <Share2 className="h-4 w-4" />
+                <span>Share</span>
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      
+      {showSocial && (
+        <div className="mt-4">
+          <SocialMediaSection eventId={event.id} type="event" />
+        </div>
+      )}
+      
+      <TicketPurchaseModal
+        isOpen={showPurchaseModal}
+        onClose={() => setShowPurchaseModal(false)}
+        eventId={event.id}
+        eventTitle={event.title}
+        price={event.price}
+        onPurchaseSuccess={handlePurchaseSuccess}
+      />
+    </div>
+  );
+};
+
+export default EventCard;

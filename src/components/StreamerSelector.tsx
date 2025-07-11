@@ -1,0 +1,269 @@
+import React, { useState } from 'react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Search, UserPlus, X, Lock, Edit } from 'lucide-react';
+import { useAppContext } from '@/contexts/AppContext';
+import EventRoleManager from '@/components/EventRoleManager';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+
+interface Subscriber {
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string;
+}
+
+interface SelectedMember extends Subscriber {
+  permissions: string[];
+  confirmed: boolean;
+}
+
+interface StreamerSelectorProps {
+  onStreamersChange: (streamers: SelectedMember[]) => void;
+}
+
+const StreamerSelector: React.FC<StreamerSelectorProps> = ({ onStreamersChange }) => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedMembers, setSelectedMembers] = useState<SelectedMember[]>([]);
+  const [isLocked, setIsLocked] = useState(false);
+  const { user } = useAppContext();
+  
+  const userRole = 'Event Manager';
+  const canModifyRoles = ['Event Manager', 'Event Admin', 'Event Master'].includes(userRole);
+  
+  const subscribers: Subscriber[] = [
+    { id: '1', name: 'John Doe', email: 'john@example.com' },
+    { id: '2', name: 'Jane Smith', email: 'jane@example.com' },
+    { id: '3', name: 'Mike Johnson', email: 'mike@example.com' },
+    { id: '4', name: 'Sarah Wilson', email: 'sarah@example.com' },
+    { id: '5', name: 'David Brown', email: 'david@example.com' }
+  ];
+
+  const filteredSubscribers = subscribers.filter(sub => 
+    sub.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    sub.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const addMember = (subscriber: Subscriber) => {
+    if (selectedMembers.length >= 20 || isLocked) return;
+    
+    const newMember: SelectedMember = {
+      ...subscriber,
+      permissions: [],
+      confirmed: false
+    };
+    
+    const updated = [...selectedMembers, newMember];
+    setSelectedMembers(updated);
+    onStreamersChange(updated);
+  };
+
+  const removeMember = (id: string) => {
+    if (isLocked) return;
+    const updated = selectedMembers.filter(s => s.id !== id);
+    setSelectedMembers(updated);
+    onStreamersChange(updated);
+  };
+
+  const updateMemberPermissions = (memberId: string, permissions: string[]) => {
+    if (isLocked) return;
+    const updated = selectedMembers.map(member => {
+      if (member.id === memberId) {
+        return { ...member, permissions };
+      }
+      return member;
+    });
+    setSelectedMembers(updated);
+    onStreamersChange(updated);
+  };
+
+  const confirmMember = (memberId: string) => {
+    const updated = selectedMembers.map(member => {
+      if (member.id === memberId) {
+        return { ...member, confirmed: true };
+      }
+      return member;
+    });
+    setSelectedMembers(updated);
+    onStreamersChange(updated);
+  };
+
+  const confirmRoles = () => {
+    setIsLocked(true);
+    onStreamersChange(selectedMembers);
+  };
+
+  const unlockRoles = () => {
+    if (canModifyRoles) {
+      setIsLocked(false);
+      onStreamersChange(selectedMembers);
+    }
+  };
+
+  const allMembersConfirmed = selectedMembers.length > 0 && selectedMembers.every(m => m.confirmed);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center justify-between">
+          Event Production Team
+          {isLocked && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Lock className="h-5 w-5 text-green-600" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Team roles and permissions are confirmed</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {!isLocked && (
+          <div>
+            <Label htmlFor="search">Search and add subscribers to event production team</Label>
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Input
+                id="search"
+                placeholder="Search by name or email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </div>
+        )}
+
+        {searchTerm && !isLocked && (
+          <div className="max-h-40 overflow-y-auto border rounded-md p-2">
+            {filteredSubscribers.map(subscriber => (
+              <div key={subscriber.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
+                <div className="flex items-center space-x-2">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={subscriber.avatar} />
+                    <AvatarFallback>{subscriber.name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="text-sm font-medium">{subscriber.name}</p>
+                    <p className="text-xs text-gray-500">{subscriber.email}</p>
+                  </div>
+                </div>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => addMember(subscriber)}
+                        disabled={selectedMembers.length >= 20 || selectedMembers.some(s => s.id === subscriber.id)}
+                      >
+                        <UserPlus className="h-3 w-3 mr-1" />
+                        Add
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Add {subscriber.name} to the production team</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <Label>Event Production Team ({selectedMembers.length}/20)</Label>
+            <Badge variant={isLocked ? "default" : "secondary"}>
+              {selectedMembers.length} selected {isLocked && "✓"}
+            </Badge>
+          </div>
+          
+          <div className="space-y-4">
+            {selectedMembers.map(member => (
+              <div key={member.id} className="relative">
+                {!isLocked && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => removeMember(member.id)}
+                    className="absolute top-2 right-2 z-10"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+                <EventRoleManager
+                  member={member}
+                  onPermissionsChange={(permissions) => updateMemberPermissions(member.id, permissions)}
+                  onConfirm={() => confirmMember(member.id)}
+                  disabled={isLocked}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {selectedMembers.length > 0 && !isLocked && allMembersConfirmed && (
+          <div className="flex justify-center pt-4">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={confirmRoles}
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    Confirm Event Production Team Roles and Permissions
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Lock in the current team setup and permissions</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        )}
+
+        {isLocked && (
+          <div className="text-center bg-green-50 p-3 rounded border border-green-200">
+            <div className="flex items-center justify-center space-x-2 mb-2">
+              <Lock className="h-4 w-4 text-green-600" />
+              <span className="text-sm text-green-700 font-medium">
+                Production team confirmed with {selectedMembers.length} member{selectedMembers.length !== 1 ? 's' : ''}
+              </span>
+            </div>
+            {canModifyRoles && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={unlockRoles}
+                      size="sm"
+                      variant="outline"
+                      className="mt-2"
+                    >
+                      <Edit className="h-3 w-3 mr-1" />
+                      Modify Team
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Unlock to edit team roles and permissions</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+export default StreamerSelector;
