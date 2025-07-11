@@ -1,0 +1,939 @@
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
+export type Database = {
+  // Allows to automatically instanciate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "12.2.3 (519615d)"
+  }
+  public: {
+    Tables: {
+      blog_answers: {
+        Row: {
+          author: string
+          content: string
+          created_at: string | null
+          id: number
+          is_ai_generated: boolean | null
+          likes: number | null
+          post_id: number | null
+        }
+        Insert: {
+          author: string
+          content: string
+          created_at?: string | null
+          id?: number
+          is_ai_generated?: boolean | null
+          likes?: number | null
+          post_id?: number | null
+        }
+        Update: {
+          author?: string
+          content?: string
+          created_at?: string | null
+          id?: number
+          is_ai_generated?: boolean | null
+          likes?: number | null
+          post_id?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_answers_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blog_posts: {
+        Row: {
+          author: string
+          created_at: string | null
+          id: number
+          likes: number | null
+          question: string
+          updated_at: string | null
+        }
+        Insert: {
+          author: string
+          created_at?: string | null
+          id?: number
+          likes?: number | null
+          question: string
+          updated_at?: string | null
+        }
+        Update: {
+          author?: string
+          created_at?: string | null
+          id?: number
+          likes?: number | null
+          question?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      channel_subscribers: {
+        Row: {
+          channel_id: string
+          id: string
+          subscribed_at: string | null
+          subscriber_id: string
+        }
+        Insert: {
+          channel_id: string
+          id?: string
+          subscribed_at?: string | null
+          subscriber_id: string
+        }
+        Update: {
+          channel_id?: string
+          id?: string
+          subscribed_at?: string | null
+          subscriber_id?: string
+        }
+        Relationships: []
+      }
+      channel_subscriptions: {
+        Row: {
+          channel_id: string
+          created_at: string | null
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          channel_id: string
+          created_at?: string | null
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          channel_id?: string
+          created_at?: string | null
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channel_subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      channels: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          media_urls: string[] | null
+          name: string
+          owner_email: string | null
+          owner_first_name: string | null
+          owner_last_name: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          media_urls?: string[] | null
+          name: string
+          owner_email?: string | null
+          owner_first_name?: string | null
+          owner_last_name?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          media_urls?: string[] | null
+          name?: string
+          owner_email?: string | null
+          owner_first_name?: string | null
+          owner_last_name?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      comment_likes: {
+        Row: {
+          comment_id: string | null
+          created_at: string | null
+          id: string
+          is_like: boolean | null
+          user_profile_id: string | null
+        }
+        Insert: {
+          comment_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_like?: boolean | null
+          user_profile_id?: string | null
+        }
+        Update: {
+          comment_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_like?: boolean | null
+          user_profile_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comment_likes_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comment_likes_user_profile_id_fkey"
+            columns: ["user_profile_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comments: {
+        Row: {
+          author_avatar: string | null
+          author_name: string
+          author_username: string
+          content: string
+          created_at: string | null
+          dislikes_count: number | null
+          id: string
+          likes_count: number | null
+          parent_comment_id: string | null
+          post_id: string | null
+          user_profile_id: string | null
+        }
+        Insert: {
+          author_avatar?: string | null
+          author_name: string
+          author_username: string
+          content: string
+          created_at?: string | null
+          dislikes_count?: number | null
+          id?: string
+          likes_count?: number | null
+          parent_comment_id?: string | null
+          post_id?: string | null
+          user_profile_id?: string | null
+        }
+        Update: {
+          author_avatar?: string | null
+          author_name?: string
+          author_username?: string
+          content?: string
+          created_at?: string | null
+          dislikes_count?: number | null
+          id?: string
+          likes_count?: number | null
+          parent_comment_id?: string | null
+          post_id?: string | null
+          user_profile_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_user_profile_id_fkey"
+            columns: ["user_profile_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_streamers: {
+        Row: {
+          assigned_at: string | null
+          assigned_by: string
+          event_id: string
+          id: string
+          permissions: string[] | null
+          role_type: string | null
+          streamer_id: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by: string
+          event_id: string
+          id?: string
+          permissions?: string[] | null
+          role_type?: string | null
+          streamer_id: string
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by?: string
+          event_id?: string
+          id?: string
+          permissions?: string[] | null
+          role_type?: string | null
+          streamer_id?: string
+        }
+        Relationships: []
+      }
+      events: {
+        Row: {
+          category: string | null
+          channel_id: string | null
+          created_at: string | null
+          date: string | null
+          description: string | null
+          id: string
+          location: string | null
+          media_urls: string[] | null
+          name: string
+          ticket_price: number | null
+          time: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          channel_id?: string | null
+          created_at?: string | null
+          date?: string | null
+          description?: string | null
+          id?: string
+          location?: string | null
+          media_urls?: string[] | null
+          name: string
+          ticket_price?: number | null
+          time?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          channel_id?: string | null
+          created_at?: string | null
+          date?: string | null
+          description?: string | null
+          id?: string
+          location?: string | null
+          media_urls?: string[] | null
+          name?: string
+          ticket_price?: number | null
+          time?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      newsfeed_items: {
+        Row: {
+          attendees: number | null
+          author_avatar: string | null
+          author_name: string
+          author_username: string
+          category: string | null
+          channel_id: string | null
+          comments_count: number | null
+          content: string
+          created_at: string | null
+          event_id: string | null
+          friend_user_id: string | null
+          id: string
+          likes: number | null
+          price: number | null
+          shares: number | null
+          title: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          attendees?: number | null
+          author_avatar?: string | null
+          author_name: string
+          author_username: string
+          category?: string | null
+          channel_id?: string | null
+          comments_count?: number | null
+          content: string
+          created_at?: string | null
+          event_id?: string | null
+          friend_user_id?: string | null
+          id?: string
+          likes?: number | null
+          price?: number | null
+          shares?: number | null
+          title: string
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          attendees?: number | null
+          author_avatar?: string | null
+          author_name?: string
+          author_username?: string
+          category?: string | null
+          channel_id?: string | null
+          comments_count?: number | null
+          content?: string
+          created_at?: string | null
+          event_id?: string | null
+          friend_user_id?: string | null
+          id?: string
+          likes?: number | null
+          price?: number | null
+          shares?: number | null
+          title?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      past_events: {
+        Row: {
+          category: string | null
+          channel_id: string | null
+          channel_master_id: string | null
+          created_at: string | null
+          description: string | null
+          duration: number | null
+          event_master_id: string | null
+          id: string
+          is_saved: boolean | null
+          price: number | null
+          recorded_at: string | null
+          tags: string[] | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string | null
+          video_url: string | null
+          view_count: number | null
+          visibility: string | null
+        }
+        Insert: {
+          category?: string | null
+          channel_id?: string | null
+          channel_master_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          duration?: number | null
+          event_master_id?: string | null
+          id?: string
+          is_saved?: boolean | null
+          price?: number | null
+          recorded_at?: string | null
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string | null
+          video_url?: string | null
+          view_count?: number | null
+          visibility?: string | null
+        }
+        Update: {
+          category?: string | null
+          channel_id?: string | null
+          channel_master_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          duration?: number | null
+          event_master_id?: string | null
+          id?: string
+          is_saved?: boolean | null
+          price?: number | null
+          recorded_at?: string | null
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string | null
+          video_url?: string | null
+          view_count?: number | null
+          visibility?: string | null
+        }
+        Relationships: []
+      }
+      post_interactions: {
+        Row: {
+          created_at: string | null
+          id: string
+          interaction_type: string
+          post_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          interaction_type: string
+          post_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          interaction_type?: string
+          post_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_interactions_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      posts: {
+        Row: {
+          author_avatar: string | null
+          author_name: string
+          author_username: string
+          channel_id: string | null
+          comments_count: number | null
+          content: string
+          created_at: string | null
+          event_id: string | null
+          id: string
+          likes_count: number | null
+          post_type: string | null
+          shares_count: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          author_avatar?: string | null
+          author_name: string
+          author_username: string
+          channel_id?: string | null
+          comments_count?: number | null
+          content: string
+          created_at?: string | null
+          event_id?: string | null
+          id?: string
+          likes_count?: number | null
+          post_type?: string | null
+          shares_count?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          author_avatar?: string | null
+          author_name?: string
+          author_username?: string
+          channel_id?: string | null
+          comments_count?: number | null
+          content?: string
+          created_at?: string | null
+          event_id?: string | null
+          id?: string
+          likes_count?: number | null
+          post_type?: string | null
+          shares_count?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      tickets: {
+        Row: {
+          amount: number
+          created_at: string | null
+          event_id: string
+          id: string
+          payment_id: string
+          purchased_at: string | null
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          event_id: string
+          id?: string
+          payment_id: string
+          purchased_at?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          event_id?: string
+          id?: string
+          payment_id?: string
+          purchased_at?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_accounts: {
+        Row: {
+          age_verified: boolean | null
+          birth_date: string
+          created_at: string | null
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          payment_verified: boolean | null
+          signup_fee_paid: boolean | null
+          transaction_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          age_verified?: boolean | null
+          birth_date: string
+          created_at?: string | null
+          email: string
+          first_name: string
+          id?: string
+          last_name: string
+          payment_verified?: boolean | null
+          signup_fee_paid?: boolean | null
+          transaction_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          age_verified?: boolean | null
+          birth_date?: string
+          created_at?: string | null
+          email?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          payment_verified?: boolean | null
+          signup_fee_paid?: boolean | null
+          transaction_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_follows: {
+        Row: {
+          created_at: string | null
+          follower_id: string
+          following_id: string
+          following_type: string
+          id: string
+        }
+        Insert: {
+          created_at?: string | null
+          follower_id: string
+          following_id: string
+          following_type: string
+          id?: string
+        }
+        Update: {
+          created_at?: string | null
+          follower_id?: string
+          following_id?: string
+          following_type?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      user_friends: {
+        Row: {
+          created_at: string | null
+          friend_id: string | null
+          id: string
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          friend_id?: string | null
+          id?: string
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          friend_id?: string | null
+          id?: string
+          status?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_friends_friend_id_fkey"
+            columns: ["friend_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_friends_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_posts: {
+        Row: {
+          comments: number | null
+          content: string
+          created_at: string | null
+          id: string
+          likes: number | null
+          updated_at: string | null
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          comments?: number | null
+          content: string
+          created_at?: string | null
+          id?: string
+          likes?: number | null
+          updated_at?: string | null
+          user_id: string
+          user_name: string
+        }
+        Update: {
+          comments?: number | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          likes?: number | null
+          updated_at?: string | null
+          user_id?: string
+          user_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_user_posts_user_profiles"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      user_profiles: {
+        Row: {
+          bio: string | null
+          birthday: string | null
+          cover_photo_url: string | null
+          created_at: string | null
+          display_name: string | null
+          followers_count: number | null
+          following_count: number | null
+          friends_count: number | null
+          id: string
+          location: string | null
+          profile_picture_url: string | null
+          updated_at: string | null
+          user_id: string | null
+          username: string
+          website: string | null
+        }
+        Insert: {
+          bio?: string | null
+          birthday?: string | null
+          cover_photo_url?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          followers_count?: number | null
+          following_count?: number | null
+          friends_count?: number | null
+          id?: string
+          location?: string | null
+          profile_picture_url?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          username: string
+          website?: string | null
+        }
+        Update: {
+          bio?: string | null
+          birthday?: string | null
+          cover_photo_url?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          followers_count?: number | null
+          following_count?: number | null
+          friends_count?: number | null
+          id?: string
+          location?: string | null
+          profile_picture_url?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          username?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+}
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const
