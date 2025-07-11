@@ -194,11 +194,20 @@ const Events: React.FC = () => {
               </CollapsibleTrigger>
               <CollapsibleContent className="mb-6">
                 <CreateEventForm 
-                  formData={formData}
+                  formData={{
+                    name: formData.title,
+                    description: formData.description,
+                    date: formData.date,
+                    time: formData.time,
+                    location: formData.location,
+                    category: formData.category,
+                    ticketPrice: parseFloat(formData.price) || 0
+                  }}
                   onInputChange={handleInputChange}
                   onSubmit={handleSubmit}
                   onMediaUpload={handleMediaUpload}
-                  isValid={isFormValid}
+                  isValid={Boolean(isFormValid)}
+                  canCreateEvent={Boolean(isFormValid)}
                 />
               </CollapsibleContent>
             </Collapsible>

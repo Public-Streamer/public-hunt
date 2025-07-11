@@ -142,7 +142,7 @@ const Channels: React.FC = () => {
               onInputChange={handleInputChange}
               onSubmit={handleSubmit}
               onMediaUpload={handleMediaUpload}
-              isValid={isFormValid}
+              isValid={typeof isFormValid === 'boolean' ? isFormValid : false}
             />
           </CollapsibleContent>
         </Collapsible>

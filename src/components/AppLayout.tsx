@@ -103,7 +103,7 @@ const AppLayout: React.FC = () => {
     const event = mockEvents.find(e => e.id === selectedEvent);
     return (
       <div className="min-h-screen">
-        <Header onMenuClick={toggleSidebar} onLoginClick={handleLogin} />
+        <Header onLoginClick={handleLogin} />
         <StageView 
           eventTitle={event?.title || 'Live Event'} 
           streams={mockStreams} 
@@ -114,7 +114,7 @@ const AppLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header onMenuClick={toggleSidebar} onLoginClick={handleLogin} />
+      <Header onLoginClick={handleLogin} />
       <Hero onGetStarted={handleGetStarted} />
       <EventGrid 
         events={mockEvents}

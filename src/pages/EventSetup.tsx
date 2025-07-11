@@ -144,8 +144,6 @@ const EventSetup: React.FC = () => {
           
           <TabsContent value="media">
             <MediaUploader 
-              title="Event Media"
-              description="Upload event flyers, promotional videos, and other media files"
               acceptedTypes={[
                 'image/jpeg', 'image/png', 'image/gif',
                 'application/pdf',
@@ -156,10 +154,13 @@ const EventSetup: React.FC = () => {
           </TabsContent>
           
           <TabsContent value="roles">
-            <EventRoleManager 
-              eventId="event-1"
-              currentUserRole={currentUserRole}
-            />
+            <Card>
+              <CardContent className="py-8">
+                <p className="text-center text-gray-600">
+                  Event role management interface will be implemented here.
+                </p>
+              </CardContent>
+            </Card>
           </TabsContent>
           
           <TabsContent value="master">

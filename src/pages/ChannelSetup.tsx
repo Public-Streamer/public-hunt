@@ -143,7 +143,7 @@ const ChannelSetup: React.FC = () => {
           
           <TabsContent value="roles">
             <ChannelRoleManager
-              isChannelMaster={isChannelMaster}
+              currentUserRole={isChannelMaster ? 'channel_master' : 'channel_administrator'}
               channelId="channel-1"
             />
           </TabsContent>

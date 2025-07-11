@@ -97,11 +97,14 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
            (ticketPrice !== undefined && ticketPrice !== null);
   };
 
-  const isAllFieldsComplete = () => {
-    return isCoreFieldsComplete() &&
+  const isAllFieldsComplete = (): boolean => {
+    return !!(formData.name?.trim() &&
+           formData.category?.trim() &&
+           formData.description?.trim() &&
            formData.date?.trim() &&
            formData.time?.trim() &&
-           formData.location?.trim();
+           formData.location?.trim() &&
+           (ticketPrice !== undefined && ticketPrice !== null));
   };
 
   const canGoLiveWithTeam = () => {

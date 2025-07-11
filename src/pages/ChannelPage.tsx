@@ -61,6 +61,7 @@ const ChannelPage: React.FC = () => {
       startDate: startDate.toLocaleDateString(),
       startTime: startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       startDateTime: startDate,
+      timeUntilStart: `${Math.floor(Math.random() * 30) + 1} days`,
       views: Math.floor(Math.random() * 15000) + 500,
       rating: (Math.random() * 2 + 3).toFixed(1),
       price: Math.floor(Math.random() * 30) + 10,
