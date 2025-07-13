@@ -70,6 +70,7 @@ const Events: React.FC = () => {
   const fetchEvents = async () => {
     try {
       setLoading(true);
+      console.log('Fetching events...');
       
       // Fetch live events
       const { data: liveEventsData, error: liveError } = await supabase
@@ -78,18 +79,26 @@ const Events: React.FC = () => {
         .eq('is_live', true)
         .order('viewer_count', { ascending: false });
 
-      if (liveError) throw liveError;
+      if (liveError) {
+        console.error('Error fetching live events:', liveError);
+        throw liveError;
+      }
 
-      // Fetch scheduled events (not live and future date)
+      // Fetch scheduled events (not live, including events with null created_by)
       const today = new Date().toISOString().split('T')[0];
       const { data: scheduledEventsData, error: scheduledError } = await supabase
         .from('events')
         .select('*')
         .eq('is_live', false)
-        .gte('date', today)
         .order('date', { ascending: true });
 
-      if (scheduledError) throw scheduledError;
+      if (scheduledError) {
+        console.error('Error fetching scheduled events:', scheduledError);
+        throw scheduledError;
+      }
+
+      console.log('Live events:', liveEventsData);
+      console.log('Scheduled events:', scheduledEventsData);
 
       setLiveEvents(liveEventsData || []);
       setScheduledEvents(scheduledEventsData || []);

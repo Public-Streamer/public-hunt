@@ -147,6 +147,17 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       location = await getCurrentLocation();
     }
     
+    // Get current user
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData.user) {
+      toast({ 
+        title: "Authentication Required", 
+        description: "You must be logged in to create events.", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
     const eventData = {
       name: formData.name,
       description: formData.description,
@@ -157,7 +168,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       ticket_price: ticketPrice,
       media_urls: mediaFiles.map(f => f.url).filter(Boolean),
       is_live: true,
-      created_by: (await supabase.auth.getUser()).data.user?.id
+      created_by: userData.user.id
     };
     
     toast({ title: "Going Live Now!", description: "Event is being set up to go live immediately." });
@@ -192,6 +203,19 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
   const handleCreateEvent = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      // Get current user
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError || !userData.user) {
+        toast({ 
+          title: "Authentication Required", 
+          description: "You must be logged in to create events.", 
+          variant: "destructive" 
+        });
+        return;
+      }
+
+      console.log('Creating event with user:', userData.user.id);
+
       const { data, error } = await supabase.from('events').insert({
         name: formData.name,
         description: formData.description,
@@ -202,7 +226,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         ticket_price: ticketPrice,
         media_urls: mediaFiles.map(f => f.url).filter(Boolean),
         is_live: false,
-        created_by: (await supabase.auth.getUser()).data.user?.id
+        created_by: userData.user.id
       }).select().single();
       
       if (error) throw error;
@@ -340,9 +364,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         </CardContent>
       </Card>
       
-      <TooltipWrapper content="Upload promotional media for your event (optional)">
-        <MediaUploader onUpload={handleMediaUpload} maxFiles={5} acceptedTypes={['image/jpeg', 'image/png', 'image/gif', 'application/pdf', 'video/mp4', 'video/mpeg', 'video/quicktime']} />
-      </TooltipWrapper>
+      <MediaUploader onUpload={handleMediaUpload} maxFiles={5} acceptedTypes={['image/jpeg', 'image/png', 'image/gif', 'application/pdf', 'video/mp4', 'video/mpeg', 'video/quicktime']} />
       
       <StreamerSelector onStreamersChange={handleStreamersChange} />
       
