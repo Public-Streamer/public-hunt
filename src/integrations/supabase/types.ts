@@ -274,6 +274,53 @@ export type Database = {
           },
         ]
       }
+      event_participants: {
+        Row: {
+          event_id: string
+          id: string
+          is_active: boolean | null
+          joined_at: string | null
+          last_seen: string | null
+          livekit_token: string | null
+          permissions: string[] | null
+          role: string
+          token_expires_at: string | null
+          user_id: string
+        }
+        Insert: {
+          event_id: string
+          id?: string
+          is_active?: boolean | null
+          joined_at?: string | null
+          last_seen?: string | null
+          livekit_token?: string | null
+          permissions?: string[] | null
+          role: string
+          token_expires_at?: string | null
+          user_id: string
+        }
+        Update: {
+          event_id?: string
+          id?: string
+          is_active?: boolean | null
+          joined_at?: string | null
+          last_seen?: string | null
+          livekit_token?: string | null
+          permissions?: string[] | null
+          role?: string
+          token_expires_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_participants_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_streamers: {
         Row: {
           assigned_at: string | null
@@ -304,48 +351,119 @@ export type Database = {
         }
         Relationships: []
       }
+      event_streams: {
+        Row: {
+          created_at: string | null
+          event_id: string
+          id: string
+          is_active: boolean | null
+          livekit_track_sid: string | null
+          quality_settings: Json | null
+          stream_name: string
+          stream_type: string | null
+          streamer_id: string
+          updated_at: string | null
+          viewer_count: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_id: string
+          id?: string
+          is_active?: boolean | null
+          livekit_track_sid?: string | null
+          quality_settings?: Json | null
+          stream_name: string
+          stream_type?: string | null
+          streamer_id: string
+          updated_at?: string | null
+          viewer_count?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          event_id?: string
+          id?: string
+          is_active?: boolean | null
+          livekit_track_sid?: string | null
+          quality_settings?: Json | null
+          stream_name?: string
+          stream_type?: string | null
+          streamer_id?: string
+          updated_at?: string | null
+          viewer_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_streams_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events: {
         Row: {
           category: string | null
           channel_id: string | null
           created_at: string | null
+          created_by: string | null
           date: string | null
           description: string | null
           id: string
+          is_live: boolean | null
+          livekit_room_name: string | null
           location: string | null
+          max_participants: number | null
           media_urls: string[] | null
           name: string
+          stream_quality: string | null
+          stream_url: string | null
           ticket_price: number | null
           time: string | null
           updated_at: string | null
+          viewer_count: number | null
         }
         Insert: {
           category?: string | null
           channel_id?: string | null
           created_at?: string | null
+          created_by?: string | null
           date?: string | null
           description?: string | null
           id?: string
+          is_live?: boolean | null
+          livekit_room_name?: string | null
           location?: string | null
+          max_participants?: number | null
           media_urls?: string[] | null
           name: string
+          stream_quality?: string | null
+          stream_url?: string | null
           ticket_price?: number | null
           time?: string | null
           updated_at?: string | null
+          viewer_count?: number | null
         }
         Update: {
           category?: string | null
           channel_id?: string | null
           created_at?: string | null
+          created_by?: string | null
           date?: string | null
           description?: string | null
           id?: string
+          is_live?: boolean | null
+          livekit_room_name?: string | null
           location?: string | null
+          max_participants?: number | null
           media_urls?: string[] | null
           name?: string
+          stream_quality?: string | null
+          stream_url?: string | null
           ticket_price?: number | null
           time?: string | null
           updated_at?: string | null
+          viewer_count?: number | null
         }
         Relationships: [
           {
@@ -353,6 +471,59 @@ export type Database = {
             columns: ["channel_id"]
             isOneToOne: false
             referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      livekit_rooms: {
+        Row: {
+          closed_at: string | null
+          created_at: string | null
+          event_id: string
+          id: string
+          is_active: boolean | null
+          livekit_room_sid: string | null
+          max_participants: number | null
+          participant_count: number | null
+          recording_enabled: boolean | null
+          recording_url: string | null
+          room_name: string
+          room_settings: Json | null
+        }
+        Insert: {
+          closed_at?: string | null
+          created_at?: string | null
+          event_id: string
+          id?: string
+          is_active?: boolean | null
+          livekit_room_sid?: string | null
+          max_participants?: number | null
+          participant_count?: number | null
+          recording_enabled?: boolean | null
+          recording_url?: string | null
+          room_name: string
+          room_settings?: Json | null
+        }
+        Update: {
+          closed_at?: string | null
+          created_at?: string | null
+          event_id?: string
+          id?: string
+          is_active?: boolean | null
+          livekit_room_sid?: string | null
+          max_participants?: number | null
+          participant_count?: number | null
+          recording_enabled?: boolean | null
+          recording_url?: string | null
+          room_name?: string
+          room_settings?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "livekit_rooms_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
             referencedColumns: ["id"]
           },
         ]
@@ -562,6 +733,48 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      stream_analytics: {
+        Row: {
+          event_id: string
+          id: string
+          metric_type: string
+          metric_value: Json | null
+          recorded_at: string | null
+          stream_id: string | null
+        }
+        Insert: {
+          event_id: string
+          id?: string
+          metric_type: string
+          metric_value?: Json | null
+          recorded_at?: string | null
+          stream_id?: string | null
+        }
+        Update: {
+          event_id?: string
+          id?: string
+          metric_type?: string
+          metric_value?: Json | null
+          recorded_at?: string | null
+          stream_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stream_analytics_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stream_analytics_stream_id_fkey"
+            columns: ["stream_id"]
+            isOneToOne: false
+            referencedRelation: "event_streams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tickets: {
         Row: {
