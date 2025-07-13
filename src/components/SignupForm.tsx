@@ -6,10 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Upload, Camera, CreditCard } from 'lucide-react';
+import { Upload, Camera } from 'lucide-react';
 import { useAppContext } from '@/contexts/AppContext';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/lib/supabase';
 
 interface SignupFormProps {
   onClose: () => void;
@@ -31,10 +30,6 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
     bio: '',
     birthDate: '',
     profilePhoto: null as File | null,
-    cardNumber: '',
-    expiryDate: '',
-    cvv: '',
-    cardholderName: '',
     agreeToTerms: false,
     confirmAge: false
   });
@@ -85,9 +80,6 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
     
     setLoading(true);
     try {
-      // Mock payment processing for demo
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
       const result = await signUp(signupData.email, signupData.password, {
         firstName: signupData.firstName,
         lastName: signupData.lastName,
@@ -100,11 +92,12 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
       
       if (result.error) {
         alert('Signup failed: ' + result.error);
-      } else if (onSuccess) {
-        onSuccess();
       } else {
-        onClose();
-        navigate('/profile');
+        if (onSuccess) {
+          onSuccess();
+        } else {
+          onClose();
+        }
       }
     } catch (error) {
       alert('Signup failed: ' + (error as Error).message);
