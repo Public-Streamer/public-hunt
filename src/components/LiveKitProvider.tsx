@@ -32,10 +32,20 @@ export const LiveKitProvider: React.FC<LiveKitProviderProps> = ({
         setLoading(true);
         setError(null);
 
+        // Get the current session to include auth header
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError || !session) {
+          throw new Error('Please log in to access this stream');
+        }
+
         const { data, error } = await supabase.functions.invoke('create-livekit-token', {
           body: {
             eventId,
             userRole,
+          },
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
           },
         });
 
