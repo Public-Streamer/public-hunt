@@ -12,30 +12,32 @@ interface LoginFormProps {
 }
 
 const LoginForm: React.FC<LoginFormProps> = ({ onClose }) => {
-  const { login } = useAppContext();
+  const { signIn } = useAppContext();
   const navigate = useNavigate();
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [showSignup, setShowSignup] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock login - in real app, validate credentials
-    login({
-      firstName: 'John',
-      lastName: 'Doe',
-      email: loginData.email,
-      phone: '+1234567890',
-      location: 'New York, NY',
-      bio: 'Welcome to my profile!',
-      birthDate: '1990-01-01'
-    });
-    onClose();
-    navigate('/profile');
+    setIsLoading(true);
+    setError('');
+
+    const result = await signIn(loginData.email, loginData.password);
+    
+    if (result.error) {
+      setError(result.error);
+      setIsLoading(false);
+    } else {
+      onClose();
+      navigate('/');
+    }
   };
 
   const handleSignupSuccess = () => {
     onClose();
-    navigate('/profile');
+    navigate('/');
   };
 
   if (showSignup) {
@@ -93,8 +95,13 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose }) => {
                 required
               />
             </div>
+            {error && (
+              <div className="text-red-600 text-sm text-center">{error}</div>
+            )}
             <div className="flex gap-2">
-              <Button type="submit" className="flex-1">Login</Button>
+              <Button type="submit" className="flex-1" disabled={isLoading}>
+                {isLoading ? 'Signing in...' : 'Login'}
+              </Button>
               <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
             </div>
             <div className="text-center">

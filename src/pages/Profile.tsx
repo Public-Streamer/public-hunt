@@ -34,7 +34,7 @@ const Profile: React.FC = () => {
   const [friendsCount, setFriendsCount] = useState(0);
   const [followersCount, setFollowersCount] = useState(0);
   const { toast } = useToast();
-  const { user, isAuthenticated } = useAppContext();
+  const { user, userProfile, isAuthenticated } = useAppContext();
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -54,11 +54,11 @@ const Profile: React.FC = () => {
       const mockProfile: UserProfile = {
         id: targetUserId,
         username: user.email?.split('@')[0] || 'user',
-        display_name: `${user.firstName} ${user.lastName}`,
-        bio: user.bio || 'Welcome to my profile! I love creating amazing content and connecting with the community.',
-        profile_picture_url: user.profilePhoto || '/placeholder.svg',
+        display_name: userProfile ? `${userProfile.firstName} ${userProfile.lastName}` : 'User',
+        bio: userProfile?.bio || 'Welcome to my profile! I love creating amazing content and connecting with the community.',
+        profile_picture_url: userProfile?.profilePhoto || '/placeholder.svg',
         cover_photo_url: undefined,
-        location: user.location || 'Earth',
+        location: userProfile?.location || 'Earth',
         work: 'Content Creator',
         education: 'School of Life',
         relationship_status: 'Single',

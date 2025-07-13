@@ -13,7 +13,7 @@ interface MobileNavProps {
 }
 
 const MobileNav: React.FC<MobileNavProps> = ({ isOpen, onClose, onLoginClick }) => {
-  const { user, logout, isAuthenticated } = useAppContext();
+  const { user, userProfile, logout, isAuthenticated } = useAppContext();
   
   const handleLoginClick = () => {
     onClose();
@@ -37,18 +37,18 @@ const MobileNav: React.FC<MobileNavProps> = ({ isOpen, onClose, onLoginClick }) 
           </SheetTitle>
         </SheetHeader>
         
-        {isAuthenticated && user && (
+        {isAuthenticated && user && userProfile && (
           <div className="mt-4 p-3 bg-purple-50 rounded-lg">
             <div className="flex items-center space-x-3">
               <Avatar className="h-10 w-10">
-                <AvatarImage src={user.profilePhoto} />
+                <AvatarImage src={userProfile.profilePhoto} />
                 <AvatarFallback className="bg-purple-600 text-white">
-                  {user.firstName[0]}{user.lastName[0]}
+                  {userProfile.firstName[0]}{userProfile.lastName[0]}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <p className="font-semibold">{user.firstName} {user.lastName}</p>
-                <p className="text-sm text-gray-600">{user.email}</p>
+                <p className="font-semibold">{userProfile.firstName} {userProfile.lastName}</p>
+                <p className="text-sm text-gray-600">{userProfile.email}</p>
               </div>
             </div>
           </div>

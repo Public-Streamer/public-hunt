@@ -15,7 +15,7 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
   const location = useLocation();
   const isMobile = useIsMobile();
-  const { user, logout, isAuthenticated } = useAppContext();
+  const { user, userProfile, logout, isAuthenticated } = useAppContext();
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   
   const isActive = (path: string) => location.pathname === path;
@@ -96,16 +96,16 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
             </nav>
             
             <div className="flex items-center space-x-2">
-              {isAuthenticated && user ? (
+              {isAuthenticated && user && userProfile ? (
                 <>
                   <Link to="/profile" className="flex items-center space-x-2 hover:bg-white/20 rounded-lg p-2 transition-colors">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={user.profilePhoto} />
+                      <AvatarImage src={userProfile.profilePhoto} />
                       <AvatarFallback className="bg-white text-purple-600">
-                        {user.firstName[0]}{user.lastName[0]}
+                        {userProfile.firstName[0]}{userProfile.lastName[0]}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="hidden sm:inline">{user.firstName}</span>
+                    <span className="hidden sm:inline">{userProfile.firstName}</span>
                   </Link>
                   <TooltipWrapper content="Sign out of your account">
                     <Button onClick={logout} variant="ghost" size="sm" className="text-white hover:bg-white/20">

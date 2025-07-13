@@ -18,7 +18,7 @@ interface SignupFormProps {
 }
 
 const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = false }) => {
-  const { login } = useAppContext();
+  const { signUp } = useAppContext();
   const navigate = useNavigate();
   const [signupData, setSignupData] = useState({
     firstName: '',
@@ -88,10 +88,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
       // Mock payment processing for demo
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      login({
+      const result = await signUp(signupData.email, signupData.password, {
         firstName: signupData.firstName,
         lastName: signupData.lastName,
-        email: signupData.email,
         phone: signupData.phone,
         location: signupData.location,
         bio: signupData.bio,
@@ -99,7 +98,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
         profilePhoto: photoPreview || undefined
       });
       
-      if (onSuccess) {
+      if (result.error) {
+        alert('Signup failed: ' + result.error);
+      } else if (onSuccess) {
         onSuccess();
       } else {
         onClose();
