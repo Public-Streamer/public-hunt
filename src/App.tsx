@@ -13,7 +13,7 @@ import Channels from "./pages/Channels";
 import ChannelPage from "./pages/ChannelPage";
 import Events from "./pages/Events";
 import EventPage from "./pages/EventPage";
-import StagePage from "./pages/StagePage";
+import StageView from "./pages/StageView";
 import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import Admin from "./pages/Admin";
@@ -41,7 +41,7 @@ const App = () => (
                 <Route path="/channel/:channelId" element={<ChannelPage />} />
                 <Route path="/events" element={<Events />} />
                 <Route path="/event/:eventId" element={<EventPage />} />
-                <Route path="/stage/:eventId" element={<StagePage />} />
+                <Route path="/stage/:eventId" element={<StageView />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/profile/:userId" element={<Profile />} />
                 <Route path="/login" element={<Login />} />

@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Video, Users, VolumeX } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+import LiveKitRoom from '@/components/LiveKitRoom';
 
 interface LiveStreamer {
   id: string;
@@ -19,8 +21,39 @@ interface LiveStreamSectionProps {
   hasPaid: boolean;
 }
 
+interface EventData {
+  id: string;
+  name: string;
+  is_live: boolean;
+  livekit_room_name: string;
+}
+
 const LiveStreamSection: React.FC<LiveStreamSectionProps> = ({ eventId, hasPaid }) => {
-  // Mock live streamers data
+  const [eventData, setEventData] = useState<EventData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchEventData = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('events')
+          .select('id, name, is_live, livekit_room_name')
+          .eq('id', eventId)
+          .single();
+
+        if (error) throw error;
+        setEventData(data);
+      } catch (error) {
+        console.error('Error fetching event data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchEventData();
+  }, [eventId]);
+
+  // Mock live streamers data for fallback
   const getLiveStreamers = (id: string): LiveStreamer[] => {
     const baseStreamers = [
       {
@@ -61,7 +94,39 @@ const LiveStreamSection: React.FC<LiveStreamSectionProps> = ({ eventId, hasPaid 
 
   const liveStreamers = getLiveStreamers(eventId);
 
-  if (liveStreamers.length === 0) {
+  if (isLoading) {
+    return (
+      <Card className="mb-6">
+        <CardContent className="p-6">
+          <div className="animate-pulse">
+            <div className="h-6 bg-gray-200 rounded mb-4"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="aspect-video bg-gray-200 rounded"></div>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Show LiveKit room if event is live and has a room
+  if (eventData?.is_live && eventData?.livekit_room_name && hasPaid) {
+    return (
+      <div className="mb-6">
+        <LiveKitRoom
+          eventId={eventId}
+          userRole="viewer"
+          autoConnect={true}
+          showControls={true}
+        />
+      </div>
+    );
+  }
+
+  // Show mock streamers for demo purposes or if not live
+  if (!eventData?.is_live && liveStreamers.length === 0) {
     return null;
   }
 

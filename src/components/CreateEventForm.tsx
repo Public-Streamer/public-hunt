@@ -155,12 +155,9 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       location: location,
       category: formData.category,
       ticket_price: ticketPrice,
-      media_files: mediaFiles.map(f => ({ url: f.url, name: f.name, type: f.type })),
-      status: 'live',
-      production_team: selectedStreamers.length > 0 ? 
-        selectedStreamers.map(s => ({ id: s.id, name: s.name, permissions: s.permissions, status: 'confirmed' })) :
-        [{ id: 'creator', role: 'event_master', status: 'confirmed' }],
-      created_at: new Date().toISOString()
+      media_urls: mediaFiles.map(f => f.url).filter(Boolean),
+      is_live: true,
+      created_by: (await supabase.auth.getUser()).data.user?.id
     };
     
     toast({ title: "Going Live Now!", description: "Event is being set up to go live immediately." });
@@ -169,8 +166,22 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       const { data, error } = await supabase.from('events').insert(eventData).select().single();
       if (error) throw error;
       
+      // Add streamers as participants
+      if (selectedStreamers.length > 0) {
+        const participantData = selectedStreamers.map(streamer => ({
+          event_id: data.id,
+          user_id: streamer.id,
+          role: 'streamer',
+          permissions: streamer.permissions
+        }));
+        
+        await supabase.from('event_participants').insert(participantData);
+      }
+      
       setTimeout(() => {
         toast({ title: "Event Live!", description: "Your event is now live and streaming." });
+        // Navigate to the event page
+        window.location.href = `/event/${data.id}`;
       }, 1000);
     } catch (error) {
       console.error('Error creating live event:', error);
@@ -189,11 +200,25 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         location: formData.location,
         category: formData.category,
         ticket_price: ticketPrice,
-        media_files: mediaFiles.map(f => ({ url: f.url, name: f.name, type: f.type })),
-        status: 'scheduled'
+        media_urls: mediaFiles.map(f => f.url).filter(Boolean),
+        is_live: false,
+        created_by: (await supabase.auth.getUser()).data.user?.id
       }).select().single();
       
       if (error) throw error;
+      
+      // Add streamers as participants
+      if (selectedStreamers.length > 0) {
+        const participantData = selectedStreamers.map(streamer => ({
+          event_id: data.id,
+          user_id: streamer.id,
+          role: 'streamer',
+          permissions: streamer.permissions
+        }));
+        
+        await supabase.from('event_participants').insert(participantData);
+      }
+      
       toast({ title: "Event Created!", description: "Your event has been created successfully." });
       onSubmit(e);
     } catch (error) {
