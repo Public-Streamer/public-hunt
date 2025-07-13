@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +11,23 @@ import CreateEventForm from '@/components/CreateEventForm';
 import TooltipWrapper from '@/components/ui/tooltip-wrapper';
 import EventRankingControls, { SortOption } from '@/components/EventRankingControls';
 import ScheduledEventsGrid from '@/components/ScheduledEventsGrid';
+import { supabase } from '@/integrations/supabase/client';
+
+interface Event {
+  id: string;
+  name: string;
+  description: string;
+  date: string;
+  time: string;
+  location: string;
+  category: string;
+  ticket_price: number;
+  is_live: boolean;
+  viewer_count: number;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+}
 
 const Events: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -19,6 +36,9 @@ const Events: React.FC = () => {
   const [scheduledSortBy, setScheduledSortBy] = useState<SortOption>('most-live-viewers');
   const [isCreateFormOpen, setIsCreateFormOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('live');
+  const [liveEvents, setLiveEvents] = useState<Event[]>([]);
+  const [scheduledEvents, setScheduledEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: '',
@@ -31,48 +51,54 @@ const Events: React.FC = () => {
     maxAttendees: ''
   });
   
-  // Generate mock live events
-  const liveEvents = Array.from({ length: 50 }, (_, i) => ({
-    id: i + 1,
-    title: `Live Event ${i + 1}`,
-    channelName: `Channel ${Math.floor(i / 2) + 1}`,
-    views: Math.floor(Math.random() * 25000) + 100,
-    liveViews: Math.floor(Math.random() * 5000) + 10,
-    rating: (Math.random() * 2 + 3).toFixed(1),
-    isLive: true,
-    price: Math.floor(Math.random() * 25) + 5,
-    ticketRevenue: Math.floor(Math.random() * 50000) + 1000,
-    participants: [`User${i}`, `Participant${i + 1}`],
-    description: `Description for event ${i + 1}`,
-    subscribers: Math.floor(Math.random() * 10000) + 500
-  }));
-  
-  // Generate mock scheduled events
-  const scheduledEvents = Array.from({ length: 30 }, (_, i) => {
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() + Math.floor(Math.random() * 30) + 1);
-    startDate.setHours(Math.floor(Math.random() * 24), Math.floor(Math.random() * 60));
+  useEffect(() => {
+    fetchEvents();
     
-    const timeUntilStart = getTimeUntilStart(startDate);
-    
-    return {
-      id: i + 100,
-      title: `Scheduled Event ${i + 1}`,
-      channelName: `Channel ${Math.floor(i / 3) + 1}`,
-      startDate: startDate.toLocaleDateString(),
-      startTime: startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      startDateTime: startDate,
-      views: Math.floor(Math.random() * 15000) + 500,
-      liveViews: Math.floor(Math.random() * 3000) + 5,
-      rating: (Math.random() * 2 + 3).toFixed(1),
-      price: Math.floor(Math.random() * 30) + 10,
-      ticketRevenue: Math.floor(Math.random() * 30000) + 2000,
-      timeUntilStart,
-      participants: [`User${i + 100}`, `Participant${i + 101}`],
-      description: `Upcoming event ${i + 1} description`,
-      subscribers: Math.floor(Math.random() * 8000) + 300
+    // Set up real-time subscription for live events
+    const subscription = supabase
+      .channel('events-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'events' }, () => {
+        fetchEvents();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(subscription);
     };
-  }).sort((a, b) => a.startDateTime.getTime() - b.startDateTime.getTime());
+  }, []);
+
+  const fetchEvents = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch live events
+      const { data: liveEventsData, error: liveError } = await supabase
+        .from('events')
+        .select('*')
+        .eq('is_live', true)
+        .order('viewer_count', { ascending: false });
+
+      if (liveError) throw liveError;
+
+      // Fetch scheduled events (not live and future date)
+      const today = new Date().toISOString().split('T')[0];
+      const { data: scheduledEventsData, error: scheduledError } = await supabase
+        .from('events')
+        .select('*')
+        .eq('is_live', false)
+        .gte('date', today)
+        .order('date', { ascending: true });
+
+      if (scheduledError) throw scheduledError;
+
+      setLiveEvents(liveEventsData || []);
+      setScheduledEvents(scheduledEventsData || []);
+    } catch (error) {
+      console.error('Error fetching events:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
   
   function getTimeUntilStart(startDate: Date): string {
     const now = new Date();
@@ -85,45 +111,43 @@ const Events: React.FC = () => {
     return 'starting soon';
   }
   
-  const sortEvents = (events: any[], sortOption: SortOption) => {
+  const sortEvents = (events: Event[], sortOption: SortOption) => {
     return [...events].sort((a, b) => {
       switch (sortOption) {
         case 'most-views':
-          return b.views - a.views;
+          return (b.viewer_count || 0) - (a.viewer_count || 0);
         case 'least-views':
-          return a.views - b.views;
+          return (a.viewer_count || 0) - (b.viewer_count || 0);
         case 'most-revenue':
-          return b.ticketRevenue - a.ticketRevenue;
+          return (b.ticket_price || 0) - (a.ticket_price || 0);
         case 'least-revenue':
-          return a.ticketRevenue - b.ticketRevenue;
+          return (a.ticket_price || 0) - (b.ticket_price || 0);
         case 'most-live-viewers':
-          return (b.liveViews || 0) - (a.liveViews || 0);
+          return (b.viewer_count || 0) - (a.viewer_count || 0);
         case 'least-live-viewers':
-          return (a.liveViews || 0) - (b.liveViews || 0);
+          return (a.viewer_count || 0) - (b.viewer_count || 0);
         case 'most-subscribers':
-          return (b.subscribers || 0) - (a.subscribers || 0);
+          return (b.viewer_count || 0) - (a.viewer_count || 0);
         case 'least-subscribers':
-          return (a.subscribers || 0) - (b.subscribers || 0);
+          return (a.viewer_count || 0) - (b.viewer_count || 0);
         case 'most-popular':
-          return (b.views * parseFloat(b.rating)) - (a.views * parseFloat(a.rating));
+          return (b.viewer_count || 0) - (a.viewer_count || 0);
         case 'least-popular':
-          return (a.views * parseFloat(a.rating)) - (b.views * parseFloat(b.rating));
+          return (a.viewer_count || 0) - (b.viewer_count || 0);
         default:
-          return (b.liveViews || 0) - (a.liveViews || 0);
+          return (b.viewer_count || 0) - (a.viewer_count || 0);
       }
     });
   };
   
-  const filterEvents = (events: any[]) => {
+  const filterEvents = (events: Event[]) => {
     return events.filter(event => {
-      const matchesKeyword = event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      const matchesKeyword = event.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                             event.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            event.channelName.toLowerCase().includes(searchTerm.toLowerCase());
+                            event.category?.toLowerCase().includes(searchTerm.toLowerCase());
       
-      const matchesMember = memberSearch === '' || 
-                           event.participants?.some((participant: string) => 
-                             participant.toLowerCase().includes(memberSearch.toLowerCase())
-                           );
+      // For member search, we'll need to implement participant lookup later
+      const matchesMember = memberSearch === '';
       
       return matchesKeyword && matchesMember;
     });
@@ -158,7 +182,7 @@ const Events: React.FC = () => {
   const isFormValid = formData.title && formData.description && formData.date && 
                      formData.time && formData.location && formData.category;
   
-  const handleEventClick = (eventId: number) => {
+  const handleEventClick = (eventId: string) => {
     navigate(`/event/${eventId}`);
   };
   
@@ -222,56 +246,60 @@ const Events: React.FC = () => {
               activeTab={activeTab}
             />
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredLiveEvents.map((event, index) => (
-                <TooltipWrapper key={event.id} content={`View ${event.title} - ${event.liveViews} live viewers`}>
-                  <Card className="hover:shadow-lg transition-shadow cursor-pointer relative" onClick={() => handleEventClick(event.id)}>
-                    <div className="absolute top-2 left-2 bg-purple-500 text-white text-xs px-2 py-1 rounded-full font-bold">
-                      #{index + 1}
-                    </div>
-                    <CardHeader className="pt-8">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-lg">{event.title}</CardTitle>
-                        <TooltipWrapper content="This event is currently live">
-                          <Badge className="bg-red-500">LIVE</Badge>
-                        </TooltipWrapper>
+            {loading ? (
+              <div className="text-center py-8">
+                <div className="text-lg">Loading events...</div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredLiveEvents.map((event, index) => (
+                  <TooltipWrapper key={event.id} content={`View ${event.name} - ${event.viewer_count} viewers`}>
+                    <Card className="hover:shadow-lg transition-shadow cursor-pointer relative" onClick={() => handleEventClick(event.id)}>
+                      <div className="absolute top-2 left-2 bg-purple-500 text-white text-xs px-2 py-1 rounded-full font-bold">
+                        #{index + 1}
                       </div>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-gray-600 mb-2">{event.channelName}</p>
-                      <div className="flex items-center justify-between text-sm text-gray-500 mb-2">
-                        <TooltipWrapper content="Event price">
-                          <span className="font-semibold">${event.price}</span>
-                        </TooltipWrapper>
-                        <TooltipWrapper content="Event rating">
-                          <span className="flex items-center">
-                            <Star className="h-4 w-4 mr-1" />
-                            {event.rating}
-                          </span>
-                        </TooltipWrapper>
-                      </div>
-                      <div className="flex items-center justify-between text-xs text-gray-400 mb-1">
-                        <TooltipWrapper content="Current live viewers">
-                          <span className="flex items-center">
-                            <Eye className="h-3 w-3 mr-1" />
-                            {event.liveViews} live
-                          </span>
-                        </TooltipWrapper>
-                        <span>{event.views.toLocaleString()} total views</span>
-                      </div>
-                      <div className="flex justify-end">
-                        <TooltipWrapper content="Total ticket revenue">
-                          <span className="flex items-center font-semibold text-green-600 text-xs">
-                            <DollarSign className="h-3 w-3 mr-1" />
-                            {event.ticketRevenue.toLocaleString()}
-                          </span>
-                        </TooltipWrapper>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </TooltipWrapper>
-              ))}
-            </div>
+                      <CardHeader className="pt-8">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-lg">{event.name}</CardTitle>
+                          <TooltipWrapper content="This event is currently live">
+                            <Badge className="bg-red-500">LIVE</Badge>
+                          </TooltipWrapper>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-gray-600 mb-2">{event.category}</p>
+                        <div className="flex items-center justify-between text-sm text-gray-500 mb-2">
+                          <TooltipWrapper content="Event price">
+                            <span className="font-semibold">${event.ticket_price}</span>
+                          </TooltipWrapper>
+                          <TooltipWrapper content="Event location">
+                            <span className="text-xs">{event.location}</span>
+                          </TooltipWrapper>
+                        </div>
+                        <div className="flex items-center justify-between text-xs text-gray-400 mb-1">
+                          <TooltipWrapper content="Current viewers">
+                            <span className="flex items-center">
+                              <Eye className="h-3 w-3 mr-1" />
+                              {event.viewer_count || 0} viewers
+                            </span>
+                          </TooltipWrapper>
+                          <span>{new Date(event.created_at).toLocaleDateString()}</span>
+                        </div>
+                        <div className="text-xs text-gray-600 mt-2 line-clamp-2">
+                          {event.description}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TooltipWrapper>
+                ))}
+                {filteredLiveEvents.length === 0 && !loading && (
+                  <div className="col-span-full text-center py-8">
+                    <p className="text-gray-500 text-lg">No live events at the moment.</p>
+                    <p className="text-gray-400 mt-2">Create your first live event!</p>
+                  </div>
+                )}
+              </div>
+            )}
           </TabsContent>
           
           <TabsContent value="scheduled" className="space-y-6">
@@ -285,12 +313,34 @@ const Events: React.FC = () => {
               activeTab={activeTab}
             />
             
-            <ScheduledEventsGrid
-              events={scheduledEvents}
-              searchTerm={searchTerm}
-              memberSearch={memberSearch}
-              sortBy={scheduledSortBy}
-            />
+            {loading ? (
+              <div className="text-center py-8">
+                <div className="text-lg">Loading scheduled events...</div>
+              </div>
+            ) : (
+              <ScheduledEventsGrid
+                events={scheduledEvents.map(event => ({
+                  id: event.id,
+                  title: event.name,
+                  channelName: event.category,
+                  startDate: event.date,
+                  startTime: event.time,
+                  startDateTime: new Date(`${event.date}T${event.time}`),
+                  views: event.viewer_count || 0,
+                  liveViews: 0,
+                  rating: '4.5',
+                  price: event.ticket_price,
+                  ticketRevenue: 0,
+                  timeUntilStart: getTimeUntilStart(new Date(`${event.date}T${event.time}`)),
+                  participants: [],
+                  description: event.description,
+                  subscribers: 0
+                }))}
+                searchTerm={searchTerm}
+                memberSearch={memberSearch}
+                sortBy={scheduledSortBy}
+              />
+            )}
           </TabsContent>
         </Tabs>
       </div>

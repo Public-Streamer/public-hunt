@@ -2,7 +2,7 @@ import React from 'react';
 import ScheduledEventCard from './ScheduledEventCard';
 
 interface ScheduledEvent {
-  id: number;
+  id: string;
   title: string;
   channelName: string;
   startDate: string;

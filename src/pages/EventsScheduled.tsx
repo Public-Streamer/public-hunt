@@ -18,7 +18,7 @@ const EventsScheduled: React.FC = () => {
     const timeUntilStart = getTimeUntilStart(startDate);
     
     return {
-      id: i + 100,
+      id: `${i + 100}`,
       title: `Scheduled Event ${i + 1}`,
       channelName: `Channel ${Math.floor(i / 3) + 1}`,
       startDate: startDate.toLocaleDateString(),

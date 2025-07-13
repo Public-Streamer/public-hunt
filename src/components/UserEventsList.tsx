@@ -8,13 +8,15 @@ import { Link } from 'react-router-dom';
 
 interface Event {
   id: string;
-  title: string;
+  name: string;
   description: string;
-  scheduled_time: string;
-  admission_price: number;
-  status: 'upcoming' | 'live' | 'completed';
+  date: string;
+  time: string;
+  ticket_price: number;
+  is_live: boolean;
   category: string;
-  attendee_count: number;
+  viewer_count: number;
+  created_at: string;
 }
 
 interface UserEventsListProps {
@@ -31,30 +33,14 @@ const UserEventsList: React.FC<UserEventsListProps> = ({ userId }) => {
 
   const fetchUserEvents = async () => {
     try {
-      // Mock data for now - replace with actual Supabase query
-      const mockEvents: Event[] = [
-        {
-          id: '1',
-          title: 'Epic Gaming Tournament',
-          description: 'Join us for an intense gaming competition',
-          scheduled_time: '2024-03-15T19:00:00Z',
-          admission_price: 5.99,
-          status: 'upcoming',
-          category: 'Gaming',
-          attendee_count: 45
-        },
-        {
-          id: '2',
-          title: 'Live Music Session',
-          description: 'Acoustic guitar and vocals performance',
-          scheduled_time: '2024-03-10T20:00:00Z',
-          admission_price: 3.99,
-          status: 'completed',
-          category: 'Music',
-          attendee_count: 78
-        }
-      ];
-      setEvents(mockEvents);
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .eq('created_by', userId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setEvents(data || []);
     } catch (error) {
       console.error('Error fetching events:', error);
     } finally {
@@ -62,13 +48,24 @@ const UserEventsList: React.FC<UserEventsListProps> = ({ userId }) => {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'live': return 'bg-red-500';
-      case 'upcoming': return 'bg-blue-500';
-      case 'completed': return 'bg-gray-500';
-      default: return 'bg-gray-500';
-    }
+  const getStatusColor = (event: Event) => {
+    if (event.is_live) return 'bg-red-500';
+    
+    const eventDate = new Date(`${event.date}T${event.time}`);
+    const now = new Date();
+    
+    if (eventDate > now) return 'bg-blue-500';
+    return 'bg-gray-500';
+  };
+
+  const getStatusText = (event: Event) => {
+    if (event.is_live) return 'live';
+    
+    const eventDate = new Date(`${event.date}T${event.time}`);
+    const now = new Date();
+    
+    if (eventDate > now) return 'upcoming';
+    return 'completed';
   };
 
   if (loading) {
@@ -96,13 +93,13 @@ const UserEventsList: React.FC<UserEventsListProps> = ({ userId }) => {
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div>
-                    <CardTitle className="text-lg">{event.title}</CardTitle>
+                    <CardTitle className="text-lg">{event.name}</CardTitle>
                     <p className="text-sm text-gray-600 mt-1">{event.description}</p>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Badge variant="secondary">{event.category}</Badge>
-                    <Badge className={`text-white ${getStatusColor(event.status)}`}>
-                      {event.status}
+                    <Badge className={`text-white ${getStatusColor(event)}`}>
+                      {getStatusText(event)}
                     </Badge>
                   </div>
                 </div>
@@ -112,17 +109,17 @@ const UserEventsList: React.FC<UserEventsListProps> = ({ userId }) => {
                   <div className="flex items-center space-x-4 text-sm text-gray-600">
                     <div className="flex items-center space-x-1">
                       <Calendar className="w-4 h-4" />
-                      <span>{new Date(event.scheduled_time).toLocaleDateString()}</span>
+                      <span>{event.date ? new Date(event.date).toLocaleDateString() : 'No date set'}</span>
                     </div>
                     <div className="flex items-center space-x-1">
                       <Clock className="w-4 h-4" />
-                      <span>{new Date(event.scheduled_time).toLocaleTimeString()}</span>
+                      <span>{event.time || 'No time set'}</span>
                     </div>
                     <div className="flex items-center space-x-1">
                       <DollarSign className="w-4 h-4" />
-                      <span>${event.admission_price}</span>
+                      <span>${event.ticket_price}</span>
                     </div>
-                    <span>{event.attendee_count} attendees</span>
+                    <span>{event.viewer_count || 0} viewers</span>
                   </div>
                   <Link to={`/events/${event.id}`}>
                     <Button variant="outline" size="sm">

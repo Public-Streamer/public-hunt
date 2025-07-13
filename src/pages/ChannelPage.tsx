@@ -55,7 +55,7 @@ const ChannelPage: React.FC = () => {
     startDate.setHours(Math.floor(Math.random() * 24), Math.floor(Math.random() * 60));
     
     return {
-      id: i + 100,
+      id: `${i + 100}`,
       title: `Scheduled Event ${i + 1}`,
       channelName: channel.name,
       startDate: startDate.toLocaleDateString(),

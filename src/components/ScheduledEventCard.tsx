@@ -8,7 +8,7 @@ import TooltipWrapper from '@/components/ui/tooltip-wrapper';
 import TicketPurchaseModal from './TicketPurchaseModal';
 
 interface ScheduledEvent {
-  id: number;
+  id: string;
   title: string;
   channelName: string;
   startDate: string;
