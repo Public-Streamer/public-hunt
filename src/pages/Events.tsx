@@ -265,22 +265,23 @@ const Events: React.FC = () => {
                 <div className="text-lg">Loading scheduled events...</div>
               </div>
             ) : (
-              <ScheduledEventsGrid
+            <ScheduledEventsGrid
                 events={scheduledEvents.map(event => ({
                   id: event.id,
                   title: event.name,
-                  channelName: event.category,
+                  channelName: event.category || 'General',
                   startDate: event.date,
                   startTime: event.time,
                   startDateTime: new Date(`${event.date}T${event.time}`),
                   views: event.viewer_count || 0,
                   liveViews: 0,
                   rating: '4.5',
-                  price: event.ticket_price,
+                  price: event.ticket_price || 0,
                   ticketRevenue: 0,
+                  ticketSales: 0,
                   timeUntilStart: getTimeUntilStart(new Date(`${event.date}T${event.time}`)),
                   participants: [],
-                  description: event.description,
+                  description: event.description || '',
                   subscribers: 0
                 }))}
                 searchTerm={searchTerm}
