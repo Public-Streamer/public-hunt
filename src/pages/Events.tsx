@@ -7,7 +7,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Star, Eye, ChevronDown, ChevronUp, Plus, History, Clock, DollarSign } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useNavigate } from 'react-router-dom';
-import CreateEventForm from '@/components/CreateEventForm';
 import TooltipWrapper from '@/components/ui/tooltip-wrapper';
 import EventRankingControls, { SortOption } from '@/components/EventRankingControls';
 import ScheduledEventsGrid from '@/components/ScheduledEventsGrid';
@@ -34,22 +33,11 @@ const Events: React.FC = () => {
   const [memberSearch, setMemberSearch] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('most-live-viewers');
   const [scheduledSortBy, setScheduledSortBy] = useState<SortOption>('most-live-viewers');
-  const [isCreateFormOpen, setIsCreateFormOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('live');
   const [liveEvents, setLiveEvents] = useState<Event[]>([]);
   const [scheduledEvents, setScheduledEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    date: '',
-    time: '',
-    location: '',
-    category: '',
-    price: '',
-    maxAttendees: ''
-  });
   
   useEffect(() => {
     fetchEvents();
@@ -164,33 +152,6 @@ const Events: React.FC = () => {
   
   const filteredLiveEvents = sortEvents(filterEvents(liveEvents), sortBy);
   
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-  
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Event created:', formData);
-    setFormData({
-      title: '',
-      description: '',
-      date: '',
-      time: '',
-      location: '',
-      category: '',
-      price: '',
-      maxAttendees: ''
-    });
-    setIsCreateFormOpen(false);
-  };
-  
-  const handleMediaUpload = (files: any[]) => {
-    console.log('Media uploaded:', files);
-  };
-  
-  const isFormValid = formData.title && formData.description && formData.date && 
-                     formData.time && formData.location && formData.category;
-  
   const handleEventClick = (eventId: string) => {
     navigate(`/event/${eventId}`);
   };
@@ -214,36 +175,13 @@ const Events: React.FC = () => {
           </TabsList>
           
           <TabsContent value="live" className="space-y-6">
-            <Collapsible open={isCreateFormOpen} onOpenChange={setIsCreateFormOpen}>
-              <CollapsibleTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  className="mb-4 w-full md:w-auto bg-gradient-to-r from-purple-500 to-pink-500 text-white border-none hover:from-purple-600 hover:to-pink-600"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create New Event
-                  {isCreateFormOpen ? <ChevronUp className="h-4 w-4 ml-2" /> : <ChevronDown className="h-4 w-4 ml-2" />}
-                </Button>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="mb-6">
-                <CreateEventForm 
-                  formData={{
-                    name: formData.title,
-                    description: formData.description,
-                    date: formData.date,
-                    time: formData.time,
-                    location: formData.location,
-                    category: formData.category,
-                    ticketPrice: parseFloat(formData.price) || 0
-                  }}
-                  onInputChange={handleInputChange}
-                  onSubmit={handleSubmit}
-                  onMediaUpload={handleMediaUpload}
-                  isValid={Boolean(isFormValid)}
-                  canCreateEvent={Boolean(isFormValid)}
-                />
-              </CollapsibleContent>
-            </Collapsible>
+            <Button 
+              onClick={() => navigate('/create?tab=event')} 
+              className="mb-4 w-full md:w-auto bg-gradient-to-r from-purple-500 to-pink-500 text-white border-none hover:from-purple-600 hover:to-pink-600"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Create New Event
+            </Button>
             
             <EventRankingControls
               searchTerm={searchTerm}

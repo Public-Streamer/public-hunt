@@ -1,11 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TooltipWrapper from "@/components/ui/tooltip-wrapper";
 import CreateChannelForm from "@/components/CreateChannelForm";
 import CreateEventForm from "@/components/CreateEventForm";
 
 const Create: React.FC = () => {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("create-channel");
+  
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'event') {
+      setActiveTab('create-event');
+    }
+  }, [searchParams]);
   const [hasChannel, setHasChannel] = useState(false);
   const [userPermissions] = useState({
     isEventMaster: false,
@@ -90,6 +100,8 @@ const Create: React.FC = () => {
     e.preventDefault();
     if (isEventFormValid()) {
       console.log("Event creation data:", eventFormData, "Media:", eventMedia);
+      // Navigate back to events page after successful creation
+      navigate('/events');
     }
   };
 
