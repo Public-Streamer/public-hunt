@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Video, Users, VolumeX, Monitor } from 'lucide-react';
-import { TrackReference } from '@livekit/components-react';
+import { TrackReference, VideoTrack } from '@livekit/components-react';
 import { Track } from 'livekit-client';
 
 interface MultiCameraGridProps {
@@ -33,9 +33,10 @@ const MultiCameraGrid: React.FC<MultiCameraGridProps> = ({
     const track = tracks[0];
     return (
       <div className="w-full h-full relative">
-        <div className="w-full h-full bg-gray-900 flex items-center justify-center">
-          <Video className="h-12 w-12 text-white/50" />
-        </div>
+        <VideoTrack 
+          trackRef={track} 
+          className="w-full h-full object-cover"
+        />
         
         {/* Track Info Overlay */}
         <div className="absolute bottom-4 left-4 bg-black/70 text-white px-3 py-1 rounded flex items-center gap-2">
@@ -73,9 +74,10 @@ const MultiCameraGrid: React.FC<MultiCameraGridProps> = ({
           onClick={() => onTrackSelect(track.publication.trackSid)}
         >
           <div className="aspect-video bg-gray-900 relative">
-            <div className="w-full h-full flex items-center justify-center">
-              <Video className="h-8 w-8 text-white/50" />
-            </div>
+            <VideoTrack 
+              trackRef={track} 
+              className="w-full h-full object-cover"
+            />
             
             {/* Live Badge */}
             <Badge className="absolute top-2 left-2 bg-red-600 text-white text-xs">

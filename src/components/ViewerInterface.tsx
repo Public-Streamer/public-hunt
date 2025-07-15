@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Video, Users, Monitor, Maximize2, Volume2, VolumeX, Settings, Camera } from 'lucide-react';
-import { useTracks, useParticipants, useRoomContext } from '@livekit/components-react';
+import { useTracks, useParticipants, useRoomContext, VideoTrack } from '@livekit/components-react';
 import { Track } from 'livekit-client';
 import MultiCameraGrid from './MultiCameraGrid';
 import StreamSelector from './StreamSelector';
@@ -221,10 +221,21 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
                 />
               ) : (
                 <div className="w-full h-full relative">
-                  {/* Single track view - implementation depends on LiveKit component */}
-                  <div className="w-full h-full flex items-center justify-center text-white">
-                    <Camera className="h-12 w-12 text-white/50" />
-                  </div>
+                  {/* Single track view */}
+                  {(() => {
+                    const track = tracks.find(t => t.publication.trackSid === selectedTrack);
+                    if (!track) return (
+                      <div className="w-full h-full flex items-center justify-center text-white">
+                        <Camera className="h-12 w-12 text-white/50" />
+                      </div>
+                    );
+                    return (
+                      <VideoTrack 
+                        trackRef={track} 
+                        className="w-full h-full object-cover"
+                      />
+                    );
+                  })()}
                 </div>
               )}
             </div>
