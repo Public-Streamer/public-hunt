@@ -1,44 +1,58 @@
-import React from 'react';
-import { 
-  VideoTrack, 
-  AudioTrack, 
-  useLocalParticipant, 
+import React from "react";
+import {
+  VideoTrack,
+  AudioTrack,
+  useLocalParticipant,
   useParticipants,
-  useTracks 
-} from '@livekit/components-react';
-import { Track } from 'livekit-client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { 
-  Video, 
-  VideoOff, 
-  Mic, 
-  MicOff, 
-  Monitor, 
+  useTracks,
+} from "@livekit/components-react";
+import { Track } from "livekit-client";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import {
+  Video,
+  VideoOff,
+  Mic,
+  MicOff,
+  Monitor,
   MonitorOff,
   Play,
   Square,
   Users,
-  Eye
-} from 'lucide-react';
-import { useStreamingControls } from '@/hooks/useStreamingControls';
+  Eye,
+} from "lucide-react";
+import { useStreamingControls } from "@/hooks/useStreamingControls";
 
 interface StreamerInterfaceProps {
   eventId: string;
   eventTitle: string;
 }
 
-export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({ 
-  eventId, 
-  eventTitle 
+export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
+  eventId,
+  eventTitle,
 }) => {
   const { localParticipant } = useLocalParticipant();
   const participants = useParticipants();
   const controls = useStreamingControls(eventId);
 
-  // Show loading state if room is not ready  
+  // Show loading state if room is not ready
+
+  // Get local camera track
+  const localCameraTracks = useTracks([Track.Source.Camera], {
+    onlySubscribed: false,
+  });
+  const localCameraTrack = localCameraTracks.find(
+    (t) => t.participant === localParticipant
+  );
+
+  // Get other participants' camera tracks
+  const otherCameraTracks = useTracks([Track.Source.Camera], {
+    onlySubscribed: true,
+  }).filter((t) => t.participant !== localParticipant);
+
   if (!localParticipant) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -49,14 +63,6 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
       </div>
     );
   }
-  
-  // Get local camera track
-  const localCameraTracks = useTracks([Track.Source.Camera], { onlySubscribed: false });
-  const localCameraTrack = localCameraTracks.find(t => t.participant === localParticipant);
-  
-  // Get other participants' camera tracks
-  const otherCameraTracks = useTracks([Track.Source.Camera], { onlySubscribed: true })
-    .filter(t => t.participant !== localParticipant);
 
   return (
     <div className="min-h-screen bg-background p-4">
@@ -94,9 +100,9 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
               <CardContent>
                 <div className="aspect-video bg-muted rounded-lg overflow-hidden relative">
                   {localCameraTrack && controls.isVideoEnabled ? (
-                    <VideoTrack 
+                    <VideoTrack
                       trackRef={localCameraTrack}
-                      style={{ width: '100%', height: '100%' }}
+                      style={{ width: "100%", height: "100%" }}
                     />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center bg-muted">
@@ -106,7 +112,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                       </div>
                     </div>
                   )}
-                  
+
                   {/* Stream Status Overlay */}
                   <div className="absolute top-4 left-4">
                     {controls.isStreaming && (
@@ -119,9 +125,13 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
 
                   {/* Viewer Count */}
                   <div className="absolute top-4 right-4">
-                    <Badge variant="secondary" className="flex items-center gap-1">
+                    <Badge
+                      variant="secondary"
+                      className="flex items-center gap-1"
+                    >
                       <Eye className="h-3 w-3" />
-                      {controls.participantCount - 1} {/* Exclude self from viewer count */}
+                      {controls.participantCount - 1}{" "}
+                      {/* Exclude self from viewer count */}
                     </Badge>
                   </div>
                 </div>
@@ -137,14 +147,18 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                 <CardContent>
                   <div className="grid grid-cols-2 gap-4">
                     {otherCameraTracks.map((trackRef) => (
-                      <div key={trackRef.participant.sid} className="aspect-video bg-muted rounded-lg overflow-hidden relative">
-                        <VideoTrack 
+                      <div
+                        key={trackRef.participant.sid}
+                        className="aspect-video bg-muted rounded-lg overflow-hidden relative"
+                      >
+                        <VideoTrack
                           trackRef={trackRef}
-                          style={{ width: '100%', height: '100%' }}
+                          style={{ width: "100%", height: "100%" }}
                         />
                         <div className="absolute bottom-2 left-2">
                           <Badge variant="secondary" className="text-xs">
-                            {trackRef.participant.name || trackRef.participant.identity}
+                            {trackRef.participant.name ||
+                              trackRef.participant.identity}
                           </Badge>
                         </div>
                       </div>
@@ -166,7 +180,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                 {/* Go Live / Stop Stream */}
                 <div className="space-y-2">
                   {!controls.isStreaming ? (
-                    <Button 
+                    <Button
                       onClick={controls.startStream}
                       className="w-full"
                       size="lg"
@@ -176,7 +190,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                       Go Live
                     </Button>
                   ) : (
-                    <Button 
+                    <Button
                       onClick={controls.stopStream}
                       variant="destructive"
                       className="w-full"
@@ -262,13 +276,17 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Viewers:</span>
+                  <span className="text-sm text-muted-foreground">
+                    Viewers:
+                  </span>
                   <span className="text-sm font-medium">
                     {Math.max(0, controls.participantCount - 1)}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Connection:</span>
+                  <span className="text-sm text-muted-foreground">
+                    Connection:
+                  </span>
                   <span className="text-sm font-medium">
                     {controls.isConnected ? "Connected" : "Disconnected"}
                   </span>
