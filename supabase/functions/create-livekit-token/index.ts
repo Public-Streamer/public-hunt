@@ -38,35 +38,70 @@ serve(async (req) => {
     const LIVEKIT_API_SECRET = Deno.env.get("LIVEKIT_API_SECRET");
     const LIVEKIT_WS_URL = Deno.env.get("LIVEKIT_WS_URL");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
-    const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    
+    console.log("Environment check:", {
+      hasLiveKitKey: !!LIVEKIT_API_KEY,
+      hasLiveKitSecret: !!LIVEKIT_API_SECRET,
+      hasLiveKitUrl: !!LIVEKIT_WS_URL,
+      hasSupabaseUrl: !!SUPABASE_URL,
+      hasServiceRoleKey: !!SUPABASE_SERVICE_ROLE_KEY
+    });
 
     if (!LIVEKIT_API_KEY || !LIVEKIT_API_SECRET || !LIVEKIT_WS_URL) {
+      console.error("Missing LiveKit credentials");
       throw new Error("LiveKit credentials not configured");
+    }
+    
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      console.error("Missing Supabase credentials");
+      throw new Error("Supabase credentials not configured");
     }
 
     // Authenticate user
     const authHeader = req.headers.get("Authorization");
+    console.log("Auth header received:", !!authHeader);
+    
     if (!authHeader) {
-      return new Response("Unauthorized", {
+      console.error("No authorization header provided");
+      return new Response("Unauthorized - No auth header", {
         status: 401,
         headers: corsHeaders,
       });
     }
 
-    const supabase = createClient(SUPABASE_URL!, SUPABASE_ANON_KEY!, {
-      global: { headers: { authorization: authHeader } },
+    // Create Supabase client with service role for admin operations
+    const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!, {
+      global: { 
+        headers: { 
+          Authorization: authHeader 
+        } 
+      },
     });
 
+    console.log("Attempting to verify user with token...");
     const {
       data: { user },
       error: userError,
     } = await supabase.auth.getUser();
-    if (userError || !user) {
-      return new Response("Unauthorized", {
+    
+    if (userError) {
+      console.error("User verification error:", userError);
+      return new Response("Unauthorized - Invalid token", {
         status: 401,
         headers: corsHeaders,
       });
     }
+    
+    if (!user) {
+      console.error("No user found with provided token");
+      return new Response("Unauthorized - User not found", {
+        status: 401,
+        headers: corsHeaders,
+      });
+    }
+    
+    console.log("User authenticated:", { userId: user.id, email: user.email });
 
     // Parse request body
     const {
@@ -167,7 +202,7 @@ serve(async (req) => {
       });
     }
 
-    console.log({ LIVEKIT_API_KEY, LIVEKIT_API_SECRET, LIVEKIT_WS_URL });
+    console.log("Creating LiveKit token for user:", user.id, "role:", actualRole, "event:", eventId);
     // Create LiveKit access token
     const at = new AccessToken(LIVEKIT_API_KEY, LIVEKIT_API_SECRET, {
       identity: user.id,
