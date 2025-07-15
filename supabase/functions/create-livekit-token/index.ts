@@ -131,9 +131,43 @@ serve(async (req) => {
       });
     }
 
-    // Check if user has ticket for paid events
+    console.log("Event details:", { eventId, createdBy: event.created_by, userId: user.id });
+
+    // Determine user's actual role in the event (same logic as StagePage)
+    let actualRole = userRole; // fallback to provided role
+    
+    // Check if user is host (event creator)
+    if (event.created_by === user.id) {
+      actualRole = "host";
+      console.log("User is event host");
+    } else {
+      // Check if user is assigned as streamer
+      const { data: streamerData } = await supabase
+        .from("event_streamers")
+        .select("*")
+        .eq("event_id", eventId)
+        .eq("streamer_id", user.id)
+        .single();
+
+      if (streamerData) {
+        actualRole = "streamer";
+        console.log("User is assigned streamer");
+      } else {
+        actualRole = "viewer";
+        console.log("User is viewer");
+      }
+    }
+
+    // Validate that the passed userRole matches the determined role (security check)
+    if (userRole !== "viewer" && userRole !== actualRole) {
+      console.warn(`Role mismatch: passed=${userRole}, actual=${actualRole}. Using actual role.`);
+    }
+
+    console.log("Final role determination:", { passedRole: userRole, actualRole });
+
+    // Check if user has ticket for paid events (only for viewers)
     let hasTicket = true;
-    if (event.ticket_price && event.ticket_price > 0 && userRole === "viewer") {
+    if (event.ticket_price && event.ticket_price > 0 && actualRole === "viewer") {
       const { data: ticket } = await supabase
         .from("tickets")
         .select("id")
@@ -143,17 +177,8 @@ serve(async (req) => {
         .single();
 
       hasTicket = !!ticket;
+      console.log("Ticket check for viewer:", { hasTicket, ticketPrice: event.ticket_price });
     }
-
-    // Check user role in event
-    const { data: participant } = await supabase
-      .from("event_participants")
-      .select("role, permissions")
-      .eq("event_id", eventId)
-      .eq("user_id", user.id)
-      .single();
-
-    const actualRole = participant?.role || userRole;
 
     // Generate permissions based on role
     const getPermissions = (role: string, hasTicket: boolean) => {
@@ -214,12 +239,12 @@ serve(async (req) => {
     const token = await at.toJwt();
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
-    // Store token in database
+    // Store/update participant information for tracking
     await supabase.from("event_participants").upsert({
       event_id: eventId,
       user_id: user.id,
       role: actualRole,
-      permissions: participant?.permissions || [],
+      permissions: [],
       livekit_token: token,
       token_expires_at: expiresAt.toISOString(),
       last_seen: new Date().toISOString(),
