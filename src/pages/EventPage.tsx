@@ -64,11 +64,11 @@ const EventPage: React.FC = () => {
     getCurrentUser();
   }, [eventId]);
 
-  useEffect(() => {
-    if (currentUser && eventData) {
-      checkTicketStatus();
-    }
-  }, [currentUser, eventData]);
+  // useEffect(() => {
+  //   if (currentUser && eventData) {
+  //     checkTicketStatus();
+  //   }
+  // }, [currentUser, eventData]);
 
   // Set up real-time subscription for live status updates
   useEffect(() => {
