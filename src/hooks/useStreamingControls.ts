@@ -1,8 +1,8 @@
-import { useState, useCallback } from 'react';
-import { useLocalParticipant, useRoomContext } from '@livekit/components-react';
-import { Track } from 'livekit-client';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { useState, useCallback } from "react";
+import { useLocalParticipant, useRoomContext } from "@livekit/components-react";
+import { Track } from "livekit-client";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export interface StreamingControls {
   isVideoEnabled: boolean;
@@ -21,7 +21,7 @@ export interface StreamingControls {
 export const useStreamingControls = (eventId: string): StreamingControls => {
   const { localParticipant } = useLocalParticipant();
   const room = useRoomContext();
-  
+
   const [isStreaming, setIsStreaming] = useState(false);
   const [isVideoEnabled, setIsVideoEnabled] = useState(false);
   const [isAudioEnabled, setIsAudioEnabled] = useState(false);
@@ -48,83 +48,92 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
 
   const toggleVideo = useCallback(async () => {
     if (!localParticipant) {
-      toast.error('Not connected to room');
+      toast.error("Not connected to room");
       return;
     }
-    
+
     try {
       const enabled = !isVideoEnabled;
       await localParticipant.setCameraEnabled(enabled);
       setIsVideoEnabled(enabled);
-      
+
       if (enabled) {
-        toast.success('Camera turned on');
+        toast.success("Camera turned on");
       } else {
-        toast.info('Camera turned off');
+        toast.info("Camera turned off");
       }
     } catch (error) {
-      toast.error('Failed to toggle camera');
-      console.error('Toggle video error:', error);
+      toast.error("Failed to toggle camera");
+      console.error("Toggle video error:", error);
     }
   }, [localParticipant, isVideoEnabled]);
 
   const toggleAudio = useCallback(async () => {
     if (!localParticipant) {
-      toast.error('Not connected to room');
+      toast.error("Not connected to room");
       return;
     }
-    
+
     try {
       const enabled = !isAudioEnabled;
       await localParticipant.setMicrophoneEnabled(enabled);
       setIsAudioEnabled(enabled);
-      
+
       if (enabled) {
-        toast.success('Microphone turned on');
+        toast.success("Microphone turned on");
       } else {
-        toast.info('Microphone muted');
+        toast.info("Microphone muted");
       }
     } catch (error) {
-      toast.error('Failed to toggle microphone');
-      console.error('Toggle audio error:', error);
+      toast.error("Failed to toggle microphone");
+      console.error("Toggle audio error:", error);
     }
   }, [localParticipant, isAudioEnabled]);
 
   const toggleScreenShare = useCallback(async () => {
     if (!localParticipant) {
-      toast.error('Not connected to room');
+      toast.error("Not connected to room");
       return;
     }
-    
+
     try {
       const enabled = !isScreenSharing;
       await localParticipant.setScreenShareEnabled(enabled);
       setIsScreenSharing(enabled);
-      
+
       if (enabled) {
-        toast.success('Screen sharing started');
+        toast.success("Screen sharing started");
       } else {
-        toast.info('Screen sharing stopped');
+        toast.info("Screen sharing stopped");
       }
     } catch (error) {
-      toast.error('Failed to toggle screen share');
-      console.error('Toggle screen share error:', error);
+      toast.error("Failed to toggle screen share");
+      console.error("Toggle screen share error:", error);
     }
   }, [localParticipant, isScreenSharing]);
 
   const startStream = useCallback(async () => {
     try {
       setIsStreaming(true);
-      
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+      if (sessionError || !session) {
+        throw new Error("Please log in to access this stream");
+      }
       // Create LiveKit room
-      const { error } = await supabase.functions.invoke('manage-livekit-room', {
+      const { error } = await supabase.functions.invoke("manage-livekit-room", {
         body: {
-          action: 'create',
+          action: "create",
           eventId,
           roomConfig: {
             maxParticipants: 100,
             emptyTimeout: 300,
           },
+        },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
         },
       });
 
@@ -133,28 +142,34 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       }
 
       // Update event as live
-      await supabase
-        .from('events')
-        .update({ is_live: true })
-        .eq('id', eventId);
+      await supabase.from("events").update({ is_live: true }).eq("id", eventId);
 
-      toast.success('Stream started successfully');
+      toast.success("Stream started successfully");
     } catch (error) {
       setIsStreaming(false);
-      toast.error('Failed to start stream');
-      console.error('Start stream error:', error);
+      toast.error("Failed to start stream");
+      console.error("Start stream error:", error);
     }
   }, [eventId]);
 
   const stopStream = useCallback(async () => {
     try {
       setIsStreaming(false);
-      
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+      if (sessionError || !session) {
+        throw new Error("Please log in to access this stream");
+      }
       // Close LiveKit room
-      const { error } = await supabase.functions.invoke('manage-livekit-room', {
+      const { error } = await supabase.functions.invoke("manage-livekit-room", {
         body: {
-          action: 'close',
+          action: "close",
           eventId,
+        },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
         },
       });
 
@@ -164,14 +179,14 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
 
       // Update event as not live
       await supabase
-        .from('events')
+        .from("events")
         .update({ is_live: false })
-        .eq('id', eventId);
+        .eq("id", eventId);
 
-      toast.success('Stream stopped');
+      toast.success("Stream stopped");
     } catch (error) {
-      toast.error('Failed to stop stream');
-      console.error('Stop stream error:', error);
+      toast.error("Failed to stop stream");
+      console.error("Stop stream error:", error);
     }
   }, [eventId]);
 
@@ -179,7 +194,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
     isVideoEnabled,
     isAudioEnabled,
     isScreenSharing,
-    isConnected: room?.state === 'connected',
+    isConnected: room?.state === "connected",
     isStreaming,
     toggleVideo,
     toggleAudio,
