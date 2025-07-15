@@ -1,15 +1,16 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { RoomServiceClient } from "https://esm.sh/livekit-server-sdk@2";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 interface ManageRoomRequest {
-  action: 'create' | 'close' | 'update' | 'get_info';
+  action: "create" | "close" | "update" | "get_info";
   eventId: string;
   roomConfig?: {
     maxParticipants?: number;
@@ -37,40 +38,50 @@ interface ManageRoomResponse {
 
 serve(async (req) => {
   // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     // Get environment variables
-    const LIVEKIT_API_KEY = Deno.env.get('LIVEKIT_API_KEY');
-    const LIVEKIT_API_SECRET = Deno.env.get('LIVEKIT_API_SECRET');
-    const LIVEKIT_WS_URL = Deno.env.get('LIVEKIT_WS_URL');
-    const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
-    const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY');
+    const LIVEKIT_API_KEY = Deno.env.get("LIVEKIT_API_KEY");
+    const LIVEKIT_API_SECRET = Deno.env.get("LIVEKIT_API_SECRET");
+    const LIVEKIT_WS_URL = Deno.env.get("LIVEKIT_WS_URL");
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
     if (!LIVEKIT_API_KEY || !LIVEKIT_API_SECRET || !LIVEKIT_WS_URL) {
-      throw new Error('LiveKit credentials not configured');
+      throw new Error("LiveKit credentials not configured");
     }
 
     // Authenticate user
-    const authHeader = req.headers.get('authorization');
+    const authHeader = req.headers.get("Authorization");
+    console.log("Auth header received:", !!authHeader);
+
     if (!authHeader) {
-      return new Response('Unauthorized', { 
-        status: 401, 
-        headers: corsHeaders 
+      console.error("No authorization header provided");
+      return new Response("Unauthorized - No auth header", {
+        status: 401,
+        headers: corsHeaders,
       });
     }
 
-    const supabase = createClient(SUPABASE_URL!, SUPABASE_ANON_KEY!, {
-      global: { headers: { authorization: authHeader } }
+    // Create Supabase client with service role for admin operations
+    const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!, {
+      global: {
+        headers: {
+          Authorization: authHeader,
+        },
+      },
     });
-
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
     if (userError || !user) {
-      return new Response('Unauthorized', { 
-        status: 401, 
-        headers: corsHeaders 
+      return new Response("Unauthorized", {
+        status: 401,
+        headers: corsHeaders,
       });
     }
 
@@ -78,50 +89,54 @@ serve(async (req) => {
     const { action, eventId, roomConfig }: ManageRoomRequest = await req.json();
 
     if (!eventId) {
-      return new Response('Event ID is required', { 
-        status: 400, 
-        headers: corsHeaders 
+      return new Response("Event ID is required", {
+        status: 400,
+        headers: corsHeaders,
       });
     }
 
     // Get event details
     const { data: event, error: eventError } = await supabase
-      .from('events')
-      .select('*, livekit_room_name, created_by')
-      .eq('id', eventId)
+      .from("events")
+      .select("*, livekit_room_name, created_by")
+      .eq("id", eventId)
       .single();
 
     if (eventError || !event) {
-      return new Response('Event not found', { 
-        status: 404, 
-        headers: corsHeaders 
+      return new Response("Event not found", {
+        status: 404,
+        headers: corsHeaders,
       });
     }
 
     // Check if user is authorized to manage the room
     if (event.created_by !== user.id) {
       const { data: participant } = await supabase
-        .from('event_participants')
-        .select('role')
-        .eq('event_id', eventId)
-        .eq('user_id', user.id)
+        .from("event_participants")
+        .select("role")
+        .eq("event_id", eventId)
+        .eq("user_id", user.id)
         .single();
 
-      if (!participant || !['host', 'streamer'].includes(participant.role)) {
-        return new Response('Forbidden - insufficient permissions', { 
-          status: 403, 
-          headers: corsHeaders 
+      if (!participant || !["host", "streamer"].includes(participant.role)) {
+        return new Response("Forbidden - insufficient permissions", {
+          status: 403,
+          headers: corsHeaders,
         });
       }
     }
 
     // Initialize LiveKit client
-    const roomClient = new RoomServiceClient(LIVEKIT_WS_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET);
+    const roomClient = new RoomServiceClient(
+      LIVEKIT_WS_URL,
+      LIVEKIT_API_KEY,
+      LIVEKIT_API_SECRET
+    );
 
     let response: ManageRoomResponse;
 
     switch (action) {
-      case 'create':
+      case "create":
         try {
           const roomOptions = {
             name: event.livekit_room_name,
@@ -130,33 +145,31 @@ serve(async (req) => {
             metadata: JSON.stringify({
               eventId,
               createdBy: user.id,
-              ...roomConfig?.metadata
+              ...roomConfig?.metadata,
             }),
           };
 
           const room = await roomClient.createRoom(roomOptions);
 
           // Update database with room info
-          await supabase
-            .from('livekit_rooms')
-            .upsert({
-              event_id: eventId,
-              room_name: event.livekit_room_name,
-              livekit_room_sid: room.sid,
-              is_active: true,
-              max_participants: roomOptions.maxParticipants,
-              recording_enabled: roomConfig?.enableRecording || false,
-              room_settings: roomOptions,
-            });
+          await supabase.from("livekit_rooms").upsert({
+            event_id: eventId,
+            room_name: event.livekit_room_name,
+            livekit_room_sid: room.sid,
+            is_active: true,
+            max_participants: roomOptions.maxParticipants,
+            recording_enabled: roomConfig?.enableRecording || false,
+            room_settings: roomOptions,
+          });
 
           // Mark event as live
           await supabase
-            .from('events')
-            .update({ 
+            .from("events")
+            .update({
               is_live: true,
-              stream_url: LIVEKIT_WS_URL 
+              stream_url: LIVEKIT_WS_URL,
             })
-            .eq('id', eventId);
+            .eq("id", eventId);
 
           response = {
             success: true,
@@ -167,50 +180,48 @@ serve(async (req) => {
               numParticipants: room.numParticipants,
               creationTime: new Date(room.creationTime * 1000).toISOString(),
               turnPassword: room.turnPassword,
-              enabledCodecs: room.enabledCodecs.map(c => c.mime),
+              enabledCodecs: room.enabledCodecs.map((c) => c.mime),
               metadata: room.metadata,
-            }
+            },
           };
-
         } catch (error) {
-          console.error('Error creating room:', error);
+          console.error("Error creating room:", error);
           response = {
             success: false,
-            error: error.message
+            error: error.message,
           };
         }
         break;
 
-      case 'close':
+      case "close":
         try {
           await roomClient.deleteRoom(event.livekit_room_name);
 
           // Update database
           await supabase
-            .from('livekit_rooms')
+            .from("livekit_rooms")
             .update({
               is_active: false,
               closed_at: new Date().toISOString(),
             })
-            .eq('event_id', eventId);
+            .eq("event_id", eventId);
 
           await supabase
-            .from('events')
+            .from("events")
             .update({ is_live: false })
-            .eq('id', eventId);
+            .eq("id", eventId);
 
           response = { success: true };
-
         } catch (error) {
-          console.error('Error closing room:', error);
+          console.error("Error closing room:", error);
           response = {
             success: false,
-            error: error.message
+            error: error.message,
           };
         }
         break;
 
-      case 'get_info':
+      case "get_info":
         try {
           const rooms = await roomClient.listRooms([event.livekit_room_name]);
           const room = rooms[0];
@@ -225,22 +236,21 @@ serve(async (req) => {
                 numParticipants: room.numParticipants,
                 creationTime: new Date(room.creationTime * 1000).toISOString(),
                 turnPassword: room.turnPassword,
-                enabledCodecs: room.enabledCodecs.map(c => c.mime),
+                enabledCodecs: room.enabledCodecs.map((c) => c.mime),
                 metadata: room.metadata,
-              }
+              },
             };
           } else {
             response = {
               success: false,
-              error: 'Room not found'
+              error: "Room not found",
             };
           }
-
         } catch (error) {
-          console.error('Error getting room info:', error);
+          console.error("Error getting room info:", error);
           response = {
             success: false,
-            error: error.message
+            error: error.message,
           };
         }
         break;
@@ -248,19 +258,18 @@ serve(async (req) => {
       default:
         response = {
           success: false,
-          error: 'Invalid action'
+          error: "Invalid action",
         };
     }
 
     return new Response(JSON.stringify(response), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-
   } catch (error) {
-    console.error('Error in manage-livekit-room:', error);
+    console.error("Error in manage-livekit-room:", error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });
