@@ -29,6 +29,60 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
 
   const participantCount = room?.numParticipants || 1;
 
+  // Helper function to manage event streams
+  const manageEventStream = useCallback(async (
+    streamType: 'camera' | 'microphone' | 'screen',
+    isActive: boolean
+  ) => {
+    try {
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+      
+      if (sessionError || !session) {
+        console.error("Authentication required for event stream management");
+        return;
+      }
+
+      const streamName = `${localParticipant.identity} ${streamType === 'camera' ? 'Camera' : streamType === 'microphone' ? 'Microphone' : 'Screen'}`;
+      
+      // Check if record exists
+      const { data: existingStream } = await supabase
+        .from("event_streams")
+        .select("id")
+        .eq("event_id", eventId)
+        .eq("streamer_id", session.user.id)
+        .eq("stream_type", streamType)
+        .single();
+
+      if (existingStream) {
+        // Update existing record
+        await supabase
+          .from("event_streams")
+          .update({
+            is_active: isActive,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", existingStream.id);
+      } else {
+        // Create new record
+        await supabase
+          .from("event_streams")
+          .insert({
+            event_id: eventId,
+            streamer_id: session.user.id,
+            stream_name: streamName,
+            stream_type: streamType,
+            is_active: isActive,
+          });
+      }
+    } catch (error) {
+      console.error("Failed to manage event stream:", error);
+      // Don't show toast error to user - this is background operation
+    }
+  }, [eventId, localParticipant]);
+
   // Safety check for room context
   if (!room || !localParticipant) {
     return {
@@ -57,6 +111,9 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       await localParticipant.setCameraEnabled(enabled);
       setIsVideoEnabled(enabled);
 
+      // Update event streams in database
+      await manageEventStream('camera', enabled);
+
       if (enabled) {
         toast.success("Camera turned on");
       } else {
@@ -66,7 +123,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       toast.error("Failed to toggle camera");
       console.error("Toggle video error:", error);
     }
-  }, [localParticipant, isVideoEnabled]);
+  }, [localParticipant, isVideoEnabled, manageEventStream]);
 
   const toggleAudio = useCallback(async () => {
     if (!localParticipant) {
@@ -79,6 +136,9 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       await localParticipant.setMicrophoneEnabled(enabled);
       setIsAudioEnabled(enabled);
 
+      // Update event streams in database
+      await manageEventStream('microphone', enabled);
+
       if (enabled) {
         toast.success("Microphone turned on");
       } else {
@@ -88,7 +148,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       toast.error("Failed to toggle microphone");
       console.error("Toggle audio error:", error);
     }
-  }, [localParticipant, isAudioEnabled]);
+  }, [localParticipant, isAudioEnabled, manageEventStream]);
 
   const toggleScreenShare = useCallback(async () => {
     if (!localParticipant) {
@@ -101,6 +161,9 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       await localParticipant.setScreenShareEnabled(enabled);
       setIsScreenSharing(enabled);
 
+      // Update event streams in database
+      await manageEventStream('screen', enabled);
+
       if (enabled) {
         toast.success("Screen sharing started");
       } else {
@@ -110,7 +173,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       toast.error("Failed to toggle screen share");
       console.error("Toggle screen share error:", error);
     }
-  }, [localParticipant, isScreenSharing]);
+  }, [localParticipant, isScreenSharing, manageEventStream]);
 
   const startStream = useCallback(async () => {
     try {
