@@ -177,16 +177,17 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       const { data, error } = await supabase.from('events').insert(eventData).select().single();
       if (error) throw error;
       
-      // Add streamers as participants
+      // Add streamers to event_streamers table
       if (selectedStreamers.length > 0) {
-        const participantData = selectedStreamers.map(streamer => ({
+        const streamerData = selectedStreamers.map(streamer => ({
           event_id: data.id,
-          user_id: streamer.id,
-          role: 'streamer',
+          streamer_id: streamer.id,
+          assigned_by: userData.user.id,
+          role_type: 'Streamers',
           permissions: streamer.permissions
         }));
         
-        await supabase.from('event_participants').insert(participantData);
+        await supabase.from('event_streamers').insert(streamerData);
       }
       
       setTimeout(() => {
@@ -231,16 +232,17 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       
       if (error) throw error;
       
-      // Add streamers as participants
+      // Add streamers to event_streamers table
       if (selectedStreamers.length > 0) {
-        const participantData = selectedStreamers.map(streamer => ({
+        const streamerData = selectedStreamers.map(streamer => ({
           event_id: data.id,
-          user_id: streamer.id,
-          role: 'streamer',
+          streamer_id: streamer.id,
+          assigned_by: userData.user.id,
+          role_type: 'Streamers',
           permissions: streamer.permissions
         }));
         
-        await supabase.from('event_participants').insert(participantData);
+        await supabase.from('event_streamers').insert(streamerData);
       }
       
       toast({ title: "Event Created!", description: "Your event has been created successfully." });

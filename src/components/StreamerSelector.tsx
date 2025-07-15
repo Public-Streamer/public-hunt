@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import { Search, UserPlus, X, Lock, Edit } from 'lucide-react';
 import { useAppContext } from '@/contexts/AppContext';
 import EventRoleManager from '@/components/EventRoleManager';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { supabase } from '@/lib/supabase';
 
 interface Subscriber {
   id: string;
@@ -30,18 +31,46 @@ const StreamerSelector: React.FC<StreamerSelectorProps> = ({ onStreamersChange }
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMembers, setSelectedMembers] = useState<SelectedMember[]>([]);
   const [isLocked, setIsLocked] = useState(false);
+  const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
+  const [loading, setLoading] = useState(true);
   const { user } = useAppContext();
   
   const userRole = 'Event Manager';
   const canModifyRoles = ['Event Manager', 'Event Admin', 'Event Master'].includes(userRole);
-  
-  const subscribers: Subscriber[] = [
-    { id: '1', name: 'John Doe', email: 'john@example.com' },
-    { id: '2', name: 'Jane Smith', email: 'jane@example.com' },
-    { id: '3', name: 'Mike Johnson', email: 'mike@example.com' },
-    { id: '4', name: 'Sarah Wilson', email: 'sarah@example.com' },
-    { id: '5', name: 'David Brown', email: 'david@example.com' }
-  ];
+
+  // Fetch real users from user_profiles table
+  // Future: This will be replaced with channel_subscribers query when channels are implemented
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .select('id, username, display_name, profile_picture_url, user_id')
+          .limit(50);
+
+        if (error) {
+          console.error('Error fetching users:', error);
+          return;
+        }
+
+        // Transform user_profiles data into subscribers format
+        const transformedSubscribers: Subscriber[] = (data || []).map(profile => ({
+          id: profile.user_id || profile.id,
+          name: profile.display_name || profile.username || 'Unknown User',
+          email: profile.username || 'user@example.com', // Username as email placeholder
+          avatar: profile.profile_picture_url
+        }));
+
+        setSubscribers(transformedSubscribers);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
 
   const filteredSubscribers = subscribers.filter(sub => 
     sub.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -137,8 +166,12 @@ const StreamerSelector: React.FC<StreamerSelectorProps> = ({ onStreamersChange }
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
+                disabled={loading}
               />
             </div>
+            {loading && (
+              <div className="text-sm text-gray-500 mt-2">Loading users...</div>
+            )}
           </div>
         )}
 
