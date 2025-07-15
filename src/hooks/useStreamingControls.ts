@@ -29,7 +29,30 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
 
   const participantCount = room?.numParticipants || 1;
 
+  // Safety check for room context
+  if (!room) {
+    console.warn('useStreamingControls: Room context not available');
+    return {
+      isVideoEnabled: false,
+      isAudioEnabled: false,
+      isScreenSharing: false,
+      isConnected: false,
+      isStreaming: false,
+      toggleVideo: async () => {},
+      toggleAudio: async () => {},
+      toggleScreenShare: async () => {},
+      startStream: async () => {},
+      stopStream: async () => {},
+      participantCount: 0,
+    };
+  }
+
   const toggleVideo = useCallback(async () => {
+    if (!localParticipant) {
+      toast.error('Not connected to room');
+      return;
+    }
+    
     try {
       const enabled = !isVideoEnabled;
       await localParticipant.setCameraEnabled(enabled);
@@ -47,6 +70,11 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   }, [localParticipant, isVideoEnabled]);
 
   const toggleAudio = useCallback(async () => {
+    if (!localParticipant) {
+      toast.error('Not connected to room');
+      return;
+    }
+    
     try {
       const enabled = !isAudioEnabled;
       await localParticipant.setMicrophoneEnabled(enabled);
@@ -64,6 +92,11 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   }, [localParticipant, isAudioEnabled]);
 
   const toggleScreenShare = useCallback(async () => {
+    if (!localParticipant) {
+      toast.error('Not connected to room');
+      return;
+    }
+    
     try {
       const enabled = !isScreenSharing;
       await localParticipant.setScreenShareEnabled(enabled);

@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { LiveKitRoom } from '@livekit/components-react';
+import { LiveKitRoom, RoomAudioRenderer } from '@livekit/components-react';
 import '@livekit/components-styles';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { ConnectionState } from 'livekit-client';
 
 interface LiveKitProviderProps {
   eventId: string;
@@ -25,6 +26,8 @@ export const LiveKitProvider: React.FC<LiveKitProviderProps> = ({
   const [serverUrl, setServerUrl] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [connectionState, setConnectionState] = useState<ConnectionState>(ConnectionState.Disconnected);
+  const [roomReady, setRoomReady] = useState(false);
 
   useEffect(() => {
     const generateToken = async () => {
@@ -59,6 +62,11 @@ export const LiveKitProvider: React.FC<LiveKitProviderProps> = ({
 
         setToken(data.token);
         setServerUrl(data.serverUrl);
+        console.log('LiveKit token generated successfully:', { 
+          roomName: data.roomName, 
+          serverUrl: data.serverUrl,
+          userRole 
+        });
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to generate LiveKit token';
         setError(errorMessage);
@@ -104,20 +112,39 @@ export const LiveKitProvider: React.FC<LiveKitProviderProps> = ({
         autoSubscribe: true,
       }}
       onConnected={() => {
+        console.log('LiveKit room connected');
+        setConnectionState(ConnectionState.Connected);
+        setRoomReady(true);
         toast.success('Connected to live stream');
         onConnected?.();
       }}
-      onDisconnected={() => {
+      onDisconnected={(reason) => {
+        console.log('LiveKit room disconnected:', reason);
+        setConnectionState(ConnectionState.Disconnected);
+        setRoomReady(false);
         toast.info('Disconnected from live stream');
         onDisconnected?.();
       }}
       onError={(error) => {
-        toast.error('Live stream connection error');
+        console.error('LiveKit room error:', error);
+        setConnectionState(ConnectionState.Disconnected);
+        setRoomReady(false);
+        toast.error('Live stream connection error: ' + error.message);
         onError?.(error);
       }}
       style={{ height: '100%' }}
     >
-      {children}
+      <RoomAudioRenderer />
+      {roomReady ? children : (
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">
+              {connectionState === ConnectionState.Connecting ? 'Connecting to room...' : 'Preparing live stream...'}
+            </p>
+          </div>
+        </div>
+      )}
     </LiveKitRoom>
   );
 };
