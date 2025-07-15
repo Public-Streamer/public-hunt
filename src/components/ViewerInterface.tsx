@@ -103,6 +103,9 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
   const tracks = useTracks([Track.Source.Camera], { onlySubscribed: true });
   const audioTracks = useTracks([Track.Source.Microphone], { onlySubscribed: true });
 
+  // Check if we're properly connected to the room
+  const isConnected = room && room.state === 'connected';
+
   // Access control check
   if (!hasAccess) {
     return (
@@ -111,6 +114,21 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
         onUpgrade={onUpgrade}
         showUpgradePrompt={showUpgradePrompt}
       />
+    );
+  }
+
+  // Check if we're still connecting to the room
+  if (!isConnected) {
+    return (
+      <Card className="mb-6">
+        <CardContent className="p-8 text-center">
+          <div className="animate-spin h-8 w-8 border-4 border-purple-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <h3 className="text-xl font-semibold mb-2">Connecting to Live Stream</h3>
+          <p className="text-gray-600">
+            Establishing connection to the live event...
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 

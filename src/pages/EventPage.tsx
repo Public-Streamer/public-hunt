@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock, DollarSign, Users, Video, MapPin, ArrowLeft, Loader2 } from 'lucide-react';
+import { LiveKitRoom } from '@livekit/components-react';
+import '@livekit/components-styles';
 import SocialMediaSection from '@/components/SocialMediaSection';
 import MediaDisplay from '@/components/MediaDisplay';
 import ViewerInterface from '@/components/ViewerInterface';
@@ -42,6 +44,9 @@ const EventPage: React.FC = () => {
   const [checkingTicket, setCheckingTicket] = useState(false);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [livekitToken, setLivekitToken] = useState<string | null>(null);
+  const [roomName, setRoomName] = useState<string | null>(null);
+  const [serverUrl, setServerUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!eventId) return;
@@ -55,6 +60,43 @@ const EventPage: React.FC = () => {
       checkTicketStatus();
     }
   }, [currentUser, eventData]);
+
+  // Set up real-time subscription for live status updates
+  useEffect(() => {
+    if (!eventId) return;
+
+    const subscription = supabase
+      .channel(`event-${eventId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'events',
+          filter: `id=eq.${eventId}`,
+        },
+        (payload) => {
+          if (payload.new) {
+            setEventData(prev => prev ? { ...prev, ...payload.new } : null);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [eventId]);
+
+  // Derived variables
+  const isEventHost = currentUser && eventData && currentUser.id === eventData.created_by;
+
+  // Generate LiveKit token for viewers when they have access
+  useEffect(() => {
+    if (currentUser && eventData && eventData.is_live && (hasTicket || isEventHost)) {
+      generateViewerToken();
+    }
+  }, [currentUser, eventData, hasTicket, isEventHost]);
 
   const getCurrentUser = async () => {
     try {
@@ -119,6 +161,35 @@ const EventPage: React.FC = () => {
     }
   };
 
+  const generateViewerToken = async () => {
+    if (!currentUser || !eventData) return;
+
+    try {
+      const { data, error } = await supabase.functions.invoke('create-livekit-token', {
+        body: {
+          eventId: eventData.id,
+          userRole: 'viewer',
+          permissions: {
+            canPublish: false,
+            canSubscribe: true,
+            canPublishData: false,
+          }
+        }
+      });
+
+      if (error) {
+        console.error('Error generating viewer token:', error);
+        return;
+      }
+
+      setLivekitToken(data.token);
+      setRoomName(data.roomName);
+      setServerUrl(data.serverUrl);
+    } catch (error) {
+      console.error('Error generating viewer token:', error);
+    }
+  };
+
   const eventUrl = `${window.location.origin}/event/${eventId}`;
 
   const handlePayment = () => {
@@ -150,8 +221,6 @@ const EventPage: React.FC = () => {
   const goBackToEvents = () => {
     navigate('/events');
   };
-
-  const isEventHost = currentUser && eventData && currentUser.id === eventData.created_by;
 
   const AdmissionButton = () => {
     if (checkingTicket) {
@@ -313,13 +382,33 @@ const EventPage: React.FC = () => {
           </Card>
           
           {/* Live Streams - Show LiveKit viewer interface when live */}
-          {eventData.is_live && eventData.livekit_room_name ? (
-            <ViewerInterface
-              eventId={eventData.id}
-              hasAccess={hasTicket || isEventHost}
-              onUpgrade={handlePayment}
-              showUpgradePrompt={!hasTicket && !isEventHost}
-            />
+          {eventData.is_live && eventData.livekit_room_name && livekitToken && serverUrl ? (
+            <LiveKitRoom
+              token={livekitToken}
+              serverUrl={serverUrl}
+              options={{
+                adaptiveStream: true,
+                dynacast: true,
+              }}
+              connect={true}
+            >
+              <ViewerInterface
+                eventId={eventData.id}
+                hasAccess={hasTicket || isEventHost}
+                onUpgrade={handlePayment}
+                showUpgradePrompt={!hasTicket && !isEventHost}
+              />
+            </LiveKitRoom>
+          ) : eventData.is_live && eventData.livekit_room_name ? (
+            <Card className="mb-6">
+              <CardContent className="p-8 text-center">
+                <div className="animate-spin h-8 w-8 border-4 border-purple-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+                <h3 className="text-xl font-semibold mb-2">Connecting to Live Stream</h3>
+                <p className="text-gray-600">
+                  Preparing your connection to the live event...
+                </p>
+              </CardContent>
+            </Card>
           ) : (
             <Card className="mb-6">
               <CardContent className="p-8 text-center">
