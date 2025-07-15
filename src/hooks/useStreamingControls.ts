@@ -30,8 +30,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   const participantCount = room?.numParticipants || 1;
 
   // Safety check for room context
-  if (!room) {
-    console.warn('useStreamingControls: Room context not available');
+  if (!room || !localParticipant) {
     return {
       isVideoEnabled: false,
       isAudioEnabled: false,
