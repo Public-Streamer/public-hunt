@@ -6,7 +6,7 @@ import { AccessToken } from "https://esm.sh/livekit-server-sdk@2";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "Authorization, x-client-info, apikey, content-type",
 };
 
 interface CreateTokenRequest {
@@ -45,7 +45,7 @@ serve(async (req) => {
     }
 
     // Authenticate user
-    const authHeader = req.headers.get("authorization");
+    const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response("Unauthorized", {
         status: 401,
