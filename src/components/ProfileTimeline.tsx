@@ -11,7 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { 
   Heart, MessageCircle, Share2, Image as ImageIcon, Video, 
-  MapPin, Calendar, Users, Play, Send, MoreHorizontal, Bookmark, Upload, X, Check, Loader2, Trash2, AtSign
+  MapPin, Calendar, Users, Play, Send, MoreHorizontal, Bookmark, Upload, X, Check, Loader2, Trash2, AtSign, Zap
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
@@ -90,6 +90,8 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
   const [userSearchTerm, setUserSearchTerm] = useState('');
   const [userSearchResults, setUserSearchResults] = useState<any[]>([]);
   const [showUserSearch, setShowUserSearch] = useState(false);
+  const [showGoLivePopover, setShowGoLivePopover] = useState(false);
+  const [ticketPrice, setTicketPrice] = useState(0);
   const { toast } = useToast();
   const { user, userProfile: currentUserProfile } = useAppContext();
   
@@ -438,6 +440,135 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
   const handleRemoveMedia = () => {
     setSelectedMedia(null);
     setMediaPreview(null);
+  };
+
+  const getCurrentLocation = async (): Promise<string> => {
+    return new Promise((resolve) => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            try {
+              const response = await fetch(
+                `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${position.coords.latitude}&longitude=${position.coords.longitude}&localityLanguage=en`
+              );
+              const data = await response.json();
+              resolve(data.city || data.locality || 'Live Online');
+            } catch (error) {
+              resolve('Live Online');
+            }
+          },
+          () => resolve('Live Online')
+        );
+      } else {
+        resolve('Live Online');
+      }
+    });
+  };
+
+  const handleGoLiveSolo = async () => {
+    try {
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError || !userData.user) {
+        toast({ 
+          title: "Authentication Required", 
+          description: "You must be logged in to go live.", 
+          variant: "destructive" 
+        });
+        return;
+      }
+
+      const now = new Date();
+      const today = now.toISOString().split('T')[0];
+      const currentTime = now.toTimeString().slice(0, 5);
+      const location = selectedLocation || await getCurrentLocation();
+      
+      // Auto-populate event data
+      const eventData = {
+        name: `${profileData.display_name}'s Live Stream`,
+        description: newPost || `Join ${profileData.display_name} for an exclusive live streaming session!`,
+        date: today,
+        time: currentTime,
+        location: location,
+        category: 'Live Stream',
+        ticket_price: ticketPrice,
+        media_urls: selectedMedia ? [URL.createObjectURL(selectedMedia)] : [],
+        is_live: true,
+        created_by: userData.user.id,
+        channel_id: selectedChannel || null
+      };
+
+      // Create the event
+      const { data: eventResult, error: eventError } = await supabase
+        .from('events')
+        .insert(eventData)
+        .select()
+        .single();
+
+      if (eventError) throw eventError;
+
+      // Create a corresponding post about the live event
+      const livePost = {
+        content: newPost || `🔴 LIVE NOW: ${eventData.name}`,
+        media_url: selectedMedia ? URL.createObjectURL(selectedMedia) : undefined,
+        media_type: selectedMedia?.type.startsWith('image/') ? 'image' as const : 'video' as const,
+        created_at: new Date().toISOString(),
+        user_id: userId,
+        user_profile: {
+          id: profileData.id,
+          display_name: profileData.display_name,
+          username: profileData.username,
+          profile_picture_url: profileData.profile_picture_url
+        },
+        likes_count: 0,
+        comments_count: 0,
+        shares_count: 0,
+        is_liked: false,
+        is_bookmarked: false,
+        type: 'event' as const,
+        metadata: {
+          event_id: eventResult.id,
+          location: location,
+          ...(selectedChannel && { channel_id: selectedChannel })
+        }
+      };
+
+      // Add the live post to the timeline
+      setPosts(prev => [{
+        ...livePost,
+        id: (Date.now() + 1).toString()
+      }, ...prev]);
+
+      // Clear the post form
+      setNewPost('');
+      setSelectedMedia(null);
+      setMediaPreview(null);
+      setSelectedLocation('');
+      setSelectedChannel('');
+      setSelectedEvent('');
+      setTaggedUsers([]);
+      setExpandedPost(false);
+      setShowGoLivePopover(false);
+      setTicketPrice(0);
+
+      toast({
+        title: 'You\'re Live!',
+        description: 'Your solo livestream is now active and visible across all feeds.',
+        duration: 5000
+      });
+
+      // Navigate to the event page after a short delay
+      setTimeout(() => {
+        window.location.href = `/event/${eventResult.id}`;
+      }, 2000);
+
+    } catch (error) {
+      console.error('Error creating solo live stream:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to start live stream. Please try again.',
+        variant: 'destructive'
+      });
+    }
   };
 
 
@@ -965,52 +1096,120 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
                          </PopoverContent>
                         </Popover>
                         
-                        {/* Tag People Button */}
-                        <Popover open={showUserSearch} onOpenChange={setShowUserSearch}>
-                          <PopoverTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <AtSign className="w-4 h-4 mr-2" />
-                              Tag People
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-80">
-                            <Command>
-                              <CommandInput 
-                                placeholder="Search for people to tag..." 
-                                value={userSearchTerm}
-                                onValueChange={(value) => {
-                                  setUserSearchTerm(value);
-                                  searchUsers(value);
-                                }}
-                              />
-                              <CommandList>
-                                <CommandEmpty>
-                                  {userSearchTerm ? 'No users found' : 'Start typing to search for people'}
-                                </CommandEmpty>
-                                <CommandGroup>
-                                  {userSearchResults.map((user) => (
-                                    <CommandItem
-                                      key={user.id}
-                                      value={user.username}
-                                      onSelect={() => handleTagUser(user)}
-                                    >
-                                      <div className="flex items-center gap-2">
-                                        <Avatar className="w-6 h-6">
-                                          <AvatarImage src={user.profile_picture_url} />
-                                          <AvatarFallback>{user.display_name[0]}</AvatarFallback>
-                                        </Avatar>
-                                        <div>
-                                          <p className="font-medium">{user.display_name}</p>
-                                          <p className="text-sm text-muted-foreground">@{user.username}</p>
-                                        </div>
-                                      </div>
-                                    </CommandItem>
-                                  ))}
-                                </CommandGroup>
-                              </CommandList>
-                            </Command>
-                          </PopoverContent>
-                        </Popover>
+                         {/* Tag People Button */}
+                         <Popover open={showUserSearch} onOpenChange={setShowUserSearch}>
+                           <PopoverTrigger asChild>
+                             <Button variant="ghost" size="sm">
+                               <AtSign className="w-4 h-4 mr-2" />
+                               Tag People
+                             </Button>
+                           </PopoverTrigger>
+                           <PopoverContent className="w-80">
+                             <Command>
+                               <CommandInput 
+                                 placeholder="Search for people to tag..." 
+                                 value={userSearchTerm}
+                                 onValueChange={(value) => {
+                                   setUserSearchTerm(value);
+                                   searchUsers(value);
+                                 }}
+                               />
+                               <CommandList>
+                                 <CommandEmpty>
+                                   {userSearchTerm ? 'No users found' : 'Start typing to search for people'}
+                                 </CommandEmpty>
+                                 <CommandGroup>
+                                   {userSearchResults.map((user) => (
+                                     <CommandItem
+                                       key={user.id}
+                                       value={user.username}
+                                       onSelect={() => handleTagUser(user)}
+                                     >
+                                       <div className="flex items-center gap-2">
+                                         <Avatar className="w-6 h-6">
+                                           <AvatarImage src={user.profile_picture_url} />
+                                           <AvatarFallback>{user.display_name[0]}</AvatarFallback>
+                                         </Avatar>
+                                         <div>
+                                           <p className="font-medium">{user.display_name}</p>
+                                           <p className="text-sm text-muted-foreground">@{user.username}</p>
+                                         </div>
+                                       </div>
+                                     </CommandItem>
+                                   ))}
+                                 </CommandGroup>
+                               </CommandList>
+                             </Command>
+                           </PopoverContent>
+                         </Popover>
+                         
+                         {/* Go Live Right Now Solo Button */}
+                         <Popover open={showGoLivePopover} onOpenChange={setShowGoLivePopover}>
+                           <PopoverTrigger asChild>
+                             <Button variant="ghost" size="sm" className="bg-red-600 hover:bg-red-700 text-white">
+                               <Zap className="w-4 h-4 mr-2" />
+                               Go Live Right Now Solo
+                             </Button>
+                           </PopoverTrigger>
+                           <PopoverContent className="w-80 p-4">
+                             <div className="space-y-4">
+                               <div className="text-center">
+                                 <h3 className="font-semibold text-lg mb-2">Set Event Price</h3>
+                                 <p className="text-sm text-muted-foreground mb-4">
+                                   Choose the admission cost for your solo livestream
+                                 </p>
+                               </div>
+                               
+                               <div className="space-y-3">
+                                 <div className="flex items-center justify-between">
+                                   <span className="text-sm font-medium">Price: ${ticketPrice.toFixed(2)}</span>
+                                   <Button 
+                                     variant="outline" 
+                                     size="sm"
+                                     onClick={() => setTicketPrice(0)}
+                                   >
+                                     Free
+                                   </Button>
+                                 </div>
+                                 
+                                 <div className="px-3">
+                                   <input
+                                     type="range"
+                                     min="0"
+                                     max="100"
+                                     step="0.01"
+                                     value={ticketPrice}
+                                     onChange={(e) => setTicketPrice(parseFloat(e.target.value))}
+                                     className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                   />
+                                   <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                                     <span>$0</span>
+                                     <span>$100</span>
+                                   </div>
+                                 </div>
+                               </div>
+                               
+                               <div className="flex gap-2 pt-2">
+                                 <Button 
+                                   variant="outline" 
+                                   size="sm" 
+                                   onClick={() => setShowGoLivePopover(false)}
+                                   className="flex-1"
+                                 >
+                                   Cancel
+                                 </Button>
+                                 <Button 
+                                   size="sm" 
+                                   onClick={handleGoLiveSolo}
+                                   className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                                 >
+                                   <Zap className="w-4 h-4 mr-2" />
+                                   Go Live Now
+                                 </Button>
+                               </div>
+                             </div>
+                           </PopoverContent>
+                         </Popover>
                      </div>
                   </div>
                 )}
