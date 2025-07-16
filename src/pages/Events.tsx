@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Star, Eye, ChevronDown, ChevronUp, Plus, History, Clock, DollarSign } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import TooltipWrapper from '@/components/ui/tooltip-wrapper';
 import EventRankingControls, { SortOption } from '@/components/EventRankingControls';
 import ScheduledEventsGrid from '@/components/ScheduledEventsGrid';
@@ -38,10 +38,20 @@ const Events: React.FC = () => {
   const [liveEvents, setLiveEvents] = useState<Event[]>([]);
   const [scheduledEvents, setScheduledEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const [highlightedEvent, setHighlightedEvent] = useState<string | null>(null);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   
   useEffect(() => {
     fetchEvents();
+    
+    // Check if there's an event parameter in URL to highlight
+    const eventParam = searchParams.get('event');
+    if (eventParam) {
+      setHighlightedEvent(eventParam);
+      // Clear highlight after 3 seconds
+      setTimeout(() => setHighlightedEvent(null), 3000);
+    }
     
     // Set up real-time subscription for live events
     const subscription = supabase
@@ -54,7 +64,7 @@ const Events: React.FC = () => {
     return () => {
       supabase.removeChannel(subscription);
     };
-  }, []);
+  }, [searchParams]);
 
   const fetchEvents = async () => {
     try {
@@ -202,7 +212,12 @@ const Events: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredLiveEvents.map((event, index) => (
                   <TooltipWrapper key={event.id} content={`View ${event.name} - ${event.viewer_count} viewers`}>
-                    <Card className="hover:shadow-lg transition-shadow cursor-pointer relative" onClick={() => handleEventClick(event.id)}>
+                    <Card 
+                      className={`hover:shadow-lg transition-all cursor-pointer relative ${
+                        highlightedEvent === event.id ? 'ring-4 ring-purple-500 ring-opacity-50 shadow-xl' : ''
+                      }`}
+                      onClick={() => handleEventClick(event.id)}
+                    >
                       <div className="absolute top-2 left-2 bg-purple-500 text-white text-xs px-2 py-1 rounded-full font-bold">
                         #{index + 1}
                       </div>

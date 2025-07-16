@@ -98,6 +98,8 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
   const [selectedEvent, setSelectedEvent] = useState<string>('');
   const [channelOpen, setChannelOpen] = useState(false);
   const [eventOpen, setEventOpen] = useState(false);
+  const [postsCache, setPostsCache] = useState<TimelinePost[]>([]);
+  const [persistedPosts, setPersistedPosts] = useState<TimelinePost[]>([]);
   const [channelInput, setChannelInput] = useState<string>('');
   const [eventInput, setEventInput] = useState<string>('');
   const [taggedUsers, setTaggedUsers] = useState<any[]>([]);
@@ -244,6 +246,13 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
 
   const fetchPosts = async () => {
     try {
+      // Check if we have cached posts first
+      if (persistedPosts.length > 0) {
+        setPosts(persistedPosts);
+        setLoading(false);
+        return;
+      }
+
       // Mock timeline posts with different types
       const mockPosts: TimelinePost[] = [
         {
@@ -287,6 +296,10 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
             event_id: 'event-1',
             location: 'San Francisco, CA',
             attendees: 150
+          },
+          event: {
+            id: 'event-1',
+            name: 'Content Creation Workshop'
           }
         },
         {
@@ -307,7 +320,11 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
           shares_count: 7,
           is_liked: false,
           is_bookmarked: true,
-          type: 'post'
+          type: 'post',
+          channel: {
+            id: 'channel-1',
+            name: 'Photography Channel'
+          }
         },
         {
           id: '4',
@@ -325,10 +342,24 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
           shares_count: 18,
           is_liked: true,
           is_bookmarked: false,
-          type: 'milestone'
+          type: 'milestone',
+          taggedUsers: [
+            {
+              id: 'user-1',
+              name: 'John Doe',
+              username: 'johndoe'
+            },
+            {
+              id: 'user-2',
+              name: 'Jane Smith',
+              username: 'janesmith'
+            }
+          ]
         }
       ];
+      
       setPosts(mockPosts);
+      setPersistedPosts(mockPosts); // Cache the posts
     } catch (error) {
       console.error('Error fetching posts:', error);
       toast({
@@ -437,7 +468,9 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
         }))
       };
 
-      setPosts(prev => [newPostData, ...prev]);
+      const updatedPosts = [newPostData, ...posts];
+      setPosts(updatedPosts);
+      setPersistedPosts(updatedPosts); // Update cache
       setNewPost('');
       setSelectedMedia(null);
       setMediaPreview(null);

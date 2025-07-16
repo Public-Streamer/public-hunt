@@ -121,7 +121,7 @@ const UserEventsList: React.FC<UserEventsListProps> = ({ userId }) => {
                     </div>
                     <span>{event.viewer_count || 0} viewers</span>
                   </div>
-                  <Link to={`/events/${event.id}`}>
+                  <Link to={`/event/${event.id}`}>
                     <Button variant="outline" size="sm">
                       <ExternalLink className="w-4 h-4 mr-1" />
                       View

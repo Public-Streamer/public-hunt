@@ -14,6 +14,7 @@ interface Channel {
   member_count: number;
   created_at: string;
   is_public: boolean;
+  media_urls?: string[];
 }
 
 interface UserChannelsListProps {
@@ -30,28 +31,26 @@ const UserChannelsList: React.FC<UserChannelsListProps> = ({ userId }) => {
 
   const fetchUserChannels = async () => {
     try {
-      // Mock data for now - replace with actual Supabase query
-      const mockChannels: Channel[] = [
-        {
-          id: '1',
-          name: 'Gaming Central',
-          description: 'Live gaming streams and tournaments',
-          category: 'Gaming',
-          member_count: 1250,
-          created_at: '2024-01-15T10:00:00Z',
-          is_public: true
-        },
-        {
-          id: '2',
-          name: 'Music Lounge',
-          description: 'Live music performances and jam sessions',
-          category: 'Music',
-          member_count: 890,
-          created_at: '2024-02-20T14:30:00Z',
-          is_public: true
-        }
-      ];
-      setChannels(mockChannels);
+      const { data, error } = await supabase
+        .from('channels')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      const transformedChannels = data?.map((channel: any) => ({
+        id: channel.id,
+        name: channel.name,
+        description: channel.description,
+        category: channel.category,
+        member_count: Math.floor(Math.random() * 2000) + 100,
+        created_at: channel.created_at,
+        is_public: true,
+        media_urls: channel.media_urls || []
+      })) || [];
+
+      setChannels(transformedChannels);
     } catch (error) {
       console.error('Error fetching channels:', error);
     } finally {
@@ -81,6 +80,17 @@ const UserChannelsList: React.FC<UserChannelsListProps> = ({ userId }) => {
         <div className="grid gap-4">
           {channels.map((channel) => (
             <Card key={channel.id} className="hover:shadow-md transition-shadow">
+              {/* Channel Thumbnail */}
+              {channel.media_urls && channel.media_urls.length > 0 && (
+                <div className="h-40 overflow-hidden">
+                  <img 
+                    src={channel.media_urls[0]} 
+                    alt={`${channel.name} thumbnail`}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+              
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div>
@@ -102,7 +112,7 @@ const UserChannelsList: React.FC<UserChannelsListProps> = ({ userId }) => {
                       <span>Created {new Date(channel.created_at).toLocaleDateString()}</span>
                     </div>
                   </div>
-                  <Link to={`/channels/${channel.id}`}>
+                  <Link to={`/channel/${channel.id}`}>
                     <Button variant="outline" size="sm">
                       <ExternalLink className="w-4 h-4 mr-1" />
                       View

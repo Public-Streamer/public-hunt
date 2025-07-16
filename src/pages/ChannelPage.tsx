@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +10,21 @@ import ChannelPastEventsGrid from '@/components/ChannelPastEventsGrid';
 import SocialMediaSection from '@/components/SocialMediaSection';
 import SocialShareMenu from '@/components/SocialShareMenu';
 import TooltipWrapper from '@/components/ui/tooltip-wrapper';
+import { supabase } from '@/lib/supabase';
+
+interface Channel {
+  id: string;
+  name: string;
+  description: string;
+  user_id: string;
+  category: string;
+  media_urls: string[];
+  created_at: string;
+  updated_at: string;
+  owner_first_name: string;
+  owner_last_name: string;
+  owner_email: string;
+}
 
 const ChannelPage: React.FC = () => {
   const { channelId } = useParams<{ channelId: string }>();
@@ -19,17 +34,60 @@ const ChannelPage: React.FC = () => {
   const [scheduledSortBy, setScheduledSortBy] = useState<SortOption>('newest');
   const [pastSortBy, setPastSortBy] = useState<SortOption>('most-views');
   const [activeTab, setActiveTab] = useState('live');
-  
-  // Mock channel data
-  const channel = {
-    id: channelId,
-    name: `Channel ${channelId}`,
-    description: `Premium content from Channel ${channelId}`,
-    subscribers: Math.floor(Math.random() * 50000) + 1000,
-    views: Math.floor(Math.random() * 500000) + 5000,
-    rating: (Math.random() * 2 + 3).toFixed(1),
-    isLive: Math.random() < 0.3
+  const [channel, setChannel] = useState<Channel | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [subscribers, setSubscribers] = useState(0);
+  const [views, setViews] = useState(0);
+  const [rating, setRating] = useState(0);
+  const [isLive, setIsLive] = useState(false);
+
+  useEffect(() => {
+    if (channelId) {
+      fetchChannelData();
+    }
+  }, [channelId]);
+
+  const fetchChannelData = async () => {
+    try {
+      const { data: channelData, error } = await supabase
+        .from('channels')
+        .select('*')
+        .eq('id', channelId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching channel:', error);
+        return;
+      }
+
+      setChannel(channelData);
+      setSubscribers(Math.floor(Math.random() * 50000) + 1000);
+      setViews(Math.floor(Math.random() * 500000) + 5000);
+      setRating(Math.random() * 2 + 3);
+      setIsLive(Math.random() < 0.3);
+    } catch (error) {
+      console.error('Error fetching channel data:', error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-lg">Loading channel...</div>
+      </div>
+    );
+  }
+
+  if (!channel) {
+    return (
+      <div className="text-center py-12">
+        <h2 className="text-2xl font-bold mb-4">Channel Not Found</h2>
+        <p className="text-gray-600">The channel you're looking for doesn't exist.</p>
+      </div>
+    );
+  }
   
   const channelUrl = `${window.location.origin}/channel/${channelId}`;
   
@@ -141,23 +199,54 @@ const ChannelPage: React.FC = () => {
     <div className="container mx-auto px-4 py-8">
       {/* Channel Header */}
       <div className="mb-8">
+        {/* Channel Thumbnail */}
+        {channel.media_urls && channel.media_urls.length > 0 && (
+          <div className="mb-6 relative">
+            <img 
+              src={channel.media_urls[0]} 
+              alt={`${channel.name} thumbnail`}
+              className="w-full h-64 object-cover rounded-lg shadow-md"
+            />
+            <div className="absolute inset-0 bg-black bg-opacity-40 rounded-lg flex items-end">
+              <div className="p-6 text-white">
+                <h1 className="text-4xl font-bold mb-2">{channel.name}</h1>
+                <p className="text-lg opacity-90">{channel.description}</p>
+              </div>
+            </div>
+          </div>
+        )}
+        
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-3xl font-bold">{channel.name}</h1>
-          {channel.isLive && (
+          {isLive && (
             <Badge className="bg-red-500">LIVE</Badge>
           )}
         </div>
         <p className="text-gray-600 mb-4">{channel.description}</p>
+        
+        {/* Channel Creator Info */}
+        <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+          <p className="text-sm text-gray-700">
+            <strong>Created by:</strong> {channel.owner_first_name} {channel.owner_last_name}
+          </p>
+          <p className="text-sm text-gray-700">
+            <strong>Category:</strong> {channel.category}
+          </p>
+          <p className="text-sm text-gray-700">
+            <strong>Created:</strong> {new Date(channel.created_at).toLocaleDateString()}
+          </p>
+        </div>
+        
         <div className="flex items-center space-x-6 text-sm text-gray-500">
           <span className="flex items-center">
             <Users className="h-4 w-4 mr-1" />
-            {channel.subscribers.toLocaleString()} subscribers
+            {subscribers.toLocaleString()} subscribers
           </span>
           <span className="flex items-center">
             <Star className="h-4 w-4 mr-1" />
-            {channel.rating}
+            {rating.toFixed(1)}
           </span>
-          <span>{channel.views.toLocaleString()} total views</span>
+          <span>{views.toLocaleString()} total views</span>
         </div>
       </div>
       
