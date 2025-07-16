@@ -191,6 +191,30 @@ const SocialPost: React.FC<SocialPostProps> = ({
       <CardContent className="pt-0">
         {isEditing ? (
           <div className="mb-4 space-y-3">
+            {(mediaPreview || media_url) && (
+              <div className="relative">
+                {media_type === 'video' ? (
+                  <video
+                    src={mediaPreview || media_url}
+                    controls
+                    className="max-w-full h-auto rounded-md"
+                  />
+                ) : (
+                  <img src={mediaPreview || media_url} alt="Preview" className="max-w-full h-auto rounded-md" />
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedMedia(null);
+                    setMediaPreview(null);
+                  }}
+                  className="absolute top-2 right-2 bg-black/50 text-white"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
             <Textarea
               value={editContent}
               onChange={(e) => setEditContent(e.target.value)}
@@ -219,30 +243,6 @@ const SocialPost: React.FC<SocialPostProps> = ({
                 Attach Media
               </label>
             </div>
-            {(mediaPreview || media_url) && (
-              <div className="relative">
-                {media_type === 'video' ? (
-                  <video
-                    src={mediaPreview || media_url}
-                    controls
-                    className="max-w-full h-auto rounded-md"
-                  />
-                ) : (
-                  <img src={mediaPreview || media_url} alt="Preview" className="max-w-full h-auto rounded-md" />
-                )}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setSelectedMedia(null);
-                    setMediaPreview(null);
-                  }}
-                  className="absolute top-2 right-2 bg-black/50 text-white"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
           </div>
         ) : (
           <div className="mb-4">
