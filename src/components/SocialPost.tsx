@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Heart, MessageCircle, Share2, Send, Hash, Calendar, Users } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Heart, MessageCircle, Share2, Send, Hash, Calendar, Users, Edit2, Trash2, MoreHorizontal, Check, X } from 'lucide-react';
 
 interface SocialPostProps {
   postId: string;
@@ -32,9 +33,12 @@ interface SocialPostProps {
     username: string;
   }[];
   isLiked?: boolean;
+  isOwnPost?: boolean;
   onLike?: (postId: string) => void;
   onComment?: (postId: string, comment: string) => void;
   onShare?: (postId: string) => void;
+  onEdit?: (postId: string, newContent: string) => void;
+  onDelete?: (postId: string) => void;
 }
 
 const SocialPost: React.FC<SocialPostProps> = ({
@@ -49,14 +53,20 @@ const SocialPost: React.FC<SocialPostProps> = ({
   event,
   taggedUsers,
   isLiked = false,
+  isOwnPost = false,
   onLike,
   onComment,
-  onShare
+  onShare,
+  onEdit,
+  onDelete
 }) => {
   const [showComments, setShowComments] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [liked, setLiked] = useState(isLiked);
   const [likeCount, setLikeCount] = useState(likes);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(content);
+  const [showDeleteMenu, setShowDeleteMenu] = useState(false);
 
   const handleLike = () => {
     setLiked(!liked);
@@ -75,23 +85,110 @@ const SocialPost: React.FC<SocialPostProps> = ({
     onShare?.(postId);
   };
 
+  const handleEditSave = () => {
+    if (editContent.trim()) {
+      onEdit?.(postId, editContent);
+      setIsEditing(false);
+    }
+  };
+
+  const handleEditCancel = () => {
+    setEditContent(content);
+    setIsEditing(false);
+    setShowDeleteMenu(false);
+  };
+
+  const handleDelete = () => {
+    onDelete?.(postId);
+    setShowDeleteMenu(false);
+  };
+
   return (
     <Card className="mb-4">
       <CardHeader className="pb-3">
-        <div className="flex items-center space-x-3">
-          <Avatar className="h-10 w-10">
-            <AvatarImage src={author.avatar} />
-            <AvatarFallback>{author.name.charAt(0)}</AvatarFallback>
-          </Avatar>
-          <div>
-            <p className="font-semibold">{author.name}</p>
-            <p className="text-sm text-gray-500">@{author.username} • {timestamp}</p>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={author.avatar} />
+              <AvatarFallback>{author.name.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="font-semibold">{author.name}</p>
+              <p className="text-sm text-gray-500">@{author.username} • {timestamp}</p>
+            </div>
           </div>
+          
+          {isOwnPost && (
+            <div className="flex items-center space-x-2">
+              {isEditing ? (
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleEditCancel}
+                    className="text-gray-500"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleEditSave}
+                    disabled={!editContent.trim()}
+                    className="text-green-500"
+                  >
+                    <Check className="h-4 w-4" />
+                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="ghost" size="sm" className="text-red-500">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Post</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete this post? This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDelete} className="bg-red-500 hover:bg-red-600">
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsEditing(true)}
+                  className="text-gray-500"
+                >
+                  <Edit2 className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       </CardHeader>
       
       <CardContent className="pt-0">
-        <p className="mb-4">{content}</p>
+        {isEditing ? (
+          <div className="mb-4">
+            <Textarea
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
+              className="min-h-[100px]"
+              placeholder="Edit your post..."
+            />
+          </div>
+        ) : (
+          <p className="mb-4">{content}</p>
+        )}
         
         {/* Channel, Event, and Tagged Users Information */}
         {(channel || event || (taggedUsers && taggedUsers.length > 0)) && (

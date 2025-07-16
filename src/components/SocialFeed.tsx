@@ -124,9 +124,12 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
             event={post.event}
             taggedUsers={post.taggedUsers}
             isLiked={post.isLiked}
+            isOwnPost={false}
             onLike={onLikePost}
             onComment={onCommentPost}
             onShare={onSharePost}
+            onEdit={(postId, newContent) => console.log('Edit post:', postId, newContent)}
+            onDelete={(postId) => console.log('Delete post:', postId)}
           />
         ))}
       </div>

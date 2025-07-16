@@ -665,7 +665,17 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
 
   const handleDeletePost = async (postId: string) => {
     try {
+      // Delete the post from the database
+      const { error } = await supabase
+        .from('user_posts')
+        .delete()
+        .eq('id', postId);
+
+      if (error) throw error;
+
+      // Update the local state
       setPosts(prev => prev.filter(post => post.id !== postId));
+
       toast({
         title: 'Success',
         description: 'Post deleted successfully'
@@ -699,6 +709,38 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
       console.error('Error sharing:', error);
     }
   };
+
+  const handleEditPost = async (postId: string, newContent: string) => {
+    try {
+      // Update the post in the database
+      const { error } = await supabase
+        .from('user_posts')
+        .update({ content: newContent, updated_at: new Date().toISOString() })
+        .eq('id', postId);
+
+      if (error) throw error;
+
+      // Update the local state
+      setPosts(prev => prev.map(post => 
+        post.id === postId 
+          ? { ...post, content: newContent }
+          : post
+      ));
+
+      toast({
+        title: 'Success',
+        description: 'Post updated successfully'
+      });
+    } catch (error) {
+      console.error('Error updating post:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update post',
+        variant: 'destructive'
+      });
+    }
+  };
+
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -1311,6 +1353,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
           event={post.event}
           taggedUsers={post.taggedUsers}
           isLiked={post.is_liked}
+          isOwnPost={post.user_id === user?.id}
           onLike={handleLike}
           onComment={(postId, comment) => {
             // Set the selected post and comment, then call handleAddComment
@@ -1323,6 +1366,8 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
             const foundPost = posts.find(p => p.id === postId);
             if (foundPost) handleShare(foundPost);
           }}
+          onEdit={handleEditPost}
+          onDelete={handleDeletePost}
         />
       ))}
 
