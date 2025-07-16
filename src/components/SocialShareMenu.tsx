@@ -2,9 +2,8 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Share2, Facebook, Instagram, MessageCircle, Mail, Phone, Check } from 'lucide-react';
+import { Share2, Facebook, Instagram, MessageCircle, Mail, Phone, Check, Copy, Twitter } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { TooltipDropdownMenuItem } from '@/components/ui/dropdown-menu-with-tooltip';
 
 interface SocialShareMenuProps {
   title: string;
@@ -18,14 +17,13 @@ const SocialShareMenu: React.FC<SocialShareMenuProps> = ({ title, url, descripti
   const { toast } = useToast();
 
   const platforms = [
-    { id: 'tiktok', name: 'TikTok', icon: MessageCircle, color: 'bg-black', tooltip: 'Share on TikTok - Perfect for short video content' },
+    { id: 'whatsapp', name: 'WhatsApp', icon: MessageCircle, color: 'bg-green-500', tooltip: 'Share on WhatsApp - Instant messaging' },
     { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'bg-blue-600', tooltip: 'Share on Facebook - Reach friends and family' },
-    { id: 'instagram', name: 'Instagram', icon: Instagram, color: 'bg-pink-600', tooltip: 'Share on Instagram - Visual content platform' },
-    { id: 'x', name: 'X (Twitter)', icon: MessageCircle, color: 'bg-gray-900', tooltip: 'Share on X - Quick updates and news' },
-    { id: 'snapchat', name: 'Snapchat', icon: MessageCircle, color: 'bg-yellow-400', tooltip: 'Share on Snapchat - Temporary content sharing' },
-    { id: 'streamura', name: 'Streamura', icon: Share2, color: 'bg-purple-600', tooltip: 'Share within Streamura community' },
-    { id: 'email', name: 'Email', icon: Mail, color: 'bg-green-600', tooltip: 'Share via email - Direct personal sharing' },
-    { id: 'text', name: 'Text Message', icon: Phone, color: 'bg-blue-500', tooltip: 'Share via SMS - Instant messaging' }
+    { id: 'instagram', name: 'Instagram', icon: Instagram, color: 'bg-pink-600', tooltip: 'Copy link for Instagram sharing' },
+    { id: 'x', name: 'X (Twitter)', icon: Twitter, color: 'bg-gray-900', tooltip: 'Share on X - Quick updates and news' },
+    { id: 'email', name: 'Email', icon: Mail, color: 'bg-blue-500', tooltip: 'Share via email - Direct personal sharing' },
+    { id: 'sms', name: 'SMS', icon: Phone, color: 'bg-green-600', tooltip: 'Share via SMS - Text messaging' },
+    { id: 'copy', name: 'Copy Link', icon: Copy, color: 'bg-gray-600', tooltip: 'Copy link to clipboard' }
   ];
 
   const handlePlatformToggle = (platformId: string) => {
@@ -45,23 +43,122 @@ const SocialShareMenu: React.FC<SocialShareMenuProps> = ({ title, url, descripti
     setSelectAll(!selectAll);
   };
 
-  const handleShare = () => {
+  const createShareMessage = (platform: string): string => {
+    const baseMessage = `🎉 Check out this amazing event: ${title}`;
+    const fullMessage = description 
+      ? `${baseMessage}\n\n${description}\n\n🔗 ${url}`
+      : `${baseMessage}\n\n🔗 ${url}`;
+    
+    switch (platform) {
+      case 'x':
+        return `${baseMessage} ${url}`.substring(0, 280); // Twitter character limit
+      case 'sms':
+        return `${baseMessage} ${url}`.substring(0, 160); // SMS character limit
+      default:
+        return fullMessage;
+    }
+  };
+
+  const createEmailData = () => {
+    return {
+      subject: `🎉 ${title} - Join this amazing event!`,
+      body: `Hi!\n\nI wanted to share this exciting event with you:\n\n${title}\n\n${description || ''}\n\nClick here to learn more and join: ${url}\n\nHope to see you there!`
+    };
+  };
+
+  const shareToUrl = (platformUrl: string) => {
+    window.open(platformUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast({ 
+        title: 'Link copied!', 
+        description: 'The event link has been copied to your clipboard' 
+      });
+    } catch (error) {
+      // Fallback for browsers without clipboard API
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      toast({ 
+        title: 'Link copied!', 
+        description: 'The event link has been copied to your clipboard' 
+      });
+    }
+  };
+
+  const handleShare = async () => {
     if (selectedPlatforms.length === 0) {
       toast({ title: 'Please select at least one platform to share' });
       return;
     }
 
-    selectedPlatforms.forEach(platformId => {
-      const platform = platforms.find(p => p.id === platformId);
-      if (platform) {
-        console.log(`Sharing to ${platform.name}:`, { title, url, description });
-      }
-    });
+    let successCount = 0;
+    let copyCount = 0;
 
-    toast({ 
-      title: 'Shared successfully!', 
-      description: `Shared to ${selectedPlatforms.length} platform(s)` 
-    });
+    for (const platformId of selectedPlatforms) {
+      try {
+        switch (platformId) {
+          case 'whatsapp':
+            shareToUrl(`https://wa.me/?text=${encodeURIComponent(createShareMessage('whatsapp'))}`);
+            successCount++;
+            break;
+          
+          case 'facebook':
+            shareToUrl(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`);
+            successCount++;
+            break;
+          
+          case 'instagram':
+            await copyToClipboard(url);
+            copyCount++;
+            break;
+          
+          case 'x':
+            shareToUrl(`https://twitter.com/intent/tweet?text=${encodeURIComponent(createShareMessage('x'))}`);
+            successCount++;
+            break;
+          
+          case 'email':
+            const emailData = createEmailData();
+            shareToUrl(`mailto:?subject=${encodeURIComponent(emailData.subject)}&body=${encodeURIComponent(emailData.body)}`);
+            successCount++;
+            break;
+          
+          case 'sms':
+            shareToUrl(`sms:?body=${encodeURIComponent(createShareMessage('sms'))}`);
+            successCount++;
+            break;
+          
+          case 'copy':
+            await copyToClipboard(url);
+            copyCount++;
+            break;
+          
+          default:
+            break;
+        }
+      } catch (error) {
+        console.error(`Error sharing to ${platformId}:`, error);
+      }
+    }
+
+    if (copyCount > 0 && successCount === 0) {
+      // Only copying was done, toast already shown
+      return;
+    }
+
+    if (successCount > 0) {
+      toast({ 
+        title: 'Sharing completed!', 
+        description: `Opened ${successCount} sharing window(s)${copyCount > 0 ? ' and copied link' : ''}` 
+      });
+    }
   };
 
   return (
