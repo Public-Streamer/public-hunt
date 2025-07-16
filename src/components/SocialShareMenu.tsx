@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Share2, Facebook, Instagram, MessageCircle, Mail, Phone, Check, Copy, Twitter } from 'lucide-react';
+import { Share2, Facebook, Instagram, MessageCircle, Mail, Phone, Copy, Twitter } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface SocialShareMenuProps {
@@ -12,8 +11,6 @@ interface SocialShareMenuProps {
 }
 
 const SocialShareMenu: React.FC<SocialShareMenuProps> = ({ title, url, description }) => {
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
-  const [selectAll, setSelectAll] = useState(false);
   const { toast } = useToast();
 
   const platforms = [
@@ -25,23 +22,6 @@ const SocialShareMenu: React.FC<SocialShareMenuProps> = ({ title, url, descripti
     { id: 'sms', name: 'SMS', icon: Phone, color: 'bg-green-600', tooltip: 'Share via SMS - Text messaging' },
     { id: 'copy', name: 'Copy Link', icon: Copy, color: 'bg-gray-600', tooltip: 'Copy link to clipboard' }
   ];
-
-  const handlePlatformToggle = (platformId: string) => {
-    setSelectedPlatforms(prev => 
-      prev.includes(platformId) 
-        ? prev.filter(id => id !== platformId)
-        : [...prev, platformId]
-    );
-  };
-
-  const handleSelectAll = () => {
-    if (selectAll) {
-      setSelectedPlatforms([]);
-    } else {
-      setSelectedPlatforms(platforms.map(p => p.id));
-    }
-    setSelectAll(!selectAll);
-  };
 
   const createShareMessage = (platform: string): string => {
     const baseMessage = `🎉 Check out this amazing event: ${title}`;
@@ -92,71 +72,71 @@ const SocialShareMenu: React.FC<SocialShareMenuProps> = ({ title, url, descripti
     }
   };
 
-  const handleShare = async () => {
-    if (selectedPlatforms.length === 0) {
-      toast({ title: 'Please select at least one platform to share' });
-      return;
-    }
-
-    let successCount = 0;
-    let copyCount = 0;
-
-    for (const platformId of selectedPlatforms) {
-      try {
-        switch (platformId) {
-          case 'whatsapp':
-            shareToUrl(`https://wa.me/?text=${encodeURIComponent(createShareMessage('whatsapp'))}`);
-            successCount++;
-            break;
-          
-          case 'facebook':
-            shareToUrl(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`);
-            successCount++;
-            break;
-          
-          case 'instagram':
-            await copyToClipboard(url);
-            copyCount++;
-            break;
-          
-          case 'x':
-            shareToUrl(`https://twitter.com/intent/tweet?text=${encodeURIComponent(createShareMessage('x'))}`);
-            successCount++;
-            break;
-          
-          case 'email':
-            const emailData = createEmailData();
-            shareToUrl(`mailto:?subject=${encodeURIComponent(emailData.subject)}&body=${encodeURIComponent(emailData.body)}`);
-            successCount++;
-            break;
-          
-          case 'sms':
-            shareToUrl(`sms:?body=${encodeURIComponent(createShareMessage('sms'))}`);
-            successCount++;
-            break;
-          
-          case 'copy':
-            await copyToClipboard(url);
-            copyCount++;
-            break;
-          
-          default:
-            break;
-        }
-      } catch (error) {
-        console.error(`Error sharing to ${platformId}:`, error);
+  const handlePlatformClick = async (platformId: string) => {
+    try {
+      switch (platformId) {
+        case 'whatsapp':
+          shareToUrl(`https://wa.me/?text=${encodeURIComponent(createShareMessage('whatsapp'))}`);
+          toast({ 
+            title: 'WhatsApp opened!', 
+            description: 'Share the event with your WhatsApp contacts' 
+          });
+          break;
+        
+        case 'facebook':
+          shareToUrl(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`);
+          toast({ 
+            title: 'Facebook opened!', 
+            description: 'Share the event on your Facebook timeline' 
+          });
+          break;
+        
+        case 'instagram':
+          await copyToClipboard(url);
+          toast({ 
+            title: 'Link copied for Instagram!', 
+            description: 'Paste the link in your Instagram story or bio' 
+          });
+          break;
+        
+        case 'x':
+          shareToUrl(`https://twitter.com/intent/tweet?text=${encodeURIComponent(createShareMessage('x'))}`);
+          toast({ 
+            title: 'X (Twitter) opened!', 
+            description: 'Share the event with your followers' 
+          });
+          break;
+        
+        case 'email':
+          const emailData = createEmailData();
+          shareToUrl(`mailto:?subject=${encodeURIComponent(emailData.subject)}&body=${encodeURIComponent(emailData.body)}`);
+          toast({ 
+            title: 'Email client opened!', 
+            description: 'Send the event details via email' 
+          });
+          break;
+        
+        case 'sms':
+          shareToUrl(`sms:?body=${encodeURIComponent(createShareMessage('sms'))}`);
+          toast({ 
+            title: 'SMS opened!', 
+            description: 'Send the event details via text message' 
+          });
+          break;
+        
+        case 'copy':
+          await copyToClipboard(url);
+          break;
+        
+        default:
+          break;
       }
-    }
-
-    if (copyCount > 0 && successCount === 0) {
-      // Only copying was done, toast already shown
-      return;
-    }
-
-    if (successCount > 0) {
+    } catch (error) {
+      console.error(`Error sharing to ${platformId}:`, error);
       toast({ 
-        title: 'Sharing completed!', 
-        description: `Opened ${successCount} sharing window(s)${copyCount > 0 ? ' and copied link' : ''}` 
+        title: 'Sharing failed', 
+        description: 'Please try again or use a different platform',
+        variant: 'destructive'
       });
     }
   };
@@ -170,53 +150,26 @@ const SocialShareMenu: React.FC<SocialShareMenuProps> = ({ title, url, descripti
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex items-center space-x-2">
-          <Checkbox 
-            id="select-all" 
-            checked={selectAll}
-            onCheckedChange={handleSelectAll}
-          />
-          <label htmlFor="select-all" className="font-medium cursor-pointer">
-            Select All
-          </label>
-        </div>
-        
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {platforms.map((platform) => {
             const Icon = platform.icon;
-            const isSelected = selectedPlatforms.includes(platform.id);
             
             return (
-              <div 
+              <Button
                 key={platform.id}
-                className={`flex items-center space-x-2 p-3 rounded-lg border cursor-pointer transition-all ${
-                  isSelected 
-                    ? 'border-blue-500 bg-blue-50' 
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-                onClick={() => handlePlatformToggle(platform.id)}
+                variant="outline"
+                className="flex items-center space-x-2 p-3 h-auto justify-start"
+                onClick={() => handlePlatformClick(platform.id)}
                 title={platform.tooltip}
               >
-                <Checkbox 
-                  checked={isSelected}
-                  onChange={() => handlePlatformToggle(platform.id)}
-                />
                 <div className={`p-1 rounded ${platform.color}`}>
                   <Icon className="h-4 w-4 text-white" />
                 </div>
                 <span className="text-sm font-medium">{platform.name}</span>
-              </div>
+              </Button>
             );
           })}
         </div>
-        
-        <Button 
-          onClick={handleShare}
-          className="w-full mt-4"
-          disabled={selectedPlatforms.length === 0}
-        >
-          Share to Selected Platforms
-        </Button>
       </CardContent>
     </Card>
   );
