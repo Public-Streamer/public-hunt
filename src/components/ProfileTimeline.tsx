@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { 
   Heart, MessageCircle, Share2, Image as ImageIcon, Video, 
-  MapPin, Calendar, Users, Play, Send, MoreHorizontal, Bookmark
+  MapPin, Calendar, Users, Play, Send, MoreHorizontal, Bookmark, Upload, X, Check, Loader2
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
@@ -60,11 +63,17 @@ interface ProfileTimelineProps {
 const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile, userProfile }) => {
   const [posts, setPosts] = useState<TimelinePost[]>([]);
   const [newPost, setNewPost] = useState('');
+  const [selectedMedia, setSelectedMedia] = useState<File | null>(null);
+  const [mediaPreview, setMediaPreview] = useState<string | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<string>('');
+  const [locationOpen, setLocationOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedPost, setSelectedPost] = useState<TimelinePost | null>(null);
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
+  const [detectingLocation, setDetectingLocation] = useState(false);
   const { toast } = useToast();
   const { user, userProfile: currentUserProfile } = useAppContext();
   
@@ -75,6 +84,25 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
     display_name: currentUserProfile ? `${currentUserProfile.firstName || ''} ${currentUserProfile.lastName || ''}`.trim() || 'User' : 'User',
     profile_picture_url: currentUserProfile?.profilePhoto || '/placeholder.svg'
   };
+
+  // Common locations for autocomplete
+  const commonLocations = [
+    'San Francisco, CA',
+    'New York, NY',
+    'Los Angeles, CA',
+    'Chicago, IL',
+    'Houston, TX',
+    'Phoenix, AZ',
+    'Philadelphia, PA',
+    'San Antonio, TX',
+    'San Diego, CA',
+    'Dallas, TX',
+    'Miami, FL',
+    'Atlanta, GA',
+    'Seattle, WA',
+    'Denver, CO',
+    'Boston, MA'
+  ];
 
   useEffect(() => {
     fetchPosts();
@@ -213,34 +241,122 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
   };
 
   const handleCreatePost = async () => {
-    if (!newPost.trim()) return;
+    if (!newPost.trim() && !selectedMedia) return;
 
-    const newPostData: TimelinePost = {
-      id: Date.now().toString(),
-      content: newPost,
-      created_at: new Date().toISOString(),
-      user_id: userId,
-      user_profile: {
-        id: profileData.id,
-        display_name: profileData.display_name,
-        username: profileData.username,
-        profile_picture_url: profileData.profile_picture_url
+    setUploading(true);
+    try {
+      let mediaUrl: string | undefined;
+      let mediaType: 'image' | 'video' | undefined;
+
+      if (selectedMedia) {
+        // Mock upload - in real app, upload to Supabase storage
+        mediaUrl = URL.createObjectURL(selectedMedia);
+        mediaType = selectedMedia.type.startsWith('image/') ? 'image' : 'video';
+      }
+
+      const newPostData: TimelinePost = {
+        id: Date.now().toString(),
+        content: newPost,
+        media_url: mediaUrl,
+        media_type: mediaType,
+        created_at: new Date().toISOString(),
+        user_id: userId,
+        user_profile: {
+          id: profileData.id,
+          display_name: profileData.display_name,
+          username: profileData.username,
+          profile_picture_url: profileData.profile_picture_url
+        },
+        likes_count: 0,
+        comments_count: 0,
+        shares_count: 0,
+        is_liked: false,
+        is_bookmarked: false,
+        type: 'post',
+        metadata: selectedLocation ? { location: selectedLocation } : undefined
+      };
+
+      setPosts(prev => [newPostData, ...prev]);
+      setNewPost('');
+      setSelectedMedia(null);
+      setMediaPreview(null);
+      setSelectedLocation('');
+      
+      toast({
+        title: 'Success',
+        description: 'Post created successfully!'
+      });
+    } catch (error) {
+      console.error('Error creating post:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to create post',
+        variant: 'destructive'
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleMediaUpload = (file: File, type: 'image' | 'video') => {
+    if (file) {
+      setSelectedMedia(file);
+      setMediaPreview(URL.createObjectURL(file));
+      toast({
+        title: 'Media selected',
+        description: `${type} ready to upload`
+      });
+    }
+  };
+
+  const handleRemoveMedia = () => {
+    setSelectedMedia(null);
+    setMediaPreview(null);
+  };
+
+  const handleLocationDetect = async () => {
+    if (!navigator.geolocation) {
+      toast({
+        title: 'Location not supported',
+        description: 'Geolocation is not supported by this browser',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setDetectingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          // Mock reverse geocoding - in real app, use a geocoding service
+          const { latitude, longitude } = position.coords;
+          const mockLocation = `${latitude.toFixed(2)}, ${longitude.toFixed(2)}`;
+          setSelectedLocation(mockLocation);
+          toast({
+            title: 'Location detected',
+            description: `Location set to ${mockLocation}`
+          });
+        } catch (error) {
+          console.error('Error getting location:', error);
+          toast({
+            title: 'Error',
+            description: 'Failed to get location',
+            variant: 'destructive'
+          });
+        } finally {
+          setDetectingLocation(false);
+        }
       },
-      likes_count: 0,
-      comments_count: 0,
-      shares_count: 0,
-      is_liked: false,
-      is_bookmarked: false,
-      type: 'post'
-    };
-
-    setPosts(prev => [newPostData, ...prev]);
-    setNewPost('');
-    
-    toast({
-      title: 'Success',
-      description: 'Post created successfully!'
-    });
+      (error) => {
+        console.error('Geolocation error:', error);
+        toast({
+          title: 'Location access denied',
+          description: 'Please allow location access or select manually',
+          variant: 'destructive'
+        });
+        setDetectingLocation(false);
+      }
+    );
   };
 
   const handleLike = async (postId: string) => {
@@ -341,24 +457,157 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
                   onChange={(e) => setNewPost(e.target.value)}
                   className="min-h-[100px] resize-none border-0 focus:ring-0 text-lg"
                 />
-                <div className="flex justify-between items-center mt-4 pt-4 border-t">
-                  <div className="flex space-x-2">
-                    <Button variant="ghost" size="sm">
-                      <ImageIcon className="w-4 h-4 mr-2" />
-                      Photo
+                
+                {/* Media Preview */}
+                {mediaPreview && (
+                  <div className="mt-4 relative">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={handleRemoveMedia}
+                      className="absolute top-2 right-2 z-10"
+                    >
+                      <X className="w-4 h-4" />
                     </Button>
-                    <Button variant="ghost" size="sm">
-                      <Video className="w-4 h-4 mr-2" />
-                      Video
-                    </Button>
-                    <Button variant="ghost" size="sm">
-                      <MapPin className="w-4 h-4 mr-2" />
-                      Location
+                    {selectedMedia?.type.startsWith('image/') ? (
+                      <img
+                        src={mediaPreview}
+                        alt="Preview"
+                        className="w-full max-h-64 object-cover rounded-lg"
+                      />
+                    ) : (
+                      <video
+                        src={mediaPreview}
+                        controls
+                        className="w-full max-h-64 object-cover rounded-lg"
+                      />
+                    )}
+                  </div>
+                )}
+                
+                {/* Location Display */}
+                {selectedLocation && (
+                  <div className="mt-2 flex items-center text-sm text-muted-foreground">
+                    <MapPin className="w-4 h-4 mr-1" />
+                    <span>{selectedLocation}</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedLocation('')}
+                      className="ml-2 h-6 w-6 p-0"
+                    >
+                      <X className="w-3 h-3" />
                     </Button>
                   </div>
-                  <Button onClick={handleCreatePost} disabled={!newPost.trim()}>
-                    <Send className="w-4 h-4 mr-2" />
-                    Post
+                )}
+                
+                <div className="flex justify-between items-center mt-4 pt-4 border-t">
+                  <div className="flex space-x-2">
+                    {/* Photo Upload */}
+                    <div>
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleMediaUpload(file, 'image');
+                        }}
+                        className="hidden"
+                        id="photo-upload"
+                      />
+                      <Button variant="ghost" size="sm" asChild>
+                        <label htmlFor="photo-upload" className="cursor-pointer">
+                          <ImageIcon className="w-4 h-4 mr-2" />
+                          Photo
+                        </label>
+                      </Button>
+                    </div>
+                    
+                    {/* Video Upload */}
+                    <div>
+                      <Input
+                        type="file"
+                        accept="video/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleMediaUpload(file, 'video');
+                        }}
+                        className="hidden"
+                        id="video-upload"
+                      />
+                      <Button variant="ghost" size="sm" asChild>
+                        <label htmlFor="video-upload" className="cursor-pointer">
+                          <Video className="w-4 h-4 mr-2" />
+                          Video
+                        </label>
+                      </Button>
+                    </div>
+                    
+                    {/* Location Selector */}
+                    <Popover open={locationOpen} onOpenChange={setLocationOpen}>
+                      <PopoverTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <MapPin className="w-4 h-4 mr-2" />
+                          Location
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-80">
+                        <div className="space-y-4">
+                          <div className="flex items-center space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={handleLocationDetect}
+                              disabled={detectingLocation}
+                            >
+                              {detectingLocation ? (
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              ) : (
+                                <MapPin className="w-4 h-4 mr-2" />
+                              )}
+                              Detect Location
+                            </Button>
+                          </div>
+                          <Command>
+                            <CommandInput placeholder="Search locations..." />
+                            <CommandList>
+                              <CommandEmpty>No locations found.</CommandEmpty>
+                              <CommandGroup>
+                                {commonLocations.map((location) => (
+                                  <CommandItem
+                                    key={location}
+                                    value={location}
+                                    onSelect={() => {
+                                      setSelectedLocation(location);
+                                      setLocationOpen(false);
+                                    }}
+                                  >
+                                    <Check
+                                      className={`mr-2 h-4 w-4 ${
+                                        selectedLocation === location ? 'opacity-100' : 'opacity-0'
+                                      }`}
+                                    />
+                                    {location}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  
+                  <Button 
+                    onClick={handleCreatePost} 
+                    disabled={(!newPost.trim() && !selectedMedia) || uploading}
+                  >
+                    {uploading ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Send className="w-4 h-4 mr-2" />
+                    )}
+                    {uploading ? 'Posting...' : 'Post'}
                   </Button>
                 </div>
               </div>
