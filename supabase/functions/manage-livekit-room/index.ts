@@ -127,8 +127,10 @@ serve(async (req) => {
         .eq("streamer_id", user.id)
         .single();
 
-      const hasParticipantPermission = participant && ["host", "streamer"].includes(participant.role);
-      const hasStreamerPermission = streamer && streamer.role_type === "Streamers";
+      const hasParticipantPermission =
+        participant && ["host", "streamer"].includes(participant.role);
+      const hasStreamerPermission =
+        streamer && streamer.role_type === "Streamers";
 
       if (!hasParticipantPermission && !hasStreamerPermission) {
         return new Response("Forbidden - insufficient permissions", {

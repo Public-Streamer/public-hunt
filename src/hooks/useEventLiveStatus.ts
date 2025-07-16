@@ -28,9 +28,12 @@ export const useEventLiveStatus = ({
     // Debounce the update to avoid too frequent database calls
     updateTimeoutRef.current = setTimeout(async () => {
       try {
-        const hasActiveCameras = !!(localCameraTrack || otherCameraTracks.length > 0);
+        const hasActiveCameras = !!(
+          localCameraTrack || otherCameraTracks.length > 0
+        );
         const shouldGoLive = goLive && hasActiveCameras && !currentIsLive;
-        
+        const shouldStopLive = !goLive && !hasActiveCameras && currentIsLive;
+
         // Only update if the status has changed
         if (shouldGoLive) {
           const { error } = await supabase
@@ -42,6 +45,17 @@ export const useEventLiveStatus = ({
             console.error("Error updating event live status:", error);
           } else {
             console.log(`Event ${eventId} live status updated to: true`);
+          }
+        } else if (shouldStopLive) {
+          const { error } = await supabase
+            .from("events")
+            .update({ is_live: false })
+            .eq("id", eventId);
+
+          if (error) {
+            console.error("Error updating event live status:", error);
+          } else {
+            console.log(`Event ${eventId} live status updated to: false`);
           }
         }
       } catch (error) {
@@ -55,7 +69,13 @@ export const useEventLiveStatus = ({
         clearTimeout(updateTimeoutRef.current);
       }
     };
-  }, [eventId, localCameraTrack, otherCameraTracks.length, currentIsLive, goLive]);
+  }, [
+    eventId,
+    localCameraTrack,
+    otherCameraTracks.length,
+    currentIsLive,
+    goLive,
+  ]);
 
   // Cleanup on unmount
   useEffect(() => {
