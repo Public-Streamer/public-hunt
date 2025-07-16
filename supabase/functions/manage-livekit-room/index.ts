@@ -111,6 +111,7 @@ serve(async (req) => {
 
     // Check if user is authorized to manage the room
     if (event.created_by !== user.id) {
+      // Check if user is a participant with host/streamer role
       const { data: participant } = await supabase
         .from("event_participants")
         .select("role")
@@ -118,7 +119,18 @@ serve(async (req) => {
         .eq("user_id", user.id)
         .single();
 
-      if (!participant || !["host", "streamer"].includes(participant.role)) {
+      // Also check if user is in event_streamers table
+      const { data: streamer } = await supabase
+        .from("event_streamers")
+        .select("role_type")
+        .eq("event_id", eventId)
+        .eq("streamer_id", user.id)
+        .single();
+
+      const hasParticipantPermission = participant && ["host", "streamer"].includes(participant.role);
+      const hasStreamerPermission = streamer && streamer.role_type === "Streamers";
+
+      if (!hasParticipantPermission && !hasStreamerPermission) {
         return new Response("Forbidden - insufficient permissions", {
           status: 403,
           headers: corsHeaders,
