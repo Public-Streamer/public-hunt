@@ -149,7 +149,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
       const results = mockUsers.filter(user =>
         user.username.toLowerCase().includes(query.toLowerCase()) ||
         user.display_name.toLowerCase().includes(query.toLowerCase())
-      );
+      ).filter(user => !taggedUsers.find(taggedUser => taggedUser.id === user.id));
 
       setUserSearchResults(results);
     } catch (error) {
