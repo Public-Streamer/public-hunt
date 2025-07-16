@@ -20,6 +20,8 @@ interface SocialPostProps {
   likes: number;
   comments: number;
   shares: number;
+  media_url?: string;
+  media_type?: 'image' | 'video';
   channel?: {
     id: string;
     name: string;
@@ -50,6 +52,8 @@ const SocialPost: React.FC<SocialPostProps> = ({
   likes,
   comments,
   shares,
+  media_url,
+  media_type,
   channel,
   event,
   taggedUsers,
@@ -231,7 +235,26 @@ const SocialPost: React.FC<SocialPostProps> = ({
             )}
           </div>
         ) : (
-          <p className="mb-4">{content}</p>
+          <div className="mb-4">
+            <p className="mb-4">{content}</p>
+            {media_url && (
+              <div className="mb-4 rounded-lg overflow-hidden">
+                {media_type === 'video' ? (
+                  <video
+                    src={media_url}
+                    controls
+                    className="w-full max-h-96 object-cover"
+                  />
+                ) : (
+                  <img
+                    src={media_url}
+                    alt="Post media"
+                    className="w-full max-h-96 object-cover"
+                  />
+                )}
+              </div>
+            )}
+          </div>
         )}
         
         {/* Channel, Event, and Tagged Users Information */}
@@ -241,7 +264,7 @@ const SocialPost: React.FC<SocialPostProps> = ({
               <Badge 
                 variant="secondary" 
                 className="flex items-center gap-1 cursor-pointer hover:bg-secondary/80"
-                onClick={() => navigate(`/channel/${channel.id}`)}
+                onClick={() => navigate(`/channels?channel=${channel.id}`)}
               >
                 <Hash className="h-3 w-3" />
                 {channel.name}
@@ -251,7 +274,7 @@ const SocialPost: React.FC<SocialPostProps> = ({
               <Badge 
                 variant="secondary" 
                 className="flex items-center gap-1 cursor-pointer hover:bg-secondary/80"
-                onClick={() => navigate(`/event/${event.id}`)}
+                onClick={() => navigate(`/events?event=${event.id}`)}
               >
                 <Calendar className="h-3 w-3" />
                 {event.name}
