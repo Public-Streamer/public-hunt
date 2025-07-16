@@ -16,6 +16,7 @@ import {
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { useAppContext } from '@/contexts/AppContext';
+import SocialPost from './SocialPost';
 
 interface UserProfile {
   id: string;
@@ -44,6 +45,19 @@ interface TimelinePost {
     location?: string;
     attendees?: number;
   };
+  channel?: {
+    id: string;
+    name: string;
+  };
+  event?: {
+    id: string;
+    name: string;
+  };
+  taggedUsers?: {
+    id: string;
+    name: string;
+    username: string;
+  }[];
 }
 
 interface Comment {
@@ -374,6 +388,15 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
         mediaType = selectedMedia.type.startsWith('image/') ? 'image' : 'video';
       }
 
+      // Get full channel and event objects
+      const selectedChannelData = selectedChannel ? 
+        (userChannels.find(c => c.id === selectedChannel) || allChannels.find(c => c.id === selectedChannel)) : 
+        undefined;
+      
+      const selectedEventData = selectedEvent ? 
+        (userEvents.find(e => e.id === selectedEvent) || allEvents.find(e => e.id === selectedEvent)) : 
+        undefined;
+
       const newPostData: TimelinePost = {
         id: Date.now().toString(),
         content: newPost,
@@ -397,7 +420,21 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
           ...(selectedLocation && { location: selectedLocation }),
           ...(selectedChannel && { channel_id: selectedChannel }),
           ...(selectedEvent && { event_id: selectedEvent })
-        }
+        },
+        // Add structured data for SocialPost component
+        channel: selectedChannelData ? {
+          id: selectedChannelData.id,
+          name: selectedChannelData.name
+        } : undefined,
+        event: selectedEventData ? {
+          id: selectedEventData.id,
+          name: selectedEventData.name
+        } : undefined,
+        taggedUsers: taggedUsers.map(user => ({
+          id: user.id,
+          name: user.display_name,
+          username: user.username
+        }))
       };
 
       setPosts(prev => [newPostData, ...prev]);
@@ -1257,139 +1294,36 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
 
       {/* Timeline Posts */}
       {posts.map((post) => (
-        <Card key={post.id} className="hover:shadow-md transition-shadow">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <Avatar>
-                  <AvatarImage src={post.user_profile.profile_picture_url} />
-                  <AvatarFallback>{post.user_profile.display_name[0]}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <div className="flex items-center space-x-2">
-                    <h4 className="font-semibold">{post.user_profile.display_name}</h4>
-                    {post.type !== 'post' && (
-                      <Badge className={`text-white ${getTypeColor(post.type)}`}>
-                        {getTypeIcon(post.type)}
-                        <span className="ml-1 capitalize">{post.type}</span>
-                      </Badge>
-                    )}
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {new Date(post.created_at).toLocaleDateString()} · {new Date(post.created_at).toLocaleTimeString()}
-                  </p>
-                </div>
-              </div>
-              <Button variant="ghost" size="sm">
-                <MoreHorizontal className="w-4 h-4" />
-              </Button>
-            </div>
-          </CardHeader>
-          
-          <CardContent className="pt-0">
-            <p className="mb-4 text-lg">{post.content}</p>
-            
-            {post.metadata && (
-              <div className="flex items-center space-x-4 mb-4 text-sm text-muted-foreground">
-                {post.metadata.location && (
-                  <span className="flex items-center">
-                    <MapPin className="w-4 h-4 mr-1" />
-                    {post.metadata.location}
-                  </span>
-                )}
-                {post.metadata.attendees && (
-                  <span className="flex items-center">
-                    <Users className="w-4 h-4 mr-1" />
-                    {post.metadata.attendees} attending
-                  </span>
-                )}
-              </div>
-            )}
-            
-            {post.media_url && (
-              <div className="mb-4 rounded-lg overflow-hidden">
-                {post.media_type === 'image' ? (
-                  <img
-                    src={post.media_url}
-                    alt="Post media"
-                    className="w-full h-auto max-h-96 object-cover"
-                  />
-                ) : (
-                  <div className="relative">
-                    <video
-                      src={post.media_url}
-                      className="w-full h-auto max-h-96 object-cover"
-                      controls
-                    />
-                  </div>
-                )}
-              </div>
-            )}
-            
-            <div className="flex items-center justify-between pt-4 border-t">
-              <div className="flex items-center space-x-6">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => handleLike(post.id)}
-                  className={post.is_liked ? 'text-red-500' : ''}
-                >
-                  <Heart className={`w-4 h-4 mr-2 ${post.is_liked ? 'fill-current' : ''}`} />
-                  {post.likes_count}
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => handleViewComments(post)}
-                >
-                  <MessageCircle className="w-4 h-4 mr-2" />
-                  {post.comments_count}
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => handleShare(post)}
-                >
-                  <Share2 className="w-4 h-4 mr-2" />
-                  {post.shares_count}
-                </Button>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => handleBookmark(post.id)}
-                  className={post.is_bookmarked ? 'text-blue-500' : ''}
-                >
-                  <Bookmark className={`w-4 h-4 ${post.is_bookmarked ? 'fill-current' : ''}`} />
-                </Button>
-                {isOwnProfile && post.user_id === userId && (
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="ghost" size="sm" className="text-destructive">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Post</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Are you sure you want to delete this post? This action cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleDeletePost(post.id)}>
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <SocialPost
+          key={post.id}
+          postId={post.id}
+          author={{
+            name: post.user_profile.display_name,
+            avatar: post.user_profile.profile_picture_url,
+            username: post.user_profile.username
+          }}
+          content={post.content}
+          timestamp={new Date(post.created_at).toLocaleDateString() + ' · ' + new Date(post.created_at).toLocaleTimeString()}
+          likes={post.likes_count}
+          comments={post.comments_count}
+          shares={post.shares_count}
+          channel={post.channel}
+          event={post.event}
+          taggedUsers={post.taggedUsers}
+          isLiked={post.is_liked}
+          onLike={handleLike}
+          onComment={(postId, comment) => {
+            // Set the selected post and comment, then call handleAddComment
+            setSelectedPost(post);
+            setNewComment(comment);
+            handleAddComment();
+          }}
+          onShare={(postId) => {
+            // Find the post and call handleShare
+            const foundPost = posts.find(p => p.id === postId);
+            if (foundPost) handleShare(foundPost);
+          }}
+        />
       ))}
 
       {/* Comments Dialog */}
