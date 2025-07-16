@@ -11,7 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { 
   Heart, MessageCircle, Share2, Image as ImageIcon, Video, 
-  MapPin, Calendar, Users, Play, Send, MoreHorizontal, Bookmark, Upload, X, Check, Loader2, Trash2
+  MapPin, Calendar, Users, Play, Send, MoreHorizontal, Bookmark, Upload, X, Check, Loader2, Trash2, AtSign
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
@@ -86,6 +86,10 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
   const [eventOpen, setEventOpen] = useState(false);
   const [channelInput, setChannelInput] = useState<string>('');
   const [eventInput, setEventInput] = useState<string>('');
+  const [taggedUsers, setTaggedUsers] = useState<any[]>([]);
+  const [userSearchTerm, setUserSearchTerm] = useState('');
+  const [userSearchResults, setUserSearchResults] = useState<any[]>([]);
+  const [showUserSearch, setShowUserSearch] = useState(false);
   const { toast } = useToast();
   const { user, userProfile: currentUserProfile } = useAppContext();
   
@@ -125,6 +129,46 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
     fetchAllChannels();
     fetchAllEvents();
   }, [userId, isOwnProfile]);
+
+  const searchUsers = async (query: string) => {
+    if (!query.trim()) {
+      setUserSearchResults([]);
+      return;
+    }
+
+    try {
+      // Mock user search - in real app, search from user_profiles table
+      const mockUsers = [
+        { id: 'user-1', username: 'sarah_j', display_name: 'Sarah Johnson', profile_picture_url: '/placeholder.svg' },
+        { id: 'user-2', username: 'mike_chen', display_name: 'Mike Chen', profile_picture_url: '/placeholder.svg' },
+        { id: 'user-3', username: 'emma_w', display_name: 'Emma Wilson', profile_picture_url: '/placeholder.svg' },
+        { id: 'user-4', username: 'john_doe', display_name: 'John Doe', profile_picture_url: '/placeholder.svg' },
+        { id: 'user-5', username: 'jane_smith', display_name: 'Jane Smith', profile_picture_url: '/placeholder.svg' }
+      ];
+
+      const results = mockUsers.filter(user =>
+        user.username.toLowerCase().includes(query.toLowerCase()) ||
+        user.display_name.toLowerCase().includes(query.toLowerCase())
+      );
+
+      setUserSearchResults(results);
+    } catch (error) {
+      console.error('Error searching users:', error);
+    }
+  };
+
+  const handleTagUser = (user: any) => {
+    if (!taggedUsers.find(u => u.id === user.id)) {
+      setTaggedUsers(prev => [...prev, user]);
+    }
+    setShowUserSearch(false);
+    setUserSearchTerm('');
+    setUserSearchResults([]);
+  };
+
+  const removeTaggedUser = (userId: string) => {
+    setTaggedUsers(prev => prev.filter(user => user.id !== userId));
+  };
 
   const fetchUserChannels = async () => {
     try {
@@ -361,6 +405,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
       setSelectedLocation('');
       setSelectedChannel('');
       setSelectedEvent('');
+      setTaggedUsers([]);
       setExpandedPost(false);
       
       toast({
@@ -524,46 +569,47 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
                 <AvatarImage src={profileData.profile_picture_url} />
                 <AvatarFallback>{profileData.display_name[0]}</AvatarFallback>
               </Avatar>
-              <div className="flex-1">
-                <Textarea
-                  placeholder="What's on your mind?"
-                  value={newPost}
-                  onChange={(e) => setNewPost(e.target.value)}
-                  onFocus={() => setExpandedPost(true)}
-                  className={`resize-none border-0 focus:ring-0 text-lg transition-all duration-300 ${
-                    expandedPost ? 'min-h-[120px]' : 'min-h-[60px]'
-                  }`}
-                />
-                
-                {/* Expanded Post Creation Template */}
-                {expandedPost && (
-                  <div className="mt-4 space-y-4">
-                    {/* Media Preview */}
-                    {mediaPreview && (
-                      <div className="relative">
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={handleRemoveMedia}
-                          className="absolute top-2 right-2 z-10"
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
-                        {selectedMedia?.type.startsWith('image/') ? (
-                          <img
-                            src={mediaPreview}
-                            alt="Preview"
-                            className="w-full max-h-64 object-cover rounded-lg"
-                          />
-                        ) : (
-                          <video
-                            src={mediaPreview}
-                            controls
-                            className="w-full max-h-64 object-cover rounded-lg"
-                          />
-                        )}
-                      </div>
-                    )}
+               <div className="flex-1">
+                 {/* Move text entry below media when media is uploaded */}
+                 {mediaPreview && (
+                   <div className="relative mb-4">
+                     <Button
+                       variant="secondary"
+                       size="sm"
+                       onClick={handleRemoveMedia}
+                       className="absolute top-2 right-2 z-10"
+                     >
+                       <X className="w-4 h-4" />
+                     </Button>
+                     {selectedMedia?.type.startsWith('image/') ? (
+                       <img
+                         src={mediaPreview}
+                         alt="Preview"
+                         className="w-full max-h-64 object-cover rounded-lg"
+                       />
+                     ) : (
+                       <video
+                         src={mediaPreview}
+                         controls
+                         className="w-full max-h-64 object-cover rounded-lg"
+                       />
+                     )}
+                   </div>
+                 )}
+                 
+                 <Textarea
+                   placeholder="What's on your mind?"
+                   value={newPost}
+                   onChange={(e) => setNewPost(e.target.value)}
+                   onFocus={() => setExpandedPost(true)}
+                   className={`resize-none border-0 focus:ring-0 text-lg transition-all duration-300 ${
+                     expandedPost ? 'min-h-[120px]' : 'min-h-[60px]'
+                   }`}
+                 />
+                 
+                 {/* Expanded Post Creation Template */}
+                 {expandedPost && (
+                   <div className="mt-4 space-y-4">
                     
                     {/* Selection Displays */}
                     <div className="space-y-2">
@@ -621,44 +667,53 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
                        )}
                     </div>
                     
-                    {/* Action Buttons */}
-                    <div className="flex flex-wrap gap-2 p-4 bg-muted/50 rounded-lg">
-                      {/* Photo Upload */}
-                      <div>
-                        <Input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) handleMediaUpload(file, 'image');
-                          }}
-                          className="hidden"
-                          id="photo-upload"
-                        />
-                        <Button variant="ghost" size="sm" asChild>
-                          <label htmlFor="photo-upload" className="cursor-pointer">
-                            <ImageIcon className="w-4 h-4 mr-2" />
-                            Photo/Video
-                          </label>
-                        </Button>
-                      </div>
-                      
-                      {/* Video Upload */}
-                      <div>
-                        <Input
-                          type="file"
-                          accept="video/*"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) handleMediaUpload(file, 'video');
-                          }}
-                          className="hidden"
-                          id="video-upload"
-                        />
-                      </div>
-                      
-                       {/* Location Selector */}
-                       <Popover open={locationOpen} onOpenChange={setLocationOpen}>
+                     {/* Tagged Users Display */}
+                     {taggedUsers.length > 0 && (
+                       <div className="flex flex-wrap gap-2 mb-4">
+                         {taggedUsers.map((user) => (
+                           <Badge key={user.id} variant="secondary" className="flex items-center gap-1">
+                             <AtSign className="w-3 h-3" />
+                             {user.display_name}
+                             <Button
+                               variant="ghost"
+                               size="sm"
+                               onClick={() => removeTaggedUser(user.id)}
+                               className="h-4 w-4 p-0 ml-1"
+                             >
+                               <X className="w-3 h-3" />
+                             </Button>
+                           </Badge>
+                         ))}
+                       </div>
+                     )}
+                     
+                     {/* Action Buttons */}
+                     <div className="flex flex-wrap gap-2 p-4 bg-muted/50 rounded-lg">
+                       {/* Photo Upload */}
+                       <div>
+                         <Input
+                           type="file"
+                           accept="image/*,video/*"
+                           onChange={(e) => {
+                             const file = e.target.files?.[0];
+                             if (file) {
+                               const type = file.type.startsWith('image/') ? 'image' : 'video';
+                               handleMediaUpload(file, type);
+                             }
+                           }}
+                           className="hidden"
+                           id="photo-upload"
+                         />
+                         <Button variant="ghost" size="sm" asChild>
+                           <label htmlFor="photo-upload" className="cursor-pointer">
+                             <ImageIcon className="w-4 h-4 mr-2" />
+                             Photo/Video
+                           </label>
+                         </Button>
+                       </div>
+                       
+                        {/* Location Selector */}
+                        <Popover open={locationOpen} onOpenChange={setLocationOpen}>
                          <PopoverTrigger asChild>
                            <Button variant="ghost" size="sm">
                              <MapPin className="w-4 h-4 mr-2" />
@@ -718,16 +773,114 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
                              </CommandList>
                            </Command>
                          </PopoverContent>
-                       </Popover>
-                      
-                       {/* Channel Selector */}
-                       <Popover open={channelOpen} onOpenChange={setChannelOpen}>
-                         <PopoverTrigger asChild>
-                           <Button variant="ghost" size="sm">
-                             <Play className="w-4 h-4 mr-2" />
-                             Channel
-                           </Button>
-                         </PopoverTrigger>
+                        </Popover>
+                       
+                        {/* Event Selector - moved to left of channel */}
+                        <Popover open={eventOpen} onOpenChange={setEventOpen}>
+                          <PopoverTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <Calendar className="w-4 h-4 mr-2" />
+                              Event
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-80">
+                            <Command>
+                              <CommandInput 
+                                placeholder="Search or type event name..." 
+                                value={eventInput}
+                                onValueChange={setEventInput}
+                              />
+                              <CommandList>
+                                <CommandEmpty>
+                                  {eventInput && (
+                                    <div className="p-2">
+                                      <Button 
+                                        variant="ghost" 
+                                        className="w-full justify-start"
+                                        onClick={() => {
+                                          setSelectedEvent(eventInput);
+                                          setEventOpen(false);
+                                          setEventInput('');
+                                        }}
+                                      >
+                                        <Calendar className="w-4 h-4 mr-2" />
+                                        Use "{eventInput}"
+                                      </Button>
+                                    </div>
+                                  )}
+                                </CommandEmpty>
+                                {userEvents.length > 0 && (
+                                  <CommandGroup heading="Your Events">
+                                    {userEvents
+                                      .filter(event => 
+                                        event.name.toLowerCase().includes(eventInput.toLowerCase())
+                                      )
+                                      .map((event) => (
+                                      <CommandItem
+                                        key={event.id}
+                                        value={event.name}
+                                        onSelect={() => {
+                                          setSelectedEvent(event.id);
+                                          setEventOpen(false);
+                                          setEventInput('');
+                                        }}
+                                      >
+                                        <Check
+                                          className={`mr-2 h-4 w-4 ${
+                                            selectedEvent === event.id ? 'opacity-100' : 'opacity-0'
+                                          }`}
+                                        />
+                                        {event.name}
+                                        <Badge variant="outline" className="ml-2">
+                                          {event.is_live ? 'Live' : 'Scheduled'}
+                                        </Badge>
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                )}
+                                {allEvents.length > 0 && (
+                                  <CommandGroup heading="All Events">
+                                    {allEvents
+                                      .filter(event => 
+                                        event.name.toLowerCase().includes(eventInput.toLowerCase()) &&
+                                        !userEvents.find(ue => ue.id === event.id)
+                                      )
+                                      .map((event) => (
+                                      <CommandItem
+                                        key={event.id}
+                                        value={event.name}
+                                        onSelect={() => {
+                                          setSelectedEvent(event.id);
+                                          setEventOpen(false);
+                                          setEventInput('');
+                                        }}
+                                      >
+                                        <Check
+                                          className={`mr-2 h-4 w-4 ${
+                                            selectedEvent === event.id ? 'opacity-100' : 'opacity-0'
+                                          }`}
+                                        />
+                                        {event.name}
+                                        <Badge variant="outline" className="ml-2">
+                                          {event.is_live ? 'Live' : 'Scheduled'}
+                                        </Badge>
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                )}
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                       
+                        {/* Channel Selector */}
+                        <Popover open={channelOpen} onOpenChange={setChannelOpen}>
+                          <PopoverTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <Play className="w-4 h-4 mr-2" />
+                              Channel
+                            </Button>
+                          </PopoverTrigger>
                          <PopoverContent className="w-80">
                            <Command>
                              <CommandInput 
@@ -810,106 +963,55 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
                              </CommandList>
                            </Command>
                          </PopoverContent>
-                       </Popover>
-                      
-                       {/* Event Selector */}
-                       <Popover open={eventOpen} onOpenChange={setEventOpen}>
-                         <PopoverTrigger asChild>
-                           <Button variant="ghost" size="sm">
-                             <Calendar className="w-4 h-4 mr-2" />
-                             Event
-                           </Button>
-                         </PopoverTrigger>
-                         <PopoverContent className="w-80">
-                           <Command>
-                             <CommandInput 
-                               placeholder="Search or type event name..." 
-                               value={eventInput}
-                               onValueChange={setEventInput}
-                             />
-                             <CommandList>
-                               <CommandEmpty>
-                                 {eventInput && (
-                                   <div className="p-2">
-                                     <Button 
-                                       variant="ghost" 
-                                       className="w-full justify-start"
-                                       onClick={() => {
-                                         setSelectedEvent(eventInput);
-                                         setEventOpen(false);
-                                         setEventInput('');
-                                       }}
-                                     >
-                                       <Calendar className="w-4 h-4 mr-2" />
-                                       Use "{eventInput}"
-                                     </Button>
-                                   </div>
-                                 )}
-                               </CommandEmpty>
-                               {userEvents.length > 0 && (
-                                 <CommandGroup heading="Your Events">
-                                   {userEvents
-                                     .filter(event => 
-                                       event.name.toLowerCase().includes(eventInput.toLowerCase())
-                                     )
-                                     .map((event) => (
-                                     <CommandItem
-                                       key={event.id}
-                                       value={event.name}
-                                       onSelect={() => {
-                                         setSelectedEvent(event.id);
-                                         setEventOpen(false);
-                                         setEventInput('');
-                                       }}
-                                     >
-                                       <Check
-                                         className={`mr-2 h-4 w-4 ${
-                                           selectedEvent === event.id ? 'opacity-100' : 'opacity-0'
-                                         }`}
-                                       />
-                                       {event.name}
-                                       <Badge variant="outline" className="ml-2">
-                                         {event.is_live ? 'Live' : 'Scheduled'}
-                                       </Badge>
-                                     </CommandItem>
-                                   ))}
-                                 </CommandGroup>
-                               )}
-                               {allEvents.length > 0 && (
-                                 <CommandGroup heading="All Events">
-                                   {allEvents
-                                     .filter(event => 
-                                       event.name.toLowerCase().includes(eventInput.toLowerCase()) &&
-                                       !userEvents.find(ue => ue.id === event.id)
-                                     )
-                                     .map((event) => (
-                                     <CommandItem
-                                       key={event.id}
-                                       value={event.name}
-                                       onSelect={() => {
-                                         setSelectedEvent(event.id);
-                                         setEventOpen(false);
-                                         setEventInput('');
-                                       }}
-                                     >
-                                       <Check
-                                         className={`mr-2 h-4 w-4 ${
-                                           selectedEvent === event.id ? 'opacity-100' : 'opacity-0'
-                                         }`}
-                                       />
-                                       {event.name}
-                                       <Badge variant="outline" className="ml-2">
-                                         {event.is_live ? 'Live' : 'Scheduled'}
-                                       </Badge>
-                                     </CommandItem>
-                                   ))}
-                                 </CommandGroup>
-                               )}
-                             </CommandList>
-                           </Command>
-                         </PopoverContent>
-                       </Popover>
-                    </div>
+                        </Popover>
+                        
+                        {/* Tag People Button */}
+                        <Popover open={showUserSearch} onOpenChange={setShowUserSearch}>
+                          <PopoverTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <AtSign className="w-4 h-4 mr-2" />
+                              Tag People
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-80">
+                            <Command>
+                              <CommandInput 
+                                placeholder="Search for people to tag..." 
+                                value={userSearchTerm}
+                                onValueChange={(value) => {
+                                  setUserSearchTerm(value);
+                                  searchUsers(value);
+                                }}
+                              />
+                              <CommandList>
+                                <CommandEmpty>
+                                  {userSearchTerm ? 'No users found' : 'Start typing to search for people'}
+                                </CommandEmpty>
+                                <CommandGroup>
+                                  {userSearchResults.map((user) => (
+                                    <CommandItem
+                                      key={user.id}
+                                      value={user.username}
+                                      onSelect={() => handleTagUser(user)}
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        <Avatar className="w-6 h-6">
+                                          <AvatarImage src={user.profile_picture_url} />
+                                          <AvatarFallback>{user.display_name[0]}</AvatarFallback>
+                                        </Avatar>
+                                        <div>
+                                          <p className="font-medium">{user.display_name}</p>
+                                          <p className="text-sm text-muted-foreground">@{user.username}</p>
+                                        </div>
+                                      </div>
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                     </div>
                   </div>
                 )}
                 

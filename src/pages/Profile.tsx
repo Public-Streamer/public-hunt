@@ -14,6 +14,8 @@ import ProfileStories from '@/components/ProfileStories';
 import ProfileFriends from '@/components/ProfileFriends';
 import ProfileTimeline from '@/components/ProfileTimeline';
 import ProfileMediaUpload from '@/components/ProfileMediaUpload';
+import Messages from '@/components/Messages';
+import Notifications from '@/components/Notifications';
 
 interface UserProfile {
   id: string;
@@ -128,13 +130,15 @@ const Profile: React.FC = () => {
       </div>
       
       <Tabs defaultValue="timeline" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-7">
+        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-9">
           <TabsTrigger value="timeline">Timeline</TabsTrigger>
           <TabsTrigger value="about">About</TabsTrigger>
           <TabsTrigger value="friends">Friends</TabsTrigger>
           <TabsTrigger value="media">Media</TabsTrigger>
           <TabsTrigger value="events">Events</TabsTrigger>
           <TabsTrigger value="channels">Channels</TabsTrigger>
+          {isOwnProfile && <TabsTrigger value="messages">Messages</TabsTrigger>}
+          {isOwnProfile && <TabsTrigger value="notifications">Notifications</TabsTrigger>}
           {isOwnProfile && <TabsTrigger value="admin">Admin</TabsTrigger>}
         </TabsList>
         
@@ -181,6 +185,18 @@ const Profile: React.FC = () => {
         <TabsContent value="channels" className="mt-6">
           <UserChannelsList userId={profile.id} />
         </TabsContent>
+        
+        {isOwnProfile && (
+          <TabsContent value="messages" className="mt-6">
+            <Messages userId={profile.id} />
+          </TabsContent>
+        )}
+        
+        {isOwnProfile && (
+          <TabsContent value="notifications" className="mt-6">
+            <Notifications userId={profile.id} />
+          </TabsContent>
+        )}
         
         {isOwnProfile && (
           <TabsContent value="admin" className="mt-6">
