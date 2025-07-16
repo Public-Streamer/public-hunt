@@ -710,12 +710,43 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
     }
   };
 
-  const handleEditPost = async (postId: string, newContent: string) => {
+  const handleEditPost = async (postId: string, newContent: string, mediaFile?: File) => {
     try {
+      let mediaUrl: string | undefined;
+      
+      // Upload media file if provided
+      if (mediaFile) {
+        const fileExt = mediaFile.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.random()}.${fileExt}`;
+        const filePath = `post-media/${fileName}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('media')
+          .upload(filePath, mediaFile);
+        
+        if (uploadError) throw uploadError;
+        
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('media')
+          .getPublicUrl(filePath);
+          
+        mediaUrl = publicUrl;
+      }
+      
       // Update the post in the database
+      const updateData: any = { 
+        content: newContent, 
+        updated_at: new Date().toISOString() 
+      };
+      
+      if (mediaUrl) {
+        updateData.media_url = mediaUrl;
+      }
+      
       const { error } = await supabase
         .from('user_posts')
-        .update({ content: newContent, updated_at: new Date().toISOString() })
+        .update(updateData)
         .eq('id', postId);
 
       if (error) throw error;
@@ -723,7 +754,11 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
       // Update the local state
       setPosts(prev => prev.map(post => 
         post.id === postId 
-          ? { ...post, content: newContent }
+          ? { 
+              ...post, 
+              content: newContent,
+              ...(mediaUrl && { media_url: mediaUrl })
+            }
           : post
       ));
 

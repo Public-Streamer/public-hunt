@@ -38,7 +38,7 @@ interface SocialPostProps {
   onLike?: (postId: string) => void;
   onComment?: (postId: string, comment: string) => void;
   onShare?: (postId: string) => void;
-  onEdit?: (postId: string, newContent: string) => void;
+  onEdit?: (postId: string, newContent: string, mediaFile?: File) => void;
   onDelete?: (postId: string) => void;
 }
 
@@ -91,8 +91,10 @@ const SocialPost: React.FC<SocialPostProps> = ({
 
   const handleEditSave = () => {
     if (editContent.trim()) {
-      onEdit?.(postId, editContent);
+      onEdit?.(postId, editContent, selectedMedia || undefined);
       setIsEditing(false);
+      setSelectedMedia(null);
+      setMediaPreview(null);
     }
   };
 
