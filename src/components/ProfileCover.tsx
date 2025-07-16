@@ -191,8 +191,8 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
       
       {/* Profile Info */}
       <div className="p-6 pb-4">
-        <div className="flex flex-col sm:flex-row items-center sm:items-end -mt-20 mb-4 space-y-4 sm:space-y-0">
-          <div className="relative">
+        <div className="flex flex-col sm:flex-row items-center sm:items-start mb-4 space-y-4 sm:space-y-0">
+          <div className="relative -mt-20">
             <Avatar className="w-32 h-32 border-4 border-white shadow-lg">
               <AvatarImage src={profile.profile_picture_url} />
               <AvatarFallback className="text-3xl">
@@ -209,7 +209,7 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
             )}
           </div>
           
-          <div className="sm:ml-6 flex-1 text-center sm:text-left">
+          <div className="sm:ml-6 flex-1 text-center sm:text-left mt-4 sm:mt-0">
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground break-words">{profile.display_name}</h1>
             <p className="text-muted-foreground text-base sm:text-lg">@{profile.username}</p>
             <div className="flex justify-center sm:justify-start items-center space-x-4 mt-2 text-sm text-muted-foreground">
@@ -218,7 +218,7 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
             </div>
           </div>
           
-          <div className="flex space-x-2">
+          <div className="flex space-x-2 mt-4 sm:mt-0">
             {isOwnProfile ? (
               <>
                 <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
