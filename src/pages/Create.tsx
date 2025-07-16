@@ -39,6 +39,7 @@ const Create: React.FC = () => {
     time: "",
     location: "",
     category: "",
+    channelId: "",
   });
 
   const [channelMedia, setChannelMedia] = useState([]);
@@ -48,7 +49,7 @@ const Create: React.FC = () => {
     setChannelFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleEventInputChange = (field: string, value: string) => {
+  const handleEventInputChange = (field: string, value: string | number) => {
     setEventFormData((prev) => ({ ...prev, [field]: value }));
   };
 

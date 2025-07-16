@@ -79,6 +79,47 @@ export type Database = {
         }
         Relationships: []
       }
+      channel_permissions: {
+        Row: {
+          assigned_at: string | null
+          assigned_by: string | null
+          channel_id: string
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["channel_role"]
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          channel_id: string
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["channel_role"]
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          channel_id?: string
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["channel_role"]
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channel_permissions_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       channel_subscribers: {
         Row: {
           channel_id: string
@@ -270,6 +311,63 @@ export type Database = {
             columns: ["user_profile_id"]
             isOneToOne: false
             referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_channel_requests: {
+        Row: {
+          channel_id: string
+          created_at: string | null
+          event_id: string
+          id: string
+          message: string | null
+          requested_at: string | null
+          requested_by: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          channel_id: string
+          created_at?: string | null
+          event_id: string
+          id?: string
+          message?: string | null
+          requested_at?: string | null
+          requested_by: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          channel_id?: string
+          created_at?: string | null
+          event_id?: string
+          id?: string
+          message?: string | null
+          requested_at?: string | null
+          requested_by?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_channel_requests_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_channel_requests_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
             referencedColumns: ["id"]
           },
         ]
@@ -1118,7 +1216,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      channel_role: "channel_master" | "channel_admin" | "member"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1245,6 +1343,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      channel_role: ["channel_master", "channel_admin", "member"],
+    },
   },
 } as const

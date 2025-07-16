@@ -9,6 +9,7 @@ import MediaUploader from '@/components/MediaUploader';
 import StreamerSelector from '@/components/StreamerSelector';
 import PriceSlider from '@/components/PriceSlider';
 import CreateEventFormButtons from '@/components/CreateEventFormButtons';
+import ChannelSelector from '@/components/ChannelSelector';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
 
@@ -38,6 +39,7 @@ interface CreateEventFormProps {
     location: string;
     category: string;
     ticketPrice?: number;
+    channelId?: string;
   };
   onInputChange: (field: string, value: string | number) => void;
   onSubmit: (e: React.FormEvent) => void;
@@ -58,6 +60,8 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
   const [selectedStreamers, setSelectedStreamers] = useState<SelectedMember[]>([]);
   const [teamConfirmed, setTeamConfirmed] = useState(false);
+  const [selectedChannelId, setSelectedChannelId] = useState(formData.channelId || '');
+  const [channelRequiresApproval, setChannelRequiresApproval] = useState(false);
   const { toast } = useToast();
 
   const handleStreamersChange = (streamers: SelectedMember[]) => {
@@ -71,6 +75,12 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
     const clampedValue = Math.max(0, Math.min(1000000, value));
     setTicketPrice(clampedValue);
     onInputChange('ticketPrice', clampedValue);
+  };
+
+  const handleChannelChange = (channelId: string, requiresApproval: boolean) => {
+    setSelectedChannelId(channelId);
+    setChannelRequiresApproval(requiresApproval);
+    onInputChange('channelId', channelId);
   };
 
   const handleMediaUpload = (files: MediaFile[]) => {
@@ -168,7 +178,8 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       ticket_price: ticketPrice,
       media_urls: mediaFiles.map(f => f.url).filter(Boolean),
       is_live: true,
-      created_by: userData.user.id
+      created_by: userData.user.id,
+      channel_id: selectedChannelId || null
     };
     
     toast({ title: "Going Live Now!", description: "Event is being set up to go live immediately." });
@@ -227,7 +238,8 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         ticket_price: ticketPrice,
         media_urls: mediaFiles.map(f => f.url).filter(Boolean),
         is_live: false,
-        created_by: userData.user.id
+        created_by: userData.user.id,
+        channel_id: channelRequiresApproval ? null : (selectedChannelId || null)
       }).select().single();
       
       if (error) throw error;
@@ -245,7 +257,24 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         await supabase.from('event_streamers').insert(streamerData);
       }
       
-      toast({ title: "Event Created!", description: "Your event has been created successfully." });
+      // Handle channel assignment requests
+      if (channelRequiresApproval && selectedChannelId) {
+        await supabase.from('event_channel_requests').insert({
+          event_id: data.id,
+          channel_id: selectedChannelId,
+          requested_by: userData.user.id,
+          message: `Event "${formData.name}" requesting assignment to channel`
+        });
+        
+        toast({ 
+          title: "Event Created!", 
+          description: "Your event has been created and a channel assignment request has been sent for approval.",
+          variant: "default"
+        });
+      } else {
+        toast({ title: "Event Created!", description: "Your event has been created successfully." });
+      }
+      
       onSubmit(e);
     } catch (error) {
       console.error('Error creating event:', error);
@@ -302,6 +331,13 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
               required 
               className="text-lg p-4 min-h-[120px] touch-manipulation resize-none" 
               placeholder="Describe your event" 
+            />
+          </div>
+          
+          <div>
+            <ChannelSelector 
+              selectedChannelId={selectedChannelId}
+              onChannelChange={handleChannelChange}
             />
           </div>
           
