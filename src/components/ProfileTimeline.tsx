@@ -643,7 +643,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
 
 
   const handleLike = async (postId: string) => {
-    setPosts(prev => prev.map(post => 
+    const updatePost = (prev: TimelinePost[]) => prev.map(post => 
       post.id === postId 
         ? { 
             ...post, 
@@ -651,15 +651,21 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
             likes_count: post.is_liked ? post.likes_count - 1 : post.likes_count + 1 
           }
         : post
-    ));
+    );
+    
+    setPosts(updatePost);
+    setPersistedPosts(updatePost);
   };
 
   const handleBookmark = async (postId: string) => {
-    setPosts(prev => prev.map(post => 
+    const updatePost = (prev: TimelinePost[]) => prev.map(post => 
       post.id === postId 
         ? { ...post, is_bookmarked: !post.is_bookmarked }
         : post
-    ));
+    );
+    
+    setPosts(updatePost);
+    setPersistedPosts(updatePost);
   };
 
   const handleViewComments = (post: TimelinePost) => {
@@ -689,25 +695,25 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
     setNewComment('');
     
     // Update comment count
-    setPosts(prev => prev.map(post => 
+    const updatePost = (prev: TimelinePost[]) => prev.map(post => 
       post.id === selectedPost.id 
         ? { ...post, comments_count: post.comments_count + 1 }
         : post
-    ));
+    );
+    
+    setPosts(updatePost);
+    setPersistedPosts(updatePost);
   };
 
   const handleDeletePost = async (postId: string) => {
     try {
-      // Delete the post from the database
-      const { error } = await supabase
-        .from('user_posts')
-        .delete()
-        .eq('id', postId);
-
-      if (error) throw error;
-
+      // For mock posts, skip database deletion
+      // In a real app, you would delete from the database here
+      
       // Update the local state
-      setPosts(prev => prev.filter(post => post.id !== postId));
+      const updatePost = (prev: TimelinePost[]) => prev.filter(post => post.id !== postId);
+      setPosts(updatePost);
+      setPersistedPosts(updatePost);
 
       toast({
         title: 'Success',
@@ -747,45 +753,17 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
     try {
       let mediaUrl: string | undefined;
       
-      // Upload media file if provided
+      // Upload media file if provided (for real uploads in actual app)
       if (mediaFile) {
-        const fileExt = mediaFile.name.split('.').pop();
-        const fileName = `${Date.now()}-${Math.random()}.${fileExt}`;
-        const filePath = `post-media/${fileName}`;
-        
-        const { error: uploadError } = await supabase.storage
-          .from('media')
-          .upload(filePath, mediaFile);
-        
-        if (uploadError) throw uploadError;
-        
-        // Get public URL
-        const { data: { publicUrl } } = supabase.storage
-          .from('media')
-          .getPublicUrl(filePath);
-          
-        mediaUrl = publicUrl;
+        // For mock posts, just create object URL
+        mediaUrl = URL.createObjectURL(mediaFile);
       }
       
-      // Update the post in the database
-      const updateData: any = { 
-        content: newContent, 
-        updated_at: new Date().toISOString() 
-      };
-      
-      if (mediaUrl) {
-        updateData.media_url = mediaUrl;
-      }
-      
-      const { error } = await supabase
-        .from('user_posts')
-        .update(updateData)
-        .eq('id', postId);
-
-      if (error) throw error;
+      // For mock posts, skip database update
+      // In a real app, you would update the database here
 
       // Update the local state
-      setPosts(prev => prev.map(post => 
+      const updatePost = (prev: TimelinePost[]) => prev.map(post => 
         post.id === postId 
           ? { 
               ...post, 
@@ -793,7 +771,10 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
               ...(mediaUrl && { media_url: mediaUrl })
             }
           : post
-      ));
+      );
+      
+      setPosts(updatePost);
+      setPersistedPosts(updatePost);
 
       toast({
         title: 'Success',
