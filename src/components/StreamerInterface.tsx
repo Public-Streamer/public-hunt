@@ -26,6 +26,7 @@ import {
 import { useStreamingControls } from "@/hooks/useStreamingControls";
 import { useEventLiveStatus } from "@/hooks/useEventLiveStatus";
 import StageShareMenu from "@/components/StageShareMenu";
+import EventSharePanel from "@/components/EventSharePanel";
 
 interface StreamerInterfaceProps {
   eventId: string;
@@ -312,6 +313,14 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
             {/* Stage Share Menu - Only for hosts */}
             {userRole === "host" && (
               <StageShareMenu 
+                eventId={eventId}
+                eventTitle={eventTitle}
+              />
+            )}
+
+            {/* Event Share Panel - Only for hosts */}
+            {userRole === "host" && (
+              <EventSharePanel 
                 eventId={eventId}
                 eventTitle={eventTitle}
               />

@@ -2,24 +2,25 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Share2, MessageCircle, Facebook, Copy, Check, ExternalLink } from 'lucide-react';
+import { Share2, MessageCircle, Facebook, Copy, Check, ExternalLink, Globe, Users2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-interface StageShareMenuProps {
+interface EventSharePanelProps {
   eventId: string;
   eventTitle: string;
   eventDescription?: string;
 }
 
-const StageShareMenu: React.FC<StageShareMenuProps> = ({ 
+const EventSharePanel: React.FC<EventSharePanelProps> = ({ 
   eventId, 
   eventTitle, 
   eventDescription 
 }) => {
   const [copiedStates, setCopiedStates] = useState<{ [key: string]: boolean }>({});
+  const [isPostingToAll, setIsPostingToAll] = useState(false);
 
-  const stageUrl = `${window.location.origin}/stage/${eventId}`;
-  const shareMessage = `Join me for a live streaming event: "${eventTitle}"\n\n${eventDescription ? eventDescription + '\n\n' : ''}Access the stage here: ${stageUrl}`;
+  const eventUrl = `${window.location.origin}/event/${eventId}`;
+  const shareMessage = `Check out this live event: "${eventTitle}"\n\n${eventDescription ? eventDescription + '\n\n' : ''}Join here: ${eventUrl}`;
 
   const shareOptions = [
     {
@@ -30,18 +31,18 @@ const StageShareMenu: React.FC<StageShareMenuProps> = ({
       action: () => {
         const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareMessage)}`;
         window.open(whatsappUrl, '_blank');
-        toast.success('WhatsApp opened with stage invitation');
+        toast.success('WhatsApp opened with event link');
       }
     },
     {
       id: 'facebook',
-      name: 'Facebook Messenger',
+      name: 'Facebook',
       icon: Facebook,
       color: 'bg-blue-600',
       action: () => {
-        const messengerUrl = `https://m.me/?text=${encodeURIComponent(shareMessage)}`;
-        window.open(messengerUrl, '_blank');
-        toast.success('Facebook Messenger opened with stage invitation');
+        const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(eventUrl)}&quote=${encodeURIComponent(shareMessage)}`;
+        window.open(facebookUrl, '_blank');
+        toast.success('Facebook post dialog opened');
       }
     },
     {
@@ -51,8 +52,8 @@ const StageShareMenu: React.FC<StageShareMenuProps> = ({
       color: 'bg-gradient-to-r from-purple-500 to-pink-500',
       action: () => {
         navigator.clipboard.writeText(shareMessage).then(() => {
-          window.open('https://www.instagram.com/direct/inbox/', '_blank');
-          toast.success('Message copied! Paste in Instagram DM');
+          window.open('https://www.instagram.com/', '_blank');
+          toast.success('Message copied! Create Instagram post or story');
         });
       }
     },
@@ -63,8 +64,8 @@ const StageShareMenu: React.FC<StageShareMenuProps> = ({
       color: 'bg-black',
       action: () => {
         navigator.clipboard.writeText(shareMessage).then(() => {
-          window.open('https://www.tiktok.com/messages', '_blank');
-          toast.success('Message copied! Paste in TikTok DM');
+          window.open('https://www.tiktok.com/upload', '_blank');
+          toast.success('Message copied! Create TikTok video');
         });
       }
     },
@@ -74,9 +75,9 @@ const StageShareMenu: React.FC<StageShareMenuProps> = ({
       icon: MessageCircle,
       color: 'bg-black',
       action: () => {
-        const twitterUrl = `https://twitter.com/messages/compose?text=${encodeURIComponent(shareMessage)}`;
+        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareMessage)}`;
         window.open(twitterUrl, '_blank');
-        toast.success('X opened with stage invitation');
+        toast.success('X opened with event post');
       }
     },
     {
@@ -85,79 +86,77 @@ const StageShareMenu: React.FC<StageShareMenuProps> = ({
       icon: copiedStates['copy'] ? Check : Copy,
       color: copiedStates['copy'] ? 'bg-green-600' : 'bg-gray-600',
       action: () => {
-        navigator.clipboard.writeText(stageUrl).then(() => {
+        navigator.clipboard.writeText(eventUrl).then(() => {
           setCopiedStates(prev => ({ ...prev, copy: true }));
-          toast.success('Stage link copied to clipboard');
+          toast.success('Event link copied to clipboard');
           setTimeout(() => {
             setCopiedStates(prev => ({ ...prev, copy: false }));
-          }, 2000);
-        }).catch(() => {
-          // Fallback for older browsers
-          const textArea = document.createElement('textarea');
-          textArea.value = stageUrl;
-          document.body.appendChild(textArea);
-          textArea.select();
-          document.execCommand('copy');
-          document.body.removeChild(textArea);
-          
-          setCopiedStates(prev => ({ ...prev, copy: true }));
-          toast.success('Stage link copied to clipboard');
-          setTimeout(() => {
-            setCopiedStates(prev => ({ ...prev, copy: false }));
-          }, 2000);
-        });
-      }
-    },
-    {
-      id: 'copy-message',
-      name: 'Copy Message',
-      icon: copiedStates['copy-message'] ? Check : Copy,
-      color: copiedStates['copy-message'] ? 'bg-green-600' : 'bg-purple-600',
-      action: () => {
-        navigator.clipboard.writeText(shareMessage).then(() => {
-          setCopiedStates(prev => ({ ...prev, 'copy-message': true }));
-          toast.success('Full invitation message copied');
-          setTimeout(() => {
-            setCopiedStates(prev => ({ ...prev, 'copy-message': false }));
-          }, 2000);
-        }).catch(() => {
-          // Fallback for older browsers
-          const textArea = document.createElement('textarea');
-          textArea.value = shareMessage;
-          document.body.appendChild(textArea);
-          textArea.select();
-          document.execCommand('copy');
-          document.body.removeChild(textArea);
-          
-          setCopiedStates(prev => ({ ...prev, 'copy-message': true }));
-          toast.success('Full invitation message copied');
-          setTimeout(() => {
-            setCopiedStates(prev => ({ ...prev, 'copy-message': false }));
           }, 2000);
         });
       }
     }
   ];
 
+  const handlePostToAll = async () => {
+    setIsPostingToAll(true);
+    
+    try {
+      // Copy message to clipboard first
+      await navigator.clipboard.writeText(shareMessage);
+      
+      // Open all social media platforms
+      const platforms = [
+        { url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(eventUrl)}&quote=${encodeURIComponent(shareMessage)}`, name: 'Facebook' },
+        { url: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareMessage)}`, name: 'Twitter' },
+        { url: 'https://www.instagram.com/', name: 'Instagram' },
+        { url: 'https://www.tiktok.com/upload', name: 'TikTok' }
+      ];
+      
+      platforms.forEach((platform, index) => {
+        setTimeout(() => {
+          window.open(platform.url, '_blank');
+        }, index * 500); // Stagger the opening to prevent popup blocks
+      });
+      
+      toast.success('All social media platforms opened! Message copied to clipboard.');
+    } catch (error) {
+      toast.error('Failed to copy message to clipboard');
+    } finally {
+      setTimeout(() => setIsPostingToAll(false), 3000);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Share2 className="h-4 w-4" />
-          Invite Other Streamers
+          <Globe className="h-4 w-4" />
+          Share Event
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <p className="text-sm text-muted-foreground">
-            Share this stage link to invite other streamers to join your event:
+            Share this event with your audience:
           </p>
           <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
             <ExternalLink className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-mono truncate flex-1">{stageUrl}</span>
+            <span className="text-sm font-mono truncate flex-1">{eventUrl}</span>
           </div>
         </div>
 
+        {/* Post to All Button */}
+        <Button
+          onClick={handlePostToAll}
+          disabled={isPostingToAll}
+          className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+          size="lg"
+        >
+          <Users2 className="h-4 w-4 mr-2" />
+          {isPostingToAll ? 'Posting to All...' : 'POST TO ALL PLATFORMS'}
+        </Button>
+
+        {/* Individual Platform Buttons */}
         <div className="grid grid-cols-2 gap-2">
           {shareOptions.map((option) => {
             const Icon = option.icon;
@@ -183,7 +182,7 @@ const StageShareMenu: React.FC<StageShareMenuProps> = ({
             <Badge variant="secondary" className="text-xs">
               Host Only
             </Badge>
-            <span>Only you can see this sharing panel</span>
+            <span>Share your event across all platforms</span>
           </div>
         </div>
       </CardContent>
@@ -191,4 +190,4 @@ const StageShareMenu: React.FC<StageShareMenuProps> = ({
   );
 };
 
-export default StageShareMenu;
+export default EventSharePanel;
