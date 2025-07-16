@@ -210,6 +210,7 @@ const StagePage: React.FC = () => {
         eventId={eventId}
         eventTitle={event.name}
         isLive={event.is_live}
+        userRole={userRole}
       />
     </LiveKitRoom>
   );

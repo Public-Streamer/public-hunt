@@ -25,17 +25,20 @@ import {
 } from "lucide-react";
 import { useStreamingControls } from "@/hooks/useStreamingControls";
 import { useEventLiveStatus } from "@/hooks/useEventLiveStatus";
+import StageShareMenu from "@/components/StageShareMenu";
 
 interface StreamerInterfaceProps {
   eventId: string;
   eventTitle: string;
   isLive: boolean;
+  userRole?: "host" | "streamer";
 }
 
 export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   eventId,
   eventTitle,
   isLive,
+  userRole,
 }) => {
   const { localParticipant } = useLocalParticipant();
   const participants = useParticipants();
@@ -305,6 +308,14 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                 </div>
               </CardContent>
             </Card>
+
+            {/* Stage Share Menu - Only for hosts */}
+            {userRole === "host" && (
+              <StageShareMenu 
+                eventId={eventId}
+                eventTitle={eventTitle}
+              />
+            )}
           </div>
         </div>
       </div>
