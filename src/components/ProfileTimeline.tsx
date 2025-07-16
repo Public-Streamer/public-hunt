@@ -8,9 +8,10 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { 
   Heart, MessageCircle, Share2, Image as ImageIcon, Video, 
-  MapPin, Calendar, Users, Play, Send, MoreHorizontal, Bookmark, Upload, X, Check, Loader2
+  MapPin, Calendar, Users, Play, Send, MoreHorizontal, Bookmark, Upload, X, Check, Loader2, Trash2
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
@@ -73,7 +74,13 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
-  const [detectingLocation, setDetectingLocation] = useState(false);
+  const [expandedPost, setExpandedPost] = useState(false);
+  const [userChannels, setUserChannels] = useState<any[]>([]);
+  const [userEvents, setUserEvents] = useState<any[]>([]);
+  const [selectedChannel, setSelectedChannel] = useState<string>('');
+  const [selectedEvent, setSelectedEvent] = useState<string>('');
+  const [channelOpen, setChannelOpen] = useState(false);
+  const [eventOpen, setEventOpen] = useState(false);
   const { toast } = useToast();
   const { user, userProfile: currentUserProfile } = useAppContext();
   
@@ -106,7 +113,39 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
 
   useEffect(() => {
     fetchPosts();
-  }, [userId]);
+    if (isOwnProfile) {
+      fetchUserChannels();
+      fetchUserEvents();
+    }
+  }, [userId, isOwnProfile]);
+
+  const fetchUserChannels = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('channels')
+        .select('*')
+        .eq('user_id', userId);
+      
+      if (error) throw error;
+      setUserChannels(data || []);
+    } catch (error) {
+      console.error('Error fetching user channels:', error);
+    }
+  };
+
+  const fetchUserEvents = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .eq('created_by', userId);
+      
+      if (error) throw error;
+      setUserEvents(data || []);
+    } catch (error) {
+      console.error('Error fetching user events:', error);
+    }
+  };
 
   const fetchPosts = async () => {
     try {
@@ -272,8 +311,12 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
         shares_count: 0,
         is_liked: false,
         is_bookmarked: false,
-        type: 'post',
-        metadata: selectedLocation ? { location: selectedLocation } : undefined
+        type: selectedChannel ? 'channel' : selectedEvent ? 'event' : 'post',
+        metadata: {
+          ...(selectedLocation && { location: selectedLocation }),
+          ...(selectedChannel && { channel_id: selectedChannel }),
+          ...(selectedEvent && { event_id: selectedEvent })
+        }
       };
 
       setPosts(prev => [newPostData, ...prev]);
@@ -281,6 +324,9 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
       setSelectedMedia(null);
       setMediaPreview(null);
       setSelectedLocation('');
+      setSelectedChannel('');
+      setSelectedEvent('');
+      setExpandedPost(false);
       
       toast({
         title: 'Success',
@@ -314,50 +360,6 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
     setMediaPreview(null);
   };
 
-  const handleLocationDetect = async () => {
-    if (!navigator.geolocation) {
-      toast({
-        title: 'Location not supported',
-        description: 'Geolocation is not supported by this browser',
-        variant: 'destructive'
-      });
-      return;
-    }
-
-    setDetectingLocation(true);
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        try {
-          // Mock reverse geocoding - in real app, use a geocoding service
-          const { latitude, longitude } = position.coords;
-          const mockLocation = `${latitude.toFixed(2)}, ${longitude.toFixed(2)}`;
-          setSelectedLocation(mockLocation);
-          toast({
-            title: 'Location detected',
-            description: `Location set to ${mockLocation}`
-          });
-        } catch (error) {
-          console.error('Error getting location:', error);
-          toast({
-            title: 'Error',
-            description: 'Failed to get location',
-            variant: 'destructive'
-          });
-        } finally {
-          setDetectingLocation(false);
-        }
-      },
-      (error) => {
-        console.error('Geolocation error:', error);
-        toast({
-          title: 'Location access denied',
-          description: 'Please allow location access or select manually',
-          variant: 'destructive'
-        });
-        setDetectingLocation(false);
-      }
-    );
-  };
 
   const handleLike = async (postId: string) => {
     setPosts(prev => prev.map(post => 
@@ -413,6 +415,43 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
     ));
   };
 
+  const handleDeletePost = async (postId: string) => {
+    try {
+      setPosts(prev => prev.filter(post => post.id !== postId));
+      toast({
+        title: 'Success',
+        description: 'Post deleted successfully'
+      });
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete post',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleShare = async (post: TimelinePost) => {
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: `Post by ${post.user_profile.display_name}`,
+          text: post.content,
+          url: window.location.href
+        });
+      } else {
+        navigator.clipboard.writeText(window.location.href);
+        toast({
+          title: 'Link copied',
+          description: 'Post link copied to clipboard'
+        });
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+    }
+  };
+
   const getTypeIcon = (type: string) => {
     switch (type) {
       case 'event': return <Calendar className="w-4 h-4" />;
@@ -455,121 +494,137 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
                   placeholder="What's on your mind?"
                   value={newPost}
                   onChange={(e) => setNewPost(e.target.value)}
-                  className="min-h-[100px] resize-none border-0 focus:ring-0 text-lg"
+                  onFocus={() => setExpandedPost(true)}
+                  className={`resize-none border-0 focus:ring-0 text-lg transition-all duration-300 ${
+                    expandedPost ? 'min-h-[120px]' : 'min-h-[60px]'
+                  }`}
                 />
                 
-                {/* Media Preview */}
-                {mediaPreview && (
-                  <div className="mt-4 relative">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={handleRemoveMedia}
-                      className="absolute top-2 right-2 z-10"
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                    {selectedMedia?.type.startsWith('image/') ? (
-                      <img
-                        src={mediaPreview}
-                        alt="Preview"
-                        className="w-full max-h-64 object-cover rounded-lg"
-                      />
-                    ) : (
-                      <video
-                        src={mediaPreview}
-                        controls
-                        className="w-full max-h-64 object-cover rounded-lg"
-                      />
-                    )}
-                  </div>
-                )}
-                
-                {/* Location Display */}
-                {selectedLocation && (
-                  <div className="mt-2 flex items-center text-sm text-muted-foreground">
-                    <MapPin className="w-4 h-4 mr-1" />
-                    <span>{selectedLocation}</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setSelectedLocation('')}
-                      className="ml-2 h-6 w-6 p-0"
-                    >
-                      <X className="w-3 h-3" />
-                    </Button>
-                  </div>
-                )}
-                
-                <div className="flex justify-between items-center mt-4 pt-4 border-t">
-                  <div className="flex space-x-2">
-                    {/* Photo Upload */}
-                    <div>
-                      <Input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) handleMediaUpload(file, 'image');
-                        }}
-                        className="hidden"
-                        id="photo-upload"
-                      />
-                      <Button variant="ghost" size="sm" asChild>
-                        <label htmlFor="photo-upload" className="cursor-pointer">
-                          <ImageIcon className="w-4 h-4 mr-2" />
-                          Photo
-                        </label>
-                      </Button>
-                    </div>
-                    
-                    {/* Video Upload */}
-                    <div>
-                      <Input
-                        type="file"
-                        accept="video/*"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) handleMediaUpload(file, 'video');
-                        }}
-                        className="hidden"
-                        id="video-upload"
-                      />
-                      <Button variant="ghost" size="sm" asChild>
-                        <label htmlFor="video-upload" className="cursor-pointer">
-                          <Video className="w-4 h-4 mr-2" />
-                          Video
-                        </label>
-                      </Button>
-                    </div>
-                    
-                    {/* Location Selector */}
-                    <Popover open={locationOpen} onOpenChange={setLocationOpen}>
-                      <PopoverTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MapPin className="w-4 h-4 mr-2" />
-                          Location
+                {/* Expanded Post Creation Template */}
+                {expandedPost && (
+                  <div className="mt-4 space-y-4">
+                    {/* Media Preview */}
+                    {mediaPreview && (
+                      <div className="relative">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={handleRemoveMedia}
+                          className="absolute top-2 right-2 z-10"
+                        >
+                          <X className="w-4 h-4" />
                         </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-80">
-                        <div className="space-y-4">
-                          <div className="flex items-center space-x-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={handleLocationDetect}
-                              disabled={detectingLocation}
-                            >
-                              {detectingLocation ? (
-                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                              ) : (
-                                <MapPin className="w-4 h-4 mr-2" />
-                              )}
-                              Detect Location
-                            </Button>
-                          </div>
+                        {selectedMedia?.type.startsWith('image/') ? (
+                          <img
+                            src={mediaPreview}
+                            alt="Preview"
+                            className="w-full max-h-64 object-cover rounded-lg"
+                          />
+                        ) : (
+                          <video
+                            src={mediaPreview}
+                            controls
+                            className="w-full max-h-64 object-cover rounded-lg"
+                          />
+                        )}
+                      </div>
+                    )}
+                    
+                    {/* Selection Displays */}
+                    <div className="space-y-2">
+                      {selectedLocation && (
+                        <div className="flex items-center text-sm text-muted-foreground bg-muted p-2 rounded">
+                          <MapPin className="w-4 h-4 mr-2" />
+                          <span>{selectedLocation}</span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setSelectedLocation('')}
+                            className="ml-auto h-6 w-6 p-0"
+                          >
+                            <X className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      )}
+                      
+                      {selectedChannel && (
+                        <div className="flex items-center text-sm text-muted-foreground bg-muted p-2 rounded">
+                          <Play className="w-4 h-4 mr-2" />
+                          <span>{userChannels.find(c => c.id === selectedChannel)?.name}</span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setSelectedChannel('')}
+                            className="ml-auto h-6 w-6 p-0"
+                          >
+                            <X className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      )}
+                      
+                      {selectedEvent && (
+                        <div className="flex items-center text-sm text-muted-foreground bg-muted p-2 rounded">
+                          <Calendar className="w-4 h-4 mr-2" />
+                          <span>{userEvents.find(e => e.id === selectedEvent)?.name}</span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setSelectedEvent('')}
+                            className="ml-auto h-6 w-6 p-0"
+                          >
+                            <X className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Action Buttons */}
+                    <div className="flex flex-wrap gap-2 p-4 bg-muted/50 rounded-lg">
+                      {/* Photo Upload */}
+                      <div>
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleMediaUpload(file, 'image');
+                          }}
+                          className="hidden"
+                          id="photo-upload"
+                        />
+                        <Button variant="ghost" size="sm" asChild>
+                          <label htmlFor="photo-upload" className="cursor-pointer">
+                            <ImageIcon className="w-4 h-4 mr-2" />
+                            Photo/Video
+                          </label>
+                        </Button>
+                      </div>
+                      
+                      {/* Video Upload */}
+                      <div>
+                        <Input
+                          type="file"
+                          accept="video/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleMediaUpload(file, 'video');
+                          }}
+                          className="hidden"
+                          id="video-upload"
+                        />
+                      </div>
+                      
+                      {/* Location Selector */}
+                      <Popover open={locationOpen} onOpenChange={setLocationOpen}>
+                        <PopoverTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <MapPin className="w-4 h-4 mr-2" />
+                            Location
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-80">
                           <Command>
-                            <CommandInput placeholder="Search locations..." />
+                            <CommandInput placeholder="Type location..." />
                             <CommandList>
                               <CommandEmpty>No locations found.</CommandEmpty>
                               <CommandGroup>
@@ -593,14 +648,109 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
                               </CommandGroup>
                             </CommandList>
                           </Command>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
+                        </PopoverContent>
+                      </Popover>
+                      
+                      {/* Channel Selector */}
+                      <Popover open={channelOpen} onOpenChange={setChannelOpen}>
+                        <PopoverTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <Play className="w-4 h-4 mr-2" />
+                            Channel
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-80">
+                          <Command>
+                            <CommandInput placeholder="Search channels..." />
+                            <CommandList>
+                              <CommandEmpty>No channels found.</CommandEmpty>
+                              <CommandGroup>
+                                {userChannels.map((channel) => (
+                                  <CommandItem
+                                    key={channel.id}
+                                    value={channel.name}
+                                    onSelect={() => {
+                                      setSelectedChannel(channel.id);
+                                      setChannelOpen(false);
+                                    }}
+                                  >
+                                    <Check
+                                      className={`mr-2 h-4 w-4 ${
+                                        selectedChannel === channel.id ? 'opacity-100' : 'opacity-0'
+                                      }`}
+                                    />
+                                    {channel.name}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                      
+                      {/* Event Selector */}
+                      <Popover open={eventOpen} onOpenChange={setEventOpen}>
+                        <PopoverTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <Calendar className="w-4 h-4 mr-2" />
+                            Event
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-80">
+                          <Command>
+                            <CommandInput placeholder="Search events..." />
+                            <CommandList>
+                              <CommandEmpty>No events found.</CommandEmpty>
+                              <CommandGroup>
+                                {userEvents.map((event) => (
+                                  <CommandItem
+                                    key={event.id}
+                                    value={event.name}
+                                    onSelect={() => {
+                                      setSelectedEvent(event.id);
+                                      setEventOpen(false);
+                                    }}
+                                  >
+                                    <Check
+                                      className={`mr-2 h-4 w-4 ${
+                                        selectedEvent === event.id ? 'opacity-100' : 'opacity-0'
+                                      }`}
+                                    />
+                                    {event.name}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
                   </div>
-                  
+                )}
+                
+                {/* Post Button */}
+                <div className="flex justify-between items-center mt-4">
+                  {expandedPost && (
+                    <Button 
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setExpandedPost(false);
+                        setNewPost('');
+                        setSelectedMedia(null);
+                        setMediaPreview(null);
+                        setSelectedLocation('');
+                        setSelectedChannel('');
+                        setSelectedEvent('');
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  )}
                   <Button 
                     onClick={handleCreatePost} 
                     disabled={(!newPost.trim() && !selectedMedia) || uploading}
+                    className="ml-auto"
                   >
                     {uploading ? (
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -706,19 +856,48 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
                   <MessageCircle className="w-4 h-4 mr-2" />
                   {post.comments_count}
                 </Button>
-                <Button variant="ghost" size="sm">
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => handleShare(post)}
+                >
                   <Share2 className="w-4 h-4 mr-2" />
                   {post.shares_count}
                 </Button>
               </div>
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => handleBookmark(post.id)}
-                className={post.is_bookmarked ? 'text-blue-500' : ''}
-              >
-                <Bookmark className={`w-4 h-4 ${post.is_bookmarked ? 'fill-current' : ''}`} />
-              </Button>
+              <div className="flex items-center space-x-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => handleBookmark(post.id)}
+                  className={post.is_bookmarked ? 'text-blue-500' : ''}
+                >
+                  <Bookmark className={`w-4 h-4 ${post.is_bookmarked ? 'fill-current' : ''}`} />
+                </Button>
+                {isOwnProfile && post.user_id === userId && (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="ghost" size="sm" className="text-destructive">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Post</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete this post? This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleDeletePost(post.id)}>
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
