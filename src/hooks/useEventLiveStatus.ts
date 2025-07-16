@@ -31,6 +31,8 @@ export const useEventLiveStatus = ({
         const hasActiveCameras = !!(
           localCameraTrack || otherCameraTracks.length > 0
         );
+
+        console.log({ goLive });
         const shouldGoLive = goLive && hasActiveCameras && !currentIsLive;
         const shouldStopLive = !goLive && !hasActiveCameras && currentIsLive;
 
