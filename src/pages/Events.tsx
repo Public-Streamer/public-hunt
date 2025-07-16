@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import TooltipWrapper from '@/components/ui/tooltip-wrapper';
 import EventRankingControls, { SortOption } from '@/components/EventRankingControls';
 import ScheduledEventsGrid from '@/components/ScheduledEventsGrid';
+import PastEventsGrid from '@/components/PastEventsGrid';
 import { supabase } from '@/integrations/supabase/client';
 
 interface Event {
@@ -168,7 +169,7 @@ const Events: React.FC = () => {
               <Clock className="h-4 w-4 mr-2" />
               Scheduled Events
             </TabsTrigger>
-            <TabsTrigger value="past" onClick={() => navigate('/past-events')}>
+            <TabsTrigger value="past">
               <History className="h-4 w-4 mr-2" />
               Past Events
             </TabsTrigger>
@@ -289,6 +290,10 @@ const Events: React.FC = () => {
                 sortBy={scheduledSortBy}
               />
             )}
+          </TabsContent>
+          
+          <TabsContent value="past" className="space-y-6">
+            <PastEventsGrid />
           </TabsContent>
         </Tabs>
       </div>
