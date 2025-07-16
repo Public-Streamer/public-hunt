@@ -68,6 +68,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<string>('');
   const [locationOpen, setLocationOpen] = useState(false);
+  const [locationInput, setLocationInput] = useState<string>('');
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedPost, setSelectedPost] = useState<TimelinePost | null>(null);
@@ -77,10 +78,14 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
   const [expandedPost, setExpandedPost] = useState(false);
   const [userChannels, setUserChannels] = useState<any[]>([]);
   const [userEvents, setUserEvents] = useState<any[]>([]);
+  const [allChannels, setAllChannels] = useState<any[]>([]);
+  const [allEvents, setAllEvents] = useState<any[]>([]);
   const [selectedChannel, setSelectedChannel] = useState<string>('');
   const [selectedEvent, setSelectedEvent] = useState<string>('');
   const [channelOpen, setChannelOpen] = useState(false);
   const [eventOpen, setEventOpen] = useState(false);
+  const [channelInput, setChannelInput] = useState<string>('');
+  const [eventInput, setEventInput] = useState<string>('');
   const { toast } = useToast();
   const { user, userProfile: currentUserProfile } = useAppContext();
   
@@ -117,6 +122,8 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
       fetchUserChannels();
       fetchUserEvents();
     }
+    fetchAllChannels();
+    fetchAllEvents();
   }, [userId, isOwnProfile]);
 
   const fetchUserChannels = async () => {
@@ -133,6 +140,20 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
     }
   };
 
+  const fetchAllChannels = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('channels')
+        .select('*')
+        .limit(20);
+      
+      if (error) throw error;
+      setAllChannels(data || []);
+    } catch (error) {
+      console.error('Error fetching all channels:', error);
+    }
+  };
+
   const fetchUserEvents = async () => {
     try {
       const { data, error } = await supabase
@@ -144,6 +165,20 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
       setUserEvents(data || []);
     } catch (error) {
       console.error('Error fetching user events:', error);
+    }
+  };
+
+  const fetchAllEvents = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .limit(20);
+      
+      if (error) throw error;
+      setAllEvents(data || []);
+    } catch (error) {
+      console.error('Error fetching all events:', error);
     }
   };
 
@@ -547,35 +582,43 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
                         </div>
                       )}
                       
-                      {selectedChannel && (
-                        <div className="flex items-center text-sm text-muted-foreground bg-muted p-2 rounded">
-                          <Play className="w-4 h-4 mr-2" />
-                          <span>{userChannels.find(c => c.id === selectedChannel)?.name}</span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setSelectedChannel('')}
-                            className="ml-auto h-6 w-6 p-0"
-                          >
-                            <X className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      )}
-                      
-                      {selectedEvent && (
-                        <div className="flex items-center text-sm text-muted-foreground bg-muted p-2 rounded">
-                          <Calendar className="w-4 h-4 mr-2" />
-                          <span>{userEvents.find(e => e.id === selectedEvent)?.name}</span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setSelectedEvent('')}
-                            className="ml-auto h-6 w-6 p-0"
-                          >
-                            <X className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      )}
+                       {selectedChannel && (
+                         <div className="flex items-center text-sm text-muted-foreground bg-muted p-2 rounded">
+                           <Play className="w-4 h-4 mr-2" />
+                           <span>
+                             {userChannels.find(c => c.id === selectedChannel)?.name || 
+                              allChannels.find(c => c.id === selectedChannel)?.name || 
+                              selectedChannel}
+                           </span>
+                           <Button
+                             variant="ghost"
+                             size="sm"
+                             onClick={() => setSelectedChannel('')}
+                             className="ml-auto h-6 w-6 p-0"
+                           >
+                             <X className="w-3 h-3" />
+                           </Button>
+                         </div>
+                       )}
+                       
+                       {selectedEvent && (
+                         <div className="flex items-center text-sm text-muted-foreground bg-muted p-2 rounded">
+                           <Calendar className="w-4 h-4 mr-2" />
+                           <span>
+                             {userEvents.find(e => e.id === selectedEvent)?.name || 
+                              allEvents.find(e => e.id === selectedEvent)?.name || 
+                              selectedEvent}
+                           </span>
+                           <Button
+                             variant="ghost"
+                             size="sm"
+                             onClick={() => setSelectedEvent('')}
+                             className="ml-auto h-6 w-6 p-0"
+                           >
+                             <X className="w-3 h-3" />
+                           </Button>
+                         </div>
+                       )}
                     </div>
                     
                     {/* Action Buttons */}
@@ -614,116 +657,258 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
                         />
                       </div>
                       
-                      {/* Location Selector */}
-                      <Popover open={locationOpen} onOpenChange={setLocationOpen}>
-                        <PopoverTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <MapPin className="w-4 h-4 mr-2" />
-                            Location
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-80">
-                          <Command>
-                            <CommandInput placeholder="Type location..." />
-                            <CommandList>
-                              <CommandEmpty>No locations found.</CommandEmpty>
-                              <CommandGroup>
-                                {commonLocations.map((location) => (
-                                  <CommandItem
-                                    key={location}
-                                    value={location}
-                                    onSelect={() => {
-                                      setSelectedLocation(location);
-                                      setLocationOpen(false);
-                                    }}
-                                  >
-                                    <Check
-                                      className={`mr-2 h-4 w-4 ${
-                                        selectedLocation === location ? 'opacity-100' : 'opacity-0'
-                                      }`}
-                                    />
-                                    {location}
-                                  </CommandItem>
-                                ))}
-                              </CommandGroup>
-                            </CommandList>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
+                       {/* Location Selector */}
+                       <Popover open={locationOpen} onOpenChange={setLocationOpen}>
+                         <PopoverTrigger asChild>
+                           <Button variant="ghost" size="sm">
+                             <MapPin className="w-4 h-4 mr-2" />
+                             Location
+                           </Button>
+                         </PopoverTrigger>
+                         <PopoverContent className="w-80">
+                           <Command>
+                             <CommandInput 
+                               placeholder="Type any location..." 
+                               value={locationInput}
+                               onValueChange={setLocationInput}
+                             />
+                             <CommandList>
+                               <CommandEmpty>
+                                 {locationInput && (
+                                   <div className="p-2">
+                                     <Button 
+                                       variant="ghost" 
+                                       className="w-full justify-start"
+                                       onClick={() => {
+                                         setSelectedLocation(locationInput);
+                                         setLocationOpen(false);
+                                         setLocationInput('');
+                                       }}
+                                     >
+                                       <MapPin className="w-4 h-4 mr-2" />
+                                       Use "{locationInput}"
+                                     </Button>
+                                   </div>
+                                 )}
+                               </CommandEmpty>
+                               <CommandGroup>
+                                 {commonLocations
+                                   .filter(location => 
+                                     location.toLowerCase().includes(locationInput.toLowerCase())
+                                   )
+                                   .map((location) => (
+                                   <CommandItem
+                                     key={location}
+                                     value={location}
+                                     onSelect={() => {
+                                       setSelectedLocation(location);
+                                       setLocationOpen(false);
+                                       setLocationInput('');
+                                     }}
+                                   >
+                                     <Check
+                                       className={`mr-2 h-4 w-4 ${
+                                         selectedLocation === location ? 'opacity-100' : 'opacity-0'
+                                       }`}
+                                     />
+                                     {location}
+                                   </CommandItem>
+                                 ))}
+                               </CommandGroup>
+                             </CommandList>
+                           </Command>
+                         </PopoverContent>
+                       </Popover>
                       
-                      {/* Channel Selector */}
-                      <Popover open={channelOpen} onOpenChange={setChannelOpen}>
-                        <PopoverTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <Play className="w-4 h-4 mr-2" />
-                            Channel
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-80">
-                          <Command>
-                            <CommandInput placeholder="Search channels..." />
-                            <CommandList>
-                              <CommandEmpty>No channels found.</CommandEmpty>
-                              <CommandGroup>
-                                {userChannels.map((channel) => (
-                                  <CommandItem
-                                    key={channel.id}
-                                    value={channel.name}
-                                    onSelect={() => {
-                                      setSelectedChannel(channel.id);
-                                      setChannelOpen(false);
-                                    }}
-                                  >
-                                    <Check
-                                      className={`mr-2 h-4 w-4 ${
-                                        selectedChannel === channel.id ? 'opacity-100' : 'opacity-0'
-                                      }`}
-                                    />
-                                    {channel.name}
-                                  </CommandItem>
-                                ))}
-                              </CommandGroup>
-                            </CommandList>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
+                       {/* Channel Selector */}
+                       <Popover open={channelOpen} onOpenChange={setChannelOpen}>
+                         <PopoverTrigger asChild>
+                           <Button variant="ghost" size="sm">
+                             <Play className="w-4 h-4 mr-2" />
+                             Channel
+                           </Button>
+                         </PopoverTrigger>
+                         <PopoverContent className="w-80">
+                           <Command>
+                             <CommandInput 
+                               placeholder="Search or type channel name..." 
+                               value={channelInput}
+                               onValueChange={setChannelInput}
+                             />
+                             <CommandList>
+                               <CommandEmpty>
+                                 {channelInput && (
+                                   <div className="p-2">
+                                     <Button 
+                                       variant="ghost" 
+                                       className="w-full justify-start"
+                                       onClick={() => {
+                                         setSelectedChannel(channelInput);
+                                         setChannelOpen(false);
+                                         setChannelInput('');
+                                       }}
+                                     >
+                                       <Play className="w-4 h-4 mr-2" />
+                                       Use "{channelInput}"
+                                     </Button>
+                                   </div>
+                                 )}
+                               </CommandEmpty>
+                               {userChannels.length > 0 && (
+                                 <CommandGroup heading="Your Channels">
+                                   {userChannels
+                                     .filter(channel => 
+                                       channel.name.toLowerCase().includes(channelInput.toLowerCase())
+                                     )
+                                     .map((channel) => (
+                                     <CommandItem
+                                       key={channel.id}
+                                       value={channel.name}
+                                       onSelect={() => {
+                                         setSelectedChannel(channel.id);
+                                         setChannelOpen(false);
+                                         setChannelInput('');
+                                       }}
+                                     >
+                                       <Check
+                                         className={`mr-2 h-4 w-4 ${
+                                           selectedChannel === channel.id ? 'opacity-100' : 'opacity-0'
+                                         }`}
+                                       />
+                                       {channel.name}
+                                     </CommandItem>
+                                   ))}
+                                 </CommandGroup>
+                               )}
+                               {allChannels.length > 0 && (
+                                 <CommandGroup heading="All Channels">
+                                   {allChannels
+                                     .filter(channel => 
+                                       channel.name.toLowerCase().includes(channelInput.toLowerCase()) &&
+                                       !userChannels.find(uc => uc.id === channel.id)
+                                     )
+                                     .map((channel) => (
+                                     <CommandItem
+                                       key={channel.id}
+                                       value={channel.name}
+                                       onSelect={() => {
+                                         setSelectedChannel(channel.id);
+                                         setChannelOpen(false);
+                                         setChannelInput('');
+                                       }}
+                                     >
+                                       <Check
+                                         className={`mr-2 h-4 w-4 ${
+                                           selectedChannel === channel.id ? 'opacity-100' : 'opacity-0'
+                                         }`}
+                                       />
+                                       {channel.name}
+                                     </CommandItem>
+                                   ))}
+                                 </CommandGroup>
+                               )}
+                             </CommandList>
+                           </Command>
+                         </PopoverContent>
+                       </Popover>
                       
-                      {/* Event Selector */}
-                      <Popover open={eventOpen} onOpenChange={setEventOpen}>
-                        <PopoverTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <Calendar className="w-4 h-4 mr-2" />
-                            Event
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-80">
-                          <Command>
-                            <CommandInput placeholder="Search events..." />
-                            <CommandList>
-                              <CommandEmpty>No events found.</CommandEmpty>
-                              <CommandGroup>
-                                {userEvents.map((event) => (
-                                  <CommandItem
-                                    key={event.id}
-                                    value={event.name}
-                                    onSelect={() => {
-                                      setSelectedEvent(event.id);
-                                      setEventOpen(false);
-                                    }}
-                                  >
-                                    <Check
-                                      className={`mr-2 h-4 w-4 ${
-                                        selectedEvent === event.id ? 'opacity-100' : 'opacity-0'
-                                      }`}
-                                    />
-                                    {event.name}
-                                  </CommandItem>
-                                ))}
-                              </CommandGroup>
-                            </CommandList>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
+                       {/* Event Selector */}
+                       <Popover open={eventOpen} onOpenChange={setEventOpen}>
+                         <PopoverTrigger asChild>
+                           <Button variant="ghost" size="sm">
+                             <Calendar className="w-4 h-4 mr-2" />
+                             Event
+                           </Button>
+                         </PopoverTrigger>
+                         <PopoverContent className="w-80">
+                           <Command>
+                             <CommandInput 
+                               placeholder="Search or type event name..." 
+                               value={eventInput}
+                               onValueChange={setEventInput}
+                             />
+                             <CommandList>
+                               <CommandEmpty>
+                                 {eventInput && (
+                                   <div className="p-2">
+                                     <Button 
+                                       variant="ghost" 
+                                       className="w-full justify-start"
+                                       onClick={() => {
+                                         setSelectedEvent(eventInput);
+                                         setEventOpen(false);
+                                         setEventInput('');
+                                       }}
+                                     >
+                                       <Calendar className="w-4 h-4 mr-2" />
+                                       Use "{eventInput}"
+                                     </Button>
+                                   </div>
+                                 )}
+                               </CommandEmpty>
+                               {userEvents.length > 0 && (
+                                 <CommandGroup heading="Your Events">
+                                   {userEvents
+                                     .filter(event => 
+                                       event.name.toLowerCase().includes(eventInput.toLowerCase())
+                                     )
+                                     .map((event) => (
+                                     <CommandItem
+                                       key={event.id}
+                                       value={event.name}
+                                       onSelect={() => {
+                                         setSelectedEvent(event.id);
+                                         setEventOpen(false);
+                                         setEventInput('');
+                                       }}
+                                     >
+                                       <Check
+                                         className={`mr-2 h-4 w-4 ${
+                                           selectedEvent === event.id ? 'opacity-100' : 'opacity-0'
+                                         }`}
+                                       />
+                                       {event.name}
+                                       <Badge variant="outline" className="ml-2">
+                                         {event.is_live ? 'Live' : 'Scheduled'}
+                                       </Badge>
+                                     </CommandItem>
+                                   ))}
+                                 </CommandGroup>
+                               )}
+                               {allEvents.length > 0 && (
+                                 <CommandGroup heading="All Events">
+                                   {allEvents
+                                     .filter(event => 
+                                       event.name.toLowerCase().includes(eventInput.toLowerCase()) &&
+                                       !userEvents.find(ue => ue.id === event.id)
+                                     )
+                                     .map((event) => (
+                                     <CommandItem
+                                       key={event.id}
+                                       value={event.name}
+                                       onSelect={() => {
+                                         setSelectedEvent(event.id);
+                                         setEventOpen(false);
+                                         setEventInput('');
+                                       }}
+                                     >
+                                       <Check
+                                         className={`mr-2 h-4 w-4 ${
+                                           selectedEvent === event.id ? 'opacity-100' : 'opacity-0'
+                                         }`}
+                                       />
+                                       {event.name}
+                                       <Badge variant="outline" className="ml-2">
+                                         {event.is_live ? 'Live' : 'Scheduled'}
+                                       </Badge>
+                                     </CommandItem>
+                                   ))}
+                                 </CommandGroup>
+                               )}
+                             </CommandList>
+                           </Command>
+                         </PopoverContent>
+                       </Popover>
                     </div>
                   </div>
                 )}
@@ -739,10 +924,13 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
                         setNewPost('');
                         setSelectedMedia(null);
                         setMediaPreview(null);
-                        setSelectedLocation('');
-                        setSelectedChannel('');
-                        setSelectedEvent('');
-                      }}
+                         setSelectedLocation('');
+                         setSelectedChannel('');
+                         setSelectedEvent('');
+                         setLocationInput('');
+                         setChannelInput('');
+                         setEventInput('');
+                       }}
                     >
                       Cancel
                     </Button>
