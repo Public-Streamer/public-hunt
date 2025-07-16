@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Share2, Facebook, Instagram, MessageCircle, Mail, Phone, Copy, Twitter } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -14,12 +15,12 @@ const SocialShareMenu: React.FC<SocialShareMenuProps> = ({ title, url, descripti
   const { toast } = useToast();
 
   const platforms = [
-    { id: 'whatsapp', name: 'WhatsApp', icon: MessageCircle, color: 'bg-green-500', tooltip: 'Share on WhatsApp - Instant messaging' },
-    { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'bg-blue-600', tooltip: 'Share on Facebook - Reach friends and family' },
-    { id: 'instagram', name: 'Instagram', icon: Instagram, color: 'bg-pink-600', tooltip: 'Copy link for Instagram sharing' },
-    { id: 'x', name: 'X (Twitter)', icon: Twitter, color: 'bg-gray-900', tooltip: 'Share on X - Quick updates and news' },
-    { id: 'email', name: 'Email', icon: Mail, color: 'bg-blue-500', tooltip: 'Share via email - Direct personal sharing' },
-    { id: 'sms', name: 'SMS', icon: Phone, color: 'bg-green-600', tooltip: 'Share via SMS - Text messaging' },
+    { id: 'whatsapp', name: 'WhatsApp', icon: MessageCircle, color: 'bg-green-500', tooltip: 'Share on WhatsApp' },
+    { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'bg-blue-600', tooltip: 'Share on Facebook' },
+    { id: 'instagram', name: 'Instagram', icon: Instagram, color: 'bg-pink-600', tooltip: 'Copy link for Instagram' },
+    { id: 'x', name: 'X (Twitter)', icon: Twitter, color: 'bg-gray-900', tooltip: 'Share on X (Twitter)' },
+    { id: 'email', name: 'Email', icon: Mail, color: 'bg-blue-500', tooltip: 'Share via Email' },
+    { id: 'sms', name: 'SMS', icon: Phone, color: 'bg-green-600', tooltip: 'Share via SMS' },
     { id: 'copy', name: 'Copy Link', icon: Copy, color: 'bg-gray-600', tooltip: 'Copy link to clipboard' }
   ];
 
@@ -150,26 +151,32 @@ const SocialShareMenu: React.FC<SocialShareMenuProps> = ({ title, url, descripti
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {platforms.map((platform) => {
-            const Icon = platform.icon;
-            
-            return (
-              <Button
-                key={platform.id}
-                variant="outline"
-                className="flex items-center space-x-2 p-3 h-auto justify-start"
-                onClick={() => handlePlatformClick(platform.id)}
-                title={platform.tooltip}
-              >
-                <div className={`p-1 rounded ${platform.color}`}>
-                  <Icon className="h-4 w-4 text-white" />
-                </div>
-                <span className="text-sm font-medium">{platform.name}</span>
-              </Button>
-            );
-          })}
-        </div>
+        <TooltipProvider>
+          <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
+            {platforms.map((platform) => {
+              const Icon = platform.icon;
+              
+              return (
+                <Tooltip key={platform.id}>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="flex items-center justify-center p-3 h-12 w-12"
+                      onClick={() => handlePlatformClick(platform.id)}
+                    >
+                      <div className={`p-1 rounded ${platform.color}`}>
+                        <Icon className="h-4 w-4 text-white" />
+                      </div>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{platform.tooltip}</p>
+                  </TooltipContent>
+                </Tooltip>
+              );
+            })}
+          </div>
+        </TooltipProvider>
       </CardContent>
     </Card>
   );

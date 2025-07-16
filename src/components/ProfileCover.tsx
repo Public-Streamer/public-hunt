@@ -4,11 +4,27 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Camera, Settings, MessageCircle, Share2, UserPlus, MapPin, Calendar, Users, Heart, Star } from 'lucide-react';
+import { Camera, Settings, MessageCircle, Share2, UserPlus, MapPin, Calendar, Users, Heart, Star, Upload } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Textarea } from '@/components/ui/textarea';
 import FollowButton from '@/components/FollowButton';
 import SocialShareMenu from '@/components/SocialShareMenu';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+
+const profileFormSchema = z.object({
+  display_name: z.string().min(1, 'Display name is required'),
+  bio: z.string().max(500, 'Bio must be less than 500 characters').optional(),
+  location: z.string().optional(),
+  website: z.string().url('Must be a valid URL').optional().or(z.literal('')),
+});
+
+type ProfileFormData = z.infer<typeof profileFormSchema>;
 
 interface ProfileCoverProps {
   profile: {
@@ -18,23 +34,39 @@ interface ProfileCoverProps {
     bio: string;
     profile_picture_url: string;
     cover_photo_url?: string;
+    location?: string;
+    website?: string;
     created_at: string;
   };
   isOwnProfile: boolean;
   friendsCount?: number;
   followersCount?: number;
+  onProfileUpdate?: (updatedProfile: any) => void;
 }
 
 const ProfileCover: React.FC<ProfileCoverProps> = ({ 
   profile, 
   isOwnProfile, 
   friendsCount = 0, 
-  followersCount = 0 
+  followersCount = 0,
+  onProfileUpdate 
 }) => {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [showShareDialog, setShowShareDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
   const [isLive, setIsLive] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
+  
+  const form = useForm<ProfileFormData>({
+    resolver: zodResolver(profileFormSchema),
+    defaultValues: {
+      display_name: profile.display_name,
+      bio: profile.bio,
+      location: profile.location || '',
+      website: profile.website || '',
+    },
+  });
 
   useEffect(() => {
     getCurrentUser();
@@ -54,6 +86,67 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
     });
   };
 
+  const handleCoverUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      // Mock upload - in real app, upload to Supabase storage
+      const mockUrl = URL.createObjectURL(file);
+      
+      // Update profile with new cover photo
+      if (onProfileUpdate) {
+        onProfileUpdate({
+          ...profile,
+          cover_photo_url: mockUrl
+        });
+      }
+      
+      toast({
+        title: 'Success',
+        description: 'Cover photo updated successfully!'
+      });
+    } catch (error) {
+      console.error('Error uploading cover photo:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to upload cover photo',
+        variant: 'destructive'
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleProfileUpdate = async (data: ProfileFormData) => {
+    try {
+      // Mock update - in real app, update in Supabase
+      const updatedProfile = {
+        ...profile,
+        ...data
+      };
+      
+      if (onProfileUpdate) {
+        onProfileUpdate(updatedProfile);
+      }
+      
+      toast({
+        title: 'Success',
+        description: 'Profile updated successfully!'
+      });
+      
+      setShowEditDialog(false);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update profile',
+        variant: 'destructive'
+      });
+    }
+  };
+
   return (
     <Card className="mb-6 overflow-hidden">
       {/* Cover Photo */}
@@ -66,14 +159,33 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
         }}
       >
         {isOwnProfile && (
-          <Button 
-            variant="secondary" 
-            size="sm" 
-            className="absolute bottom-4 right-4"
-          >
-            <Camera className="w-4 h-4 mr-2" />
-            Edit Cover
-          </Button>
+          <div className="absolute bottom-4 right-4">
+            <Input
+              type="file"
+              accept="image/*"
+              onChange={handleCoverUpload}
+              disabled={uploading}
+              className="hidden"
+              id="cover-upload"
+            />
+            <Label htmlFor="cover-upload" className="cursor-pointer">
+              <Button 
+                variant="secondary" 
+                size="sm"
+                disabled={uploading}
+                asChild
+              >
+                <span>
+                  {uploading ? (
+                    <Upload className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Camera className="w-4 h-4 mr-2" />
+                  )}
+                  {uploading ? 'Uploading...' : 'Edit Cover'}
+                </span>
+              </Button>
+            </Label>
+          </div>
         )}
       </div>
       
@@ -109,10 +221,85 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
           <div className="flex space-x-2">
             {isOwnProfile ? (
               <>
-                <Button variant="outline">
-                  <Settings className="w-4 h-4 mr-2" />
-                  Edit Profile
-                </Button>
+                <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline">
+                      <Settings className="w-4 h-4 mr-2" />
+                      Edit Profile
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Edit Profile</DialogTitle>
+                    </DialogHeader>
+                    <Form {...form}>
+                      <form onSubmit={form.handleSubmit(handleProfileUpdate)} className="space-y-4">
+                        <FormField
+                          control={form.control}
+                          name="display_name"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Display Name</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Your display name" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="bio"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Bio</FormLabel>
+                              <FormControl>
+                                <Textarea 
+                                  placeholder="Tell us about yourself..."
+                                  className="min-h-[100px]"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="location"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Location</FormLabel>
+                              <FormControl>
+                                <Input placeholder="City, State, Country" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="website"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Website</FormLabel>
+                              <FormControl>
+                                <Input placeholder="https://yourwebsite.com" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <div className="flex justify-end space-x-2">
+                          <Button type="button" variant="outline" onClick={() => setShowEditDialog(false)}>
+                            Cancel
+                          </Button>
+                          <Button type="submit">Save Changes</Button>
+                        </div>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
                 <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
                   <DialogTrigger asChild>
                     <Button variant="outline">

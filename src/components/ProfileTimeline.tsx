@@ -13,6 +13,13 @@ import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { useAppContext } from '@/contexts/AppContext';
 
+interface UserProfile {
+  id: string;
+  username: string;
+  display_name: string;
+  profile_picture_url: string;
+}
+
 interface TimelinePost {
   id: string;
   content: string;
@@ -20,11 +27,7 @@ interface TimelinePost {
   media_type?: 'image' | 'video';
   created_at: string;
   user_id: string;
-  user_profile: {
-    display_name: string;
-    username: string;
-    profile_picture_url: string;
-  };
+  user_profile: UserProfile;
   likes_count: number;
   comments_count: number;
   shares_count: number;
@@ -42,11 +45,7 @@ interface TimelinePost {
 interface Comment {
   id: string;
   content: string;
-  user_profile: {
-    display_name: string;
-    username: string;
-    profile_picture_url: string;
-  };
+  user_profile: UserProfile;
   created_at: string;
   likes_count: number;
   is_liked: boolean;
@@ -55,9 +54,10 @@ interface Comment {
 interface ProfileTimelineProps {
   userId: string;
   isOwnProfile: boolean;
+  userProfile?: UserProfile;
 }
 
-const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile }) => {
+const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile, userProfile }) => {
   const [posts, setPosts] = useState<TimelinePost[]>([]);
   const [newPost, setNewPost] = useState('');
   const [loading, setLoading] = useState(true);
@@ -66,7 +66,15 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile 
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const { toast } = useToast();
-  const { user } = useAppContext();
+  const { user, userProfile: currentUserProfile } = useAppContext();
+  
+  // Get the appropriate user profile data
+  const profileData: UserProfile = userProfile || {
+    id: userId,
+    username: user?.email?.split('@')[0] || 'user',
+    display_name: currentUserProfile ? `${currentUserProfile.firstName || ''} ${currentUserProfile.lastName || ''}`.trim() || 'User' : 'User',
+    profile_picture_url: currentUserProfile?.profilePhoto || '/placeholder.svg'
+  };
 
   useEffect(() => {
     fetchPosts();
@@ -84,9 +92,10 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile 
           created_at: new Date(Date.now() - 3600000).toISOString(),
           user_id: userId,
           user_profile: {
-            display_name: 'User Name',
-            username: 'username',
-            profile_picture_url: '/placeholder.svg'
+            id: profileData.id,
+            display_name: profileData.display_name,
+            username: profileData.username,
+            profile_picture_url: profileData.profile_picture_url
           },
           likes_count: 42,
           comments_count: 8,
@@ -101,9 +110,10 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile 
           created_at: new Date(Date.now() - 7200000).toISOString(),
           user_id: userId,
           user_profile: {
-            display_name: 'User Name',
-            username: 'username',
-            profile_picture_url: '/placeholder.svg'
+            id: profileData.id,
+            display_name: profileData.display_name,
+            username: profileData.username,
+            profile_picture_url: profileData.profile_picture_url
           },
           likes_count: 67,
           comments_count: 15,
@@ -125,9 +135,10 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile 
           created_at: new Date(Date.now() - 14400000).toISOString(),
           user_id: userId,
           user_profile: {
-            display_name: 'User Name',
-            username: 'username',
-            profile_picture_url: '/placeholder.svg'
+            id: profileData.id,
+            display_name: profileData.display_name,
+            username: profileData.username,
+            profile_picture_url: profileData.profile_picture_url
           },
           likes_count: 89,
           comments_count: 23,
@@ -142,9 +153,10 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile 
           created_at: new Date(Date.now() - 86400000).toISOString(),
           user_id: userId,
           user_profile: {
-            display_name: 'User Name',
-            username: 'username',
-            profile_picture_url: '/placeholder.svg'
+            id: profileData.id,
+            display_name: profileData.display_name,
+            username: profileData.username,
+            profile_picture_url: profileData.profile_picture_url
           },
           likes_count: 234,
           comments_count: 45,
@@ -174,6 +186,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile 
         id: '1',
         content: 'Amazing content! Keep up the great work!',
         user_profile: {
+          id: 'user-sarah',
           display_name: 'Sarah Johnson',
           username: 'sarah_j',
           profile_picture_url: '/placeholder.svg'
@@ -186,6 +199,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile 
         id: '2',
         content: 'This is so inspiring! Thank you for sharing.',
         user_profile: {
+          id: 'user-mike',
           display_name: 'Mike Chen',
           username: 'mike_chen',
           profile_picture_url: '/placeholder.svg'
@@ -207,9 +221,10 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile 
       created_at: new Date().toISOString(),
       user_id: userId,
       user_profile: {
-        display_name: 'User Name',
-        username: 'username',
-        profile_picture_url: '/placeholder.svg'
+        id: profileData.id,
+        display_name: profileData.display_name,
+        username: profileData.username,
+        profile_picture_url: profileData.profile_picture_url
       },
       likes_count: 0,
       comments_count: 0,
@@ -261,9 +276,10 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile 
       id: Date.now().toString(),
       content: newComment,
       user_profile: {
-        display_name: 'User Name',
-        username: 'username',
-        profile_picture_url: '/placeholder.svg'
+        id: profileData.id,
+        display_name: profileData.display_name,
+        username: profileData.username,
+        profile_picture_url: profileData.profile_picture_url
       },
       created_at: new Date().toISOString(),
       likes_count: 0,
@@ -315,8 +331,8 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile 
           <CardContent className="pt-6">
             <div className="flex space-x-4">
               <Avatar>
-                <AvatarImage src="/placeholder.svg" />
-                <AvatarFallback>U</AvatarFallback>
+                <AvatarImage src={profileData.profile_picture_url} />
+                <AvatarFallback>{profileData.display_name[0]}</AvatarFallback>
               </Avatar>
               <div className="flex-1">
                 <Textarea
@@ -492,8 +508,8 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile 
             
             <div className="flex space-x-3 mt-4">
               <Avatar className="w-8 h-8">
-                <AvatarImage src="/placeholder.svg" />
-                <AvatarFallback>U</AvatarFallback>
+                <AvatarImage src={profileData.profile_picture_url} />
+                <AvatarFallback>{profileData.display_name[0]}</AvatarFallback>
               </Avatar>
               <div className="flex-1">
                 <Textarea

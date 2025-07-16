@@ -43,6 +43,10 @@ const Profile: React.FC = () => {
   const { toast } = useToast();
   const { user, userProfile, isAuthenticated } = useAppContext();
 
+  const handleProfileUpdate = (updatedProfile: UserProfile) => {
+    setProfile(updatedProfile);
+  };
+
   useEffect(() => {
     if (!isAuthenticated) {
       window.location.href = '/login';
@@ -115,6 +119,7 @@ const Profile: React.FC = () => {
         isOwnProfile={isOwnProfile}
         friendsCount={friendsCount}
         followersCount={followersCount}
+        onProfileUpdate={handleProfileUpdate}
       />
       
       {/* Stories Section */}
@@ -136,7 +141,16 @@ const Profile: React.FC = () => {
         <TabsContent value="timeline" className="mt-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
-              <ProfileTimeline userId={profile.id} isOwnProfile={isOwnProfile} />
+              <ProfileTimeline 
+                userId={profile.id} 
+                isOwnProfile={isOwnProfile} 
+                userProfile={{
+                  id: profile.id,
+                  username: profile.username,
+                  display_name: profile.display_name,
+                  profile_picture_url: profile.profile_picture_url
+                }}
+              />
             </div>
             <div className="space-y-6">
               <ProfileAbout profile={profile} />
