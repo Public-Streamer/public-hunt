@@ -17,6 +17,19 @@ interface Post {
   likes: number;
   comments: number;
   shares: number;
+  channel?: {
+    id: string;
+    name: string;
+  };
+  event?: {
+    id: string;
+    name: string;
+  };
+  taggedUsers?: {
+    id: string;
+    name: string;
+    username: string;
+  }[];
   isLiked?: boolean;
 }
 
@@ -66,20 +79,76 @@ const SocialMediaSection: React.FC<SocialMediaSectionProps> = ({ eventId, channe
       const { data, error } = await query;
       if (error) throw error;
 
-      const formattedPosts: Post[] = data?.map(post => ({
-        id: post.id,
-        author: {
-          name: post.author_name,
-          username: post.author_username,
-          avatar: post.author_avatar
-        },
-        content: post.content,
-        timestamp: new Date(post.created_at).toLocaleString(),
-        likes: post.likes_count || 0,
-        comments: post.comments_count || 0,
-        shares: post.shares_count || 0,
-        isLiked: false
-      })) || [];
+      const formattedPosts: Post[] = [];
+      
+      for (const post of data || []) {
+        // Fetch channel info if channel_id exists
+        let channelData = null;
+        if (post.channel_id) {
+          const { data: channel } = await supabase
+            .from('channels')
+            .select('id, name')
+            .eq('id', post.channel_id)
+            .single();
+          channelData = channel;
+        }
+
+        // Fetch event info if event_id exists
+        let eventData = null;
+        if (post.event_id) {
+          const { data: event } = await supabase
+            .from('events')
+            .select('id, name')
+            .eq('id', post.event_id)
+            .single();
+          eventData = event;
+        }
+
+        // Fetch tagged users
+        const { data: taggedUsers } = await supabase
+          .from('user_tags')
+          .select(`
+            tagged_user_id
+          `)
+          .eq('post_id', post.id);
+
+        const formattedTaggedUsers = [];
+        if (taggedUsers && taggedUsers.length > 0) {
+          for (const tag of taggedUsers) {
+            const { data: userProfile } = await supabase
+              .from('user_profiles')
+              .select('id, display_name, username')
+              .eq('id', tag.tagged_user_id)
+              .single();
+            
+            if (userProfile) {
+              formattedTaggedUsers.push({
+                id: tag.tagged_user_id,
+                name: userProfile.display_name || 'Unknown User',
+                username: userProfile.username || 'unknown'
+              });
+            }
+          }
+        }
+
+        formattedPosts.push({
+          id: post.id,
+          author: {
+            name: post.author_name,
+            username: post.author_username,
+            avatar: post.author_avatar
+          },
+          content: post.content,
+          timestamp: new Date(post.created_at).toLocaleString(),
+          likes: post.likes_count || 0,
+          comments: post.comments_count || 0,
+          shares: post.shares_count || 0,
+          channel: channelData,
+          event: eventData,
+          taggedUsers: formattedTaggedUsers,
+          isLiked: false
+        });
+      }
 
       setPosts(formattedPosts);
     } catch (error) {
@@ -136,22 +205,8 @@ const SocialMediaSection: React.FC<SocialMediaSectionProps> = ({ eventId, channe
 
       if (error) throw error;
 
-      const newPost: Post = {
-        id: data.id,
-        author: {
-          name: data.author_name,
-          username: data.author_username,
-          avatar: data.author_avatar
-        },
-        content: data.content,
-        timestamp: new Date(data.created_at).toLocaleString(),
-        likes: 0,
-        comments: 0,
-        shares: 0,
-        isLiked: false
-      };
-
-      setPosts([newPost, ...posts]);
+      // Reload posts to get the complete information including channel, event, and tagged users
+      await loadPosts();
     } catch (error) {
       console.error('Error creating post:', error);
     }

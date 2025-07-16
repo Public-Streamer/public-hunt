@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Heart, MessageCircle, Share2, Send } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Heart, MessageCircle, Share2, Send, Hash, Calendar, Users } from 'lucide-react';
 
 interface SocialPostProps {
   postId: string;
@@ -17,6 +18,19 @@ interface SocialPostProps {
   likes: number;
   comments: number;
   shares: number;
+  channel?: {
+    id: string;
+    name: string;
+  };
+  event?: {
+    id: string;
+    name: string;
+  };
+  taggedUsers?: {
+    id: string;
+    name: string;
+    username: string;
+  }[];
   isLiked?: boolean;
   onLike?: (postId: string) => void;
   onComment?: (postId: string, comment: string) => void;
@@ -31,6 +45,9 @@ const SocialPost: React.FC<SocialPostProps> = ({
   likes,
   comments,
   shares,
+  channel,
+  event,
+  taggedUsers,
   isLiked = false,
   onLike,
   onComment,
@@ -75,6 +92,33 @@ const SocialPost: React.FC<SocialPostProps> = ({
       
       <CardContent className="pt-0">
         <p className="mb-4">{content}</p>
+        
+        {/* Channel, Event, and Tagged Users Information */}
+        {(channel || event || (taggedUsers && taggedUsers.length > 0)) && (
+          <div className="flex flex-wrap gap-2 mb-4 pb-3 border-b">
+            {channel && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                <Hash className="h-3 w-3" />
+                {channel.name}
+              </Badge>
+            )}
+            {event && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                <Calendar className="h-3 w-3" />
+                {event.name}
+              </Badge>
+            )}
+            {taggedUsers && taggedUsers.length > 0 && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                <Users className="h-3 w-3" />
+                {taggedUsers.length === 1 
+                  ? `@${taggedUsers[0].username}`
+                  : `${taggedUsers.length} tagged`
+                }
+              </Badge>
+            )}
+          </div>
+        )}
         
         <div className="flex items-center justify-between border-t pt-3">
           <Button

@@ -18,6 +18,19 @@ interface Post {
   likes: number;
   comments: number;
   shares: number;
+  channel?: {
+    id: string;
+    name: string;
+  };
+  event?: {
+    id: string;
+    name: string;
+  };
+  taggedUsers?: {
+    id: string;
+    name: string;
+    username: string;
+  }[];
   isLiked?: boolean;
 }
 
@@ -107,6 +120,9 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
             likes={post.likes}
             comments={post.comments}
             shares={post.shares}
+            channel={post.channel}
+            event={post.event}
+            taggedUsers={post.taggedUsers}
             isLiked={post.isLiked}
             onLike={onLikePost}
             onComment={onCommentPost}
