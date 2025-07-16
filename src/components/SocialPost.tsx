@@ -106,6 +106,8 @@ const SocialPost: React.FC<SocialPostProps> = ({
     setEditContent(content);
     setIsEditing(false);
     setShowDeleteMenu(false);
+    setSelectedMedia(null);
+    setMediaPreview(null);
   };
 
   const handleDelete = () => {
@@ -217,9 +219,17 @@ const SocialPost: React.FC<SocialPostProps> = ({
                 Attach Media
               </label>
             </div>
-            {mediaPreview && (
+            {(mediaPreview || media_url) && (
               <div className="relative">
-                <img src={mediaPreview} alt="Preview" className="max-w-full h-auto rounded-md" />
+                {media_type === 'video' ? (
+                  <video
+                    src={mediaPreview || media_url}
+                    controls
+                    className="max-w-full h-auto rounded-md"
+                  />
+                ) : (
+                  <img src={mediaPreview || media_url} alt="Preview" className="max-w-full h-auto rounded-md" />
+                )}
                 <Button
                   variant="ghost"
                   size="sm"
