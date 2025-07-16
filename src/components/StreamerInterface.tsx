@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import {
   VideoTrack,
   AudioTrack,
@@ -24,7 +24,7 @@ import {
   Eye,
 } from "lucide-react";
 import { useStreamingControls } from "@/hooks/useStreamingControls";
-import { supabase } from "@/lib/supabase";
+import { useEventLiveStatus } from "@/hooks/useEventLiveStatus";
 
 interface StreamerInterfaceProps {
   eventId: string;
@@ -41,8 +41,6 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   const participants = useParticipants();
   const controls = useStreamingControls(eventId);
 
-  // Show loading state if room is not ready
-
   // Get local camera track
   const localCameraTracks = useTracks([Track.Source.Camera], {
     onlySubscribed: false,
@@ -56,6 +54,14 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     onlySubscribed: true,
   }).filter((t) => t.participant !== localParticipant);
 
+  // Update event live status based on camera tracks
+  useEventLiveStatus({
+    eventId,
+    localCameraTrack,
+    otherCameraTracks,
+    currentIsLive: isLive,
+  });
+
   if (!localParticipant) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -67,27 +73,6 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     );
   }
 
-  if (localCameraTrack || (otherCameraTracks.length > 0 && !isLive)) {
-    // update event status to streaming
-    const { data, error } = await supabase
-      .from("events")
-      .update({ is_live: true })
-      .eq("id", eventId);
-
-    if (error) {
-      console.error("Error updating event status:", error);
-    }
-  } else if (isLive && !localCameraTrack && otherCameraTracks.length === 0) {
-    // update event status to not streaming
-    const { data, error } = await supabase
-      .from("events")
-      .update({ is_live: false })
-      .eq("id", eventId);
-
-    if (error) {
-      console.error("Error updating event status:", error);
-    }
-  }
 
   return (
     <div className="min-h-screen bg-background p-4">
