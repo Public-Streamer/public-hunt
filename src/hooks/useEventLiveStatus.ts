@@ -7,6 +7,7 @@ interface UseEventLiveStatusProps {
   localCameraTrack?: TrackReference;
   otherCameraTracks: TrackReference[];
   currentIsLive: boolean;
+  goLive: boolean;
 }
 
 export const useEventLiveStatus = ({
@@ -14,6 +15,7 @@ export const useEventLiveStatus = ({
   localCameraTrack,
   otherCameraTracks,
   currentIsLive,
+  goLive,
 }: UseEventLiveStatusProps) => {
   const updateTimeoutRef = useRef<NodeJS.Timeout>();
 
@@ -27,18 +29,19 @@ export const useEventLiveStatus = ({
     updateTimeoutRef.current = setTimeout(async () => {
       try {
         const hasActiveCameras = !!(localCameraTrack || otherCameraTracks.length > 0);
+        const shouldGoLive = goLive && hasActiveCameras && !currentIsLive;
         
         // Only update if the status has changed
-        if (hasActiveCameras !== currentIsLive) {
+        if (shouldGoLive) {
           const { error } = await supabase
             .from("events")
-            .update({ is_live: hasActiveCameras })
+            .update({ is_live: true })
             .eq("id", eventId);
 
           if (error) {
             console.error("Error updating event live status:", error);
           } else {
-            console.log(`Event ${eventId} live status updated to:`, hasActiveCameras);
+            console.log(`Event ${eventId} live status updated to: true`);
           }
         }
       } catch (error) {
@@ -52,7 +55,7 @@ export const useEventLiveStatus = ({
         clearTimeout(updateTimeoutRef.current);
       }
     };
-  }, [eventId, localCameraTrack, otherCameraTracks.length, currentIsLive]);
+  }, [eventId, localCameraTrack, otherCameraTracks.length, currentIsLive, goLive]);
 
   // Cleanup on unmount
   useEffect(() => {

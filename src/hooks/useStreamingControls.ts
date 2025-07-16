@@ -10,6 +10,7 @@ export interface StreamingControls {
   isScreenSharing: boolean;
   isConnected: boolean;
   isStreaming: boolean;
+  goLive: boolean;
   toggleVideo: () => Promise<void>;
   toggleAudio: () => Promise<void>;
   toggleScreenShare: () => Promise<void>;
@@ -26,6 +27,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   const [isVideoEnabled, setIsVideoEnabled] = useState(false);
   const [isAudioEnabled, setIsAudioEnabled] = useState(false);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const [goLive, setGoLive] = useState(false);
 
   const participantCount = room?.numParticipants || 1;
 
@@ -91,6 +93,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       isScreenSharing: false,
       isConnected: false,
       isStreaming: false,
+      goLive: false,
       toggleVideo: async () => {},
       toggleAudio: async () => {},
       toggleScreenShare: async () => {},
@@ -178,6 +181,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   const startStream = useCallback(async () => {
     try {
       setIsStreaming(true);
+      setGoLive(true);
       const {
         data: { session },
         error: sessionError,
@@ -204,12 +208,13 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
         throw new Error(error.message);
       }
 
-      // Update event as live
-      await supabase.from("events").update({ is_live: true }).eq("id", eventId);
+      // Update event as live - will be handled by useEventLiveStatus hook
+      // await supabase.from("events").update({ is_live: true }).eq("id", eventId);
 
       toast.success("Stream started successfully");
     } catch (error) {
       setIsStreaming(false);
+      setGoLive(false);
       toast.error("Failed to start stream");
       console.error("Start stream error:", error);
     }
@@ -218,6 +223,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   const stopStream = useCallback(async () => {
     try {
       setIsStreaming(false);
+      setGoLive(false);
       const {
         data: { session },
         error: sessionError,
@@ -259,6 +265,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
     isScreenSharing,
     isConnected: room?.state === "connected",
     isStreaming,
+    goLive,
     toggleVideo,
     toggleAudio,
     toggleScreenShare,

@@ -40,6 +40,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   const { localParticipant } = useLocalParticipant();
   const participants = useParticipants();
   const controls = useStreamingControls(eventId);
+  const { goLive } = controls;
 
   // Get local camera track
   const localCameraTracks = useTracks([Track.Source.Camera], {
@@ -60,6 +61,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     localCameraTrack,
     otherCameraTracks,
     currentIsLive: isLive,
+    goLive,
   });
 
   if (!localParticipant) {
