@@ -2,9 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Camera, Settings, MessageCircle } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Camera, Settings, MessageCircle, Share2, UserPlus, MapPin, Calendar, Users, Heart, Star } from 'lucide-react';
 import FollowButton from '@/components/FollowButton';
+import SocialShareMenu from '@/components/SocialShareMenu';
 import { supabase } from '@/lib/supabase';
+import { useToast } from '@/hooks/use-toast';
 
 interface ProfileCoverProps {
   profile: {
@@ -28,14 +32,26 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
   followersCount = 0 
 }) => {
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [showShareDialog, setShowShareDialog] = useState(false);
+  const [isLive, setIsLive] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     getCurrentUser();
+    // Mock live status
+    setIsLive(Math.random() > 0.7);
   }, []);
 
   const getCurrentUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     setCurrentUser(user);
+  };
+
+  const handleSendFriendRequest = () => {
+    toast({
+      title: 'Friend Request Sent',
+      description: `Friend request sent to ${profile.display_name}`
+    });
   };
 
   return (
@@ -92,10 +108,30 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
           
           <div className="flex space-x-2">
             {isOwnProfile ? (
-              <Button variant="outline">
-                <Settings className="w-4 h-4 mr-2" />
-                Edit Profile
-              </Button>
+              <>
+                <Button variant="outline">
+                  <Settings className="w-4 h-4 mr-2" />
+                  Edit Profile
+                </Button>
+                <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline">
+                      <Share2 className="w-4 h-4 mr-2" />
+                      Share Profile
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Share Profile</DialogTitle>
+                    </DialogHeader>
+                    <SocialShareMenu
+                      title={`Check out ${profile.display_name}'s profile`}
+                      description={profile.bio}
+                      url={`${window.location.origin}/profile/${profile.id}`}
+                    />
+                  </DialogContent>
+                </Dialog>
+              </>
             ) : (
               <>
                 <FollowButton 
@@ -103,18 +139,57 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
                   targetType="user"
                   currentUserId={currentUser?.id}
                 />
+                <Button variant="outline" onClick={handleSendFriendRequest}>
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Add Friend
+                </Button>
                 <Button variant="outline">
                   <MessageCircle className="w-4 h-4 mr-2" />
                   Message
                 </Button>
+                <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <Share2 className="w-4 h-4" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Share Profile</DialogTitle>
+                    </DialogHeader>
+                    <SocialShareMenu
+                      title={`Check out ${profile.display_name}'s profile`}
+                      description={profile.bio}
+                      url={`${window.location.origin}/profile/${profile.id}`}
+                    />
+                  </DialogContent>
+                </Dialog>
               </>
             )}
           </div>
         </div>
         
         {profile.bio && (
-          <p className="text-gray-700 mt-4 max-w-2xl">{profile.bio}</p>
+          <p className="text-foreground mt-4 max-w-2xl">{profile.bio}</p>
         )}
+        
+        {/* Live Status and Quick Stats */}
+        <div className="flex items-center space-x-4 mt-4">
+          {isLive && (
+            <Badge variant="destructive" className="animate-pulse">
+              <div className="w-2 h-2 bg-white rounded-full mr-2" />
+              LIVE
+            </Badge>
+          )}
+          <div className="flex items-center space-x-1 text-sm text-muted-foreground">
+            <Heart className="w-4 h-4" />
+            <span>4.8k likes</span>
+          </div>
+          <div className="flex items-center space-x-1 text-sm text-muted-foreground">
+            <Star className="w-4 h-4" />
+            <span>5.0 rating</span>
+          </div>
+        </div>
       </div>
     </Card>
   );

@@ -10,6 +10,10 @@ import ProfilePhotos from '@/components/ProfilePhotos';
 import ProfileVideos from '@/components/ProfileVideos';
 import UserChannelsList from '@/components/UserChannelsList';
 import UserEventsList from '@/components/UserEventsList';
+import ProfileStories from '@/components/ProfileStories';
+import ProfileFriends from '@/components/ProfileFriends';
+import ProfileTimeline from '@/components/ProfileTimeline';
+import ProfileMediaUpload from '@/components/ProfileMediaUpload';
 
 interface UserProfile {
   id: string;
@@ -23,6 +27,9 @@ interface UserProfile {
   education?: string;
   relationship_status?: string;
   website?: string;
+  birthday?: string;
+  occupation?: string;
+  interests?: string[];
   created_at: string;
 }
 
@@ -58,11 +65,14 @@ const Profile: React.FC = () => {
         bio: userProfile?.bio || 'Welcome to my profile! I love creating amazing content and connecting with the community.',
         profile_picture_url: userProfile?.profilePhoto || '/placeholder.svg',
         cover_photo_url: undefined,
-        location: userProfile?.location || 'Earth',
+        location: userProfile?.location || 'San Francisco, CA',
         work: 'Content Creator',
-        education: 'School of Life',
+        education: 'University of California',
         relationship_status: 'Single',
         website: 'https://example.com',
+        birthday: '1990-01-15',
+        occupation: 'Digital Creator & Influencer',
+        interests: ['Technology', 'Photography', 'Travel', 'Gaming', 'Music'],
         created_at: new Date().toISOString()
       };
       
@@ -107,71 +117,75 @@ const Profile: React.FC = () => {
         followersCount={followersCount}
       />
       
-      <Tabs defaultValue="newsfeed" className="w-full">
-        <TabsList className="grid w-full grid-cols-8">
-          <TabsTrigger value="newsfeed">Newsfeed</TabsTrigger>
+      {/* Stories Section */}
+      <div className="mb-6">
+        <ProfileStories userId={profile.id} isOwnProfile={isOwnProfile} />
+      </div>
+      
+      <Tabs defaultValue="timeline" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-7">
+          <TabsTrigger value="timeline">Timeline</TabsTrigger>
           <TabsTrigger value="about">About</TabsTrigger>
-          <TabsTrigger value="photos">Photos</TabsTrigger>
-          <TabsTrigger value="videos">Videos</TabsTrigger>
-          <TabsTrigger value="channels">My Channels</TabsTrigger>
-          <TabsTrigger value="events">My Events</TabsTrigger>
-          <TabsTrigger value="admin">Admin</TabsTrigger>
-          <TabsTrigger value="withdraw">Withdraw</TabsTrigger>
+          <TabsTrigger value="friends">Friends</TabsTrigger>
+          <TabsTrigger value="media">Media</TabsTrigger>
+          <TabsTrigger value="events">Events</TabsTrigger>
+          <TabsTrigger value="channels">Channels</TabsTrigger>
+          {isOwnProfile && <TabsTrigger value="admin">Admin</TabsTrigger>}
         </TabsList>
         
-        <TabsContent value="newsfeed" className="mt-6">
-          <ProfileNewsfeedTab userId={profile.id} isOwnProfile={isOwnProfile} />
+        <TabsContent value="timeline" className="mt-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <ProfileTimeline userId={profile.id} isOwnProfile={isOwnProfile} />
+            </div>
+            <div className="space-y-6">
+              <ProfileAbout profile={profile} />
+              <ProfileMediaUpload userId={profile.id} isOwnProfile={isOwnProfile} />
+            </div>
+          </div>
         </TabsContent>
         
         <TabsContent value="about" className="mt-6">
           <ProfileAbout profile={profile} />
         </TabsContent>
         
-        <TabsContent value="photos" className="mt-6">
-          <ProfilePhotos userId={profile.id} isOwnProfile={isOwnProfile} />
+        <TabsContent value="friends" className="mt-6">
+          <ProfileFriends userId={profile.id} isOwnProfile={isOwnProfile} />
         </TabsContent>
         
-        <TabsContent value="videos" className="mt-6">
-          <ProfileVideos userId={profile.id} isOwnProfile={isOwnProfile} />
-        </TabsContent>
-        
-        <TabsContent value="channels" className="mt-6">
-          <UserChannelsList userId={profile.id} />
+        <TabsContent value="media" className="mt-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <ProfilePhotos userId={profile.id} isOwnProfile={isOwnProfile} />
+            <ProfileVideos userId={profile.id} isOwnProfile={isOwnProfile} />
+          </div>
         </TabsContent>
         
         <TabsContent value="events" className="mt-6">
           <UserEventsList userId={profile.id} />
         </TabsContent>
         
-        <TabsContent value="admin" className="mt-6">
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-2xl font-bold mb-4">Admin Panel</h3>
-            <p className="text-gray-600 mb-4">Administrative tools and platform management.</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 border rounded-lg">
-                <h4 className="font-semibold mb-2">User Management</h4>
-                <p className="text-sm text-gray-600">Manage user accounts and permissions</p>
-              </div>
-              <div className="p-4 border rounded-lg">
-                <h4 className="font-semibold mb-2">Content Moderation</h4>
-                <p className="text-sm text-gray-600">Review and moderate platform content</p>
-              </div>
-            </div>
-          </div>
+        <TabsContent value="channels" className="mt-6">
+          <UserChannelsList userId={profile.id} />
         </TabsContent>
         
-        <TabsContent value="withdraw" className="mt-6">
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-2xl font-bold mb-4">Withdraw Funds</h3>
-            <p className="text-gray-600 mb-6">Withdraw your earnings from events and donations.</p>
-            <div className="space-y-4">
-              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                <h4 className="font-semibold text-green-800 mb-2">Available Balance</h4>
-                <p className="text-2xl font-bold text-green-600">$1,234.56</p>
+        {isOwnProfile && (
+          <TabsContent value="admin" className="mt-6">
+            <div className="bg-card rounded-lg shadow p-6">
+              <h3 className="text-2xl font-bold mb-4">Admin Panel</h3>
+              <p className="text-muted-foreground mb-4">Administrative tools and platform management.</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-semibold mb-2">User Management</h4>
+                  <p className="text-sm text-muted-foreground">Manage user accounts and permissions</p>
+                </div>
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-semibold mb-2">Content Moderation</h4>
+                  <p className="text-sm text-muted-foreground">Review and moderate platform content</p>
+                </div>
               </div>
             </div>
-          </div>
-        </TabsContent>
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
