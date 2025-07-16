@@ -38,6 +38,7 @@ export const useEventLiveStatus = ({
 
         // Only update if the status has changed
         if (shouldGoLive) {
+          console.log("going live...");
           const { error } = await supabase
             .from("events")
             .update({ is_live: true })
@@ -49,6 +50,7 @@ export const useEventLiveStatus = ({
             console.log(`Event ${eventId} live status updated to: true`);
           }
         } else if (shouldStopLive) {
+          console.log("stopping live...");
           const { error } = await supabase
             .from("events")
             .update({ is_live: false })
