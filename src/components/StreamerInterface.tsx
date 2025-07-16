@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   VideoTrack,
   AudioTrack,
@@ -24,15 +24,18 @@ import {
   Eye,
 } from "lucide-react";
 import { useStreamingControls } from "@/hooks/useStreamingControls";
+import { supabase } from "@/lib/supabase";
 
 interface StreamerInterfaceProps {
   eventId: string;
   eventTitle: string;
+  isLive: boolean;
 }
 
 export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   eventId,
   eventTitle,
+  isLive,
 }) => {
   const { localParticipant } = useLocalParticipant();
   const participants = useParticipants();
@@ -62,6 +65,28 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
         </div>
       </div>
     );
+  }
+
+  if (localCameraTrack || (otherCameraTracks.length > 0 && !isLive)) {
+    // update event status to streaming
+    const { data, error } = await supabase
+      .from("events")
+      .update({ is_live: true })
+      .eq("id", eventId);
+
+    if (error) {
+      console.error("Error updating event status:", error);
+    }
+  } else if (isLive && !localCameraTrack && otherCameraTracks.length === 0) {
+    // update event status to not streaming
+    const { data, error } = await supabase
+      .from("events")
+      .update({ is_live: false })
+      .eq("id", eventId);
+
+    if (error) {
+      console.error("Error updating event status:", error);
+    }
   }
 
   return (

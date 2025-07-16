@@ -206,7 +206,11 @@ const StagePage: React.FC = () => {
       style={{ height: "100vh" }}
     >
       <RoomAudioRenderer />
-      <StreamerInterface eventId={eventId} eventTitle={event.name} />
+      <StreamerInterface
+        eventId={eventId}
+        eventTitle={event.name}
+        isLive={event.is_live}
+      />
     </LiveKitRoom>
   );
 };
