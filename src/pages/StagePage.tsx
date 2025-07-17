@@ -5,6 +5,7 @@ import { LiveKitRoom, RoomAudioRenderer } from "@livekit/components-react";
 import "@livekit/components-styles";
 import { StreamerInterface } from "@/components/StreamerInterface";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 
 const StagePage: React.FC = () => {
   const { eventId } = useParams<{ eventId: string }>();
@@ -16,8 +17,40 @@ const StagePage: React.FC = () => {
   const [serverUrl, setServerUrl] = useState<string>("");
   const [tokenLoading, setTokenLoading] = useState(false);
 
+  // Use React Query for event data
+  const { data: eventData, isLoading: isEventLoading } = useQuery({
+    queryKey: ["event", eventId],
+    queryFn: async () => {
+      if (!eventId) {
+        toast.error("Event ID is required");
+        throw new Error("Event ID is required");
+      }
+
+      const { data, error } = await supabase
+        .from("events")
+        .select("*")
+        .eq("id", eventId)
+        .single();
+
+      if (error) {
+        toast.error("Event not found");
+        throw new Error(error.message);
+      }
+
+      return data;
+    },
+    enabled: !!eventId,
+  });
+
+  // Update local state when event data changes
   useEffect(() => {
-    const checkAuthAndFetchEvent = async () => {
+    if (eventData) {
+      setEvent(eventData);
+    }
+  }, [eventData]);
+
+  useEffect(() => {
+    const checkAuthAndAssignRole = async () => {
       try {
         // Check authentication
         const {
@@ -37,22 +70,11 @@ const StagePage: React.FC = () => {
           return;
         }
 
-        // Fetch event details
-        const { data: eventData, error: eventError } = await supabase
-          .from("events")
-          .select("*")
-          .eq("id", eventId)
-          .single();
-
-        if (eventError) {
-          toast.error("Event not found");
-          return;
-        }
-
-        setEvent(eventData);
+        // Wait for event data from React Query
+        if (!event) return;
 
         // Check if user is host (event creator)
-        if (eventData.created_by === currentUser.id) {
+        if (event.created_by === currentUser.id) {
           setUserRole("host");
           return;
         }
@@ -80,8 +102,8 @@ const StagePage: React.FC = () => {
       }
     };
 
-    checkAuthAndFetchEvent();
-  }, [eventId]);
+    checkAuthAndAssignRole();
+  }, [eventId, event]);
 
   // Generate LiveKit token when event and user role are available
   useEffect(() => {
@@ -140,8 +162,10 @@ const StagePage: React.FC = () => {
       }
     };
 
-    generateToken();
-  }, [eventId, userRole, user]);
+    if (!token || !serverUrl) {
+      generateToken();
+    }
+  }, [eventId, userRole, user, token, serverUrl]);
 
   if (loading || tokenLoading) {
     return (

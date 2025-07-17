@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { TrackReference } from "@livekit/components-react";
 import { supabase } from "@/lib/supabase";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface UseEventLiveStatusProps {
   eventId: string;
@@ -19,6 +20,8 @@ export const useEventLiveStatus = ({
 }: UseEventLiveStatusProps) => {
   const updateTimeoutRef = useRef<NodeJS.Timeout>();
 
+  const queryClient = useQueryClient();
+
   useEffect(() => {
     // Clear any existing timeout
     if (updateTimeoutRef.current) {
@@ -32,10 +35,10 @@ export const useEventLiveStatus = ({
           localCameraTrack || otherCameraTracks.length > 0
         );
 
-        console.log({ goLive });
-        const shouldGoLive = goLive && hasActiveCameras && !currentIsLive;
-        const shouldStopLive = !goLive && !hasActiveCameras && currentIsLive;
+        const isOthersLive = otherCameraTracks.length > 0;
 
+        const shouldGoLive = goLive && hasActiveCameras && !currentIsLive;
+        const shouldStopLive = !goLive && !isOthersLive && currentIsLive;
         // Only update if the status has changed
         if (shouldGoLive) {
           console.log("going live...");
@@ -47,6 +50,9 @@ export const useEventLiveStatus = ({
           if (error) {
             console.error("Error updating event live status:", error);
           } else {
+            queryClient.invalidateQueries({
+              queryKey: ["event", eventId],
+            });
             console.log(`Event ${eventId} live status updated to: true`);
           }
         } else if (shouldStopLive) {
@@ -60,6 +66,9 @@ export const useEventLiveStatus = ({
             console.error("Error updating event live status:", error);
           } else {
             console.log(`Event ${eventId} live status updated to: false`);
+            queryClient.invalidateQueries({
+              queryKey: ["event", eventId],
+            });
           }
         }
       } catch (error) {
@@ -79,6 +88,7 @@ export const useEventLiveStatus = ({
     otherCameraTracks.length,
     currentIsLive,
     goLive,
+    queryClient,
   ]);
 
   // Cleanup on unmount

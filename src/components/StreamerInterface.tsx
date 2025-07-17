@@ -79,7 +79,6 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     );
   }
 
-
   return (
     <div className="min-h-screen bg-background p-4">
       <div className="container mx-auto space-y-6">
@@ -312,18 +311,12 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
 
             {/* Stage Share Menu - Only for hosts */}
             {userRole === "host" && (
-              <StageShareMenu 
-                eventId={eventId}
-                eventTitle={eventTitle}
-              />
+              <StageShareMenu eventId={eventId} eventTitle={eventTitle} />
             )}
 
             {/* Event Share Panel - Only for hosts */}
             {userRole === "host" && (
-              <EventSharePanel 
-                eventId={eventId}
-                eventTitle={eventTitle}
-              />
+              <EventSharePanel eventId={eventId} eventTitle={eventTitle} />
             )}
           </div>
         </div>
