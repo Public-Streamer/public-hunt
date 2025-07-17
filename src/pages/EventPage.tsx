@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -357,7 +358,7 @@ const EventPage: React.FC = () => {
 
       {/* Page Title */}
       <div className="mb-8">
-        <h1 className="text-4xl font-bold text-center mb-4">Event Details</h1>
+        <h1 className="text-4xl font-bold text-center mb-4">{eventData.name}</h1>
       </div>
 
       {/* Top Admission Button */}
