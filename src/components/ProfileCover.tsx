@@ -94,12 +94,18 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
     try {
       // Upload to Supabase storage
       const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
+      const fileName = `${profile.id}-cover.${fileExt}`;
       const filePath = `covers/${fileName}`;
+
+      // First check if current user has permission to modify this profile
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || user.id !== profile.id) {
+        throw new Error('Unauthorized to update this profile');
+      }
 
       const { error: uploadError } = await supabase.storage
         .from('media')
-        .upload(filePath, file);
+        .upload(filePath, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
