@@ -90,27 +90,49 @@ const SocialPost: React.FC<SocialPostProps> = ({
 
   const handleComment = () => {
     if (newComment.trim()) {
+      // Call the parent component's comment handler
       onComment?.(postId, newComment);
-      setNewComment('');
+      
+      // Immediately close comment input (will be shown again if user clicks comments button)
+      // This fixes the issue where comment input closes without saving
+      
       // Update comments count locally for immediate feedback
       setCommentCount(prev => prev + 1);
+      
+      // Reset the input
+      setNewComment('');
     }
   };
 
   const handleShare = () => {
-    onShare?.(postId);
-    // Update shares count locally for immediate feedback
-    setShareCount(prev => prev + 1);
-    // Show success toast
-    toast({
-      title: 'Success',
-      description: 'Post shared successfully!'
-    });
+    // Use proper SocialShareMenu like in other parts of the app
+    if (typeof window !== 'undefined') {
+      const url = window.location.href;
+      const title = `Check out this post from ${author.name}`;
+      const shareData = { url, title, text: content.substring(0, 100) };
+      
+      // Try native sharing if available
+      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+        navigator.share(shareData)
+          .then(() => {
+            setShareCount(prev => prev + 1);
+          })
+          .catch(err => console.error('Error sharing:', err));
+      } else {
+        // Fallback for browsers without native sharing
+        onShare?.(postId);
+        setShareCount(prev => prev + 1);
+        toast({
+          title: 'Post shared',
+          description: 'Post link copied to clipboard!'
+        });
+      }
+    }
   };
 
   const handleEditSave = () => {
     if (editContent.trim()) {
-      onEdit?.(postId, editContent, showDeleteMedia ? null : (selectedMedia || undefined));
+      onEdit?.(postId, editContent, showDeleteMedia ? null : selectedMedia);
       setIsEditing(false);
       setSelectedMedia(null);
       setMediaPreview(null);

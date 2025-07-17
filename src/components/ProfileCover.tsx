@@ -104,14 +104,14 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
       if (uploadError) throw uploadError;
 
       // Get public URL
-      const { data } = await supabase.storage
+      const { data: urlData } = supabase.storage
         .from('media')
         .getPublicUrl(filePath);
 
       // Update profile with new cover photo
       const { error: updateError } = await supabase
         .from('user_profiles')
-        .update({ cover_photo_url: data.publicUrl })
+        .update({ cover_photo_url: urlData.publicUrl })
         .eq('id', profile.id);
 
       if (updateError) throw updateError;
@@ -119,7 +119,7 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
       if (onProfileUpdate) {
         onProfileUpdate({
           ...profile,
-          cover_photo_url: data.publicUrl
+          cover_photo_url: urlData.publicUrl
         });
       }
       

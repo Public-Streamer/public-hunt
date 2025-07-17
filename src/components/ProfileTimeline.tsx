@@ -17,6 +17,7 @@ import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { useAppContext } from '@/contexts/AppContext';
 import SocialPost from './SocialPost';
+import MultiSelectTags from './MultiSelectTags';
 
 interface UserProfile {
   id: string;
@@ -94,8 +95,8 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
   const [userEvents, setUserEvents] = useState<any[]>([]);
   const [allChannels, setAllChannels] = useState<any[]>([]);
   const [allEvents, setAllEvents] = useState<any[]>([]);
-  const [selectedChannel, setSelectedChannel] = useState<string>('');
-  const [selectedEvent, setSelectedEvent] = useState<string>('');
+  const [selectedChannels, setSelectedChannels] = useState<any[]>([]);
+  const [selectedEvents, setSelectedEvents] = useState<any[]>([]);
   const [channelOpen, setChannelOpen] = useState(false);
   const [eventOpen, setEventOpen] = useState(false);
   const [postsCache, setPostsCache] = useState<TimelinePost[]>([]);
@@ -749,11 +750,11 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
     }
   };
 
-  const handleEditPost = async (postId: string, newContent: string, mediaFile?: File) => {
+  const handleEditPost = async (postId: string, newContent: string, mediaFile?: File | null) => {
     try {
-      let mediaUrl: string | undefined;
+      let mediaUrl: string | undefined = undefined;
       
-      // Upload media file if provided (for real uploads in actual app)
+      // Handle media file if provided (for real uploads in actual app)
       if (mediaFile) {
         // For mock posts, just create object URL
         mediaUrl = URL.createObjectURL(mediaFile);
@@ -768,7 +769,8 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
           ? { 
               ...post, 
               content: newContent,
-              ...(mediaUrl && { media_url: mediaUrl })
+              media_url: mediaFile === null ? undefined : (mediaUrl || post.media_url), // Remove media if null, keep existing or use new
+              media_type: mediaFile === null ? undefined : (mediaFile ? (mediaFile.type.startsWith('image/') ? 'image' : 'video') : post.media_type)
             }
           : post
       );

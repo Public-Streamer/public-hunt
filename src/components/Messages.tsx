@@ -443,9 +443,44 @@ const Messages: React.FC<MessagesProps> = ({ userId }) => {
                         {selectedConversationData?.is_online ? 'Online' : 'Offline'}
                       </p>
                     </div>
-                    <Button variant="ghost" size="sm">
-                      <MoreHorizontal className="w-4 h-4" />
-                    </Button>
+                    <div className="flex space-x-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="rounded-full w-8 h-8 p-0"
+                        onClick={() => setSelectedConversation(null)}
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                      
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            className="rounded-full w-8 h-8 p-0 bg-primary/10"
+                          >
+                            <MoreHorizontal className="w-4 h-4" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-56">
+                          <div className="grid gap-1">
+                            <Button variant="ghost" size="sm" className="justify-start">
+                              <Star className="w-4 h-4 mr-2" />
+                              Add to Favorites
+                            </Button>
+                            <Button variant="ghost" size="sm" className="justify-start">
+                              <Archive className="w-4 h-4 mr-2" />
+                              Archive Chat
+                            </Button>
+                            <Button variant="ghost" size="sm" className="justify-start">
+                              <Trash2 className="w-4 h-4 mr-2 text-destructive" />
+                              Delete Chat
+                            </Button>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="p-0 flex flex-col h-[500px]">
