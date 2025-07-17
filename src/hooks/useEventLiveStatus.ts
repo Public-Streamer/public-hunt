@@ -39,6 +39,15 @@ export const useEventLiveStatus = ({
 
         const shouldGoLive = goLive && hasActiveCameras && !currentIsLive;
         const shouldStopLive = !goLive && !isOthersLive && currentIsLive;
+
+        console.log({
+          hasActiveCameras,
+          isOthersLive,
+          currentIsLive,
+          goLive,
+          shouldGoLive,
+          shouldStopLive,
+        });
         // Only update if the status has changed
         if (shouldGoLive) {
           console.log("going live...");
