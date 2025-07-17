@@ -377,6 +377,7 @@ export type Database = {
           event_id: string
           id: string
           is_active: boolean | null
+          is_live: boolean | null
           joined_at: string | null
           last_seen: string | null
           livekit_token: string | null
@@ -389,6 +390,7 @@ export type Database = {
           event_id: string
           id?: string
           is_active?: boolean | null
+          is_live?: boolean | null
           joined_at?: string | null
           last_seen?: string | null
           livekit_token?: string | null
@@ -401,6 +403,7 @@ export type Database = {
           event_id?: string
           id?: string
           is_active?: boolean | null
+          is_live?: boolean | null
           joined_at?: string | null
           last_seen?: string | null
           livekit_token?: string | null

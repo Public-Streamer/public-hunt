@@ -61,14 +61,10 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     onlySubscribed: true,
   }).filter((t) => t.participant !== localParticipant);
 
-  // Update event live status based on camera tracks
+  // Update event live status based on go live status
   useEventLiveStatus({
     eventId,
-    localCameraTrack,
-    otherCameraTracks,
-    currentIsLive: isLive,
     goLive,
-    userId,
   });
 
   if (!localParticipant) {

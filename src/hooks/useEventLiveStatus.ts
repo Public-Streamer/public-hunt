@@ -1,28 +1,18 @@
-import { useEffect, useRef } from "react";
-import { TrackReference } from "@livekit/components-react";
-import { supabase } from "@/lib/supabase";
+import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface UseEventLiveStatusProps {
   eventId: string;
-  localCameraTrack?: TrackReference;
-  otherCameraTracks: TrackReference[];
-  currentIsLive: boolean;
   goLive: boolean;
-  userId?: string;
 }
 
 export const useEventLiveStatus = ({
   eventId,
-  localCameraTrack,
-  otherCameraTracks,
-  currentIsLive,
   goLive,
-  userId,
 }: UseEventLiveStatusProps) => {
   const queryClient = useQueryClient();
 
-  // Simple effect to invalidate query cache when tracks change
+  // Simple effect to invalidate query cache when go live status changes
   // The database triggers will handle all the complex logic
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -31,5 +21,5 @@ export const useEventLiveStatus = ({
     }, 1000);
 
     return () => clearTimeout(timeoutId);
-  }, [eventId, queryClient, goLive, localCameraTrack, otherCameraTracks.length]);
+  }, [eventId, queryClient, goLive]);
 };
