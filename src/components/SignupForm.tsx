@@ -186,9 +186,11 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
             />
           </div>
           
-          <div className="flex gap-2">
-            <Button type="submit" className="flex-1">Continue</Button>
-            {!inline && <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>}
+          <div className="space-y-2">
+            <Button type="submit" className="w-full">Continue</Button>
+            <Button type="button" variant="outline" onClick={onClose} className="w-full">
+              Cancel
+            </Button>
           </div>
         </form>
       )}
@@ -269,11 +271,16 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
             </div>
           </div>
           
-          <div className="flex gap-2">
-            <Button type="submit" className="flex-1" disabled={!signupData.agreeToTerms || !signupData.confirmAge || loading}>
+          <div className="space-y-2">
+            <Button type="submit" className="w-full" disabled={!signupData.agreeToTerms || !signupData.confirmAge || loading}>
               {loading ? 'Creating Account...' : 'Create Account'}
             </Button>
-            <Button type="button" variant="outline" onClick={() => setStep(1)}>Back</Button>
+            <Button type="button" variant="outline" onClick={() => setStep(1)} className="w-full">
+              Back
+            </Button>
+            <Button type="button" variant="outline" onClick={onClose} className="w-full">
+              Cancel
+            </Button>
           </div>
         </form>
       )}

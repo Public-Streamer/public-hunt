@@ -101,12 +101,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose }) => {
             {error && (
               <div className="text-red-600 text-sm text-center">{error}</div>
             )}
-            <div className="flex gap-2">
-              <Button type="submit" className="flex-1" disabled={isLoading}>
-                {isLoading ? 'Signing in...' : 'Login'}
-              </Button>
-              <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-            </div>
+          <div className="space-y-2">
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? 'Signing in...' : 'Login'}
+            </Button>
+            <Button type="button" variant="outline" onClick={onClose} className="w-full">
+              Cancel
+            </Button>
+          </div>
             <div className="text-center">
               <Button 
                 type="button" 
