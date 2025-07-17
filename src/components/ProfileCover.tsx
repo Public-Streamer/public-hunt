@@ -92,14 +92,34 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
 
     setUploading(true);
     try {
-      // Mock upload - in real app, upload to Supabase storage
-      const mockUrl = URL.createObjectURL(file);
-      
+      // Upload to Supabase storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `covers/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('media')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data } = supabase.storage
+        .from('media')
+        .getPublicUrl(filePath);
+
       // Update profile with new cover photo
+      const { error: updateError } = await supabase
+        .from('user_profiles')
+        .update({ cover_photo_url: data.publicUrl })
+        .eq('id', profile.id);
+
+      if (updateError) throw updateError;
+      
       if (onProfileUpdate) {
         onProfileUpdate({
           ...profile,
-          cover_photo_url: mockUrl
+          cover_photo_url: data.publicUrl
         });
       }
       

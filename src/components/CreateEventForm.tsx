@@ -284,6 +284,10 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
 
   return (
     <form onSubmit={handleCreateEvent} className="space-y-6 p-4 max-w-4xl mx-auto">
+      <div className="space-y-6 max-w-full">
+        <MediaUploader onUpload={handleMediaUpload} maxFiles={5} acceptedTypes={['image/jpeg', 'image/png', 'image/gif', 'application/pdf', 'video/mp4', 'video/mpeg', 'video/quicktime']} />
+      </div>
+      
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center text-xl font-bold">
@@ -402,11 +406,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         </CardContent>
       </Card>
       
-      <MediaUploader onUpload={handleMediaUpload} maxFiles={5} acceptedTypes={['image/jpeg', 'image/png', 'image/gif', 'application/pdf', 'video/mp4', 'video/mpeg', 'video/quicktime']} />
-      
-      <StreamerSelector onStreamersChange={handleStreamersChange} />
-      
-      <Card>
+      <Card className="mt-6">
         <CardContent className="pt-6">
           <CreateEventFormButtons
             isReadyToGoLive={isCoreFieldsComplete()}
@@ -422,6 +422,8 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
           />
         </CardContent>
       </Card>
+      
+      <StreamerSelector onStreamersChange={handleStreamersChange} />
     </form>
   );
 };

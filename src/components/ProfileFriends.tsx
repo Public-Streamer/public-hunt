@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { UserPlus, Users, UserCheck, UserX, Search, MessageCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
+import MessageDialog from '@/components/MessageDialog';
 
 interface Friend {
   id: string;
@@ -40,6 +41,8 @@ const ProfileFriends: React.FC<ProfileFriendsProps> = ({ userId, isOwnProfile })
   const [friendRequests, setFriendRequests] = useState<FriendRequest[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const [showMessageDialog, setShowMessageDialog] = useState(false);
+  const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -230,12 +233,30 @@ const ProfileFriends: React.FC<ProfileFriendsProps> = ({ userId, isOwnProfile })
                     </div>
                   </div>
                   <div className="flex space-x-2 mt-3">
-                    <Button size="sm" variant="outline" className="flex-1">
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="flex-1"
+                      onClick={() => {
+                        setSelectedFriend(friend);
+                        setShowMessageDialog(true);
+                      }}
+                    >
                       <MessageCircle className="w-4 h-4 mr-2" />
                       Message
                     </Button>
-                    <Button size="sm" variant="outline">
-                      <UserX className="w-4 h-4" />
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => {
+                        // Add to group chat functionality
+                        toast({
+                          title: 'Feature Coming Soon',
+                          description: 'Group chat functionality will be available soon!',
+                        });
+                      }}
+                    >
+                      <UserPlus className="w-4 h-4" />
                     </Button>
                   </div>
                 </CardContent>
@@ -309,6 +330,19 @@ const ProfileFriends: React.FC<ProfileFriendsProps> = ({ userId, isOwnProfile })
           </Card>
         </TabsContent>
       </Tabs>
+      
+      {showMessageDialog && selectedFriend && (
+        <MessageDialog
+          isOpen={showMessageDialog}
+          onClose={() => {
+            setShowMessageDialog(false);
+            setSelectedFriend(null);
+          }}
+          recipientId={selectedFriend.user_id}
+          recipientName={selectedFriend.display_name}
+          recipientAvatar={selectedFriend.profile_picture_url}
+        />
+      )}
     </div>
   );
 };

@@ -22,14 +22,14 @@ interface SocialPostProps {
   shares: number;
   media_url?: string;
   media_type?: 'image' | 'video';
-  channel?: {
+  channels?: {
     id: string;
     name: string;
-  };
-  event?: {
+  }[];
+  events?: {
     id: string;
     name: string;
-  };
+  }[];
   taggedUsers?: {
     id: string;
     name: string;
@@ -40,7 +40,7 @@ interface SocialPostProps {
   onLike?: (postId: string) => void;
   onComment?: (postId: string, comment: string) => void;
   onShare?: (postId: string) => void;
-  onEdit?: (postId: string, newContent: string, mediaFile?: File) => void;
+  onEdit?: (postId: string, newContent: string, mediaFile?: File | null) => void;
   onDelete?: (postId: string) => void;
 }
 
@@ -54,8 +54,8 @@ const SocialPost: React.FC<SocialPostProps> = ({
   shares,
   media_url,
   media_type,
-  channel,
-  event,
+  channels,
+  events,
   taggedUsers,
   isLiked = false,
   isOwnPost = false,
@@ -74,6 +74,7 @@ const SocialPost: React.FC<SocialPostProps> = ({
   const [showDeleteMenu, setShowDeleteMenu] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<File | null>(null);
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
+  const [showDeleteMedia, setShowDeleteMedia] = useState(false);
   const navigate = useNavigate();
 
   const handleLike = () => {
@@ -95,10 +96,11 @@ const SocialPost: React.FC<SocialPostProps> = ({
 
   const handleEditSave = () => {
     if (editContent.trim()) {
-      onEdit?.(postId, editContent, selectedMedia || undefined);
+      onEdit?.(postId, editContent, showDeleteMedia ? null : (selectedMedia || undefined));
       setIsEditing(false);
       setSelectedMedia(null);
       setMediaPreview(null);
+      setShowDeleteMedia(false);
     }
   };
 
@@ -108,6 +110,7 @@ const SocialPost: React.FC<SocialPostProps> = ({
     setShowDeleteMenu(false);
     setSelectedMedia(null);
     setMediaPreview(null);
+    setShowDeleteMedia(false);
   };
 
   const handleDelete = () => {
@@ -191,7 +194,7 @@ const SocialPost: React.FC<SocialPostProps> = ({
       <CardContent className="pt-0">
         {isEditing ? (
           <div className="mb-4 space-y-3">
-            {(mediaPreview || media_url) && (
+            {(mediaPreview || (media_url && !showDeleteMedia)) && (
               <div className="relative">
                 {media_type === 'video' ? (
                   <video
@@ -206,10 +209,14 @@ const SocialPost: React.FC<SocialPostProps> = ({
                   variant="ghost"
                   size="sm"
                   onClick={() => {
-                    setSelectedMedia(null);
-                    setMediaPreview(null);
+                    if (mediaPreview) {
+                      setSelectedMedia(null);
+                      setMediaPreview(null);
+                    } else {
+                      setShowDeleteMedia(true);
+                    }
                   }}
-                  className="absolute top-2 right-2 bg-black/50 text-white"
+                  className="absolute top-2 right-2 bg-black/50 text-white hover:bg-red-600"
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -246,8 +253,7 @@ const SocialPost: React.FC<SocialPostProps> = ({
           </div>
         ) : (
           <div className="mb-4">
-            <p className="mb-4">{content}</p>
-            {media_url && (
+            {media_url && !showDeleteMedia && (
               <div className="mb-4 rounded-lg overflow-hidden">
                 {media_type === 'video' ? (
                   <video
@@ -264,14 +270,16 @@ const SocialPost: React.FC<SocialPostProps> = ({
                 )}
               </div>
             )}
+            <p className="mb-4">{content}</p>
           </div>
         )}
         
         {/* Channel, Event, and Tagged Users Information */}
-        {(channel || event || (taggedUsers && taggedUsers.length > 0)) && (
+        {((channels && channels.length > 0) || (events && events.length > 0) || (taggedUsers && taggedUsers.length > 0)) && (
           <div className="flex flex-wrap gap-2 mb-4 pb-3 border-b">
-            {channel && (
+            {channels && channels.map((channel) => (
               <Badge 
+                key={channel.id}
                 variant="secondary" 
                 className="flex items-center gap-1 cursor-pointer hover:bg-secondary/80"
                 onClick={(e) => {
@@ -284,9 +292,10 @@ const SocialPost: React.FC<SocialPostProps> = ({
                 <Hash className="h-3 w-3" />
                 {channel.name}
               </Badge>
-            )}
-            {event && (
+            ))}
+            {events && events.map((event) => (
               <Badge 
+                key={event.id}
                 variant="secondary" 
                 className="flex items-center gap-1 cursor-pointer hover:bg-secondary/80"
                 onClick={(e) => {
@@ -299,7 +308,7 @@ const SocialPost: React.FC<SocialPostProps> = ({
                 <Calendar className="h-3 w-3" />
                 {event.name}
               </Badge>
-            )}
+            ))}
             {taggedUsers && taggedUsers.length > 0 && (
               <div className="flex flex-wrap gap-1">
                 {taggedUsers.map((user) => (
@@ -307,12 +316,12 @@ const SocialPost: React.FC<SocialPostProps> = ({
                     key={user.id}
                     variant="secondary" 
                     className="flex items-center gap-1 cursor-pointer hover:bg-secondary/80"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  // Open in new tab to preserve post visibility
-                  window.open(`/profile/${user.id}`, '_blank');
-                }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      // Open in new tab to preserve post visibility
+                      window.open(`/profile/${user.id}`, '_blank');
+                    }}
                   >
                     <Users className="h-3 w-3" />
                     @{user.username}
@@ -356,17 +365,17 @@ const SocialPost: React.FC<SocialPostProps> = ({
         </div>
         
         {showComments && (
-          <div className="mt-4 border-t pt-4">
-            <div className="flex space-x-3">
-              <Avatar className="h-8 w-8">
+          <div className="mt-4 border-t pt-4 max-w-full">
+            <div className="flex space-x-3 w-full">
+              <Avatar className="h-8 w-8 flex-shrink-0">
                 <AvatarFallback>U</AvatarFallback>
               </Avatar>
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <Textarea
                   placeholder="Write a comment..."
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
-                  className="min-h-[60px]"
+                  className="min-h-[60px] w-full resize-none"
                 />
                 <Button
                   onClick={handleComment}

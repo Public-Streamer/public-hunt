@@ -141,6 +141,11 @@ const ChannelSelector: React.FC<ChannelSelectorProps> = ({
       onChannelChange('', false);
       return;
     }
+    
+    if (channelId === 'personal') {
+      onChannelChange('personal', false);
+      return;
+    }
 
     const userChannel = userChannels.find(c => c.id === channelId);
     const searchChannel = searchResults.find(c => c.id === channelId);
@@ -168,8 +173,10 @@ const ChannelSelector: React.FC<ChannelSelectorProps> = ({
     }
   };
 
-  const selectedChannel = userChannels.find(c => c.id === selectedChannelId) || 
-                         searchResults.find(c => c.id === selectedChannelId);
+  const selectedChannel = selectedChannelId === 'personal' 
+    ? { id: 'personal', name: 'Personal Profile', description: 'Stream directly to your personal profile page', role: 'channel_master' }
+    : userChannels.find(c => c.id === selectedChannelId) || 
+      searchResults.find(c => c.id === selectedChannelId);
 
   if (loading) {
     return (
@@ -190,11 +197,12 @@ const ChannelSelector: React.FC<ChannelSelectorProps> = ({
       </div>
 
       <div className="space-y-3">
-        <Select value={selectedChannelId || 'assign-later'} onValueChange={handleChannelSelect}>
+        <Select value={selectedChannelId || 'personal'} onValueChange={handleChannelSelect}>
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Select a channel or assign later" />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="personal">Stream to my personal profile page (Default)</SelectItem>
             <SelectItem value="assign-later">Assign Later</SelectItem>
             {userChannels.map(channel => (
               <SelectItem key={channel.id} value={channel.id}>

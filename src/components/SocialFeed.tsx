@@ -18,14 +18,14 @@ interface Post {
   likes: number;
   comments: number;
   shares: number;
-  channel?: {
+  channels?: {
     id: string;
     name: string;
-  };
-  event?: {
+  }[];
+  events?: {
     id: string;
     name: string;
-  };
+  }[];
   taggedUsers?: {
     id: string;
     name: string;
@@ -63,24 +63,24 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
   return (
     <div className="space-y-4">
       {/* Create Post */}
-      <Card>
+      <Card className="overflow-hidden">
         <CardHeader>
           <CardTitle className="text-lg">Create Post</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="flex space-x-3">
-            <Avatar className="h-10 w-10">
+        <CardContent className="max-w-full">
+          <div className="flex space-x-3 w-full">
+            <Avatar className="h-10 w-10 flex-shrink-0">
               <AvatarFallback>U</AvatarFallback>
             </Avatar>
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <Textarea
                 placeholder={placeholder}
                 value={newPost}
                 onChange={(e) => setNewPost(e.target.value)}
-                className="min-h-[100px] resize-none"
+                className="min-h-[100px] resize-none w-full"
               />
-              <div className="flex items-center justify-between mt-3">
-                <div className="flex space-x-2">
+              <div className="flex items-center justify-between mt-3 flex-wrap gap-2">
+                <div className="flex space-x-2 flex-wrap">
                   <Button variant="ghost" size="sm" className="text-gray-500">
                     <Image className="h-4 w-4 mr-1" />
                     Photo
@@ -97,7 +97,7 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
                 <Button
                   onClick={handleCreatePost}
                   disabled={!newPost.trim()}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="bg-blue-600 hover:bg-blue-700 flex-shrink-0"
                 >
                   <Send className="h-4 w-4 mr-2" />
                   Post
@@ -120,8 +120,8 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
             likes={post.likes}
             comments={post.comments}
             shares={post.shares}
-            channel={post.channel}
-            event={post.event}
+            channels={post.channels}
+            events={post.events}
             taggedUsers={post.taggedUsers}
             isLiked={post.isLiked}
             isOwnPost={false}

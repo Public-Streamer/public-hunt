@@ -1400,8 +1400,8 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
           shares={post.shares_count}
           media_url={post.media_url}
           media_type={post.media_type}
-          channel={post.channel}
-          event={post.event}
+          channels={post.channel ? [post.channel] : []}
+          events={post.event ? [post.event] : []}
           taggedUsers={post.taggedUsers}
           isLiked={post.is_liked}
           isOwnPost={post.user_id === user?.id}
