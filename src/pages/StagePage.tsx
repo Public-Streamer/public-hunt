@@ -12,8 +12,8 @@ const StagePage: React.FC = () => {
   const { eventId } = useParams<{ eventId: string }>();
   const { data: event, isLoading: eventLoading, error: eventError } = useEventQuery(eventId);
   
-  // Subscribe to real-time updates for this event
-  useEventLiveSubscription(eventId);
+  // Temporarily disable real-time subscription to prevent feedback loops
+  // useEventLiveSubscription(eventId);
   
   const [userRole, setUserRole] = useState<"host" | "streamer" | null>(null);
   const [user, setUser] = useState<any>(null);

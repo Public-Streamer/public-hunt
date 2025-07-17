@@ -32,19 +32,29 @@ export const useEventLiveStatus = ({
         localCameraTrack || otherCameraTracks.length > 0
       );
 
-      console.log({ goLive, hasActiveCameras, currentIsLive });
       const shouldGoLive = goLive && hasActiveCameras && !currentIsLive;
       const shouldStopLive = !goLive && !hasActiveCameras && currentIsLive;
 
-      // Only update if the status has changed
+      // Add extra logging to debug the issue
+      console.log("Live status check:", {
+        goLive,
+        hasActiveCameras,
+        currentIsLive,
+        shouldGoLive,
+        shouldStopLive,
+        localCameraTrack: !!localCameraTrack,
+        otherCamerasCount: otherCameraTracks.length
+      });
+
+      // Only update if the status has changed and we have a clear decision
       if (shouldGoLive) {
-        console.log("going live...");
+        console.log("Triggering go live...");
         updateLiveStatus.mutate({ eventId, isLive: true });
       } else if (shouldStopLive) {
-        console.log("stopping live...");
+        console.log("Triggering stop live...");
         updateLiveStatus.mutate({ eventId, isLive: false });
       }
-    }, 500); // 500ms debounce
+    }, 1000); // Increase debounce to 1 second
 
     // Cleanup function
     return () => {
