@@ -5,19 +5,25 @@ import { LiveKitRoom, RoomAudioRenderer } from "@livekit/components-react";
 import "@livekit/components-styles";
 import { StreamerInterface } from "@/components/StreamerInterface";
 import { toast } from "sonner";
+import { useEventQuery } from "@/hooks/queries/useEventQuery";
+import { useEventLiveSubscription } from "@/hooks/queries/useEventLiveSubscription";
 
 const StagePage: React.FC = () => {
   const { eventId } = useParams<{ eventId: string }>();
-  const [event, setEvent] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const { data: event, isLoading: eventLoading, error: eventError } = useEventQuery(eventId);
+  
+  // Subscribe to real-time updates for this event
+  useEventLiveSubscription(eventId);
+  
   const [userRole, setUserRole] = useState<"host" | "streamer" | null>(null);
   const [user, setUser] = useState<any>(null);
   const [token, setToken] = useState<string | null>(null);
   const [serverUrl, setServerUrl] = useState<string>("");
   const [tokenLoading, setTokenLoading] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
-    const checkAuthAndFetchEvent = async () => {
+    const checkAuthAndPermissions = async () => {
       try {
         // Check authentication
         const {
@@ -37,22 +43,11 @@ const StagePage: React.FC = () => {
           return;
         }
 
-        // Fetch event details
-        const { data: eventData, error: eventError } = await supabase
-          .from("events")
-          .select("*")
-          .eq("id", eventId)
-          .single();
-
-        if (eventError) {
-          toast.error("Event not found");
-          return;
-        }
-
-        setEvent(eventData);
+        // Wait for event data to be loaded
+        if (!event) return;
 
         // Check if user is host (event creator)
-        if (eventData.created_by === currentUser.id) {
+        if (event.created_by === currentUser.id) {
           setUserRole("host");
           return;
         }
@@ -76,12 +71,12 @@ const StagePage: React.FC = () => {
         console.error("Error checking access:", error);
         toast.error("Failed to load stage");
       } finally {
-        setLoading(false);
+        setAuthLoading(false);
       }
     };
 
-    checkAuthAndFetchEvent();
-  }, [eventId]);
+    checkAuthAndPermissions();
+  }, [eventId, event]);
 
   // Generate LiveKit token when event and user role are available
   useEffect(() => {
@@ -143,13 +138,19 @@ const StagePage: React.FC = () => {
     generateToken();
   }, [eventId, userRole, user]);
 
-  if (loading || tokenLoading) {
+  // Handle event query error
+  if (eventError) {
+    toast.error("Event not found");
+    return <Navigate to="/events" replace />;
+  }
+
+  if (eventLoading || authLoading || tokenLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">
-            {loading ? "Loading stage..." : "Connecting to live stream..."}
+            {eventLoading ? "Loading event..." : authLoading ? "Checking permissions..." : "Connecting to live stream..."}
           </p>
         </div>
       </div>
@@ -209,7 +210,7 @@ const StagePage: React.FC = () => {
       <StreamerInterface
         eventId={eventId}
         eventTitle={event.name}
-        isLive={event.is_live}
+        isLive={event.is_live || false}
         userRole={userRole}
       />
     </LiveKitRoom>
