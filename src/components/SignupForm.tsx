@@ -66,11 +66,12 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
   const handleStep1Submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (signupData.password !== signupData.confirmPassword) {
-      alert('Passwords do not match');
+      setError('Passwords do not match.');
       return;
     }
-    if (calculateAge(signupData.birthDate) < 18) {
-      alert('You must be at least 18 years old to create an account.');
+    const age = calculateAge(signupData.birthDate);
+    if (age < 18) {
+      setError('You must be at least 18 years old to create an account.');
       return;
     }
     setStep(2);
@@ -185,7 +186,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
               required
             />
           </div>
-          
+            
           <div className="space-y-2">
             <Label htmlFor="confirmPassword">Confirm Password</Label>
             <Input
@@ -193,6 +194,17 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
               type="password"
               value={signupData.confirmPassword}
               onChange={(e) => setSignupData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="birthDate">Birth Date (Must be 18+)</Label>
+            <Input
+              id="birthDate"
+              type="date"
+              value={signupData.birthDate}
+              onChange={(e) => setSignupData(prev => ({ ...prev, birthDate: e.target.value }))}
               required
             />
           </div>
@@ -233,18 +245,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                 placeholder="City, State/Country"
                 required
               />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="birthDate">Birth Date (Must be 18+)</Label>
-              <Input
-                id="birthDate"
-                type="date"
-                value={signupData.birthDate}
-                onChange={(e) => setSignupData(prev => ({ ...prev, birthDate: e.target.value }))}
-                required
-              />
-            </div>
+          </div>
             
             <div className="space-y-2">
               <Label htmlFor="bio">Bio</Label>
