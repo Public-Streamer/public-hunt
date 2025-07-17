@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Upload, Camera } from 'lucide-react';
 import { useAppContext } from '@/contexts/AppContext';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -24,6 +25,8 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
   const { signUp } = useAppContext();
   const navigate = useNavigate();
   const [signupData, setSignupData] = useState({
+    accountType: 'individual' as 'individual' | 'company',
+    companyName: '',
     firstName: '',
     lastName: '',
     email: '',
@@ -93,6 +96,16 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
   const handleStep1Submit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate company name if account type is company
+    if (signupData.accountType === 'company' && !signupData.companyName.trim()) {
+      setErrorDialogConfig({
+        title: 'Company Name Required',
+        message: 'Please enter a company name.'
+      });
+      setShowErrorDialog(true);
+      return;
+    }
+    
     // Validate passwords match
     if (signupData.password !== signupData.confirmPassword) {
       setErrorDialogConfig({
@@ -129,6 +142,8 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
     setError(null);
     try {
       const result = await signUp(signupData.email, signupData.password, {
+        accountType: signupData.accountType,
+        companyName: signupData.companyName,
         firstName: signupData.firstName,
         lastName: signupData.lastName,
         phone: signupData.phone,
@@ -164,6 +179,35 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
     <>
       {step === 1 && (
         <form onSubmit={handleStep1Submit} className="space-y-4">
+          <div className="space-y-3">
+            <Label>Will this account be created for an individual or a company?</Label>
+            <RadioGroup
+              value={signupData.accountType}
+              onValueChange={(value: 'individual' | 'company') => setSignupData(prev => ({ ...prev, accountType: value }))}
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="individual" id="individual" />
+                <Label htmlFor="individual">Individual</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="company" id="company" />
+                <Label htmlFor="company">Company</Label>
+              </div>
+            </RadioGroup>
+          </div>
+          
+          {signupData.accountType === 'company' && (
+            <div className="space-y-2">
+              <Label htmlFor="companyName">Company</Label>
+              <Input
+                id="companyName"
+                value={signupData.companyName}
+                onChange={(e) => setSignupData(prev => ({ ...prev, companyName: e.target.value }))}
+                required
+              />
+            </div>
+          )}
+          
           <div className="flex flex-col items-center space-y-2">
             <div className="relative">
               <Avatar className="w-20 h-20">

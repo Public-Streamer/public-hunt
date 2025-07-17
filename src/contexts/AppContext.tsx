@@ -5,6 +5,8 @@ import { toast } from '@/hooks/use-toast';
 
 interface UserProfile {
   id: string;
+  accountType?: 'individual' | 'company';
+  companyName?: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -127,6 +129,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             setUserProfile({
               id: session.user.id,
               email: session.user.email || '',
+              accountType: metadata.accountType,
+              companyName: metadata.companyName,
               firstName: metadata.firstName || '',
               lastName: metadata.lastName || '',
               phone: metadata.phone || '',
@@ -152,6 +156,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           setUserProfile({
             id: session.user.id,
             email: session.user.email || '',
+            accountType: metadata.accountType,
+            companyName: metadata.companyName,
             firstName: metadata.firstName || '',
             lastName: metadata.lastName || '',
             phone: metadata.phone || '',
