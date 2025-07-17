@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Upload, Camera } from 'lucide-react';
 import { useAppContext } from '@/contexts/AppContext';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useNavigate } from 'react-router-dom';
 
 interface SignupFormProps {
@@ -285,12 +286,14 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-md max-h-[90vh] overflow-y-auto">
+      <Card className="w-full max-w-md max-h-[90vh]">
         <CardHeader>
           <CardTitle>Create Your Streamura Account</CardTitle>
         </CardHeader>
         <CardContent>
-          {formContent}
+          <ScrollArea className="h-[calc(90vh-5rem)]">
+            {formContent}
+          </ScrollArea>
         </CardContent>
       </Card>
     </div>

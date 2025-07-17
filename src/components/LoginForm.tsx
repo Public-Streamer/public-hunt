@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useAppContext } from '@/contexts/AppContext';
 import { useNavigate } from 'react-router-dom';
 import SignupForm from './SignupForm';
+import { ScrollArea } from './ui/scroll-area';
 
 interface LoginFormProps {
   onClose: () => void;
@@ -48,18 +49,20 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose }) => {
             <CardTitle>Create Account</CardTitle>
             <CardDescription>Join Streamura today</CardDescription>
           </CardHeader>
-          <CardContent>
-            <SignupForm onClose={onClose} onSuccess={handleSignupSuccess} inline />
-            <div className="mt-4 text-center">
-              <Button 
-                type="button" 
-                variant="link" 
-                onClick={() => setShowSignup(false)}
-                className="text-sm"
-              >
-                Already have an account? Sign in
-              </Button>
-            </div>
+          <CardContent className="max-h-[70vh]">
+            <ScrollArea className="h-full">
+              <SignupForm onClose={onClose} onSuccess={handleSignupSuccess} inline />
+              <div className="mt-4 text-center">
+                <Button 
+                  type="button" 
+                  variant="link" 
+                  onClick={() => setShowSignup(false)}
+                  className="text-sm"
+                >
+                  Already have an account? Sign in
+                </Button>
+              </div>
+            </ScrollArea>
           </CardContent>
         </Card>
       </div>
