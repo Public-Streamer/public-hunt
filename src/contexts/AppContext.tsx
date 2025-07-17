@@ -74,7 +74,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const signUp = async (email: string, password: string, userData: Omit<UserProfile, 'id' | 'email'>) => {
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -84,6 +84,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
 
       if (error) {
+        // Special handling for email exists error
+        if (error.message.toLowerCase().includes('already registered')) {
+          return { error: 'Email already exists' };
+        }
         return { error: error.message };
       }
 

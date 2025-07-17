@@ -10,6 +10,8 @@ import { Upload, Camera } from 'lucide-react';
 import { useAppContext } from '@/contexts/AppContext';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useNavigate } from 'react-router-dom';
+import ResetPasswordForm from './ResetPasswordForm';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface SignupFormProps {
   onClose: () => void;
@@ -37,6 +39,8 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -75,11 +79,12 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
   const handleFinalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!signupData.agreeToTerms || !signupData.confirmAge) {
-      alert('Please accept all terms and confirm your age.');
+      setError('Please accept all terms and confirm your age.');
       return;
     }
     
     setLoading(true);
+    setError(null);
     try {
       const result = await signUp(signupData.email, signupData.password, {
         firstName: signupData.firstName,
@@ -92,7 +97,13 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
       });
       
       if (result.error) {
-        alert('Signup failed: ' + result.error);
+        if (result.error.toLowerCase().includes('email already exists') || 
+            result.error.toLowerCase().includes('user already registered')) {
+          setError('An account with this email already exists.');
+          setShowResetPassword(true);
+        } else {
+          setError(result.error);
+        }
       } else {
         if (onSuccess) {
           onSuccess();
@@ -101,7 +112,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
         }
       }
     } catch (error) {
-      alert('Signup failed: ' + (error as Error).message);
+      setError((error as Error).message);
     } finally {
       setLoading(false);
     }
@@ -292,18 +303,37 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-md max-h-[90vh]">
-        <CardHeader>
-          <CardTitle>Create Your Streamura Account</CardTitle>
-        </CardHeader>
-        <CardContent className="h-[75vh] p-0">
-          <ScrollArea className="h-full w-full px-6 pb-6">
-            {formContent}
-          </ScrollArea>
-        </CardContent>
-      </Card>
-    </div>
+    <>
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <Card className="w-full max-w-md max-h-[90vh]">
+          <CardHeader>
+            <CardTitle>Create Your Streamura Account</CardTitle>
+            {error && (
+              <Alert variant="destructive" className="mt-4">
+                <AlertDescription>{error}</AlertDescription>
+                {showResetPassword && (
+                  <Button
+                    variant="link"
+                    className="mt-2 p-0"
+                    onClick={() => setShowResetPassword(true)}
+                  >
+                    Reset Password
+                  </Button>
+                )}
+              </Alert>
+            )}
+          </CardHeader>
+          <CardContent className="h-[75vh] p-0">
+            <ScrollArea className="h-full w-full px-6 pb-6">
+              {formContent}
+            </ScrollArea>
+          </CardContent>
+        </Card>
+      </div>
+      {showResetPassword && (
+        <ResetPasswordForm onClose={() => setShowResetPassword(false)} />
+      )}
+    </>
   );
 };
 
