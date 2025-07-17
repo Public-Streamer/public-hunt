@@ -198,6 +198,16 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
         throw new Error(error.message);
       }
 
+      // Create event stream record
+      await supabase
+        .from("event_streams")
+        .insert({
+          event_id: eventId,
+          streamer_id: session.user.id,
+          stream_name: "Main Stream",
+          is_active: true,
+        });
+
       toast.success("Stream started successfully");
     } catch (error) {
       setIsStreaming(false);
@@ -228,6 +238,13 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
         .update({ is_active: false })
         .eq("event_id", eventId)
         .eq("user_id", session.user.id);
+      
+      // Deactivate event streams
+      await supabase
+        .from("event_streams")
+        .update({ is_active: false })
+        .eq("event_id", eventId)
+        .eq("streamer_id", session.user.id);
       
       // Close LiveKit room
       const { error } = await supabase.functions.invoke("manage-livekit-room", {
