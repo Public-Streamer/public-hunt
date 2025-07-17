@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Heart, MessageCircle, Share2, Send, Hash, Calendar, Users, Edit2, Trash2, MoreHorizontal, Check, X, Upload, Image as ImageIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 interface SocialPostProps {
   postId: string;
@@ -69,6 +70,7 @@ const SocialPost: React.FC<SocialPostProps> = ({
   const [newComment, setNewComment] = useState('');
   const [liked, setLiked] = useState(isLiked);
   const [likeCount, setLikeCount] = useState(likes);
+  const [shareCount, setShareCount] = useState(shares);
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(content);
   const [showDeleteMenu, setShowDeleteMenu] = useState(false);
@@ -76,6 +78,7 @@ const SocialPost: React.FC<SocialPostProps> = ({
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
   const [showDeleteMedia, setShowDeleteMedia] = useState(false);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleLike = () => {
     setLiked(!liked);
@@ -83,15 +86,26 @@ const SocialPost: React.FC<SocialPostProps> = ({
     onLike?.(postId);
   };
 
+  const [commentCount, setCommentCount] = useState(comments);
+
   const handleComment = () => {
     if (newComment.trim()) {
       onComment?.(postId, newComment);
       setNewComment('');
+      // Update comments count locally for immediate feedback
+      setCommentCount(prev => prev + 1);
     }
   };
 
   const handleShare = () => {
     onShare?.(postId);
+    // Update shares count locally for immediate feedback
+    setShareCount(prev => prev + 1);
+    // Show success toast
+    toast({
+      title: 'Success',
+      description: 'Post shared successfully!'
+    });
   };
 
   const handleEditSave = () => {
@@ -253,7 +267,7 @@ const SocialPost: React.FC<SocialPostProps> = ({
           </div>
         ) : (
           <div className="mb-4">
-            {media_url && !showDeleteMedia && (
+            {(mediaPreview || (media_url && !showDeleteMedia)) && (
               <div className="mb-4 rounded-lg overflow-hidden">
                 {media_type === 'video' ? (
                   <video
@@ -350,7 +364,7 @@ const SocialPost: React.FC<SocialPostProps> = ({
             className="flex items-center space-x-2 text-gray-500"
           >
             <MessageCircle className="h-4 w-4" />
-            <span>{comments}</span>
+            <span>{commentCount}</span>
           </Button>
           
           <Button
@@ -360,7 +374,7 @@ const SocialPost: React.FC<SocialPostProps> = ({
             className="flex items-center space-x-2 text-gray-500"
           >
             <Share2 className="h-4 w-4" />
-            <span>{shares}</span>
+            <span>{shareCount}</span>
           </Button>
         </div>
         
