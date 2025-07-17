@@ -33,6 +33,7 @@ interface StreamerInterfaceProps {
   eventTitle: string;
   isLive: boolean;
   userRole?: "host" | "streamer";
+  userId?: string;
 }
 
 export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
@@ -40,6 +41,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   eventTitle,
   isLive,
   userRole,
+  userId,
 }) => {
   const { localParticipant } = useLocalParticipant();
   const participants = useParticipants();
@@ -66,6 +68,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     otherCameraTracks,
     currentIsLive: isLive,
     goLive,
+    userId,
   });
 
   if (!localParticipant) {

@@ -9,6 +9,7 @@ interface UseEventLiveStatusProps {
   otherCameraTracks: TrackReference[];
   currentIsLive: boolean;
   goLive: boolean;
+  userId?: string;
 }
 
 export const useEventLiveStatus = ({
@@ -17,10 +18,33 @@ export const useEventLiveStatus = ({
   otherCameraTracks,
   currentIsLive,
   goLive,
+  userId,
 }: UseEventLiveStatusProps) => {
   const updateTimeoutRef = useRef<NodeJS.Timeout>();
 
   const queryClient = useQueryClient();
+
+  // Check for active streams in database (excluding current user)
+  const checkActiveStreams = async (): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase
+        .from("event_streams")
+        .select("id")
+        .eq("event_id", eventId)
+        .eq("is_active", true)
+        .neq("streamer_id", userId || "");
+
+      if (error) {
+        console.error("Error checking active streams:", error);
+        return false;
+      }
+
+      return (data?.length || 0) > 0;
+    } catch (error) {
+      console.error("Failed to check active streams:", error);
+      return false;
+    }
+  };
 
   useEffect(() => {
     // Clear any existing timeout
@@ -35,7 +59,8 @@ export const useEventLiveStatus = ({
           localCameraTrack || otherCameraTracks.length > 0
         );
 
-        const isOthersLive = otherCameraTracks.length > 0;
+        // Check database for other active streams instead of local tracks
+        const isOthersLive = await checkActiveStreams();
 
         const shouldGoLive = goLive && hasActiveCameras && !currentIsLive;
         const shouldStopLive = !goLive && !isOthersLive && currentIsLive;
@@ -106,6 +131,7 @@ export const useEventLiveStatus = ({
     currentIsLive,
     goLive,
     queryClient,
+    userId,
   ]);
 
   // Cleanup on unmount
