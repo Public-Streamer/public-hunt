@@ -270,19 +270,8 @@ const EventPage: React.FC = () => {
       );
     }
 
-    if (!hasTicket) {
-      // For free events, show "Enter Event" instead of purchase button
-      if (!eventData?.ticket_price || eventData.ticket_price <= 0) {
-        return (
-          <Button
-            onClick={goToStage}
-            className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-lg py-3"
-          >
-            Enter Event
-          </Button>
-        );
-      }
-
+    // For paid events without tickets, show purchase button
+    if (!hasTicket && eventData?.ticket_price && eventData.ticket_price > 0) {
       return (
         <Button
           onClick={handlePayment}
@@ -294,14 +283,9 @@ const EventPage: React.FC = () => {
       );
     }
 
-    return (
-      <Button
-        onClick={goToStage}
-        className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-lg py-3"
-      >
-        Enter Stage
-      </Button>
-    );
+    // For viewers with access (free events or paid with tickets), no navigation button needed
+    // They watch the event directly on this page
+    return null;
   };
 
   if (loading) {
@@ -484,28 +468,29 @@ const EventPage: React.FC = () => {
             />
           )}
 
-          <SocialMediaSection eventId={eventData.id} type="event" />
-
-          {/* Social Share Menu */}
-          <SocialShareMenu
-            title={eventData.name}
-            url={eventUrl}
-            description={eventData.description}
-          />
         </div>
 
         <div className="space-y-6">
+          {/* Social Media & Sharing */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-2xl font-bold text-center">
-                <span className="flex items-center justify-center">
-                  <DollarSign className="h-6 w-6" />
-                  {eventData.ticket_price}
-                </span>
-              </CardTitle>
+              <CardTitle>Social</CardTitle>
             </CardHeader>
             <CardContent>
-              <AdmissionButton />
+              <SocialMediaSection eventId={eventData.id} type="event" />
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Share Event</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <SocialShareMenu
+                title={eventData.name}
+                url={eventUrl}
+                description={eventData.description}
+              />
             </CardContent>
           </Card>
 
