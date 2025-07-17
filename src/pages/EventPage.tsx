@@ -57,6 +57,7 @@ const EventPage: React.FC = () => {
   const [livekitToken, setLivekitToken] = useState<string | null>(null);
   const [roomName, setRoomName] = useState<string | null>(null);
   const [serverUrl, setServerUrl] = useState<string | null>(null);
+  const [isStreamer, setIsStreamer] = useState(false);
 
   useEffect(() => {
     if (!eventId) return;
@@ -68,6 +69,7 @@ const EventPage: React.FC = () => {
   useEffect(() => {
     if (currentUser && eventData) {
       checkTicketStatus();
+      checkStreamerStatus();
     }
   }, [currentUser, eventData]);
 
@@ -101,6 +103,7 @@ const EventPage: React.FC = () => {
   // Derived variables
   const isEventHost =
     currentUser && eventData && currentUser.id === eventData.created_by;
+  const canEnterStage = isEventHost || isStreamer;
 
   // Generate LiveKit token for viewers when they have access
   useEffect(() => {
@@ -108,11 +111,11 @@ const EventPage: React.FC = () => {
       currentUser &&
       eventData &&
       eventData.is_live &&
-      (isEventHost || hasTicket)
+      (canEnterStage || hasTicket)
     ) {
       generateViewerToken();
     }
-  }, [currentUser, eventData, hasTicket, isEventHost]);
+  }, [currentUser, eventData, hasTicket, canEnterStage]);
 
   const getCurrentUser = async () => {
     try {
@@ -182,6 +185,24 @@ const EventPage: React.FC = () => {
       setHasTicket(false);
     } finally {
       setCheckingTicket(false);
+    }
+  };
+
+  const checkStreamerStatus = async () => {
+    if (!currentUser || !eventData) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("event_streamers")
+        .select("*")
+        .eq("event_id", eventData.id)
+        .eq("streamer_id", currentUser.id)
+        .single();
+
+      setIsStreamer(!!data && !error);
+    } catch (error) {
+      console.error("Error checking streamer status:", error);
+      setIsStreamer(false);
     }
   };
 
@@ -259,13 +280,13 @@ const EventPage: React.FC = () => {
       );
     }
 
-    if (isEventHost) {
+    if (canEnterStage) {
       return (
         <Button
           onClick={goToStage}
           className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-lg py-3"
         >
-          Enter Stage (Host)
+          Enter Stage {isEventHost ? "(Host)" : "(Streamer)"}
         </Button>
       );
     }
@@ -427,9 +448,9 @@ const EventPage: React.FC = () => {
             >
               <ViewerInterface
                 eventId={eventData.id}
-                hasAccess={hasTicket || isEventHost}
+                hasAccess={hasTicket || canEnterStage}
                 onUpgrade={handlePayment}
-                showUpgradePrompt={!hasTicket && !isEventHost}
+                showUpgradePrompt={!hasTicket && !canEnterStage}
               />
             </LiveKitRoom>
           ) : eventData.is_live && eventData.livekit_room_name ? (
@@ -464,7 +485,7 @@ const EventPage: React.FC = () => {
           {!eventData.is_live && (
             <OfflineStreamSection
               eventId={eventData.id}
-              hasPaid={hasTicket || isEventHost}
+              hasPaid={hasTicket || canEnterStage}
             />
           )}
 
