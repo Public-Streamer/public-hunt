@@ -166,7 +166,10 @@ const StagePage: React.FC = () => {
       }
     };
 
-    generateToken();
+    if (!tokenGenerated.current) {
+      console.log("Generating token...");
+      generateToken();
+    }
   }, [eventId, userRole, user]);
 
   // Cleanup token generation flag on unmount
