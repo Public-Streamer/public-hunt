@@ -30,6 +30,45 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
 
   const participantCount = room?.numParticipants || 1;
 
+  // Helper function to check if event should be live based on active participants
+  const checkEventLiveStatus = useCallback(async (): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase
+        .from('event_participants')
+        .select('is_live')
+        .eq('event_id', eventId)
+        .eq('is_active', true)
+        .in('role', ['host', 'streamer'])
+        .eq('is_live', true);
+
+      if (error) {
+        console.error('Error checking event live status:', error);
+        return false;
+      }
+
+      return data && data.length > 0;
+    } catch (error) {
+      console.error('Error checking event live status:', error);
+      return false;
+    }
+  }, [eventId]);
+
+  // Helper function to update event live status
+  const updateEventLiveStatus = useCallback(async (isLive: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('events')
+        .update({ is_live: isLive })
+        .eq('id', eventId);
+
+      if (error) {
+        console.error('Error updating event live status:', error);
+      }
+    } catch (error) {
+      console.error('Error updating event live status:', error);
+    }
+  }, [eventId]);
+
   // Helper function to update participant live status
   const updateParticipantLiveStatus = useCallback(async (isLive: boolean) => {
     try {
@@ -179,6 +218,9 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       // Set participant as live
       await updateParticipantLiveStatus(true);
       
+      // Set event as live (first host starting stream makes event live)
+      await updateEventLiveStatus(true);
+      
       // Create LiveKit room
       const { error } = await supabase.functions.invoke("manage-livekit-room", {
         body: {
@@ -215,7 +257,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       toast.error("Failed to start stream");
       console.error("Start stream error:", error);
     }
-  }, [eventId, createEventParticipant, updateParticipantLiveStatus]);
+  }, [eventId, createEventParticipant, updateParticipantLiveStatus, updateEventLiveStatus]);
 
   const stopStream = useCallback(async () => {
     try {
@@ -246,6 +288,12 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
         .eq("event_id", eventId)
         .eq("streamer_id", session.user.id);
       
+      // Check if any other participants are still live before setting event to not live
+      const shouldEventStayLive = await checkEventLiveStatus();
+      if (!shouldEventStayLive) {
+        await updateEventLiveStatus(false);
+      }
+      
       // Close LiveKit room
       const { error } = await supabase.functions.invoke("manage-livekit-room", {
         body: {
@@ -266,7 +314,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       toast.error("Failed to stop stream");
       console.error("Stop stream error:", error);
     }
-  }, [eventId, updateParticipantLiveStatus]);
+  }, [eventId, updateParticipantLiveStatus, checkEventLiveStatus, updateEventLiveStatus]);
 
   return {
     isVideoEnabled,
