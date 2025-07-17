@@ -277,7 +277,8 @@ const SocialPost: React.FC<SocialPostProps> = ({
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  navigate(`/channels?channel=${channel.id}`);
+                  // Open in new tab to preserve post visibility
+                  window.open(`/channels?channel=${channel.id}`, '_blank');
                 }}
               >
                 <Hash className="h-3 w-3" />
@@ -291,7 +292,8 @@ const SocialPost: React.FC<SocialPostProps> = ({
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  navigate(`/events?event=${event.id}`);
+                  // Open in new tab to preserve post visibility
+                  window.open(`/events?event=${event.id}`, '_blank');
                 }}
               >
                 <Calendar className="h-3 w-3" />
@@ -305,11 +307,12 @@ const SocialPost: React.FC<SocialPostProps> = ({
                     key={user.id}
                     variant="secondary" 
                     className="flex items-center gap-1 cursor-pointer hover:bg-secondary/80"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      navigate(`/profile/${user.id}`);
-                    }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  // Open in new tab to preserve post visibility
+                  window.open(`/profile/${user.id}`, '_blank');
+                }}
                   >
                     <Users className="h-3 w-3" />
                     @{user.username}
