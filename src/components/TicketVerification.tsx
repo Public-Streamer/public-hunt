@@ -113,6 +113,11 @@ const TicketVerification: React.FC<TicketVerificationProps> = ({
     return null;
   }
 
+  // For free events, this component shouldn't render
+  if (!eventInfo.ticket_price || eventInfo.ticket_price <= 0) {
+    return null;
+  }
+
   return (
     <Card className="mb-6">
       <CardContent className="p-8">

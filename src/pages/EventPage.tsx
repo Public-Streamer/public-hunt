@@ -111,7 +111,7 @@ const EventPage: React.FC = () => {
     ) {
       generateViewerToken();
     }
-  }, [currentUser, eventData]);
+  }, [currentUser, eventData, hasTicket, isEventHost]);
 
   const getCurrentUser = async () => {
     try {
@@ -158,6 +158,12 @@ const EventPage: React.FC = () => {
 
   const checkTicketStatus = async () => {
     if (!currentUser || !eventData) return;
+
+    // For free events, automatically grant access
+    if (!eventData.ticket_price || eventData.ticket_price <= 0) {
+      setHasTicket(true);
+      return;
+    }
 
     try {
       setCheckingTicket(true);
@@ -264,6 +270,18 @@ const EventPage: React.FC = () => {
     }
 
     if (!hasTicket) {
+      // For free events, show "Enter Event" instead of purchase button
+      if (!eventData?.ticket_price || eventData.ticket_price <= 0) {
+        return (
+          <Button
+            onClick={goToStage}
+            className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-lg py-3"
+          >
+            Enter Event
+          </Button>
+        );
+      }
+
       return (
         <Button
           onClick={handlePayment}
