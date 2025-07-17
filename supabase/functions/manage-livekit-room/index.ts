@@ -185,19 +185,21 @@ serve(async (req) => {
             })
             .eq("id", eventId);
 
-            response = {
-              success: true,
-              room: {
-                sid: room.sid,
-                name: room.name,
-                maxParticipants: room.maxParticipants,
-                numParticipants: room.numParticipants,
-                creationTime: new Date(Number(room.creationTime) * 1000).toISOString(),
-                turnPassword: room.turnPassword,
-                enabledCodecs: room.enabledCodecs.map((c) => c.mime),
-                metadata: room.metadata,
-              },
-            };
+          response = {
+            success: true,
+            room: {
+              sid: room.sid,
+              name: room.name,
+              maxParticipants: room.maxParticipants,
+              numParticipants: room.numParticipants,
+              creationTime: new Date(
+                Number(room.creationTime) * 1000
+              ).toISOString(),
+              turnPassword: room.turnPassword,
+              enabledCodecs: room.enabledCodecs.map((c) => c.mime),
+              metadata: room.metadata,
+            },
+          };
         } catch (error) {
           console.error("Error creating room:", error);
           response = {
@@ -219,11 +221,6 @@ serve(async (req) => {
               closed_at: new Date().toISOString(),
             })
             .eq("event_id", eventId);
-
-          await supabase
-            .from("events")
-            .update({ is_live: false })
-            .eq("id", eventId);
 
           response = { success: true };
         } catch (error) {
@@ -248,7 +245,9 @@ serve(async (req) => {
                 name: room.name,
                 maxParticipants: room.maxParticipants,
                 numParticipants: room.numParticipants,
-                creationTime: new Date(Number(room.creationTime) * 1000).toISOString(),
+                creationTime: new Date(
+                  Number(room.creationTime) * 1000
+                ).toISOString(),
                 turnPassword: room.turnPassword,
                 enabledCodecs: room.enabledCodecs.map((c) => c.mime),
                 metadata: room.metadata,

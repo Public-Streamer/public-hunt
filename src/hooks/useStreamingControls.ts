@@ -31,51 +31,64 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   const participantCount = room?.numParticipants || 1;
 
   // Helper function to update participant live status
-  const updateParticipantLiveStatus = useCallback(async (isLive: boolean) => {
-    try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !session) return;
+  const updateParticipantLiveStatus = useCallback(
+    async (isLive: boolean) => {
+      try {
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession();
+        if (sessionError || !session) return;
 
-      const { error } = await supabase
-        .from('event_participants')
-        .update({ is_live: isLive })
-        .match({
-          event_id: eventId,
-          user_id: session.user.id
-        });
+        const { error } = await supabase
+          .from("event_participants")
+          .update({ is_live: isLive })
+          .match({
+            event_id: eventId,
+            user_id: session.user.id,
+          });
 
-      if (error) {
-        console.error('Error updating participant live status:', error);
+        if (error) {
+          console.error("Error updating participant live status:", error);
+        }
+      } catch (error) {
+        console.error("Error updating participant live status:", error);
       }
-    } catch (error) {
-      console.error('Error updating participant live status:', error);
-    }
-  }, [eventId]);
+    },
+    [eventId]
+  );
 
   // Helper function to create event participant record
-  const createEventParticipant = useCallback(async (role: 'host' | 'streamer' | 'viewer') => {
-    try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !session) return;
+  const createEventParticipant = useCallback(
+    async (role: "host" | "streamer" | "viewer") => {
+      try {
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession();
+        if (sessionError || !session) return;
 
-      const { error } = await supabase
-        .from('event_participants')
-        .upsert({
-          event_id: eventId,
-          user_id: session.user.id,
-          role: role,
-          is_active: true
-        }, {
-          onConflict: 'event_id,user_id'
-        });
+        const { error } = await supabase.from("event_participants").upsert(
+          {
+            event_id: eventId,
+            user_id: session.user.id,
+            role: role,
+            is_active: true,
+          },
+          {
+            onConflict: "event_id,user_id",
+          }
+        );
 
-      if (error) {
-        console.error('Error creating event participant:', error);
+        if (error) {
+          console.error("Error creating event participant:", error);
+        }
+      } catch (error) {
+        console.error("Error creating event participant:", error);
       }
-    } catch (error) {
-      console.error('Error creating event participant:', error);
-    }
-  }, [eventId]);
+    },
+    [eventId]
+  );
 
   // Safety check for room context
   if (!room || !localParticipant) {
@@ -172,13 +185,13 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       if (sessionError || !session) {
         throw new Error("Please log in to access this stream");
       }
-      
+
       // Create event participant record
-      await createEventParticipant('host');
-      
+      await createEventParticipant("host");
+
       // Set participant as live
       await updateParticipantLiveStatus(true);
-      
+
       // Create LiveKit room
       const { error } = await supabase.functions.invoke("manage-livekit-room", {
         body: {
@@ -199,14 +212,12 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       }
 
       // Create event stream record
-      await supabase
-        .from("event_streams")
-        .insert({
-          event_id: eventId,
-          streamer_id: session.user.id,
-          stream_name: "Main Stream",
-          is_active: true,
-        });
+      await supabase.from("event_streams").insert({
+        event_id: eventId,
+        streamer_id: session.user.id,
+        stream_name: "Main Stream",
+        is_active: true,
+      });
 
       toast.success("Stream started successfully");
     } catch (error) {
@@ -228,38 +239,38 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       if (sessionError || !session) {
         throw new Error("Please log in to access this stream");
       }
-      
+
       // Set participant as not live
       await updateParticipantLiveStatus(false);
 
       // Deactivate event participant
       await supabase
         .from("event_participants")
-        .update({ is_active: false })
+        .update({ is_active: false, is_live: false })
         .eq("event_id", eventId)
         .eq("user_id", session.user.id);
-      
+
       // Deactivate event streams
       await supabase
         .from("event_streams")
         .update({ is_active: false })
         .eq("event_id", eventId)
         .eq("streamer_id", session.user.id);
-      
-      // Close LiveKit room
-      const { error } = await supabase.functions.invoke("manage-livekit-room", {
-        body: {
-          action: "close",
-          eventId,
-        },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
 
-      if (error) {
-        throw new Error(error.message);
-      }
+      // Close LiveKit room
+      // const { error } = await supabase.functions.invoke("manage-livekit-room", {
+      //   body: {
+      //     action: "close",
+      //     eventId,
+      //   },
+      //   headers: {
+      //     Authorization: `Bearer ${session.access_token}`,
+      //   },
+      // });
+
+      // if (error) {
+      //   throw new Error(error.message);
+      // }
 
       toast.success("Stream stopped");
     } catch (error) {
