@@ -42,6 +42,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
   const [loading, setLoading] = useState(false);
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Use state to control error dialog visibility
   const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [errorDialogConfig, setErrorDialogConfig] = useState<{
     title: string;
@@ -57,6 +58,26 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
       reader.readAsDataURL(file);
     }
   };
+  
+  // Format phone number with hyphens (xxx-xxx-xxxx)
+  const formatPhoneNumber = (value: string) => {
+    // Remove all non-digits
+    const digits = value.replace(/\D/g, '');
+    
+    // Format with hyphens
+    if (digits.length <= 3) {
+      return digits;
+    } else if (digits.length <= 6) {
+      return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+    } else {
+      return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+    }
+  };
+  
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formattedPhone = formatPhoneNumber(e.target.value);
+    setSignupData(prev => ({ ...prev, phone: formattedPhone }));
+  };
 
   const calculateAge = (birthDate: string) => {
     const today = new Date();
@@ -71,6 +92,8 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
 
   const handleStep1Submit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate passwords match
     if (signupData.password !== signupData.confirmPassword) {
       setErrorDialogConfig({
         title: 'Password Error',
@@ -79,8 +102,11 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
       setShowErrorDialog(true);
       return;
     }
+    
+    // Age validation - ensure users are 18+
     const age = calculateAge(signupData.birthDate);
     if (age < 18) {
+      console.log("Age validation failed: User is under 18"); // Debugging
       setErrorDialogConfig({
         title: 'Age Restriction',
         message: 'Members must be 18 years old to join.'
@@ -88,6 +114,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
       setShowErrorDialog(true);
       return;
     }
+    
     setStep(2);
   };
 
@@ -245,7 +272,8 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                 id="phone"
                 type="tel"
                 value={signupData.phone}
-                onChange={(e) => setSignupData(prev => ({ ...prev, phone: e.target.value }))}
+                onChange={handlePhoneChange}
+                placeholder="XXX-XXX-XXXX"
                 required
               />
             </div>

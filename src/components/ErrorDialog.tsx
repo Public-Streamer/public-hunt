@@ -26,20 +26,20 @@ const ErrorDialog: React.FC<ErrorDialogProps> = ({
   onResetPassword
 }) => {
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+    <Dialog open={open} onOpenChange={onClose} modal={true}>
+      <DialogContent className="sm:max-w-[425px] border-2 border-destructive z-[9999]">
         <DialogHeader>
-          <DialogTitle className="text-destructive">{title}</DialogTitle>
+          <DialogTitle className="text-destructive text-xl font-bold">{title}</DialogTitle>
         </DialogHeader>
-        <div className="py-4 text-lg">
+        <div className="py-6 text-lg font-medium text-center">
           {message}
         </div>
-        <DialogFooter className="flex-col gap-2 sm:flex-col">
+        <DialogFooter className="flex-col gap-3 sm:flex-col">
           {showResetPassword && (
             <Button
               type="button"
               variant="outline"
-              className="w-full"
+              className="w-full text-base py-2"
               onClick={onResetPassword}
             >
               Reset Password
@@ -48,7 +48,7 @@ const ErrorDialog: React.FC<ErrorDialogProps> = ({
           <Button
             type="button"
             variant="default"
-            className="w-full"
+            className="w-full text-base py-2"
             onClick={onClose}
           >
             Close
