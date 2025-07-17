@@ -49,7 +49,7 @@ const EventPage: React.FC = () => {
 
   const [eventData, setEventData] = useState<EventData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [hasTicket, setHasTicket] = useState(true);
+  const [hasTicket, setHasTicket] = useState(false);
   const [checkingTicket, setCheckingTicket] = useState(false);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -64,11 +64,11 @@ const EventPage: React.FC = () => {
     getCurrentUser();
   }, [eventId]);
 
-  // useEffect(() => {
-  //   if (currentUser && eventData) {
-  //     checkTicketStatus();
-  //   }
-  // }, [currentUser, eventData]);
+  useEffect(() => {
+    if (currentUser && eventData) {
+      checkTicketStatus();
+    }
+  }, [currentUser, eventData]);
 
   // Set up real-time subscription for live status updates
   useEffect(() => {
@@ -103,7 +103,12 @@ const EventPage: React.FC = () => {
 
   // Generate LiveKit token for viewers when they have access
   useEffect(() => {
-    if (currentUser && eventData && eventData.is_live) {
+    if (
+      currentUser &&
+      eventData &&
+      eventData.is_live &&
+      (isEventHost || hasTicket)
+    ) {
       generateViewerToken();
     }
   }, [currentUser, eventData]);
@@ -151,27 +156,27 @@ const EventPage: React.FC = () => {
     }
   };
 
-  // const checkTicketStatus = async () => {
-  //   if (!currentUser || !eventData) return;
+  const checkTicketStatus = async () => {
+    if (!currentUser || !eventData) return;
 
-  //   try {
-  //     setCheckingTicket(true);
-  //     const { data, error } = await supabase
-  //       .from("tickets")
-  //       .select("*")
-  //       .eq("event_id", eventData.id)
-  //       .eq("user_id", currentUser.id)
-  //       .eq("status", "active")
-  //       .single();
+    try {
+      setCheckingTicket(true);
+      const { data, error } = await supabase
+        .from("tickets")
+        .select("*")
+        .eq("event_id", eventData.id)
+        .eq("user_id", currentUser.id)
+        .eq("status", "active")
+        .single();
 
-  //     setHasTicket(!!data && !error);
-  //   } catch (error) {
-  //     console.error("Error checking ticket status:", error);
-  //     setHasTicket(false);
-  //   } finally {
-  //     setCheckingTicket(false);
-  //   }
-  // };
+      setHasTicket(!!data && !error);
+    } catch (error) {
+      console.error("Error checking ticket status:", error);
+      setHasTicket(false);
+    } finally {
+      setCheckingTicket(false);
+    }
+  };
 
   const generateViewerToken = async () => {
     if (!currentUser || !eventData) return;
@@ -222,7 +227,7 @@ const EventPage: React.FC = () => {
 
   const handlePurchaseSuccess = () => {
     setHasTicket(true);
-    // checkTicketStatus(); // Refresh ticket status
+    checkTicketStatus(); // Refresh ticket status
     toast({
       title: "Success!",
       description: "Your ticket has been purchased successfully",
