@@ -3,7 +3,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useAppContext } from '@/contexts/AppContext';
-import { supabase } from '@/lib/supabase';
 import ProfileCover from '@/components/ProfileCover';
 import ProfileNewsfeedTab from '@/components/ProfileNewsfeedTab';
 import ProfileAbout from '@/components/ProfileAbout';
@@ -46,36 +45,8 @@ const Profile: React.FC = () => {
   const { toast } = useToast();
   const { user, userProfile, isAuthenticated } = useAppContext();
 
-  const handleProfileUpdate = async (updatedProfile: UserProfile) => {
+  const handleProfileUpdate = (updatedProfile: UserProfile) => {
     setProfile(updatedProfile);
-    
-    // Persist the profile updates to Supabase
-    try {
-      const { error } = await supabase
-        .from('user_profiles')
-        .update({
-          username: updatedProfile.username,
-          display_name: updatedProfile.display_name,
-          bio: updatedProfile.bio,
-          profile_picture_url: updatedProfile.profile_picture_url,
-          cover_photo_url: updatedProfile.cover_photo_url,
-          location: updatedProfile.location,
-          website: updatedProfile.website,
-          birthday: updatedProfile.birthday
-        })
-        .eq('id', updatedProfile.id);
-        
-      if (error) {
-        console.error('Error updating profile:', error);
-        toast({
-          title: 'Update Error',
-          description: 'Failed to save profile changes to the database',
-          variant: 'destructive'
-        });
-      }
-    } catch (error) {
-      console.error('Error persisting profile update:', error);
-    }
   };
 
   useEffect(() => {
@@ -93,64 +64,27 @@ const Profile: React.FC = () => {
       const targetUserId = userId || user.id;
       setIsOwnProfile(targetUserId === user.id);
       
-      // Fetch the actual profile data from Supabase
-      const { data: profileData, error } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('user_id', targetUserId)
-        .single();
+      const mockProfile: UserProfile = {
+        id: targetUserId,
+        username: user.email?.split('@')[0] || 'user',
+        display_name: userProfile ? `${userProfile.firstName} ${userProfile.lastName}` : 'User',
+        bio: userProfile?.bio || 'Welcome to my profile! I love creating amazing content and connecting with the community.',
+        profile_picture_url: userProfile?.profilePhoto || '/placeholder.svg',
+        cover_photo_url: undefined,
+        location: userProfile?.location || 'San Francisco, CA',
+        work: 'Content Creator',
+        education: 'University of California',
+        relationship_status: 'Single',
+        website: 'https://example.com',
+        birthday: '1990-01-15',
+        occupation: 'Digital Creator & Influencer',
+        interests: ['Technology', 'Photography', 'Travel', 'Gaming', 'Music'],
+        created_at: new Date().toISOString()
+      };
       
-      if (error) {
-        throw error;
-      }
-      
-      if (profileData) {
-        // Use real profile data from the database
-        const userProfileData: UserProfile = {
-          id: profileData.id,
-          username: profileData.username || user.email?.split('@')[0] || 'user',
-          display_name: profileData.display_name || `${userProfile?.firstName || ''} ${userProfile?.lastName || ''}`.trim() || 'User',
-          bio: profileData.bio || userProfile?.bio || 'Welcome to my profile!',
-          profile_picture_url: profileData.profile_picture_url || userProfile?.profilePhoto || '/placeholder.svg',
-          cover_photo_url: profileData.cover_photo_url,
-          location: profileData.location || userProfile?.location || 'San Francisco, CA',
-          work: 'Content Creator',
-          education: 'University of California',
-          relationship_status: 'Single',
-          website: profileData.website || 'https://example.com',
-          birthday: profileData.birthday || userProfile?.birthDate || '1990-01-15',
-          occupation: 'Digital Creator & Influencer',
-          interests: ['Technology', 'Photography', 'Travel', 'Gaming', 'Music'],
-          created_at: profileData.created_at || new Date().toISOString()
-        };
-        
-        setProfile(userProfileData);
-        setFriendsCount(profileData.friends_count || Math.floor(Math.random() * 500) + 50);
-        setFollowersCount(profileData.followers_count || Math.floor(Math.random() * 1000) + 100);
-      } else {
-        // Fallback to mock data if no profile exists yet
-        const mockProfile: UserProfile = {
-          id: targetUserId,
-          username: user.email?.split('@')[0] || 'user',
-          display_name: userProfile ? `${userProfile.firstName} ${userProfile.lastName}` : 'User',
-          bio: userProfile?.bio || 'Welcome to my profile! I love creating amazing content and connecting with the community.',
-          profile_picture_url: userProfile?.profilePhoto || '/placeholder.svg',
-          cover_photo_url: undefined,
-          location: userProfile?.location || 'San Francisco, CA',
-          work: 'Content Creator',
-          education: 'University of California',
-          relationship_status: 'Single',
-          website: 'https://example.com',
-          birthday: userProfile?.birthDate || '1990-01-15',
-          occupation: 'Digital Creator & Influencer',
-          interests: ['Technology', 'Photography', 'Travel', 'Gaming', 'Music'],
-          created_at: new Date().toISOString()
-        };
-        
-        setProfile(mockProfile);
-        setFriendsCount(Math.floor(Math.random() * 500) + 50);
-        setFollowersCount(Math.floor(Math.random() * 1000) + 100);
-      }
+      setProfile(mockProfile);
+      setFriendsCount(Math.floor(Math.random() * 500) + 50);
+      setFollowersCount(Math.floor(Math.random() * 1000) + 100);
     } catch (error) {
       console.error('Error loading profile:', error);
       toast({
