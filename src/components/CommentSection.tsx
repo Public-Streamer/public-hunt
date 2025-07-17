@@ -7,6 +7,12 @@ import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { ThumbsUp, ThumbsDown, MessageCircle } from 'lucide-react';
 
+// UUID validation helper
+const isValidUUID = (str: string): boolean => {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+};
+
 interface Comment {
   id: string;
   content: string;
@@ -51,6 +57,12 @@ const CommentSection: React.FC<CommentSectionProps> = ({ entityId, entityType })
   };
 
   const fetchComments = async () => {
+    // Skip fetching if entityId is not a valid UUID
+    if (!entityId || !isValidUUID(entityId)) {
+      setComments([]);
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('comments')
@@ -70,12 +82,20 @@ const CommentSection: React.FC<CommentSectionProps> = ({ entityId, entityType })
       setComments(data || []);
     } catch (error) {
       console.error('Error fetching comments:', error);
+      // Don't show error toast for invalid UUIDs, just fail silently
+      if (isValidUUID(entityId)) {
+        toast({
+          title: 'Error',
+          description: 'Failed to load comments',
+          variant: 'destructive'
+        });
+      }
     }
   };
 
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim() || !currentUserProfile) return;
+    if (!newComment.trim() || !currentUserProfile || !isValidUUID(entityId)) return;
 
     setLoading(true);
     try {
