@@ -14,6 +14,7 @@ import { useNavigate } from 'react-router-dom';
 import ResetPasswordForm from './ResetPasswordForm';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import ErrorDialog from './ErrorDialog';
+import UserSearchBox from './UserSearchBox';
 
 interface SignupFormProps {
   onClose: () => void;
@@ -27,6 +28,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
   const [signupData, setSignupData] = useState({
     accountType: 'individual' as 'individual' | 'company',
     companyName: '',
+    companyAccountMaster: null as any,
     firstName: '',
     lastName: '',
     email: '',
@@ -106,6 +108,16 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
       return;
     }
     
+    // Validate company account master if account type is company
+    if (signupData.accountType === 'company' && !signupData.companyAccountMaster) {
+      setErrorDialogConfig({
+        title: 'Company Account Master Required',
+        message: 'Please select a Company Account Master.'
+      });
+      setShowErrorDialog(true);
+      return;
+    }
+    
     // Validate passwords match
     if (signupData.password !== signupData.confirmPassword) {
       setErrorDialogConfig({
@@ -144,6 +156,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
       const result = await signUp(signupData.email, signupData.password, {
         accountType: signupData.accountType,
         companyName: signupData.companyName,
+        companyAccountMaster: signupData.companyAccountMaster,
         firstName: signupData.firstName,
         lastName: signupData.lastName,
         phone: signupData.phone,
@@ -197,14 +210,34 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
           </div>
           
           {signupData.accountType === 'company' && (
-            <div className="space-y-2">
-              <Label htmlFor="companyName">Company</Label>
-              <Input
-                id="companyName"
-                value={signupData.companyName}
-                onChange={(e) => setSignupData(prev => ({ ...prev, companyName: e.target.value }))}
-                required
-              />
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="companyName">Company</Label>
+                <Input
+                  id="companyName"
+                  value={signupData.companyName}
+                  onChange={(e) => setSignupData(prev => ({ ...prev, companyName: e.target.value }))}
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Select Company Account Master</Label>
+                <UserSearchBox
+                  onUserSelect={(user) => {
+                    setSignupData(prev => ({ 
+                      ...prev, 
+                      companyAccountMaster: user,
+                      firstName: user?.display_name?.split(' ')[0] || user?.username || '',
+                      lastName: user?.display_name?.split(' ').slice(1).join(' ') || '',
+                      location: user?.location || '',
+                      bio: user?.bio || ''
+                    }));
+                  }}
+                  selectedUser={signupData.companyAccountMaster}
+                  placeholder="Search for existing profile to designate as Company Account Master..."
+                />
+              </div>
             </div>
           )}
           

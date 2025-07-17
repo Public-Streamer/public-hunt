@@ -315,6 +315,42 @@ export type Database = {
           },
         ]
       }
+      company_roles: {
+        Row: {
+          assigned_at: string | null
+          assigned_by: string | null
+          company_id: string
+          created_at: string | null
+          id: string
+          permissions: string[] | null
+          role: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          company_id: string
+          created_at?: string | null
+          id?: string
+          permissions?: string[] | null
+          role?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          company_id?: string
+          created_at?: string | null
+          id?: string
+          permissions?: string[] | null
+          role?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       event_channel_requests: {
         Row: {
           channel_id: string
@@ -1129,6 +1165,8 @@ export type Database = {
         Row: {
           bio: string | null
           birthday: string | null
+          company_id: string | null
+          company_name: string | null
           cover_photo_url: string | null
           created_at: string | null
           display_name: string | null
@@ -1136,6 +1174,7 @@ export type Database = {
           following_count: number | null
           friends_count: number | null
           id: string
+          is_company_account: boolean | null
           location: string | null
           profile_picture_url: string | null
           updated_at: string | null
@@ -1146,6 +1185,8 @@ export type Database = {
         Insert: {
           bio?: string | null
           birthday?: string | null
+          company_id?: string | null
+          company_name?: string | null
           cover_photo_url?: string | null
           created_at?: string | null
           display_name?: string | null
@@ -1153,6 +1194,7 @@ export type Database = {
           following_count?: number | null
           friends_count?: number | null
           id?: string
+          is_company_account?: boolean | null
           location?: string | null
           profile_picture_url?: string | null
           updated_at?: string | null
@@ -1163,6 +1205,8 @@ export type Database = {
         Update: {
           bio?: string | null
           birthday?: string | null
+          company_id?: string | null
+          company_name?: string | null
           cover_photo_url?: string | null
           created_at?: string | null
           display_name?: string | null
@@ -1170,6 +1214,7 @@ export type Database = {
           following_count?: number | null
           friends_count?: number | null
           id?: string
+          is_company_account?: boolean | null
           location?: string | null
           profile_picture_url?: string | null
           updated_at?: string | null

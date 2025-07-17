@@ -7,6 +7,7 @@ interface UserProfile {
   id: string;
   accountType?: 'individual' | 'company';
   companyName?: string;
+  companyAccountMaster?: any;
   firstName: string;
   lastName: string;
   email: string;
@@ -76,7 +77,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const signUp = async (email: string, password: string, userData: Omit<UserProfile, 'id' | 'email'>) => {
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -93,9 +94,51 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return { error: error.message };
       }
 
+      // If this is a company account and we have a user, set up company structure
+      if (userData.accountType === 'company' && userData.companyAccountMaster && data.user) {
+        try {
+          // Create or update the user profile with company information
+          const { error: profileError } = await supabase
+            .from('user_profiles')
+            .upsert({
+              user_id: data.user.id,
+              username: email.split('@')[0],
+              display_name: `${userData.firstName} ${userData.lastName}`,
+              bio: userData.bio,
+              location: userData.location,
+              company_id: data.user.id, // Use the new user's ID as company ID
+              is_company_account: true,
+              company_name: userData.companyName
+            });
+
+          if (profileError) {
+            console.error('Error creating user profile:', profileError);
+          }
+
+          // Create company role for the designated master
+          const { error: roleError } = await supabase
+            .from('company_roles')
+            .insert({
+              company_id: data.user.id, // Use the new user's ID as company ID
+              user_id: userData.companyAccountMaster.user_id,
+              role: 'company_master',
+              permissions: ['*'], // All permissions
+              assigned_by: data.user.id
+            });
+
+          if (roleError) {
+            console.error('Error creating company master role:', roleError);
+          }
+        } catch (companyError) {
+          console.error('Error setting up company structure:', companyError);
+        }
+      }
+
       toast({
         title: 'Account created!',
-        description: 'Please check your email to verify your account.',
+        description: userData.accountType === 'company' 
+          ? 'Company account created! The designated Company Account Master has been granted full permissions.' 
+          : 'Please check your email to verify your account.',
       });
 
       return {};
@@ -131,6 +174,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               email: session.user.email || '',
               accountType: metadata.accountType,
               companyName: metadata.companyName,
+              companyAccountMaster: metadata.companyAccountMaster,
               firstName: metadata.firstName || '',
               lastName: metadata.lastName || '',
               phone: metadata.phone || '',
@@ -158,6 +202,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             email: session.user.email || '',
             accountType: metadata.accountType,
             companyName: metadata.companyName,
+            companyAccountMaster: metadata.companyAccountMaster,
             firstName: metadata.firstName || '',
             lastName: metadata.lastName || '',
             phone: metadata.phone || '',
