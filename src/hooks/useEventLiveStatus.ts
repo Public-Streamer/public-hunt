@@ -48,10 +48,10 @@ export const useEventLiveStatus = ({
 
       // Only update if the status has changed and we have a clear decision
       if (shouldGoLive) {
-        console.log("Triggering go live...");
+        console.log("Setting event as live in database...");
         updateLiveStatus.mutate({ eventId, isLive: true });
       } else if (shouldStopLive) {
-        console.log("Triggering stop live...");
+        console.log("Setting event as not live in database...");
         updateLiveStatus.mutate({ eventId, isLive: false });
       }
     }, 1000); // Increase debounce to 1 second
