@@ -49,8 +49,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose }) => {
             <CardTitle>Create Account</CardTitle>
             <CardDescription>Join Streamura today</CardDescription>
           </CardHeader>
-          <CardContent className="max-h-[70vh]">
-            <ScrollArea className="h-full">
+          <CardContent className="h-[75vh] p-0">
+            <ScrollArea className="h-full w-full px-6 pb-6">
               <SignupForm onClose={onClose} onSuccess={handleSignupSuccess} inline />
               <div className="mt-4 text-center">
                 <Button 

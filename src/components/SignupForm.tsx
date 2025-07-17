@@ -290,8 +290,8 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
         <CardHeader>
           <CardTitle>Create Your Streamura Account</CardTitle>
         </CardHeader>
-        <CardContent>
-          <ScrollArea className="h-[calc(90vh-5rem)]">
+        <CardContent className="h-[75vh] p-0">
+          <ScrollArea className="h-full w-full px-6 pb-6">
             {formContent}
           </ScrollArea>
         </CardContent>
