@@ -274,7 +274,11 @@ const SocialPost: React.FC<SocialPostProps> = ({
               <Badge 
                 variant="secondary" 
                 className="flex items-center gap-1 cursor-pointer hover:bg-secondary/80"
-                onClick={() => navigate(`/channels?channel=${channel.id}`)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  navigate(`/channels?channel=${channel.id}`);
+                }}
               >
                 <Hash className="h-3 w-3" />
                 {channel.name}
@@ -284,28 +288,34 @@ const SocialPost: React.FC<SocialPostProps> = ({
               <Badge 
                 variant="secondary" 
                 className="flex items-center gap-1 cursor-pointer hover:bg-secondary/80"
-                onClick={() => navigate(`/events?event=${event.id}`)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  navigate(`/events?event=${event.id}`);
+                }}
               >
                 <Calendar className="h-3 w-3" />
                 {event.name}
               </Badge>
             )}
             {taggedUsers && taggedUsers.length > 0 && (
-              <Badge 
-                variant="secondary" 
-                className="flex items-center gap-1 cursor-pointer hover:bg-secondary/80"
-                onClick={() => {
-                  if (taggedUsers.length === 1) {
-                    navigate(`/profile/${taggedUsers[0].id}`);
-                  }
-                }}
-              >
-                <Users className="h-3 w-3" />
-                {taggedUsers.length === 1 
-                  ? `@${taggedUsers[0].username}`
-                  : `${taggedUsers.length} tagged`
-                }
-              </Badge>
+              <div className="flex flex-wrap gap-1">
+                {taggedUsers.map((user) => (
+                  <Badge 
+                    key={user.id}
+                    variant="secondary" 
+                    className="flex items-center gap-1 cursor-pointer hover:bg-secondary/80"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      navigate(`/profile/${user.id}`);
+                    }}
+                  >
+                    <Users className="h-3 w-3" />
+                    @{user.username}
+                  </Badge>
+                ))}
+              </div>
             )}
           </div>
         )}
