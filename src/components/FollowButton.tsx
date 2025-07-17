@@ -6,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 
 interface FollowButtonProps {
   targetId: string;
-  targetType: 'user' | 'channel' | 'event';
+  targetType: 'user' | 'channel' | 'event' | 'company';
   currentUserId?: string;
   className?: string;
 }

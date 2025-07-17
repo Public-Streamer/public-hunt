@@ -315,6 +315,63 @@ export type Database = {
           },
         ]
       }
+      company_profiles: {
+        Row: {
+          company_id: string
+          company_name: string
+          contact_email: string | null
+          contact_phone: string | null
+          cover_photo_url: string | null
+          created_at: string | null
+          description: string | null
+          employee_count: string | null
+          founded_year: number | null
+          headquarters: string | null
+          id: string
+          industry: string | null
+          logo_url: string | null
+          social_links: Json | null
+          updated_at: string | null
+          website: string | null
+        }
+        Insert: {
+          company_id: string
+          company_name: string
+          contact_email?: string | null
+          contact_phone?: string | null
+          cover_photo_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          employee_count?: string | null
+          founded_year?: number | null
+          headquarters?: string | null
+          id?: string
+          industry?: string | null
+          logo_url?: string | null
+          social_links?: Json | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Update: {
+          company_id?: string
+          company_name?: string
+          contact_email?: string | null
+          contact_phone?: string | null
+          cover_photo_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          employee_count?: string | null
+          founded_year?: number | null
+          headquarters?: string | null
+          id?: string
+          industry?: string | null
+          logo_url?: string | null
+          social_links?: Json | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
       company_roles: {
         Row: {
           assigned_at: string | null

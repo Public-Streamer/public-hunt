@@ -115,6 +115,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             console.error('Error creating user profile:', profileError);
           }
 
+          // Create company profile
+          const { error: companyProfileError } = await supabase
+            .from('company_profiles')
+            .insert({
+              company_id: data.user.id, // Use the new user's ID as company ID
+              company_name: userData.companyName,
+              description: userData.bio || `Welcome to ${userData.companyName}! We're excited to share our journey with you.`,
+              industry: 'Technology', // Default, can be updated later
+            });
+
+          if (companyProfileError) {
+            console.error('Error creating company profile:', companyProfileError);
+          }
+
           // Create company role for the designated master
           const { error: roleError } = await supabase
             .from('company_roles')

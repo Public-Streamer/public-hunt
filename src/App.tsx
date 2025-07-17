@@ -15,6 +15,7 @@ import Events from "./pages/Events";
 import EventPage from "./pages/EventPage";
 import StagePage from "./pages/StagePage";
 import Profile from "./pages/Profile";
+import CompanyProfile from "./pages/CompanyProfile";
 import Login from "./pages/Login";
 import Admin from "./pages/Admin";
 import WithdrawFunds from "./pages/WithdrawFunds";
@@ -44,6 +45,7 @@ const App = () => (
                 <Route path="/stage/:eventId" element={<StagePage />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/profile/:userId" element={<Profile />} />
+                <Route path="/company/:companyId" element={<CompanyProfile />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/past-events" element={<PastEvents />} />
                 <Route path="/admin" element={<Admin />} />
