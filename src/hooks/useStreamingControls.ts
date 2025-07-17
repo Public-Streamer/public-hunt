@@ -85,6 +85,31 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
     }
   }, [eventId, localParticipant]);
 
+  // Helper function to create event participant record
+  const createEventParticipant = useCallback(async (role: 'host' | 'streamer' | 'viewer') => {
+    try {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session) return;
+
+      const { error } = await supabase
+        .from('event_participants')
+        .upsert({
+          event_id: eventId,
+          user_id: session.user.id,
+          role: role,
+          is_active: true
+        }, {
+          onConflict: 'event_id,user_id'
+        });
+
+      if (error) {
+        console.error('Error creating event participant:', error);
+      }
+    } catch (error) {
+      console.error('Error creating event participant:', error);
+    }
+  }, [eventId]);
+
   // Safety check for room context
   if (!room || !localParticipant) {
     return {
@@ -189,6 +214,10 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       if (sessionError || !session) {
         throw new Error("Please log in to access this stream");
       }
+      
+      // Create event participant record
+      await createEventParticipant('host');
+      
       // Create LiveKit room
       const { error } = await supabase.functions.invoke("manage-livekit-room", {
         body: {
@@ -208,9 +237,6 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
         throw new Error(error.message);
       }
 
-      // Update event as live - will be handled by useEventLiveStatus hook
-      // await supabase.from("events").update({ is_live: true }).eq("id", eventId);
-
       toast.success("Stream started successfully");
     } catch (error) {
       setIsStreaming(false);
@@ -218,7 +244,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       toast.error("Failed to start stream");
       console.error("Start stream error:", error);
     }
-  }, [eventId]);
+  }, [eventId, createEventParticipant]);
 
   const stopStream = useCallback(async () => {
     try {
@@ -231,6 +257,21 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       if (sessionError || !session) {
         throw new Error("Please log in to access this stream");
       }
+      
+      // Deactivate all user's streams
+      await supabase
+        .from("event_streams")
+        .update({ is_active: false })
+        .eq("event_id", eventId)
+        .eq("streamer_id", session.user.id);
+
+      // Deactivate event participant
+      await supabase
+        .from("event_participants")
+        .update({ is_active: false })
+        .eq("event_id", eventId)
+        .eq("user_id", session.user.id);
+      
       // Close LiveKit room
       const { error } = await supabase.functions.invoke("manage-livekit-room", {
         body: {
@@ -245,12 +286,6 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       if (error) {
         throw new Error(error.message);
       }
-
-      // Update event as not live
-      await supabase
-        .from("events")
-        .update({ is_live: false })
-        .eq("id", eventId);
 
       toast.success("Stream stopped");
     } catch (error) {
