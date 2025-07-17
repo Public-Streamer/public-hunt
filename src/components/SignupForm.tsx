@@ -396,12 +396,14 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
           </div>
             
             <div className="space-y-2">
-              <Label htmlFor="bio">Bio</Label>
+              <Label htmlFor="bio">
+                {signupData.accountType === 'company' ? 'Company Story' : 'Bio'}
+              </Label>
               <Textarea
                 id="bio"
                 value={signupData.bio}
                 onChange={(e) => setSignupData(prev => ({ ...prev, bio: e.target.value }))}
-                placeholder="Tell us about yourself..."
+                placeholder={signupData.accountType === 'company' ? 'Tell the world about your company...' : 'Tell us about yourself...'}
                 rows={3}
               />
             </div>
