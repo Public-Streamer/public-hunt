@@ -12,6 +12,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useNavigate } from 'react-router-dom';
 import ResetPasswordForm from './ResetPasswordForm';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import ErrorDialog from './ErrorDialog';
 
 interface SignupFormProps {
   onClose: () => void;
@@ -41,6 +42,11 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
   const [loading, setLoading] = useState(false);
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showErrorDialog, setShowErrorDialog] = useState(false);
+  const [errorDialogConfig, setErrorDialogConfig] = useState<{
+    title: string;
+    message: string;
+  }>({ title: '', message: '' });
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -66,12 +72,20 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
   const handleStep1Submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (signupData.password !== signupData.confirmPassword) {
-      setError('Passwords do not match.');
+      setErrorDialogConfig({
+        title: 'Password Error',
+        message: 'Passwords do not match.'
+      });
+      setShowErrorDialog(true);
       return;
     }
     const age = calculateAge(signupData.birthDate);
     if (age < 18) {
-      setError('You must be at least 18 years old to create an account.');
+      setErrorDialogConfig({
+        title: 'Age Restriction',
+        message: 'Members must be 18 years old to join.'
+      });
+      setShowErrorDialog(true);
       return;
     }
     setStep(2);
@@ -334,6 +348,13 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
       {showResetPassword && (
         <ResetPasswordForm onClose={() => setShowResetPassword(false)} />
       )}
+      <ErrorDialog
+        open={showErrorDialog}
+        onClose={() => setShowErrorDialog(false)}
+        title={errorDialogConfig.title}
+        message={errorDialogConfig.message}
+        showResetPassword={false}
+      />
     </>
   );
 };
