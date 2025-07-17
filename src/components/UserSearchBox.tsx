@@ -35,19 +35,18 @@ const UserSearchBox: React.FC<UserSearchBoxProps> = ({
   const { toast } = useToast();
 
   const searchUsers = useCallback(async (term: string) => {
-    if (term.length < 2) {
-      setSearchResults([]);
-      setShowResults(false);
-      return;
-    }
-
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('user_profiles')
         .select('id, user_id, username, display_name, profile_picture_url, bio, location')
-        .or(`username.ilike.%${term}%,display_name.ilike.%${term}%`)
         .limit(10);
+
+      if (term.length >= 2) {
+        query = query.or(`username.ilike.%${term}%,display_name.ilike.%${term}%`);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         toast({
@@ -77,6 +76,15 @@ const UserSearchBox: React.FC<UserSearchBoxProps> = ({
     searchUsers(value);
   };
 
+  const handleFocus = () => {
+    if (searchTerm.length === 0) {
+      // Load initial users when focusing on empty field
+      searchUsers('');
+    } else if (searchResults.length > 0) {
+      setShowResults(true);
+    }
+  };
+
   const handleUserSelect = (user: UserProfile) => {
     onUserSelect(user);
     setSearchTerm(user.display_name || user.username);
@@ -97,11 +105,7 @@ const UserSearchBox: React.FC<UserSearchBoxProps> = ({
           onChange={handleSearchChange}
           placeholder={placeholder}
           className="pr-10"
-          onFocus={() => {
-            if (searchResults.length > 0) {
-              setShowResults(true);
-            }
-          }}
+          onFocus={handleFocus}
         />
         <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
       </div>
