@@ -11,7 +11,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { 
   Search, Send, MessageCircle, MoreHorizontal, Users, Check, CheckCheck, 
-  Plus, ArrowLeft, Reply, Forward, Trash2, Archive, Star
+  Plus, ArrowLeft, Reply, Forward, Trash2, Archive, Star, X
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';

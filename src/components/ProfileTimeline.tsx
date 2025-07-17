@@ -421,12 +421,12 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
       }
 
       // Get full channel and event objects
-      const selectedChannelData = selectedChannel ? 
-        (userChannels.find(c => c.id === selectedChannel) || allChannels.find(c => c.id === selectedChannel)) : 
+      const selectedChannelData = selectedChannels && selectedChannels[0] ? 
+        (userChannels.find(c => c.id === selectedChannels[0].id) || allChannels.find(c => c.id === selectedChannels[0].id)) : 
         undefined;
       
-      const selectedEventData = selectedEvent ? 
-        (userEvents.find(e => e.id === selectedEvent) || allEvents.find(e => e.id === selectedEvent)) : 
+      const selectedEventData = selectedEvents && selectedEvents[0] ? 
+        (userEvents.find(e => e.id === selectedEvents[0].id) || allEvents.find(e => e.id === selectedEvents[0].id)) : 
         undefined;
 
       const newPostData: TimelinePost = {
@@ -447,11 +447,11 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
         shares_count: 0,
         is_liked: false,
         is_bookmarked: false,
-        type: selectedChannel ? 'channel' : selectedEvent ? 'event' : 'post',
+        type: selectedChannels && selectedChannels.length > 0 ? 'channel' : selectedEvents && selectedEvents.length > 0 ? 'event' : 'post',
         metadata: {
           ...(selectedLocation && { location: selectedLocation }),
-          ...(selectedChannel && { channel_id: selectedChannel }),
-          ...(selectedEvent && { event_id: selectedEvent })
+          ...(selectedChannels && selectedChannels[0] && { channel_id: selectedChannels[0].id }),
+          ...(selectedEvents && selectedEvents[0] && { event_id: selectedEvents[0].id })
         },
         // Add structured data for SocialPost component
         channel: selectedChannelData ? {
@@ -476,8 +476,8 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
       setSelectedMedia(null);
       setMediaPreview(null);
       setSelectedLocation('');
-      setSelectedChannel('');
-      setSelectedEvent('');
+      setSelectedChannels([]);
+      setSelectedEvents([]);
       setTaggedUsers([]);
       setExpandedPost(false);
       
@@ -565,7 +565,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
         media_urls: selectedMedia ? [URL.createObjectURL(selectedMedia)] : [],
         is_live: true,
         created_by: userData.user.id,
-        channel_id: selectedChannel || null
+        channel_id: selectedChannels && selectedChannels[0] ? selectedChannels[0].id : null
       };
 
       // Create the event
@@ -599,7 +599,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
         metadata: {
           event_id: eventResult.id,
           location: location,
-          ...(selectedChannel && { channel_id: selectedChannel })
+          ...(selectedChannels && selectedChannels[0] && { channel_id: selectedChannels[0].id })
         }
       };
 
@@ -614,8 +614,8 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
       setSelectedMedia(null);
       setMediaPreview(null);
       setSelectedLocation('');
-      setSelectedChannel('');
-      setSelectedEvent('');
+      setSelectedChannels([]);
+      setSelectedEvents([]);
       setTaggedUsers([]);
       setExpandedPost(false);
       setShowGoLivePopover(false);
@@ -889,43 +889,43 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
                         </div>
                       )}
                       
-                       {selectedChannel && (
-                         <div className="flex items-center text-sm text-muted-foreground bg-muted p-2 rounded">
+                       {selectedChannels && selectedChannels.map(channel => (
+                         <div key={channel.id} className="flex items-center text-sm text-muted-foreground bg-muted p-2 rounded">
                            <Play className="w-4 h-4 mr-2" />
                            <span>
-                             {userChannels.find(c => c.id === selectedChannel)?.name || 
-                              allChannels.find(c => c.id === selectedChannel)?.name || 
-                              selectedChannel}
+                             {userChannels.find(c => c.id === channel.id)?.name || 
+                              allChannels.find(c => c.id === channel.id)?.name || 
+                              channel.name}
                            </span>
                            <Button
                              variant="ghost"
                              size="sm"
-                             onClick={() => setSelectedChannel('')}
+                             onClick={() => setSelectedChannels(channels => channels.filter(c => c.id !== channel.id))}
                              className="ml-auto h-6 w-6 p-0"
                            >
                              <X className="w-3 h-3" />
                            </Button>
                          </div>
-                       )}
+                       ))}
                        
-                       {selectedEvent && (
-                         <div className="flex items-center text-sm text-muted-foreground bg-muted p-2 rounded">
+                       {selectedEvents && selectedEvents.map(event => (
+                         <div key={event.id} className="flex items-center text-sm text-muted-foreground bg-muted p-2 rounded">
                            <Calendar className="w-4 h-4 mr-2" />
                            <span>
-                             {userEvents.find(e => e.id === selectedEvent)?.name || 
-                              allEvents.find(e => e.id === selectedEvent)?.name || 
-                              selectedEvent}
+                             {userEvents.find(e => e.id === event.id)?.name || 
+                              allEvents.find(e => e.id === event.id)?.name || 
+                              event.name}
                            </span>
                            <Button
                              variant="ghost"
                              size="sm"
-                             onClick={() => setSelectedEvent('')}
+                             onClick={() => setSelectedEvents(events => events.filter(e => e.id !== event.id))}
                              className="ml-auto h-6 w-6 p-0"
                            >
                              <X className="w-3 h-3" />
                            </Button>
                          </div>
-                       )}
+                       ))}
                     </div>
                     
                      {/* Tagged Users Display */}
@@ -1059,7 +1059,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
                                         variant="ghost" 
                                         className="w-full justify-start"
                                         onClick={() => {
-                                          setSelectedEvent(eventInput);
+                                          setSelectedEvents([{ id: 'new', name: eventInput }]);
                                           setEventOpen(false);
                                           setEventInput('');
                                         }}
@@ -1081,14 +1081,14 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
                                         key={event.id}
                                         value={event.name}
                                         onSelect={() => {
-                                          setSelectedEvent(event.id);
+                                          setSelectedEvents([{ id: event.id, name: event.name }]);
                                           setEventOpen(false);
                                           setEventInput('');
                                         }}
                                       >
                                         <Check
                                           className={`mr-2 h-4 w-4 ${
-                                            selectedEvent === event.id ? 'opacity-100' : 'opacity-0'
+                                            selectedEvents?.some(e => e.id === event.id) ? 'opacity-100' : 'opacity-0'
                                           }`}
                                         />
                                         {event.name}
@@ -1111,14 +1111,14 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
                                         key={event.id}
                                         value={event.name}
                                         onSelect={() => {
-                                          setSelectedEvent(event.id);
+                                          setSelectedEvents([{ id: event.id, name: event.name }]);
                                           setEventOpen(false);
                                           setEventInput('');
                                         }}
                                       >
                                         <Check
                                           className={`mr-2 h-4 w-4 ${
-                                            selectedEvent === event.id ? 'opacity-100' : 'opacity-0'
+                                            selectedEvents?.some(e => e.id === event.id) ? 'opacity-100' : 'opacity-0'
                                           }`}
                                         />
                                         {event.name}
@@ -1157,7 +1157,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
                                        variant="ghost" 
                                        className="w-full justify-start"
                                        onClick={() => {
-                                         setSelectedChannel(channelInput);
+                                         setSelectedChannels([{ id: 'new', name: channelInput }]);
                                          setChannelOpen(false);
                                          setChannelInput('');
                                        }}
@@ -1179,14 +1179,14 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
                                        key={channel.id}
                                        value={channel.name}
                                        onSelect={() => {
-                                         setSelectedChannel(channel.id);
+                                          setSelectedChannels([{ id: channel.id, name: channel.name }]);
                                          setChannelOpen(false);
                                          setChannelInput('');
                                        }}
                                      >
                                        <Check
                                          className={`mr-2 h-4 w-4 ${
-                                           selectedChannel === channel.id ? 'opacity-100' : 'opacity-0'
+                                            selectedChannels?.some(c => c.id === channel.id) ? 'opacity-100' : 'opacity-0'
                                          }`}
                                        />
                                        {channel.name}
@@ -1206,14 +1206,14 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
                                        key={channel.id}
                                        value={channel.name}
                                        onSelect={() => {
-                                         setSelectedChannel(channel.id);
+                                         setSelectedChannels([{ id: channel.id, name: channel.name }]);
                                          setChannelOpen(false);
                                          setChannelInput('');
                                        }}
                                      >
                                        <Check
                                          className={`mr-2 h-4 w-4 ${
-                                           selectedChannel === channel.id ? 'opacity-100' : 'opacity-0'
+                                           selectedChannels?.some(c => c.id === channel.id) ? 'opacity-100' : 'opacity-0'
                                          }`}
                                        />
                                        {channel.name}
@@ -1356,8 +1356,8 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
                         setSelectedMedia(null);
                         setMediaPreview(null);
                          setSelectedLocation('');
-                         setSelectedChannel('');
-                         setSelectedEvent('');
+                          setSelectedChannels([]);
+                          setSelectedEvents([]);
                          setLocationInput('');
                          setChannelInput('');
                          setEventInput('');
