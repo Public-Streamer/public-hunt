@@ -118,26 +118,49 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
       return;
     }
     
-    // Validate passwords match
-    if (signupData.password !== signupData.confirmPassword) {
-      setErrorDialogConfig({
-        title: 'Password Error',
-        message: 'Passwords do not match.'
-      });
-      setShowErrorDialog(true);
-      return;
-    }
-    
-    // Age validation - ensure users are 18+
-    const age = calculateAge(signupData.birthDate);
-    if (age < 18) {
-      console.log("Age validation failed: User is under 18"); // Debugging
-      setErrorDialogConfig({
-        title: 'Age Restriction',
-        message: 'Members must be 18 years old to join.'
-      });
-      setShowErrorDialog(true);
-      return;
+    // Only validate personal info fields if individual account or company without master selected
+    if (signupData.accountType === 'individual' || 
+        (signupData.accountType === 'company' && !signupData.companyAccountMaster)) {
+      
+      // Validate passwords match
+      if (signupData.password !== signupData.confirmPassword) {
+        setErrorDialogConfig({
+          title: 'Password Error',
+          message: 'Passwords do not match.'
+        });
+        setShowErrorDialog(true);
+        return;
+      }
+      
+      // Validate first and last name
+      if (!signupData.firstName || !signupData.lastName) {
+        setErrorDialogConfig({
+          title: 'Name Required',
+          message: 'Please enter your first and last name.'
+        });
+        setShowErrorDialog(true);
+        return;
+      }
+      
+      // Age validation - ensure users are 18+
+      if (!signupData.birthDate) {
+        setErrorDialogConfig({
+          title: 'Birth Date Required',
+          message: 'Please enter your birth date.'
+        });
+        setShowErrorDialog(true);
+        return;
+      }
+      
+      const age = calculateAge(signupData.birthDate);
+      if (age < 18) {
+        setErrorDialogConfig({
+          title: 'Age Restriction',
+          message: 'Members must be 18 years old to join.'
+        });
+        setShowErrorDialog(true);
+        return;
+      }
     }
     
     setStep(2);
@@ -227,11 +250,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                   onUserSelect={(user) => {
                     setSignupData(prev => ({ 
                       ...prev, 
-                      companyAccountMaster: user,
-                      firstName: user?.display_name?.split(' ')[0] || user?.username || '',
-                      lastName: user?.display_name?.split(' ').slice(1).join(' ') || '',
-                      location: user?.location || '',
-                      bio: user?.bio || ''
+                      companyAccountMaster: user
                     }));
                   }}
                   selectedUser={signupData.companyAccountMaster}
@@ -262,26 +281,30 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
             <Label className="text-sm text-gray-600">Profile Photo</Label>
           </div>
           
-          <div className="grid grid-cols-2 gap-2">
-            <div className="space-y-2">
-              <Label htmlFor="firstName">First Name</Label>
-              <Input
-                id="firstName"
-                value={signupData.firstName}
-                onChange={(e) => setSignupData(prev => ({ ...prev, firstName: e.target.value }))}
-                required
-              />
+          {/* Only show name fields for individual accounts or company accounts without master selected */}
+          {(signupData.accountType === 'individual' || 
+            (signupData.accountType === 'company' && !signupData.companyAccountMaster)) && (
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-2">
+                <Label htmlFor="firstName">First Name</Label>
+                <Input
+                  id="firstName"
+                  value={signupData.firstName}
+                  onChange={(e) => setSignupData(prev => ({ ...prev, firstName: e.target.value }))}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input
+                  id="lastName"
+                  value={signupData.lastName}
+                  onChange={(e) => setSignupData(prev => ({ ...prev, lastName: e.target.value }))}
+                  required
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="lastName">Last Name</Label>
-              <Input
-                id="lastName"
-                value={signupData.lastName}
-                onChange={(e) => setSignupData(prev => ({ ...prev, lastName: e.target.value }))}
-                required
-              />
-            </div>
-          </div>
+          )}
           
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
@@ -305,27 +328,33 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
             />
           </div>
             
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
-            <Input
-              id="confirmPassword"
-              type="password"
-              value={signupData.confirmPassword}
-              onChange={(e) => setSignupData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-              required
-            />
-          </div>
+          {/* Only show confirm password and birth date for individual accounts or company accounts without master selected */}
+          {(signupData.accountType === 'individual' || 
+            (signupData.accountType === 'company' && !signupData.companyAccountMaster)) && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  value={signupData.confirmPassword}
+                  onChange={(e) => setSignupData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                  required
+                />
+              </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="birthDate">Birth Date (Must be 18+)</Label>
-            <Input
-              id="birthDate"
-              type="date"
-              value={signupData.birthDate}
-              onChange={(e) => setSignupData(prev => ({ ...prev, birthDate: e.target.value }))}
-              required
-            />
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="birthDate">Birth Date (Must be 18+)</Label>
+                <Input
+                  id="birthDate"
+                  type="date"
+                  value={signupData.birthDate}
+                  onChange={(e) => setSignupData(prev => ({ ...prev, birthDate: e.target.value }))}
+                  required
+                />
+              </div>
+            </>
+          )}
           
           <div className="space-y-2">
             <Button type="submit" className="w-full">Continue</Button>
