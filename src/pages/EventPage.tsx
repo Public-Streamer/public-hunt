@@ -468,19 +468,19 @@ const EventPage: React.FC = () => {
             />
           )}
 
+          {/* Social Media Section */}
+          <SocialMediaSection eventId={eventData.id} type="event" />
+
+          {/* Social Share Menu */}
+          <SocialShareMenu
+            title={eventData.name}
+            url={eventUrl}
+            description={eventData.description}
+          />
+
         </div>
 
         <div className="space-y-6">
-          {/* Social Media & Sharing */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Social</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <SocialMediaSection eventId={eventData.id} type="event" />
-            </CardContent>
-          </Card>
-          
           <Card>
             <CardHeader>
               <CardTitle>Share Event</CardTitle>
