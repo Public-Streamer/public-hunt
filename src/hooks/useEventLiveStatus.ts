@@ -50,8 +50,12 @@ export const useEventLiveStatus = ({
           if (error) {
             console.error("Error updating event live status:", error);
           } else {
-            queryClient.invalidateQueries({
-              queryKey: ["event", eventId],
+            // Update cache directly instead of invalidating to prevent reconnection
+            queryClient.setQueryData(["event", eventId], (oldData: any) => {
+              if (oldData) {
+                return { ...oldData, is_live: true };
+              }
+              return oldData;
             });
             console.log(`Event ${eventId} live status updated to: true`);
           }
@@ -66,8 +70,12 @@ export const useEventLiveStatus = ({
             console.error("Error updating event live status:", error);
           } else {
             console.log(`Event ${eventId} live status updated to: false`);
-            queryClient.invalidateQueries({
-              queryKey: ["event", eventId],
+            // Update cache directly instead of invalidating to prevent reconnection
+            queryClient.setQueryData(["event", eventId], (oldData: any) => {
+              if (oldData) {
+                return { ...oldData, is_live: false };
+              }
+              return oldData;
             });
           }
         }

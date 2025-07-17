@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { LiveKitRoom, RoomAudioRenderer } from "@livekit/components-react";
@@ -16,6 +16,7 @@ const StagePage: React.FC = () => {
   const [token, setToken] = useState<string | null>(null);
   const [serverUrl, setServerUrl] = useState<string>("");
   const [tokenLoading, setTokenLoading] = useState(false);
+  const tokenGenerated = useRef(false);
 
   // Use React Query for event data
   const { data: eventData, isLoading: isEventLoading } = useQuery({
@@ -108,7 +109,7 @@ const StagePage: React.FC = () => {
   // Generate LiveKit token when event and user role are available
   useEffect(() => {
     const generateToken = async () => {
-      if (!eventId || !userRole || !user) return;
+      if (!eventId || !userRole || !user || tokenGenerated.current) return;
 
       try {
         setTokenLoading(true);
@@ -145,6 +146,7 @@ const StagePage: React.FC = () => {
 
         setToken(data.token);
         setServerUrl(data.serverUrl);
+        tokenGenerated.current = true;
         console.log("LiveKit token generated successfully:", {
           roomName: data.roomName,
           serverUrl: data.serverUrl,
@@ -157,15 +159,22 @@ const StagePage: React.FC = () => {
             : "Failed to generate LiveKit token";
         toast.error(errorMessage);
         console.error("Token generation error:", err);
+        // Reset flag on error to allow retry
+        tokenGenerated.current = false;
       } finally {
         setTokenLoading(false);
       }
     };
 
-    if (!token || !serverUrl) {
-      generateToken();
-    }
-  }, [eventId, userRole, user, token, serverUrl]);
+    generateToken();
+  }, [eventId, userRole, user]);
+
+  // Cleanup token generation flag on unmount
+  useEffect(() => {
+    return () => {
+      tokenGenerated.current = false;
+    };
+  }, []);
 
   if (loading || tokenLoading) {
     return (
