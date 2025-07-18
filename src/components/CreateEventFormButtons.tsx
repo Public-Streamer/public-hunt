@@ -22,7 +22,7 @@ const GoLiveButton: React.FC<GoLiveButtonProps> = ({ children, onClick, disabled
         <Button 
           type="button" 
           disabled
-          className="bg-blue-500 cursor-not-allowed text-white px-6 py-4 text-base font-bold rounded-lg min-h-[48px] touch-manipulation opacity-50"
+          className="bg-green-500 cursor-not-allowed text-white px-6 py-4 text-base font-bold rounded-lg min-h-[48px] touch-manipulation opacity-50"
         >
           {children}
         </Button>
@@ -39,11 +39,11 @@ const GoLiveButton: React.FC<GoLiveButtonProps> = ({ children, onClick, disabled
             transform hover:scale-105 active:scale-95 transition-all duration-200
             ${
               shouldAnimate 
-                ? 'bg-red-600 hover:bg-red-700 shadow-red-500/50 hover:shadow-red-500/70 border-2 border-red-400 hover:border-yellow-400 animate-pulse'
-                : 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/50 hover:shadow-blue-500/70 border-2 border-blue-400'
+                ? 'bg-green-600 hover:bg-green-700 shadow-green-500/50 hover:shadow-green-500/70 border-2 border-green-400 hover:border-lime-400 animate-pulse'
+                : 'bg-green-600 hover:bg-green-700 shadow-green-500/50 hover:shadow-green-500/70 border-2 border-green-400'
             }`}
           style={shouldAnimate ? {
-            animation: 'shake 0.5s ease-in-out infinite, pulse 1s ease-in-out infinite, lightning 0.1s ease-in-out infinite'
+            animation: 'shake 0.5s ease-in-out infinite, tremor 0.8s ease-in-out infinite, flicker 0.6s ease-in-out infinite, lightning 0.2s ease-in-out infinite'
           } : {}}
         >
           <span className="relative z-10 flex items-center">
@@ -63,7 +63,7 @@ const GoLiveButton: React.FC<GoLiveButtonProps> = ({ children, onClick, disabled
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={onClick} className="bg-red-600 hover:bg-red-700">
+          <AlertDialogAction onClick={onClick} className="bg-green-600 hover:bg-green-700">
             Go Live
           </AlertDialogAction>
         </AlertDialogFooter>
@@ -152,17 +152,46 @@ const CreateEventFormButtons: React.FC<CreateEventFormButtonsProps> = ({
     <>
       <style>{`
         @keyframes shake {
-          0%, 100% { transform: translateX(0); }
-          25% { transform: translateX(-2px) rotate(-0.5deg); }
-          75% { transform: translateX(2px) rotate(0.5deg); }
+          0%, 100% { transform: translateX(0) translateY(0) rotate(0deg); }
+          10% { transform: translateX(-2px) translateY(-1px) rotate(-0.5deg); }
+          20% { transform: translateX(2px) translateY(1px) rotate(0.5deg); }
+          30% { transform: translateX(-1px) translateY(-2px) rotate(-0.3deg); }
+          40% { transform: translateX(1px) translateY(2px) rotate(0.3deg); }
+          50% { transform: translateX(-2px) translateY(0px) rotate(-0.2deg); }
+          60% { transform: translateX(2px) translateY(-1px) rotate(0.2deg); }
+          70% { transform: translateX(-1px) translateY(1px) rotate(-0.4deg); }
+          80% { transform: translateX(1px) translateY(-2px) rotate(0.4deg); }
+          90% { transform: translateX(-2px) translateY(2px) rotate(-0.1deg); }
+        }
+        @keyframes tremor {
+          0%, 100% { transform: scale(1) rotate(0deg); }
+          25% { transform: scale(1.02) rotate(0.2deg); }
+          50% { transform: scale(0.98) rotate(-0.2deg); }
+          75% { transform: scale(1.01) rotate(0.1deg); }
+        }
+        @keyframes flicker {
+          0%, 100% { opacity: 1; }
+          10% { opacity: 0.9; }
+          20% { opacity: 1; }
+          30% { opacity: 0.8; }
+          40% { opacity: 1; }
+          50% { opacity: 0.95; }
+          60% { opacity: 1; }
+          70% { opacity: 0.85; }
+          80% { opacity: 1; }
+          90% { opacity: 0.9; }
         }
         @keyframes lightning {
-          0%, 100% { box-shadow: 0 0 5px #ef4444, 0 0 10px #ef4444, 0 0 15px #ef4444; }
-          50% { box-shadow: 0 0 10px #fbbf24, 0 0 20px #fbbf24, 0 0 30px #fbbf24; }
+          0%, 100% { box-shadow: 0 0 5px #22c55e, 0 0 10px #22c55e, 0 0 15px #22c55e; }
+          25% { box-shadow: 0 0 10px #84cc16, 0 0 20px #84cc16, 0 0 30px #84cc16; }
+          50% { box-shadow: 0 0 15px #eab308, 0 0 25px #eab308, 0 0 35px #eab308; }
+          75% { box-shadow: 0 0 8px #22c55e, 0 0 15px #22c55e, 0 0 25px #22c55e; }
         }
         @keyframes strobe {
           0% { opacity: 0; transform: translateX(-100%) skewX(-12deg); }
-          50% { opacity: 0.8; transform: translateX(0%) skewX(-12deg); }
+          25% { opacity: 0.6; transform: translateX(-50%) skewX(-12deg); }
+          50% { opacity: 0.9; transform: translateX(0%) skewX(-12deg); }
+          75% { opacity: 0.6; transform: translateX(50%) skewX(-12deg); }
           100% { opacity: 0; transform: translateX(100%) skewX(-12deg); }
         }
       `}</style>
