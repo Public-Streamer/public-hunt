@@ -12,21 +12,21 @@ const LiveStreamLogo: React.FC<LiveStreamLogoProps> = ({ size = 'md', className 
       container: 'w-6 h-6 p-1',
       play: 'h-4 w-4', // Increased from h-3 w-3
       accent: 'h-1.5 w-1.5',
-      live: 'text-[6px] px-0.5 py-0.5 -top-0.5 -right-0.5',
+      live: 'text-[6px] px-0.5 py-0.5 -top-1 -right-0.5',
       dot: 'w-0.5 h-0.5'
     },
     md: {
       container: 'w-8 h-8 p-1.5',
       play: 'h-5 w-5', // Increased from h-4 w-4
       accent: 'h-2 w-2',
-      live: 'text-[8px] px-0.5 py-0.5 -top-1 -right-1',
+      live: 'text-[8px] px-0.5 py-0.5 -top-1.5 -right-1',
       dot: 'w-1 h-1'
     },
     lg: {
       container: 'w-10 h-10 p-2',
       play: 'h-6 w-6', // Increased from h-5 w-5
       accent: 'h-2.5 w-2.5',
-      live: 'text-[10px] px-1 py-0.5 -top-1 -right-1',
+      live: 'text-[10px] px-1 py-0.5 -top-1.5 -right-1',
       dot: 'w-1 h-1'
     }
   };
@@ -40,11 +40,11 @@ const LiveStreamLogo: React.FC<LiveStreamLogoProps> = ({ size = 'md', className 
         <Play className={`text-white ${classes.play}`} style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
       </div>
       
-      {/* Lightning Bolt - Center (strobing opposite to dollar sign) */}
-      <Zap className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-yellow-300 animate-pulse ${classes.accent}`} style={{ animationDelay: '1s', filter: 'drop-shadow(1px 1px 2px rgba(0,0,0,0.7))' }} />
+      {/* Lightning Bolt - Upper Left Corner */}
+      <Zap className={`absolute -top-0.5 -left-0.5 text-yellow-300 animate-pulse ${classes.accent}`} style={{ filter: 'drop-shadow(1px 1px 2px rgba(0,0,0,0.7))' }} />
       
-      {/* Dollar Sign - Center (strobing opposite to lightning bolt) */}
-      <DollarSign className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-green-300 animate-pulse ${classes.accent}`} style={{ animationDelay: '0s', filter: 'drop-shadow(1px 1px 2px rgba(0,0,0,0.7))' }} />
+      {/* Dollar Sign - Lower Left Corner */}
+      <DollarSign className={`absolute -bottom-0.5 -left-0.5 text-green-300 animate-pulse ${classes.accent}`} style={{ animationDelay: '0.5s', filter: 'drop-shadow(1px 1px 2px rgba(0,0,0,0.7))' }} />
       
       {/* Live Indicator */}
       <div className={`absolute flex items-center space-x-1 bg-red-500 text-white rounded-full animate-pulse ${classes.live}`} style={{ filter: 'drop-shadow(1px 1px 2px rgba(0,0,0,0.6))' }}>
