@@ -498,30 +498,20 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                 </div>
               )}
               
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="legal"
-                    checked={legalDocumentSigned}
-                    disabled
-                  />
-                  <span className="text-sm text-muted-foreground">Legal Agreement Status</span>
+              <div className="ml-6">
+                <div
+                  onClick={() => {
+                    console.log("CLICK DETECTED - Setting modal to open");
+                    setShowLegalModal(true);
+                    console.log("Modal state should now be:", true);
+                  }}
+                  className="text-blue-600 underline hover:text-blue-800 cursor-pointer inline-block p-2 bg-yellow-100 border border-yellow-300"
+                  style={{ pointerEvents: 'auto' }}
+                >
+                  *** CLICK HERE TO OPEN LEGAL AGREEMENT ***
                 </div>
-                <div className="ml-6">
-                  <div
-                    onClick={() => {
-                      console.log("CLICK DETECTED - Setting modal to open");
-                      setShowLegalModal(true);
-                      console.log("Modal state should now be:", true);
-                    }}
-                    className="text-blue-600 underline hover:text-blue-800 cursor-pointer inline-block p-2 bg-yellow-100 border border-yellow-300"
-                    style={{ pointerEvents: 'auto' }}
-                  >
-                    *** CLICK HERE TO OPEN LEGAL AGREEMENT ***
-                  </div>
-                  <div className="mt-2 text-xs text-gray-600">
-                    Modal state: {showLegalModal ? 'OPEN' : 'CLOSED'}
-                  </div>
+                <div className="mt-2 text-xs text-gray-600">
+                  Modal state: {showLegalModal ? 'OPEN' : 'CLOSED'}
                 </div>
               </div>
 
