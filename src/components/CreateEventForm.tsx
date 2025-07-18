@@ -421,6 +421,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
             isValid={isAllFieldsComplete()}
             canCreateEvent={isAllFieldsComplete()}
             showSoloButton={false}
+            hideCreateButton={true}
           />
         </CardContent>
       </Card>

@@ -83,6 +83,7 @@ interface CreateEventFormButtonsProps {
   isValid: boolean;
   canCreateEvent: boolean;
   showSoloButton?: boolean;
+  hideCreateButton?: boolean;
 }
 
 const CreateEventFormButtons: React.FC<CreateEventFormButtonsProps> = ({
@@ -95,7 +96,8 @@ const CreateEventFormButtons: React.FC<CreateEventFormButtonsProps> = ({
   onCreateEvent,
   isValid,
   canCreateEvent,
-  showSoloButton = false
+  showSoloButton = false,
+  hideCreateButton = false
 }) => {
   const getTeamTooltip = () => {
     const missing = [];
@@ -199,20 +201,22 @@ const CreateEventFormButtons: React.FC<CreateEventFormButtonsProps> = ({
             </TooltipWrapper>
           </div>
           
-          <div className="flex flex-col gap-4 justify-center pb-8">
-            <TooltipWrapper content={getCreateEventTooltip()}>
-              <Button 
-                type="submit" 
-                disabled={!isValid || !canCreateEvent} 
-                className={`transition-all duration-200 px-6 py-4 text-base font-bold rounded-lg min-h-[48px] touch-manipulation ${
-                  isValid && canCreateEvent ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700' : 'bg-gray-400 cursor-not-allowed'
-                }`}
-                onClick={onCreateEvent}
-              >
-                Create Event Now
-              </Button>
-            </TooltipWrapper>
-          </div>
+          {!hideCreateButton && (
+            <div className="flex flex-col gap-4 justify-center pb-8">
+              <TooltipWrapper content={getCreateEventTooltip()}>
+                <Button 
+                  type="submit" 
+                  disabled={!isValid || !canCreateEvent} 
+                  className={`transition-all duration-200 px-6 py-4 text-base font-bold rounded-lg min-h-[48px] touch-manipulation ${
+                    isValid && canCreateEvent ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700' : 'bg-gray-400 cursor-not-allowed'
+                  }`}
+                  onClick={onCreateEvent}
+                >
+                  Create Event Now
+                </Button>
+              </TooltipWrapper>
+            </div>
+          )}
         </>
       )}
     </>
