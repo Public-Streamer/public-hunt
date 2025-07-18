@@ -43,16 +43,6 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
             </div>
             
             <nav className="hidden md:flex space-x-6">
-              <TooltipWrapper content="Discover and watch live streaming events from creators">
-                <Link 
-                  to="/browse" 
-                  className={`hover:text-purple-200 transition-colors ${
-                    isActive('/browse') ? 'text-purple-200 font-semibold' : ''
-                  }`}
-                >
-                  Browse
-                </Link>
-              </TooltipWrapper>
               <TooltipWrapper content="Create your own channel and live streaming events">
                 <Link 
                   to="/create" 

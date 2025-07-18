@@ -7,7 +7,6 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { AppProvider } from "@/contexts/AppContext";
 import Layout from "@/components/Layout";
 import Index from "./pages/Index";
-import Browse from "./pages/Browse";
 import Create from "./pages/Create";
 import Channels from "./pages/Channels";
 import ChannelPage from "./pages/ChannelPage";
@@ -36,7 +35,6 @@ const App = () => (
             <Layout>
               <Routes>
                 <Route path="/" element={<Index />} />
-                <Route path="/browse" element={<Browse />} />
                 <Route path="/create" element={<Create />} />
                 <Route path="/channels" element={<Channels />} />
                 <Route path="/channel/:channelId" element={<ChannelPage />} />

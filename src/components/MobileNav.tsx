@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Link } from 'react-router-dom';
-import { X, User, Home, Search, Plus, Tv, Calendar, HelpCircle, LogOut } from 'lucide-react';
+import { X, User, Home, Plus, Tv, Calendar, HelpCircle, LogOut } from 'lucide-react';
 import { useAppContext } from '@/contexts/AppContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import TooltipWrapper from '@/components/ui/tooltip-wrapper';
@@ -30,14 +30,7 @@ const MobileNav: React.FC<MobileNavProps> = ({ isOpen, onClose, onLoginClick }) 
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent side="left" className="w-80 px-6">
         <SheetHeader className="pb-6">
-          <SheetTitle className="flex items-center justify-between pr-2">
-            <span className="text-lg font-semibold">Menu</span>
-            <TooltipWrapper content="Close navigation menu">
-              <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0 hover:bg-gray-100 rounded-full">
-                <X className="h-4 w-4" />
-              </Button>
-            </TooltipWrapper>
-          </SheetTitle>
+          <SheetTitle className="text-lg font-semibold">Menu</SheetTitle>
         </SheetHeader>
         
         {isAuthenticated && user && userProfile && (
@@ -61,11 +54,6 @@ const MobileNav: React.FC<MobileNavProps> = ({ isOpen, onClose, onLoginClick }) 
           <Link to="/" onClick={onClose} className="flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-gray-100 transition-colors">
             <Home className="h-5 w-5 text-gray-600" />
             <span className="font-medium">Home</span>
-          </Link>
-          
-          <Link to="/browse" onClick={onClose} className="flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-gray-100 transition-colors">
-            <Search className="h-5 w-5 text-gray-600" />
-            <span className="font-medium">Browse</span>
           </Link>
           
           <Link to="/create" onClick={onClose} className="flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-gray-100 transition-colors">
