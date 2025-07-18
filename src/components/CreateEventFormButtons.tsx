@@ -25,10 +25,12 @@ const GoLiveButton: React.FC<GoLiveButtonProps> = ({ children, onClick, disabled
           disabled
           className="bg-green-700 cursor-not-allowed text-yellow-50 px-6 py-4 text-xl font-black leading-tight rounded-lg min-h-[45px] touch-manipulation opacity-50"
           style={{
-            textShadow: '2px 2px 4px rgba(0,0,0,0.8), 0 0 8px rgba(255,255,0,0.3)'
+            textShadow: '2px 2px 4px rgba(0,0,0,0.8), 0 0 8px rgba(255,255,0,0.5), 1px 1px 0px rgba(0,0,0,0.8)',
+            fontWeight: '800',
+            letterSpacing: '0.25px'
           }}
         >
-          {children}
+          <span className="drop-shadow-lg">{children}</span>
         </Button>
       </TooltipWrapper>
     );
@@ -47,17 +49,21 @@ const GoLiveButton: React.FC<GoLiveButtonProps> = ({ children, onClick, disabled
                 : 'bg-green-700 hover:bg-green-800 shadow-green-600/50 hover:shadow-green-600/70 border-2 border-green-500 text-yellow-50 font-black'
             }`}
           style={shouldAnimate ? {
-            textShadow: '2px 2px 4px rgba(0,0,0,0.8), 0 0 8px rgba(255,255,0,0.3)',
-            animation: 'shake 0.5s ease-in-out infinite, tremor 0.8s ease-in-out infinite, flicker 0.6s ease-in-out infinite, lightning 0.2s ease-in-out infinite'
+            textShadow: '3px 3px 6px rgba(0,0,0,0.9), 0 0 12px rgba(255,255,0,0.8), 2px 2px 0px rgba(0,0,0,1), -1px -1px 0px rgba(0,0,0,1), 1px -1px 0px rgba(0,0,0,1), -1px 1px 0px rgba(0,0,0,1)',
+            animation: 'shake 0.5s ease-in-out infinite, tremor 0.8s ease-in-out infinite, flicker 0.6s ease-in-out infinite, lightning 0.2s ease-in-out infinite',
+            fontWeight: '900',
+            letterSpacing: '0.5px'
           } : {
-            textShadow: '2px 2px 4px rgba(0,0,0,0.8), 0 0 8px rgba(255,255,0,0.3)'
+            textShadow: '2px 2px 4px rgba(0,0,0,0.8), 0 0 8px rgba(255,255,0,0.5), 1px 1px 0px rgba(0,0,0,0.8)',
+            fontWeight: '800',
+            letterSpacing: '0.25px'
           }}
         >
-          <span className="relative z-10 flex items-center justify-between w-full max-w-full">
+          <span className="relative z-20 flex items-center justify-between w-full max-w-full drop-shadow-lg">
             {children}
           </span>
           {shouldAnimate && (
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-400 to-transparent opacity-0 animate-[strobe_0.3s_ease-in-out_infinite] -skew-x-12 transform translate-x-full"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-400/30 to-transparent opacity-0 animate-[strobe_0.3s_ease-in-out_infinite] -skew-x-12 transform translate-x-full"></div>
           )}
         </Button>
       </AlertDialogTrigger>
@@ -70,7 +76,7 @@ const GoLiveButton: React.FC<GoLiveButtonProps> = ({ children, onClick, disabled
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={onClick} className="bg-green-700 hover:bg-green-800 text-yellow-50 font-black text-lg py-3" style={{textShadow: '2px 2px 4px rgba(0,0,0,0.8), 0 0 8px rgba(255,255,0,0.3)'}}>
+          <AlertDialogAction onClick={onClick} className="bg-green-700 hover:bg-green-800 text-yellow-50 font-black text-lg py-3" style={{textShadow: '3px 3px 6px rgba(0,0,0,0.9), 0 0 12px rgba(255,255,0,0.8), 1px 1px 0px rgba(0,0,0,0.8)', fontWeight: '800', letterSpacing: '0.25px'}}>
             Go Live
           </AlertDialogAction>
         </AlertDialogFooter>
