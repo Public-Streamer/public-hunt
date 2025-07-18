@@ -85,11 +85,11 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
               </Link>
             </div>
             
-            <nav className="hidden md:flex space-x-4">
+            <nav className="hidden md:flex items-center space-x-6">
               <TooltipWrapper content="Create your own channel and live streaming events">
                 <Link 
                   to="/create" 
-                  className={`px-4 py-2 rounded-lg font-semibold text-white border-2 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl drop-shadow-lg ${
+                  className={`px-4 py-2 rounded-lg font-semibold text-white border-2 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl drop-shadow-lg min-w-[80px] text-center ${
                     isActive('/create') 
                       ? 'bg-red-600 border-red-500 shadow-red-400/30' 
                       : 'bg-slate-600 border-slate-500 hover:bg-slate-700 hover:border-slate-400'
@@ -102,7 +102,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
               <TooltipWrapper content="View and manage all streaming channels on the platform">
                 <Link 
                   to="/channels" 
-                  className={`px-4 py-2 rounded-lg font-semibold text-white border-2 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl drop-shadow-lg ${
+                  className={`px-4 py-2 rounded-lg font-semibold text-white border-2 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl drop-shadow-lg min-w-[80px] text-center ${
                     isActive('/channels') 
                       ? 'bg-red-600 border-red-500 shadow-red-400/30' 
                       : 'bg-slate-600 border-slate-500 hover:bg-slate-700 hover:border-slate-400'
@@ -115,7 +115,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
               <TooltipWrapper content="Browse and join live streaming events">
                 <Link 
                   to="/events" 
-                  className={`px-4 py-2 rounded-lg font-semibold text-white border-2 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl drop-shadow-lg ${
+                  className={`px-4 py-2 rounded-lg font-semibold text-white border-2 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl drop-shadow-lg min-w-[80px] text-center ${
                     isActive('/events') 
                       ? 'bg-red-600 border-red-500 shadow-red-400/30' 
                       : 'bg-slate-600 border-slate-500 hover:bg-slate-700 hover:border-slate-400'
@@ -128,7 +128,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
               <TooltipWrapper content="Get help and learn about Public Streamer">
                 <Link 
                   to="/qa" 
-                  className={`px-4 py-2 rounded-lg font-semibold text-white border-2 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl drop-shadow-lg ${
+                  className={`px-4 py-2 rounded-lg font-semibold text-white border-2 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl drop-shadow-lg min-w-[80px] text-center ${
                     isActive('/qa') 
                       ? 'bg-red-600 border-red-500 shadow-red-400/30' 
                       : 'bg-slate-600 border-slate-500 hover:bg-slate-700 hover:border-slate-400'
@@ -140,7 +140,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
               </TooltipWrapper>
             </nav>
             
-            <div className={`flex items-center ${isMobile ? 'space-x-1' : 'space-x-2'}`}>
+            <div className={`flex items-center ${isMobile ? 'space-x-1 ml-2' : 'space-x-3 ml-8'}`}>
               {isAuthenticated && user && userProfile ? (
                 <>
                   <Link to="/profile" className={`flex items-center hover:bg-white/20 rounded-lg transition-colors ${
