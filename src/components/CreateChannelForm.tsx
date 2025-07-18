@@ -33,14 +33,6 @@ const CreateChannelForm: React.FC<CreateChannelFormProps> = ({
 }) => {
   return (
     <div className="space-y-6">
-      <TooltipWrapper content="Upload promotional media for your channel including images, videos, and documents">
-        <MediaUploader 
-          onUpload={onMediaUpload}
-          maxFiles={5}
-          acceptedTypes={['image/jpeg', 'image/png', 'image/gif', 'application/pdf', 'video/mp4', 'video/mpeg', 'video/quicktime']}
-        />
-      </TooltipWrapper>
-      
       <form onSubmit={onSubmit} className="space-y-6">
       <Card>
         <CardHeader>
@@ -134,6 +126,14 @@ const CreateChannelForm: React.FC<CreateChannelFormProps> = ({
         channelId="new-channel"
         currentUserRole="channel_master"
       />
+      
+      <TooltipWrapper content="Upload promotional media for your channel including images, videos, and documents">
+        <MediaUploader 
+          onUpload={onMediaUpload}
+          maxFiles={5}
+          acceptedTypes={['image/jpeg', 'image/png', 'image/gif', 'application/pdf', 'video/mp4', 'video/mpeg', 'video/quicktime']}
+        />
+      </TooltipWrapper>
       
       <div className="flex justify-end">
         <TooltipWrapper content={isValid ? "Create your channel and become the Channel Master" : "Complete all required fields to create your channel"}>
