@@ -233,9 +233,9 @@ const CompanyRoleManager: React.FC<CompanyRoleManagerProps> = ({ companyId, isCo
             {isCompanyMaster && (
               <Dialog open={showAddMemberDialog} onOpenChange={setShowAddMemberDialog}>
                 <DialogTrigger asChild>
-                  <Button>
-                    <UserPlus className="w-4 h-4 mr-2" />
-                    Add Member
+                  <Button className="whitespace-normal break-words leading-tight min-h-[40px] px-3 py-2">
+                    <UserPlus className="w-4 h-4 mr-2 flex-shrink-0" />
+                    <span className="text-xs sm:text-sm text-center">Add Member</span>
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-md">
@@ -281,8 +281,8 @@ const CompanyRoleManager: React.FC<CompanyRoleManagerProps> = ({ companyId, isCo
                       <Button variant="outline" onClick={() => setShowAddMemberDialog(false)}>
                         Cancel
                       </Button>
-                      <Button onClick={handleAddMember}>
-                        Add Member
+                      <Button onClick={handleAddMember} className="whitespace-normal break-words leading-tight min-h-[40px] px-3 py-2">
+                        <span className="text-xs sm:text-sm text-center">Add Member</span>
                       </Button>
                     </div>
                   </div>

@@ -242,9 +242,11 @@ const StreamerSelector: React.FC<StreamerSelectorProps> = ({ onStreamersChange }
                 <TooltipTrigger asChild>
                   <Button
                     onClick={confirmRoles}
-                    className="bg-green-600 hover:bg-green-700 text-white w-full max-w-md px-4 py-3 text-sm sm:text-base md:text-lg text-center break-words"
+                    className="bg-green-600 hover:bg-green-700 text-white w-full max-w-md px-4 py-3 text-center whitespace-normal leading-tight break-words min-h-[60px]"
                   >
-                    <span className="text-center w-full">Confirm Event Production Team Roles and Permissions</span>
+                    <span className="text-xs sm:text-sm md:text-base leading-tight">
+                      Confirm Event Production Team Roles and Permissions
+                    </span>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>

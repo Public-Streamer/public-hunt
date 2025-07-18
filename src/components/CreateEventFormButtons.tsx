@@ -215,7 +215,7 @@ const CreateEventFormButtons: React.FC<CreateEventFormButtonsProps> = ({
                 tooltipText={getSoloTooltip()}
                 >
                   <LiveStreamLogo size="md" className="mr-1 flex-shrink-0" />
-                  <span className="truncate text-sm sm:text-base md:text-lg flex-1 text-center">Go Live Right Now Solo</span>
+                  <span className="text-xs sm:text-sm md:text-base lg:text-lg flex-1 text-center leading-tight break-words whitespace-normal">Go Live Right Now Solo</span>
                   <Zap className="h-4 w-4 sm:h-4 sm:w-4 md:h-5 md:w-5 ml-1 flex-shrink-0" />
                 </GoLiveButton>
             </div>
@@ -237,7 +237,7 @@ const CreateEventFormButtons: React.FC<CreateEventFormButtonsProps> = ({
                     tooltipText={getTeamTooltip()}
                     >
                       <LiveStreamLogo size="md" className="mr-1 flex-shrink-0" />
-                      <span className="truncate text-sm sm:text-base md:text-lg flex-1 text-center">Go Live Now with Team</span>
+                      <span className="text-xs sm:text-sm md:text-base lg:text-lg flex-1 text-center leading-tight break-words whitespace-normal">Go Live Now with Team</span>
                       <Users className="h-4 w-4 sm:h-4 sm:w-4 md:h-5 md:w-5 ml-1 flex-shrink-0" />
                     </GoLiveButton>
                 </div>
@@ -251,12 +251,12 @@ const CreateEventFormButtons: React.FC<CreateEventFormButtonsProps> = ({
                 <Button 
                   type="submit" 
                   disabled={!isValid || !canCreateEvent} 
-                  className={`transition-all duration-200 px-6 py-4 text-base font-bold rounded-lg min-h-[48px] touch-manipulation ${
+                  className={`transition-all duration-200 px-6 py-4 text-base font-bold rounded-lg min-h-[48px] touch-manipulation whitespace-normal break-words leading-tight text-center w-full max-w-md ${
                     isValid && canCreateEvent ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700' : 'bg-gray-400 cursor-not-allowed'
                   }`}
                   onClick={onCreateEvent}
                 >
-                  Create Event Now
+                  <span className="text-xs sm:text-sm md:text-base leading-tight">Create Event Now</span>
                 </Button>
               </TooltipWrapper>
             </div>
