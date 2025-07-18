@@ -4,9 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { User, Settings, DollarSign, Users, CreditCard, Building2, CheckCircle, ExternalLink, Palette } from 'lucide-react';
+import { User, Settings, DollarSign, Users, CreditCard, Building2, CheckCircle, ExternalLink } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import ThemeToggle from '@/components/ThemeToggle';
+
 
 const Admin: React.FC = () => {
   const [showPaymentSetup, setShowPaymentSetup] = useState(false);
@@ -154,18 +154,7 @@ const Admin: React.FC = () => {
         </Alert>
       )}
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Palette className="h-5 w-5 mr-2" />
-              App Theme
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ThemeToggle />
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         
         <Card>
           <CardHeader>

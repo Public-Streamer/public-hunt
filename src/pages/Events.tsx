@@ -173,35 +173,40 @@ const Events: React.FC = () => {
         <h1 className="text-3xl font-bold mb-4">Events</h1>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 h-auto">
+          <TabsList className="grid w-full grid-cols-3 h-auto p-1 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
             <TooltipWrapper content="View all currently live streaming events">
               <TabsTrigger 
                 value="live" 
-                className="flex items-center justify-center p-2 text-xs sm:text-sm lg:text-base min-h-[40px] sm:min-h-[44px]"
+                className="flex items-center justify-center px-4 py-4 text-base font-semibold min-h-[60px] rounded-lg transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-white/20"
               >
-                <span className="hidden sm:inline">Live Events</span>
-                <span className="sm:hidden text-xs">Live</span>
+                <div className="relative">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                    <span className="text-sm sm:text-base font-bold">Live Events</span>
+                  </div>
+                </div>
               </TabsTrigger>
             </TooltipWrapper>
             <TooltipWrapper content="View upcoming scheduled events">
               <TabsTrigger 
                 value="scheduled"
-                className="flex items-center justify-center p-2 text-xs sm:text-sm lg:text-base min-h-[40px] sm:min-h-[44px]"
+                className="flex items-center justify-center px-4 py-4 text-base font-semibold min-h-[60px] rounded-lg transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-white/20"
               >
-                <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 flex-shrink-0" />
-                <span className="hidden md:inline">Scheduled Events</span>
-                <span className="hidden sm:inline md:hidden">Scheduled</span>
-                <span className="sm:hidden text-xs">Sched</span>
+                <div className="flex items-center space-x-2">
+                  <Clock className="h-5 w-5 flex-shrink-0" />
+                  <span className="text-sm sm:text-base font-bold">Scheduled Events</span>
+                </div>
               </TabsTrigger>
             </TooltipWrapper>
             <TooltipWrapper content="View previously completed events">
               <TabsTrigger 
                 value="past"
-                className="flex items-center justify-center p-2 text-xs sm:text-sm lg:text-base min-h-[40px] sm:min-h-[44px]"
+                className="flex items-center justify-center px-4 py-4 text-base font-semibold min-h-[60px] rounded-lg transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-white/20"
               >
-                <History className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 flex-shrink-0" />
-                <span className="hidden sm:inline">Past Events</span>
-                <span className="sm:hidden text-xs">Past</span>
+                <div className="flex items-center space-x-2">
+                  <History className="h-5 w-5 flex-shrink-0" />
+                  <span className="text-sm sm:text-base font-bold">Past Events</span>
+                </div>
               </TabsTrigger>
             </TooltipWrapper>
           </TabsList>
