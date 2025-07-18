@@ -7,6 +7,8 @@ import { useAppContext } from '@/contexts/AppContext';
 import { useNavigate } from 'react-router-dom';
 import SignupForm from './SignupForm';
 import { ScrollArea } from './ui/scroll-area';
+import CompanyAccountSelector from './CompanyAccountSelector';
+import { supabase } from '@/integrations/supabase/client';
 
 interface LoginFormProps {
   onClose: () => void;
@@ -17,6 +19,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose }) => {
   const navigate = useNavigate();
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [showSignup, setShowSignup] = useState(false);
+  const [showAccountSelector, setShowAccountSelector] = useState(false);
+  const [pendingUser, setPendingUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -25,14 +29,43 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose }) => {
     setIsLoading(true);
     setError('');
 
-    const result = await signIn(loginData.email, loginData.password);
-    
-    if (result.error) {
-      setError(result.error);
+    try {
+      // First authenticate the user
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: loginData.email,
+        password: loginData.password,
+      });
+
+      if (error) {
+        setError(error.message);
+        setIsLoading(false);
+        return;
+      }
+
+      // Check if user is a company master
+      const { data: companyRoles, error: roleError } = await supabase
+        .from('company_roles')
+        .select('company_id')
+        .eq('user_id', data.user.id)
+        .eq('role', 'company_master');
+
+      if (roleError) {
+        console.error('Error checking company roles:', roleError);
+      }
+
+      // If user has company master roles, show account selector
+      if (companyRoles && companyRoles.length > 0) {
+        setPendingUser(data.user);
+        setShowAccountSelector(true);
+        setIsLoading(false);
+      } else {
+        // Regular individual login
+        onClose();
+        navigate('/');
+      }
+    } catch (error) {
+      setError('An unexpected error occurred');
       setIsLoading(false);
-    } else {
-      onClose();
-      navigate('/');
     }
   };
 
@@ -40,6 +73,39 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose }) => {
     onClose();
     navigate('/');
   };
+
+  const handleAccountSelection = async (type: 'individual' | 'company', companyId?: string) => {
+    // Set session context based on selection
+    if (type === 'company' && companyId) {
+      // Could store company context in localStorage or session storage
+      sessionStorage.setItem('activeCompanyId', companyId);
+      sessionStorage.setItem('loginType', 'company');
+    } else {
+      sessionStorage.setItem('loginType', 'individual');
+      sessionStorage.removeItem('activeCompanyId');
+    }
+    
+    setShowAccountSelector(false);
+    onClose();
+    navigate('/');
+  };
+
+  const handleAccountSelectorCancel = async () => {
+    // Sign out the user since they canceled selection
+    await supabase.auth.signOut();
+    setShowAccountSelector(false);
+    setPendingUser(null);
+  };
+
+  if (showAccountSelector && pendingUser) {
+    return (
+      <CompanyAccountSelector
+        user={pendingUser}
+        onSelection={handleAccountSelection}
+        onCancel={handleAccountSelectorCancel}
+      />
+    );
+  }
 
   if (showSignup) {
     return (
