@@ -1335,9 +1335,9 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
                                     onClick={handleGoLiveSolo}
                                     className="flex-1 bg-red-600 hover:bg-red-700 text-white"
                                   >
-                                     <LiveStreamLogo size="lg" className="mr-2" />
-                                    <Zap className="w-4 h-4 mr-2" />
-                                    Go Live Now
+                                     <LiveStreamLogo size="sm" className="mr-1 flex-shrink-0" />
+                                     <Zap className="w-3 h-3 mr-1 flex-shrink-0" />
+                                     <span className="truncate">Go Live Now</span>
                                   </Button>
                                </div>
                              </div>

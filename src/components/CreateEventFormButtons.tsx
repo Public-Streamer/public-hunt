@@ -204,7 +204,7 @@ const CreateEventFormButtons: React.FC<CreateEventFormButtonsProps> = ({
       `}</style>
       
       {showSoloButton && (
-        <div className="flex justify-center py-4">
+        <div className="flex justify-center py-4 px-2 w-full overflow-hidden">
           <TooltipWrapper content={getSoloTooltip()}>
             <div>
               <GoLiveButton 
@@ -213,8 +213,9 @@ const CreateEventFormButtons: React.FC<CreateEventFormButtonsProps> = ({
                 isActive={isReadyToGoLive}
                 tooltipText={getSoloTooltip()}
                 >
-                  <LiveStreamLogo size="lg" className="mr-2" />
-                  <Zap className="h-5 w-5 mr-3" />Go Live Right Now Solo
+                  <LiveStreamLogo size="md" className="mr-1 flex-shrink-0" />
+                  <Zap className="h-4 w-4 mr-1 flex-shrink-0" />
+                  <span className="truncate">Go Live Right Now Solo</span>
                 </GoLiveButton>
             </div>
           </TooltipWrapper>
@@ -223,7 +224,7 @@ const CreateEventFormButtons: React.FC<CreateEventFormButtonsProps> = ({
       
       {!showSoloButton && (
         <>
-          <div className="flex justify-center py-4">
+          <div className="flex justify-center py-4 px-2 w-full overflow-hidden">
             <TooltipWrapper content={getTeamTooltip()}>
               <div>
                 <GoLiveButton 
@@ -232,8 +233,9 @@ const CreateEventFormButtons: React.FC<CreateEventFormButtonsProps> = ({
                   isActive={teamButtonEnabled}
                   tooltipText={getTeamTooltip()}
                   >
-                    <LiveStreamLogo size="lg" className="mr-2" />
-                    <Users className="h-5 w-5 mr-3" />Go Live Now with Team
+                    <LiveStreamLogo size="md" className="mr-1 flex-shrink-0" />
+                    <Users className="h-4 w-4 mr-1 flex-shrink-0" />
+                    <span className="truncate">Go Live Now with Team</span>
                   </GoLiveButton>
               </div>
             </TooltipWrapper>
