@@ -81,12 +81,14 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
               </Link>
             </div>
             
-            <nav className="hidden md:flex space-x-6">
+            <nav className="hidden md:flex space-x-4">
               <TooltipWrapper content="Create your own channel and live streaming events">
                 <Link 
                   to="/create" 
-                  className={`hover:text-purple-200 transition-colors ${
-                    isActive('/create') ? 'text-purple-200 font-semibold' : ''
+                  className={`px-4 py-2 rounded-lg font-semibold text-white border-2 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl ${
+                    isActive('/create') 
+                      ? 'bg-green-600 border-green-500 shadow-green-400/30' 
+                      : 'bg-green-500 border-green-400 hover:bg-green-600 hover:border-green-300'
                   }`}
                 >
                   Create
@@ -95,8 +97,10 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
               <TooltipWrapper content="View and manage all streaming channels on the platform">
                 <Link 
                   to="/channels" 
-                  className={`hover:text-purple-200 transition-colors ${
-                    isActive('/channels') ? 'text-purple-200 font-semibold' : ''
+                  className={`px-4 py-2 rounded-lg font-semibold text-white border-2 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl ${
+                    isActive('/channels') 
+                      ? 'bg-blue-600 border-blue-500 shadow-blue-400/30' 
+                      : 'bg-blue-500 border-blue-400 hover:bg-blue-600 hover:border-blue-300'
                   }`}
                 >
                   Channels
@@ -105,8 +109,10 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
               <TooltipWrapper content="Browse and join live streaming events">
                 <Link 
                   to="/events" 
-                  className={`hover:text-purple-200 transition-colors ${
-                    isActive('/events') ? 'text-purple-200 font-semibold' : ''
+                  className={`px-4 py-2 rounded-lg font-semibold text-white border-2 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl ${
+                    isActive('/events') 
+                      ? 'bg-red-600 border-red-500 shadow-red-400/30' 
+                      : 'bg-red-500 border-red-400 hover:bg-red-600 hover:border-red-300'
                   }`}
                 >
                   Events
@@ -115,8 +121,10 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
               <TooltipWrapper content="Get help and learn about Public Streamer">
                 <Link 
                   to="/qa" 
-                  className={`hover:text-purple-200 transition-colors ${
-                    isActive('/qa') ? 'text-purple-200 font-semibold' : ''
+                  className={`px-4 py-2 rounded-lg font-semibold text-white border-2 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl ${
+                    isActive('/qa') 
+                      ? 'bg-yellow-600 border-yellow-500 shadow-yellow-400/30' 
+                      : 'bg-yellow-500 border-yellow-400 hover:bg-yellow-600 hover:border-yellow-300'
                   }`}
                 >
                   Q&A
