@@ -214,8 +214,8 @@ const CreateEventFormButtons: React.FC<CreateEventFormButtonsProps> = ({
                 tooltipText={getSoloTooltip()}
                 >
                   <LiveStreamLogo size="md" className="mr-1 flex-shrink-0" />
-                  <Zap className="h-4 w-4 mr-1 flex-shrink-0" />
                   <span className="truncate">Go Live Right Now Solo</span>
+                  <Zap className="h-4 w-4 ml-1 flex-shrink-0" />
                 </GoLiveButton>
             </div>
           </TooltipWrapper>
@@ -234,8 +234,8 @@ const CreateEventFormButtons: React.FC<CreateEventFormButtonsProps> = ({
                   tooltipText={getTeamTooltip()}
                   >
                     <LiveStreamLogo size="md" className="mr-1 flex-shrink-0" />
-                    <Users className="h-4 w-4 mr-1 flex-shrink-0" />
                     <span className="truncate">Go Live Now with Team</span>
+                    <Users className="h-4 w-4 ml-1 flex-shrink-0" />
                   </GoLiveButton>
               </div>
             </TooltipWrapper>
