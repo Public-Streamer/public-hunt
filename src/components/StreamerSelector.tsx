@@ -236,15 +236,15 @@ const StreamerSelector: React.FC<StreamerSelectorProps> = ({ onStreamersChange }
         </div>
 
         {selectedMembers.length > 0 && !isLocked && allMembersConfirmed && (
-          <div className="flex justify-center pt-4">
+          <div className="flex justify-center pt-4 px-4">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
                     onClick={confirmRoles}
-                    className="bg-green-600 hover:bg-green-700 text-white"
+                    className="bg-green-600 hover:bg-green-700 text-white w-full max-w-md px-4 py-3 text-sm sm:text-base md:text-lg text-center break-words"
                   >
-                    Confirm Event Production Team Roles and Permissions
+                    <span className="text-center w-full">Confirm Event Production Team Roles and Permissions</span>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
