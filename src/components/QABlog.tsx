@@ -156,7 +156,7 @@ const QABlog = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <Textarea
-            placeholder="What would you like to know about Streamura?"
+            placeholder="What would you like to know about Public Streamer?"
             value={newQuestion}
             onChange={(e) => setNewQuestion(e.target.value)}
             className="min-h-[100px]"

@@ -44,7 +44,7 @@ export const LegalDocumentModal: React.FC<LegalDocumentModalProps> = ({
         <div className="p-6 border-b">
           <div className="flex items-center gap-2 text-red-600">
             <AlertTriangle className="h-5 w-5" />
-            <h2 className="text-lg font-bold">LEGAL AGREEMENT REQUIRED - STREAMURA PROTECTION WAIVER</h2>
+            <h2 className="text-lg font-bold">LEGAL AGREEMENT REQUIRED - PUBLIC STREAMER PROTECTION WAIVER</h2>
           </div>
         </div>
         
@@ -53,20 +53,20 @@ export const LegalDocumentModal: React.FC<LegalDocumentModalProps> = ({
             <div className="bg-red-50 p-4 rounded-lg border border-red-200">
               <h3 className="font-bold text-red-700 mb-2">IMPORTANT LEGAL NOTICE</h3>
               <p className="text-red-700">
-                This document contains critical legal terms that LIMIT STREAMURA'S LIABILITY and TRANSFER RISKS TO YOU. 
+                This document contains critical legal terms that LIMIT PUBLIC STREAMER'S LIABILITY and TRANSFER RISKS TO YOU. 
                 Read carefully before signing. Consult legal counsel if needed.
               </p>
             </div>
 
             <div>
-              <h2 className="text-lg font-bold mb-4">STREAMURA PLATFORM USER AGREEMENT AND INDEMNIFICATION WAIVER</h2>
+              <h2 className="text-lg font-bold mb-4">PUBLIC STREAMER PLATFORM USER AGREEMENT AND INDEMNIFICATION WAIVER</h2>
               
               <div className="space-y-4">
                 <section>
                   <h3 className="font-semibold mb-2">1. COMPREHENSIVE LIABILITY WAIVER</h3>
                   <p className="mb-2">
-                    By using the Streamura platform, you acknowledge and agree that Streamura, LLC, its officers, directors, 
-                    employees, agents, and affiliates (collectively "Streamura Parties") shall NOT be liable for any:
+                    By using the Public Streamer platform, you acknowledge and agree that Public Streamer, LLC, its officers, directors, 
+                    employees, agents, and affiliates (collectively "Public Streamer Parties") shall NOT be liable for any:
                   </p>
                   <ul className="list-disc pl-6 space-y-1">
                     <li>Content you create, upload, stream, or distribute through the platform</li>
@@ -82,12 +82,12 @@ export const LegalDocumentModal: React.FC<LegalDocumentModalProps> = ({
                 <section>
                   <h3 className="font-semibold mb-2">2. COMPLETE INDEMNIFICATION</h3>
                   <p>
-                    You agree to DEFEND, INDEMNIFY, and HOLD HARMLESS all Streamura Parties from and against any and all 
+                    You agree to DEFEND, INDEMNIFY, and HOLD HARMLESS all Public Streamer Parties from and against any and all 
                     claims, damages, costs, liabilities, and expenses (including reasonable attorneys' fees) arising from or 
                     relating to:
                   </p>
                   <ul className="list-disc pl-6 space-y-1 mt-2">
-                    <li>Your use or misuse of the Streamura platform</li>
+                    <li>Your use or misuse of the Public Streamer platform</li>
                     <li>Any content you upload, stream, or make available through the platform</li>
                     <li>Your violation of any law, regulation, or third-party rights</li>
                     <li>Any breach of this agreement or platform terms of service</li>
@@ -112,7 +112,7 @@ export const LegalDocumentModal: React.FC<LegalDocumentModalProps> = ({
                   <p>
                     Any disputes shall be resolved through binding arbitration in accordance with the rules of the 
                     American Arbitration Association. You waive any right to participate in class action lawsuits 
-                    against Streamura.
+                    against Public Streamer.
                   </p>
                 </section>
 
@@ -152,7 +152,7 @@ export const LegalDocumentModal: React.FC<LegalDocumentModalProps> = ({
                 className="w-4 h-4"
               />
               <label htmlFor="liability" className="text-sm font-medium">
-                I agree to indemnify and hold harmless Streamura from all claims and damages
+                I agree to indemnify and hold harmless Public Streamer from all claims and damages
               </label>
             </div>
             

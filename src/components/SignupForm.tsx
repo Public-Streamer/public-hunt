@@ -686,7 +686,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
         <Card className="w-full max-w-md max-h-[90vh]">
           <CardHeader>
-            <CardTitle>Create Your Streamura Account</CardTitle>
+            <CardTitle>Create Your Public Streamer Account</CardTitle>
             {error && (
               <Alert variant="destructive" className="mt-4">
                 <AlertDescription>{error}</AlertDescription>

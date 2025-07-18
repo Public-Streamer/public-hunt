@@ -114,7 +114,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose }) => {
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle>Create Account</CardTitle>
-            <CardDescription>Join Streamura today</CardDescription>
+            <CardDescription>Join Public Streamer today</CardDescription>
           </CardHeader>
           <CardContent className="h-[75vh] p-0">
             <ScrollArea className="h-full w-full px-6 pb-6">
@@ -142,7 +142,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose }) => {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Welcome to Streamura</CardTitle>
+          <CardTitle>Welcome to Public Streamer</CardTitle>
           <CardDescription>Sign in to your account</CardDescription>
         </CardHeader>
         <CardContent>

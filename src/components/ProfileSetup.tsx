@@ -50,7 +50,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
 
       toast({
         title: 'Profile created successfully!',
-        description: 'Welcome to Streamura'
+        description: 'Welcome to Public Streamer'
       });
       onComplete();
     } catch (error) {

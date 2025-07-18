@@ -37,8 +37,11 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                 </Button>
               )}
               <Link to="/" className="flex items-center space-x-2">
-                <Play className="h-8 w-8" />
-                <h1 className="text-2xl font-bold">Streamura</h1>
+                <div className="relative">
+                  <Play className="h-8 w-8 drop-shadow-lg bg-white/20 rounded-full p-1 backdrop-blur-sm border border-white/30 hover:bg-white/30 transition-all duration-200 hover:scale-105" />
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/40 to-transparent pointer-events-none"></div>
+                </div>
+                <h1 className="text-2xl font-bold">Public Streamer</h1>
               </Link>
             </div>
             
@@ -73,7 +76,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                   Events
                 </Link>
               </TooltipWrapper>
-              <TooltipWrapper content="Get help and learn about Streamura">
+              <TooltipWrapper content="Get help and learn about Public Streamer">
                 <Link 
                   to="/qa" 
                   className={`hover:text-purple-200 transition-colors ${

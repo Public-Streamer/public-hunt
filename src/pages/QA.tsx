@@ -48,7 +48,7 @@ const QA = () => {
             Q&A Center
           </h1>
           <p className="text-lg text-muted-foreground">
-            Learn about Streamura and get help from the community and AI assistant
+            Learn about Public Streamer and get help from the community and AI assistant
           </p>
         </div>
 
@@ -94,12 +94,12 @@ const QA = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <MessageCircle className="h-5 w-5" />
-                  About Streamura
+                  About Public Streamer
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground mb-4">
-                  Streamura is a live streaming platform that connects creators with audiences through interactive events and channels.
+                  Public Streamer is a live streaming platform that connects creators with audiences through interactive events and channels.
                 </p>
               </CardContent>
             </Card>
@@ -176,7 +176,7 @@ const QA = () => {
                   <AccordionItem value="setup">
                     <AccordionTrigger>Setting Up Your Account</AccordionTrigger>
                     <AccordionContent>
-                      <p>1. Create your Streamura account</p>
+                      <p>1. Create your Public Streamer account</p>
                       <p>2. Complete your profile information</p>
                       <p>3. Verify your email address</p>
                       <p>4. Choose your role (Viewer or Creator)</p>

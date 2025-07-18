@@ -24,7 +24,7 @@ const PastEvents: React.FC = () => {
             Past Events Catalog
           </h1>
           <p className="text-lg text-gray-600">
-            Discover and watch recorded events from Streamura's extensive library
+            Discover and watch recorded events from Public Streamer's extensive library
           </p>
         </div>
       </div>
