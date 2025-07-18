@@ -23,12 +23,14 @@ const GoLiveButton: React.FC<GoLiveButtonProps> = ({ children, onClick, disabled
         <Button 
           type="button" 
           disabled
-          className="bg-green-700 cursor-not-allowed text-yellow-50 px-6 py-4 text-xl font-black leading-tight rounded-lg min-h-[45px] touch-manipulation opacity-50"
+          className="bg-green-700 cursor-not-allowed text-yellow-50 px-3 sm:px-4 md:px-6 py-3 sm:py-3 md:py-4 text-base sm:text-lg md:text-xl font-black leading-tight rounded-lg min-h-[44px] sm:min-h-[45px] touch-manipulation opacity-50 max-w-full w-full"
           style={{
             textShadow: '2px 2px 4px rgba(0,0,0,0.8), 0 0 8px rgba(255,255,0,0.3)'
           }}
         >
-          {children}
+          <span className="relative z-10 flex items-center justify-between w-full max-w-full">
+            {children}
+          </span>
         </Button>
       </TooltipWrapper>
     );
