@@ -173,16 +173,37 @@ const Events: React.FC = () => {
         <h1 className="text-3xl font-bold mb-4">Events</h1>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="live">Live Events</TabsTrigger>
-            <TabsTrigger value="scheduled">
-              <Clock className="h-4 w-4 mr-2" />
-              Scheduled Events
-            </TabsTrigger>
-            <TabsTrigger value="past">
-              <History className="h-4 w-4 mr-2" />
-              Past Events
-            </TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 h-auto">
+            <TooltipWrapper content="View all currently live streaming events">
+              <TabsTrigger 
+                value="live" 
+                className="flex items-center justify-center p-2 text-xs sm:text-sm lg:text-base min-h-[40px] sm:min-h-[44px]"
+              >
+                <span className="hidden sm:inline">Live Events</span>
+                <span className="sm:hidden text-xs">Live</span>
+              </TabsTrigger>
+            </TooltipWrapper>
+            <TooltipWrapper content="View upcoming scheduled events">
+              <TabsTrigger 
+                value="scheduled"
+                className="flex items-center justify-center p-2 text-xs sm:text-sm lg:text-base min-h-[40px] sm:min-h-[44px]"
+              >
+                <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 flex-shrink-0" />
+                <span className="hidden md:inline">Scheduled Events</span>
+                <span className="hidden sm:inline md:hidden">Scheduled</span>
+                <span className="sm:hidden text-xs">Sched</span>
+              </TabsTrigger>
+            </TooltipWrapper>
+            <TooltipWrapper content="View previously completed events">
+              <TabsTrigger 
+                value="past"
+                className="flex items-center justify-center p-2 text-xs sm:text-sm lg:text-base min-h-[40px] sm:min-h-[44px]"
+              >
+                <History className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 flex-shrink-0" />
+                <span className="hidden sm:inline">Past Events</span>
+                <span className="sm:hidden text-xs">Past</span>
+              </TabsTrigger>
+            </TooltipWrapper>
           </TabsList>
           
           <TabsContent value="live" className="space-y-6">
