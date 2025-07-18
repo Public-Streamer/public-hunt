@@ -257,86 +257,70 @@ const ChannelSelector: React.FC<ChannelSelectorProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <Label className="text-base font-bold">Broadcast Channel for Event</Label>
-          <TooltipWrapper content="Select a channel to assign this event to. You can only assign events to channels where you are a Channel Master or Channel Admin.">
-            <Info className="h-4 w-4 text-muted-foreground" />
-          </TooltipWrapper>
-        </div>
+      <div className="flex items-center space-x-2">
+        <Label className="text-base font-bold">Broadcast Channel for Event</Label>
+        <TooltipWrapper content="Select a channel to assign this event to. You can only assign events to channels where you are a Channel Master or Channel Admin.">
+          <Info className="h-4 w-4 text-muted-foreground" />
+        </TooltipWrapper>
         <div className="text-sm text-muted-foreground">
           Stream to profile page if no channel selected (Default)
         </div>
       </div>
 
       <div className="space-y-3">
-
-        <div className="flex items-center space-x-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setShowSearch(!showSearch)}
-            className="flex items-center space-x-2"
-          >
-            <Search className="h-4 w-4" />
-            <span>Search All Channels</span>
-          </Button>
-        </div>
-
-        {showSearch && (
-          <Card>
-            <CardContent className="p-4 space-y-3">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search channels by name..."
-                  value={searchQuery}
-                  onChange={(e) => handleSearchChange(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              
-              {isSearching && (
-                <div className="text-sm text-muted-foreground">Searching...</div>
-              )}
-              
-              {searchResults.length > 0 && (
-                <div className="space-y-2">
-                  {searchResults.map(channel => {
-                    const hasPermission = userChannels.some(uc => uc.id === channel.id);
-                    return (
-                      <div
-                        key={channel.id}
-                        className={`p-3 border rounded-md cursor-pointer hover:bg-muted ${
-                          selectedChannelId === channel.id ? 'bg-muted border-primary' : ''
-                        }`}
-                        onClick={() => handleChannelSelect(channel.id)}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="font-medium">{channel.name}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {channel.category}
-                            </div>
+        <Card>
+          <CardContent className="p-4 space-y-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search channels by name..."
+                value={searchQuery}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            
+            {isSearching && (
+              <div className="text-sm text-muted-foreground">Searching...</div>
+            )}
+            
+            {searchResults.length > 0 && (
+              <div className="space-y-2">
+                {searchResults.map(channel => {
+                  const hasPermission = userChannels.some(uc => uc.id === channel.id);
+                  return (
+                    <div
+                      key={channel.id}
+                      className={`p-3 border rounded-md cursor-pointer hover:bg-muted ${
+                        selectedChannelId === channel.id ? 'bg-muted border-primary' : ''
+                      }`}
+                      onClick={() => handleChannelSelect(channel.id)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="font-medium">{channel.name}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {channel.category}
                           </div>
-                          {!hasPermission && (
-                            <TooltipWrapper content="Selecting this channel will require approval from channel administrators">
-                              <AlertCircle className="h-4 w-4 text-amber-500" />
-                            </TooltipWrapper>
-                          )}
                         </div>
+                        {!hasPermission && (
+                          <TooltipWrapper content="Selecting this channel will require approval from channel administrators">
+                            <AlertCircle className="h-4 w-4 text-amber-500" />
+                          </TooltipWrapper>
+                        )}
                       </div>
-                    );
-                  })}
-                </div>
-              )}
-              
-              {searchQuery && !isSearching && searchResults.length === 0 && (
-                <div className="text-sm text-muted-foreground">No channels found</div>
-              )}
-            </CardContent>
-          </Card>
-        )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            
+            {searchQuery && !isSearching && searchResults.length === 0 && (
+              <div className="text-sm text-muted-foreground">No channels found</div>
+            )}
+          </CardContent>
+        </Card>
+
       </div>
 
       {selectedChannel && (
