@@ -145,45 +145,69 @@
   position: absolute;
   color: #10b981;
   font-weight: bold;
-  font-size: 1.2rem;
-  animation: sparkle 2s ease-in-out infinite;
+  font-size: 1.8rem;
+  animation: sparkle 1.2s ease-in-out infinite;
   opacity: 0;
 }
 
 .dollar-sparkle-1 {
   top: 10%;
-  left: 20%;
+  left: 15%;
   animation-delay: 0s;
 }
 
 .dollar-sparkle-2 {
-  top: 30%;
-  right: 15%;
-  animation-delay: 0.3s;
+  top: 25%;
+  right: 10%;
+  animation-delay: 0.15s;
 }
 
 .dollar-sparkle-3 {
-  bottom: 20%;
-  left: 10%;
-  animation-delay: 0.6s;
+  bottom: 15%;
+  left: 8%;
+  animation-delay: 0.3s;
 }
 
 .dollar-sparkle-4 {
-  top: 60%;
-  right: 25%;
-  animation-delay: 0.9s;
+  top: 55%;
+  right: 20%;
+  animation-delay: 0.45s;
 }
 
 .dollar-sparkle-5 {
-  top: 20%;
-  left: 70%;
-  animation-delay: 1.2s;
+  top: 15%;
+  left: 65%;
+  animation-delay: 0.6s;
 }
 
 .dollar-sparkle-6 {
-  bottom: 40%;
-  right: 60%;
-  animation-delay: 1.5s;
+  bottom: 35%;
+  right: 55%;
+  animation-delay: 0.75s;
+}
+
+.dollar-sparkle-7 {
+  top: 45%;
+  left: 5%;
+  animation-delay: 0.9s;
+}
+
+.dollar-sparkle-8 {
+  bottom: 10%;
+  right: 35%;
+  animation-delay: 1.05s;
+}
+
+.dollar-sparkle-9 {
+  top: 35%;
+  left: 80%;
+  animation-delay: 0.2s;
+}
+
+.dollar-sparkle-10 {
+  bottom: 50%;
+  left: 40%;
+  animation-delay: 0.8s;
 }
 
 @keyframes sparkle {
@@ -193,7 +217,7 @@
   }
   50% {
     opacity: 1;
-    transform: scale(1.2) rotate(180deg);
+    transform: scale(1.3) rotate(360deg);
   }
 }
 

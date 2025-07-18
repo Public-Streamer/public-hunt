@@ -42,6 +42,10 @@ const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
               <div className="dollar-sparkle dollar-sparkle-4">$</div>
               <div className="dollar-sparkle dollar-sparkle-5">$</div>
               <div className="dollar-sparkle dollar-sparkle-6">$</div>
+              <div className="dollar-sparkle dollar-sparkle-7">$</div>
+              <div className="dollar-sparkle dollar-sparkle-8">$</div>
+              <div className="dollar-sparkle dollar-sparkle-9">$</div>
+              <div className="dollar-sparkle dollar-sparkle-10">$</div>
             </div>
           </div>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
