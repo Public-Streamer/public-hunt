@@ -7,8 +7,11 @@ import { MessageCircle, Bot, Sparkles } from 'lucide-react';
 import EnhancedQABlog from '@/components/EnhancedQABlog';
 import AIAgent from '@/components/AIAgent';
 import DynamicFAQ from '@/components/DynamicFAQ';
+import TooltipWrapper from '@/components/ui/tooltip-wrapper';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const QA = () => {
+  const isMobile = useIsMobile();
   const [dynamicFAQs, setDynamicFAQs] = useState([
     {
       id: 'payment-setup',
@@ -54,13 +57,36 @@ const QA = () => {
         </div>
 
         <Tabs defaultValue="faq" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="faq">FAQ & Guide</TabsTrigger>
-            <TabsTrigger value="ai-faq">
-              <Bot className="h-4 w-4 mr-1" />
-              AI FAQs
-            </TabsTrigger>
-            <TabsTrigger value="community">Community Q&A</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 h-auto min-h-[44px] gap-1 p-1">
+            <TooltipWrapper content="Frequently Asked Questions and User Guide">
+              <TabsTrigger 
+                value="faq" 
+                className="flex items-center justify-center p-2 text-xs sm:text-sm lg:text-base min-h-[40px] text-center leading-tight"
+              >
+                <span className="hidden sm:inline">FAQ & Guide</span>
+                <span className="sm:hidden">FAQ</span>
+              </TabsTrigger>
+            </TooltipWrapper>
+            <TooltipWrapper content="AI-generated Frequently Asked Questions">
+              <TabsTrigger 
+                value="ai-faq"
+                className="flex items-center justify-center p-2 text-xs sm:text-sm lg:text-base min-h-[40px] text-center leading-tight"
+              >
+                <Bot className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
+                <span className="hidden md:inline">AI FAQs</span>
+                <span className="hidden sm:inline md:hidden">AI</span>
+                <span className="sm:hidden">AI</span>
+              </TabsTrigger>
+            </TooltipWrapper>
+            <TooltipWrapper content="Community Questions and Answers">
+              <TabsTrigger 
+                value="community"
+                className="flex items-center justify-center p-2 text-xs sm:text-sm lg:text-base min-h-[40px] text-center leading-tight"
+              >
+                <span className="hidden sm:inline">Community Q&A</span>
+                <span className="sm:hidden">Q&A</span>
+              </TabsTrigger>
+            </TooltipWrapper>
           </TabsList>
           
           <TabsContent value="faq" className="space-y-6">

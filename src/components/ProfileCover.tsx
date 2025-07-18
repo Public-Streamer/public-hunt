@@ -247,15 +247,16 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
             </div>
           </div>
           
-          <div className="flex space-x-2 mt-4 sm:mt-0">
+          <div className="flex flex-wrap gap-2 mt-4 sm:mt-0 justify-center sm:justify-start">
             {isOwnProfile ? (
               <>
                 <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
                   <DialogTrigger asChild>
                     <TooltipWrapper content="Edit your profile information">
-                      <Button variant="outline">
-                        <Settings className="w-4 h-4 mr-2" />
-                        Edit Profile
+                      <Button variant="outline" size="sm" className="text-xs sm:text-sm px-3 py-2">
+                        <Settings className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                        <span className="hidden xs:inline">Edit Profile</span>
+                        <span className="xs:hidden">Edit</span>
                       </Button>
                     </TooltipWrapper>
                   </DialogTrigger>
@@ -338,9 +339,10 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
                 <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
                   <DialogTrigger asChild>
                     <TooltipWrapper content="Share your profile with others">
-                      <Button variant="outline">
-                        <Share2 className="w-4 h-4 mr-2" />
-                        Share Profile
+                      <Button variant="outline" size="sm" className="text-xs sm:text-sm px-3 py-2">
+                        <Share2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                        <span className="hidden xs:inline">Share Profile</span>
+                        <span className="xs:hidden">Share</span>
                       </Button>
                     </TooltipWrapper>
                   </DialogTrigger>
@@ -364,22 +366,24 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
                   currentUserId={currentUser?.id}
                 />
                 <TooltipWrapper content="Send a friend request to this user">
-                  <Button variant="outline" onClick={handleSendFriendRequest}>
-                    <UserPlus className="w-4 h-4 mr-2" />
-                    Add Friend
+                  <Button variant="outline" onClick={handleSendFriendRequest} size="sm" className="text-xs sm:text-sm px-3 py-2">
+                    <UserPlus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                    <span className="hidden xs:inline">Add Friend</span>
+                    <span className="xs:hidden">Add</span>
                   </Button>
                 </TooltipWrapper>
                 <TooltipWrapper content="Send a private message">
-                  <Button variant="outline">
-                    <MessageCircle className="w-4 h-4 mr-2" />
-                    Message
+                  <Button variant="outline" size="sm" className="text-xs sm:text-sm px-3 py-2">
+                    <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                    <span className="hidden xs:inline">Message</span>
+                    <span className="xs:hidden">Msg</span>
                   </Button>
                 </TooltipWrapper>
                 <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
                   <DialogTrigger asChild>
                     <TooltipWrapper content="Share this profile">
-                      <Button variant="outline" size="sm">
-                        <Share2 className="w-4 h-4" />
+                      <Button variant="outline" size="sm" className="p-2">
+                        <Share2 className="w-3 h-3 sm:w-4 sm:h-4" />
                       </Button>
                     </TooltipWrapper>
                   </DialogTrigger>
