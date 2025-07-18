@@ -177,9 +177,10 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
 
   const handleTermsClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    console.log("Legal button clicked, showLegalModal:", showLegalModal);
+    e.stopPropagation();
+    console.log("Legal button clicked, current showLegalModal:", showLegalModal);
     setShowLegalModal(true);
-    console.log("showLegalModal set to true");
+    console.log("setShowLegalModal called with true");
   };
 
   const handleLegalAccept = (signature: string, date: string) => {
@@ -503,8 +504,14 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                 <div className="text-sm">
                   <button
                     type="button"
-                    onClick={handleTermsClick}
-                    className="text-primary underline hover:no-underline cursor-pointer"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      console.log("Button clicked directly");
+                      handleTermsClick(e);
+                    }}
+                    className="text-primary underline hover:no-underline cursor-pointer bg-transparent border-none p-0"
+                    style={{ all: 'unset', color: 'hsl(var(--primary))', textDecoration: 'underline', cursor: 'pointer' }}
                   >
                     Sign Legal Protection Agreement (Required)
                   </button>
