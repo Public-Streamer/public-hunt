@@ -87,8 +87,8 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                   to="/create" 
                   className={`px-4 py-2 rounded-lg font-semibold text-white border-2 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl drop-shadow-lg ${
                     isActive('/create') 
-                      ? 'bg-green-600 border-green-500 shadow-green-400/30' 
-                      : 'bg-green-500 border-green-400 hover:bg-green-600 hover:border-green-300'
+                      ? 'bg-purple-700 border-purple-600 shadow-purple-400/30' 
+                      : 'bg-purple-600 border-purple-500 hover:bg-purple-700 hover:border-purple-400'
                   }`}
                   style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}
                 >
@@ -100,8 +100,8 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                   to="/channels" 
                   className={`px-4 py-2 rounded-lg font-semibold text-white border-2 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl drop-shadow-lg ${
                     isActive('/channels') 
-                      ? 'bg-blue-600 border-blue-500 shadow-blue-400/30' 
-                      : 'bg-blue-500 border-blue-400 hover:bg-blue-600 hover:border-blue-300'
+                      ? 'bg-pink-700 border-pink-600 shadow-pink-400/30' 
+                      : 'bg-pink-600 border-pink-500 hover:bg-pink-700 hover:border-pink-400'
                   }`}
                   style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}
                 >
@@ -113,8 +113,8 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                   to="/events" 
                   className={`px-4 py-2 rounded-lg font-semibold text-white border-2 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl drop-shadow-lg ${
                     isActive('/events') 
-                      ? 'bg-red-600 border-red-500 shadow-red-400/30' 
-                      : 'bg-red-500 border-red-400 hover:bg-red-600 hover:border-red-300'
+                      ? 'bg-indigo-700 border-indigo-600 shadow-indigo-400/30' 
+                      : 'bg-indigo-600 border-indigo-500 hover:bg-indigo-700 hover:border-indigo-400'
                   }`}
                   style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}
                 >
@@ -126,8 +126,8 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                   to="/qa" 
                   className={`px-4 py-2 rounded-lg font-semibold text-white border-2 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl drop-shadow-lg ${
                     isActive('/qa') 
-                      ? 'bg-yellow-600 border-yellow-500 shadow-yellow-400/30' 
-                      : 'bg-yellow-500 border-yellow-400 hover:bg-yellow-600 hover:border-yellow-300'
+                      ? 'bg-violet-700 border-violet-600 shadow-violet-400/30' 
+                      : 'bg-violet-600 border-violet-500 hover:bg-violet-700 hover:border-violet-400'
                   }`}
                   style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}
                 >
@@ -158,9 +158,13 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                 </>
               ) : (
                 <TooltipWrapper content="Sign in to your account or create a new one">
-                  <Button onClick={onLoginClick} className={`bg-white/20 text-white hover:bg-white/30 border border-white/40 shadow-md backdrop-blur-sm ${
-                    isMobile ? 'text-sm px-3 py-2' : ''
-                  }`}>
+                  <Button 
+                    onClick={onLoginClick} 
+                    className={`bg-white/20 text-white hover:bg-white/30 border border-white/40 shadow-md backdrop-blur-sm ${
+                      isMobile ? 'text-sm px-3 py-2' : ''
+                    }`}
+                    style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}
+                  >
                     <User className="h-4 w-4 mr-1" />
                     <span className="font-medium">Login</span>
                   </Button>
