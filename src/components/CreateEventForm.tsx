@@ -352,21 +352,6 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
             <PriceSlider value={ticketPrice} onChange={handleTicketPriceChange} />
           </div>
           
-          <div className="mt-6">
-            <CreateEventFormButtons
-              isReadyToGoLive={isCoreFieldsComplete()}
-              canGoLiveWithTeam={canGoLiveWithTeam()}
-              selectedStreamers={selectedStreamers}
-              teamConfirmed={teamConfirmed}
-              getRequiredFields={getRequiredFields}
-              onGoLiveNow={handleGoLiveNow}
-              onCreateEvent={handleCreateEvent}
-              isValid={isAllFieldsComplete()}
-              canCreateEvent={isAllFieldsComplete()}
-              showSoloButton={true}
-            />
-          </div>
-          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <Label htmlFor="eventDate" className="text-base font-bold mb-2 block">
@@ -407,6 +392,9 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
           </div>
         </CardContent>
       </Card>
+      </form>
+      
+      <StreamerSelector onStreamersChange={handleStreamersChange} />
       
       <Card className="mt-6">
         <CardContent className="pt-6">
@@ -424,9 +412,6 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
           />
         </CardContent>
       </Card>
-      </form>
-      
-      <StreamerSelector onStreamersChange={handleStreamersChange} />
     </div>
   );
 };
