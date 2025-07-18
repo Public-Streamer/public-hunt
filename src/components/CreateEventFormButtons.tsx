@@ -226,22 +226,22 @@ const CreateEventFormButtons: React.FC<CreateEventFormButtonsProps> = ({
       
       {!showSoloButton && (
         <>
-          <div className="flex justify-center py-4 px-2 w-full">
-            <div className="w-full max-w-sm sm:max-w-md md:max-w-lg">{/* Control button max width */}
-            <TooltipWrapper content={getTeamTooltip()}>
-              <div>
-                <GoLiveButton 
-                  onClick={onGoLiveNow}
-                  disabled={!teamButtonEnabled}
-                  isActive={teamButtonEnabled}
-                  tooltipText={getTeamTooltip()}
-                  >
-                    <LiveStreamLogo size="md" className="mr-1 flex-shrink-0" />
-                    <span className="truncate text-sm sm:text-base md:text-lg flex-1 text-center">Go Live Now with Team</span>
-                    <Users className="h-4 w-4 sm:h-4 sm:w-4 md:h-5 md:w-5 ml-1 flex-shrink-0" />
-                  </GoLiveButton>
-              </div>
-            </TooltipWrapper>
+          <div className="flex justify-center items-center py-4 px-2 w-full">
+            <div className="w-full max-w-sm sm:max-w-md md:max-w-lg flex justify-center">{/* Control button max width */}
+              <TooltipWrapper content={getTeamTooltip()}>
+                <div className="flex justify-center w-full">
+                  <GoLiveButton 
+                    onClick={onGoLiveNow}
+                    disabled={!teamButtonEnabled}
+                    isActive={teamButtonEnabled}
+                    tooltipText={getTeamTooltip()}
+                    >
+                      <LiveStreamLogo size="md" className="mr-1 flex-shrink-0" />
+                      <span className="truncate text-sm sm:text-base md:text-lg flex-1 text-center">Go Live Now with Team</span>
+                      <Users className="h-4 w-4 sm:h-4 sm:w-4 md:h-5 md:w-5 ml-1 flex-shrink-0" />
+                    </GoLiveButton>
+                </div>
+              </TooltipWrapper>
             </div>
           </div>
           
