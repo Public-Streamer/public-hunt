@@ -204,10 +204,10 @@ const CreateEventFormButtons: React.FC<CreateEventFormButtonsProps> = ({
       `}</style>
       
       {showSoloButton && (
-        <div className="flex justify-center py-4 px-2 w-full">
-          <div className="w-full max-w-sm sm:max-w-md md:max-w-lg">{/* Control button max width */}
+        <div className="flex justify-center items-center py-4 px-2 w-full">
+          <div className="w-full max-w-sm sm:max-w-md md:max-w-lg flex justify-center">{/* Control button max width */}
           <TooltipWrapper content={getSoloTooltip()}>
-            <div>
+            <div className="flex justify-center w-full">
               <GoLiveButton 
                 onClick={onGoLiveNow}
                 disabled={!isReadyToGoLive}
