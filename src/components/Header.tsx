@@ -33,13 +33,13 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                   {/* Main Play Button with flanking icons */}
                   <div className="relative z-10 flex items-center justify-center h-full w-full">
                     {/* Lightning bolt to the left of triangle */}
-                    <Zap className="text-yellow-300 animate-pulse h-6 w-6 mr-1" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))', animationDuration: '0.8s' }} />
+                    <Zap className="text-yellow-300 animate-pulse h-5 w-5 mr-0.5" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))', animationDuration: '0.8s' }} />
                     
-                    <Play className="text-white h-9 w-9" style={{ filter: 'drop-shadow(3px 3px 6px rgba(0,0,0,0.7))' }} />
+                    <Play className="text-white h-8 w-8" style={{ filter: 'drop-shadow(3px 3px 6px rgba(0,0,0,0.7))' }} />
                     <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/60 to-transparent opacity-40 pointer-events-none"></div>
                     
                     {/* Dollar sign to the right of triangle */}
-                    <DollarSign className="text-green-300 animate-pulse h-6 w-6 ml-1" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))', animationDuration: '1.2s' }} />
+                    <DollarSign className="text-green-300 animate-pulse h-5 w-5 ml-0.5" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))', animationDuration: '1.2s' }} />
                   </div>
                   
                   {/* Subtle Strobe Effect */}
@@ -115,13 +115,13 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                     {/* Main Play Button with flanking icons */}
                     <div className="relative z-10 flex items-center justify-center h-full w-full">
                       {/* Lightning bolt to the left of triangle */}
-                      <Zap className="text-yellow-300 animate-pulse h-8 w-8 mr-1" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))', animationDuration: '0.8s' }} />
+                      <Zap className="text-yellow-300 animate-pulse h-7 w-7 mr-0.5" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))', animationDuration: '0.8s' }} />
                       
-                      <Play className="text-white h-12 w-12" style={{ filter: 'drop-shadow(3px 3px 6px rgba(0,0,0,0.7))' }} />
+                      <Play className="text-white h-11 w-11" style={{ filter: 'drop-shadow(3px 3px 6px rgba(0,0,0,0.7))' }} />
                       <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/60 to-transparent opacity-40 pointer-events-none"></div>
                       
                       {/* Dollar sign to the right of triangle */}
-                      <DollarSign className="text-green-300 animate-pulse h-8 w-8 ml-1" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))', animationDuration: '1.2s' }} />
+                      <DollarSign className="text-green-300 animate-pulse h-7 w-7 ml-0.5" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))', animationDuration: '1.2s' }} />
                     </div>
                     
                     {/* Subtle Strobe Effect */}
