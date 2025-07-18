@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Play, User, Menu, LogOut } from 'lucide-react';
+import { Play, User, Menu, LogOut, Zap, DollarSign } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAppContext } from '@/contexts/AppContext';
@@ -36,12 +36,40 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                   <Menu className="h-5 w-5" />
                 </Button>
               )}
-              <Link to="/" className="flex items-center space-x-2">
-                <div className="relative">
-                  <Play className="h-8 w-8 drop-shadow-lg bg-white/20 rounded-full p-1 backdrop-blur-sm border border-white/30 hover:bg-white/30 transition-all duration-200 hover:scale-105" />
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/40 to-transparent pointer-events-none"></div>
+              <Link to="/" className="flex items-center space-x-3">
+                <div className="relative bg-gradient-to-br from-white/30 to-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/40 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group">
+                  {/* Main Play Button */}
+                  <div className="relative z-10">
+                    <Play className="h-8 w-8 text-white drop-shadow-lg" />
+                    <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/60 to-transparent opacity-40 pointer-events-none"></div>
+                  </div>
+                  
+                  {/* Lightning Bolt - Top Right */}
+                  <Zap className="absolute -top-1 -right-1 h-4 w-4 text-yellow-300 animate-pulse" />
+                  
+                  {/* Dollar Sign - Bottom Left */}
+                  <DollarSign className="absolute -bottom-1 -left-1 h-4 w-4 text-green-300 animate-pulse" style={{ animationDelay: '0.5s' }} />
+                  
+                  {/* Subtle Strobe Effect */}
+                  <div className="absolute inset-0 rounded-xl bg-white/20 opacity-0 group-hover:opacity-100 group-hover:animate-pulse transition-all duration-300"></div>
+                  
+                  {/* Live Indicator */}
+                  <div className="absolute -top-2 -right-2 flex items-center space-x-1 bg-red-500 text-white text-xs px-2 py-1 rounded-full animate-pulse">
+                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                    <span className="font-bold">LIVE</span>
+                  </div>
                 </div>
-                <h1 className="text-2xl font-bold">Public Streamer</h1>
+                
+                <div className="flex flex-col">
+                  <h1 className="text-2xl font-orbitron font-black text-white drop-shadow-lg tracking-wide">
+                    Public Streamer
+                  </h1>
+                  <div className="flex items-center space-x-1 text-xs text-white/80 font-medium">
+                    <DollarSign className="h-3 w-3 text-green-300" />
+                    <span>Go Live • Make Money</span>
+                    <Zap className="h-3 w-3 text-yellow-300" />
+                  </div>
+                </div>
               </Link>
             </div>
             
