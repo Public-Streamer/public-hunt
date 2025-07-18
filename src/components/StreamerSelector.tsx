@@ -228,7 +228,7 @@ const StreamerSelector: React.FC<StreamerSelectorProps> = ({ onStreamersChange }
                     size="sm"
                     variant="ghost"
                     onClick={() => removeMember(member.id)}
-                    className="absolute top-2 right-2 z-10"
+                    className="absolute top-2 right-12 z-10"
                   >
                     <X className="h-4 w-4" />
                   </Button>
