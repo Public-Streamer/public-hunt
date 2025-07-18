@@ -101,21 +101,21 @@ const EventPermissionCheckboxes: React.FC<EventPermissionCheckboxesProps> = ({
       <CardHeader>
         <CardTitle className="text-sm font-bold">{getTitle()}</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-2">
         {roleHierarchy.map((role) => (
-          <div key={role} className="flex items-start space-x-3 p-3 border rounded-lg">
+          <div key={role} className="flex items-start space-x-3 p-2 border rounded hover:bg-gray-50">
             <Checkbox
               id={`${role}-${memberEmail || 'default'}`}
               checked={roles[role as keyof typeof roles]}
               onCheckedChange={(checked) => handleRoleChange(role, checked as boolean)}
               disabled={disabled}
-              className="mt-1"
+              className="mt-0.5"
             />
-            <div className="flex-1">
-              <Label htmlFor={`${role}-${memberEmail || 'default'}`} className="text-base font-medium cursor-pointer">
+            <div className="flex-1 min-w-0">
+              <Label htmlFor={`${role}-${memberEmail || 'default'}`} className="text-sm font-medium cursor-pointer block">
                 {roleLabels[role as keyof typeof roleLabels]}
               </Label>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-xs text-gray-600 mt-0.5 leading-tight">
                 {roleDescriptions[role as keyof typeof roleDescriptions]}
               </p>
             </div>
