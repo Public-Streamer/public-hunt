@@ -30,6 +30,7 @@ const EventRoleManager: React.FC<EventRoleManagerProps> = ({
   disabled = false
 }) => {
   const [isExpanded, setIsExpanded] = useState(!member.confirmed);
+  const [isEditing, setIsEditing] = useState(false);
   
   const roleLabels = {
     event_master: 'Event Master',
@@ -53,6 +54,12 @@ const EventRoleManager: React.FC<EventRoleManagerProps> = ({
   const handleConfirm = () => {
     onConfirm();
     setIsExpanded(false);
+    setIsEditing(false);
+  };
+
+  const handleEdit = () => {
+    setIsEditing(true);
+    setIsExpanded(true);
   };
   
   return (
@@ -77,7 +84,7 @@ const EventRoleManager: React.FC<EventRoleManagerProps> = ({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              {member.confirmed && (
+              {member.confirmed && !isEditing && (
                 <DropdownMenuItem onClick={() => setIsExpanded(!isExpanded)}>
                   {isExpanded ? (
                     <>
@@ -92,10 +99,16 @@ const EventRoleManager: React.FC<EventRoleManagerProps> = ({
                   )}
                 </DropdownMenuItem>
               )}
-              {!member.confirmed && (
-                <DropdownMenuItem onClick={() => setIsExpanded(!isExpanded)}>
+              {member.confirmed && !isEditing && (
+                <DropdownMenuItem onClick={handleEdit}>
                   <Edit className="h-4 w-4 mr-2" />
                   Edit Permissions
+                </DropdownMenuItem>
+              )}
+              {(!member.confirmed || isEditing) && (
+                <DropdownMenuItem onClick={() => setIsExpanded(!isExpanded)}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  {isExpanded ? 'Collapse' : 'Edit'} Permissions
                 </DropdownMenuItem>
               )}
               {onRemove && !disabled && (
@@ -116,18 +129,18 @@ const EventRoleManager: React.FC<EventRoleManagerProps> = ({
             <EventPermissionCheckboxes
               selectedRoles={member.permissions}
               onRolesChange={onPermissionsChange}
-              disabled={disabled || member.confirmed}
+              disabled={disabled && !isEditing}
               memberName={member.name}
               memberEmail={member.email}
             />
             
-            {!member.confirmed && member.permissions.length > 0 && (
+            {(!member.confirmed || isEditing) && member.permissions.length > 0 && (
               <div className="flex justify-center mt-6">
                 <Button
                   onClick={handleConfirm}
                   className="bg-green-600 hover:bg-green-700 text-white px-6"
                 >
-                  Confirm Role
+                  {isEditing ? 'Save Changes' : 'Confirm Role'}
                 </Button>
               </div>
             )}
