@@ -63,19 +63,21 @@ const EventRoleManager: React.FC<EventRoleManagerProps> = ({
   };
   
   return (
-    <Card className={member.confirmed ? 'border-green-200 bg-green-50' : ''}>
+    <Card className={`transition-all duration-200 ${member.confirmed ? 'border-green-200 bg-green-50/50' : 'border-gray-200 hover:border-gray-300'}`}>
       <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center space-x-2">
-            <User className="h-4 w-4" />
-            <span className="font-medium">{member.name}</span>
-            {member.confirmed && (
-              <>
-                <Badge variant="outline" className="text-xs">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3 flex-1 min-w-0">
+            <div className="flex-shrink-0">
+              <User className="h-4 w-4 text-gray-600" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <span className="font-medium text-gray-900 truncate block">{member.name}</span>
+              {member.confirmed && (
+                <Badge variant="outline" className="text-xs mt-1 bg-white border-green-300 text-green-700">
                   Confirmed - {getHighestRole()}
                 </Badge>
-              </>
-            )}
+              )}
+            </div>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

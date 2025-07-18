@@ -213,24 +213,25 @@ const StreamerSelector: React.FC<StreamerSelectorProps> = ({ onStreamersChange }
         )}
 
         <div>
-          <div className="flex items-center justify-between mb-2">
-            <Label>Event Production Team ({selectedMembers.length}/20)</Label>
-            <Badge variant={isLocked ? "default" : "secondary"}>
+          <div className="flex items-center justify-between mb-4">
+            <Label className="text-base font-semibold text-gray-700">Event Production Team ({selectedMembers.length}/20)</Label>
+            <Badge variant={isLocked ? "default" : "secondary"} className={`px-3 py-1 text-sm ${
+              isLocked ? "bg-green-100 text-green-800 border-green-300" : ""
+            }`}>
               {selectedMembers.length} selected {isLocked && "✓"}
             </Badge>
           </div>
           
-          <div className="space-y-4">
+          <div className="space-y-3">
             {selectedMembers.map(member => (
-              <div key={member.id} className="relative">
-                <EventRoleManager
-                  member={member}
-                  onPermissionsChange={(permissions) => updateMemberPermissions(member.id, permissions)}
-                  onConfirm={() => confirmMember(member.id)}
-                  onRemove={!isLocked ? () => removeMember(member.id) : undefined}
-                  disabled={isLocked}
-                />
-              </div>
+              <EventRoleManager
+                key={member.id}
+                member={member}
+                onPermissionsChange={(permissions) => updateMemberPermissions(member.id, permissions)}
+                onConfirm={() => confirmMember(member.id)}
+                onRemove={!isLocked ? () => removeMember(member.id) : undefined}
+                disabled={isLocked}
+              />
             ))}
           </div>
         </div>
