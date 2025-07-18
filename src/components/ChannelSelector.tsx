@@ -202,7 +202,7 @@ const ChannelSelector: React.FC<ChannelSelectorProps> = ({
             <SelectValue placeholder="Select a channel or assign later" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="personal">Stream to my personal profile page (Default)</SelectItem>
+            <SelectItem value="personal">Stream to profile page (Default)</SelectItem>
             <SelectItem value="assign-later">Assign Later</SelectItem>
             {userChannels.map(channel => (
               <SelectItem key={channel.id} value={channel.id}>
