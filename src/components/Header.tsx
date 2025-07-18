@@ -146,7 +146,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                 </>
               ) : (
                 <TooltipWrapper content="Sign in to your account or create a new one">
-                  <Button onClick={onLoginClick} className={`bg-white/90 text-purple-600 hover:bg-white hover:text-purple-700 shadow-md ${
+                  <Button onClick={onLoginClick} className={`bg-white/20 text-white hover:bg-white/30 border border-white/40 shadow-md backdrop-blur-sm ${
                     isMobile ? 'text-sm px-3 py-2' : ''
                   }`}>
                     <User className="h-4 w-4 mr-1" />
