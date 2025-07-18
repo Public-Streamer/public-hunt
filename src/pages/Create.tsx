@@ -253,8 +253,8 @@ const Create: React.FC = () => {
                 className="text-white bg-gradient-to-r from-blue-600 to-purple-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-700 data-[state=active]:to-purple-700 hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg transform hover:scale-105 flex flex-col items-center justify-center py-3 px-2 min-h-[3.5rem]"
               >
                 <div className="flex flex-col items-center justify-center leading-tight">
-                  <span className="text-sm sm:text-base font-semibold">🚀 Create</span>
-                  <span className="text-base sm:text-lg font-bold">Channel</span>
+                  <span className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl font-semibold">🚀 Create</span>
+                  <span className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl font-bold">Channel</span>
                 </div>
               </TabsTrigger>
             </TooltipWrapper>
@@ -264,8 +264,8 @@ const Create: React.FC = () => {
                 className="text-white bg-gradient-to-r from-pink-600 to-red-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-700 data-[state=active]:to-red-700 hover:from-pink-700 hover:to-red-700 transition-all duration-200 shadow-lg transform hover:scale-105 flex flex-col items-center justify-center py-3 px-2 min-h-[3.5rem]"
               >
                 <div className="flex flex-col items-center justify-center leading-tight">
-                  <span className="text-sm sm:text-base font-semibold">⚡ Create</span>
-                  <span className="text-base sm:text-lg font-bold">Event</span>
+                  <span className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl font-semibold">⚡ Create</span>
+                  <span className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl font-bold">Event</span>
                 </div>
               </TabsTrigger>
             </TooltipWrapper>
