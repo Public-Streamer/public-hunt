@@ -506,23 +506,18 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                 </div>
                 <div className="ml-6">
                   <div
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      console.log("Div clicked - opening legal modal");
+                    onClick={() => {
+                      console.log("CLICK DETECTED - Setting modal to open");
                       setShowLegalModal(true);
+                      console.log("Modal state should now be:", true);
                     }}
-                    className="text-primary underline hover:no-underline cursor-pointer inline-block"
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        setShowLegalModal(true);
-                      }
-                    }}
+                    className="text-blue-600 underline hover:text-blue-800 cursor-pointer inline-block p-2 bg-yellow-100 border border-yellow-300"
+                    style={{ pointerEvents: 'auto' }}
                   >
-                    Sign Legal Protection Agreement (Required)
+                    *** CLICK HERE TO OPEN LEGAL AGREEMENT ***
+                  </div>
+                  <div className="mt-2 text-xs text-gray-600">
+                    Modal state: {showLegalModal ? 'OPEN' : 'CLOSED'}
                   </div>
                 </div>
               </div>
@@ -612,10 +607,29 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
 
       <LegalDocumentModal
         isOpen={showLegalModal}
-        onClose={() => setShowLegalModal(false)}
+        onClose={() => {
+          console.log("Modal closing");
+          setShowLegalModal(false);
+        }}
         onAccept={handleLegalAccept}
         userEmail={signupData.email}
       />
+      
+      {/* Debug overlay */}
+      {showLegalModal && (
+        <div className="fixed inset-0 bg-red-500 bg-opacity-50 z-50 flex items-center justify-center">
+          <div className="bg-white p-4 rounded border">
+            <h3 className="text-lg font-bold">DEBUG: Modal Should Be Open</h3>
+            <p>showLegalModal: {showLegalModal.toString()}</p>
+            <button 
+              onClick={() => setShowLegalModal(false)}
+              className="mt-2 px-4 py-2 bg-red-500 text-white rounded"
+            >
+              Close Debug Modal
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 };
