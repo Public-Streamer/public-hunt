@@ -258,42 +258,17 @@ const ChannelSelector: React.FC<ChannelSelectorProps> = ({
   return (
     <div className="space-y-4">
       <div className="flex items-center space-x-2">
-        <Label className="text-base font-bold">Channel</Label>
+        <Label className="text-base font-bold">Broadcast Channel for Event</Label>
         <TooltipWrapper content="Select a channel to assign this event to. You can only assign events to channels where you are a Channel Master or Channel Admin.">
           <Info className="h-4 w-4 text-muted-foreground" />
         </TooltipWrapper>
       </div>
+      
+      <div className="text-sm text-muted-foreground mb-3">
+        Stream to profile page (default)
+      </div>
 
       <div className="space-y-3">
-        <Select value={selectedChannelId || 'personal'} onValueChange={handleChannelSelect}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select a channel or assign later" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="personal">Stream to profile page (Default)</SelectItem>
-            <SelectItem value="assign-later">Assign Later</SelectItem>
-            {userChannels.map(channel => (
-              <SelectItem key={channel.id} value={channel.id}>
-                <div className="flex items-center space-x-2">
-                  <span>{channel.name}</span>
-                  <span className="text-xs text-muted-foreground">
-                    ({channel.role === 'channel_master' ? 'Master' : 'Admin'})
-                  </span>
-                </div>
-              </SelectItem>
-            ))}
-            {userCompanies.map(company => (
-              <SelectItem key={company.id} value={company.id}>
-                <div className="flex items-center space-x-2">
-                  <span>{company.company_name}</span>
-                  <span className="text-xs text-muted-foreground">
-                    (Company Master)
-                  </span>
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
 
         <div className="flex items-center space-x-2">
           <Button
