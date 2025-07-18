@@ -256,19 +256,21 @@ const CreateEventFormButtons: React.FC<CreateEventFormButtonsProps> = ({
           </div>
           
           {!hideCreateButton && (
-            <div className="flex flex-col gap-4 justify-center pb-8">
-              <TooltipWrapper content={getCreateEventTooltip()}>
-                <Button 
-                  type="submit" 
-                  disabled={!isValid || !canCreateEvent} 
-                  className={`transition-all duration-200 px-6 py-4 text-base font-bold rounded-lg min-h-[48px] touch-manipulation whitespace-normal break-words leading-tight text-center w-full max-w-md ${
-                    isValid && canCreateEvent ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700' : 'bg-gray-400 cursor-not-allowed'
-                  }`}
-                  onClick={onCreateEvent}
-                >
-                  <span className="text-xs sm:text-sm md:text-base leading-tight">Create Event Now</span>
-                </Button>
-              </TooltipWrapper>
+            <div className="flex justify-center items-center py-4 px-2 w-full">
+              <div className="w-full max-w-sm sm:max-w-md md:max-w-lg flex justify-center">
+                <TooltipWrapper content={getCreateEventTooltip()}>
+                  <Button 
+                    type="submit" 
+                    disabled={!isValid || !canCreateEvent} 
+                    className={`transition-all duration-200 px-6 py-4 text-base font-bold rounded-lg min-h-[48px] touch-manipulation whitespace-normal break-words leading-tight text-center w-full ${
+                      isValid && canCreateEvent ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700' : 'bg-gray-400 cursor-not-allowed'
+                    }`}
+                    onClick={onCreateEvent}
+                  >
+                    <span className="text-xs sm:text-sm md:text-base leading-tight">Create Event Now</span>
+                  </Button>
+                </TooltipWrapper>
+              </div>
             </div>
           )}
         </>
