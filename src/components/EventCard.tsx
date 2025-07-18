@@ -119,23 +119,23 @@ const EventCard: React.FC<EventCardProps> = ({ event, onPurchase, onWatch }) => 
               {event.isLive ? 'Watch Now' : 'Buy Ticket'}
             </Button>
             
-            <div className="flex items-center justify-between border-t pt-3">
-              <Button variant="ghost" size="sm" className="flex items-center space-x-1" onClick={(e) => e.stopPropagation()}>
-                <Heart className="h-4 w-4" />
-                <span>Like</span>
+            <div className="flex items-center justify-center gap-1 sm:gap-2 border-t pt-3">
+              <Button variant="ghost" size="sm" className="flex items-center space-x-1 flex-1 justify-center min-w-0" onClick={(e) => e.stopPropagation()}>
+                <Heart className="h-4 w-4 flex-shrink-0" />
+                <span className="hidden xs:inline sm:inline">Like</span>
               </Button>
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="flex items-center space-x-1"
+                className="flex items-center space-x-1 flex-1 justify-center min-w-0"
                 onClick={handleSocialClick}
               >
-                <MessageCircle className="h-4 w-4" />
-                <span>Comments</span>
+                <MessageCircle className="h-4 w-4 flex-shrink-0" />
+                <span className="hidden xs:inline sm:inline">Comments</span>
               </Button>
-              <Button variant="ghost" size="sm" className="flex items-center space-x-1" onClick={(e) => e.stopPropagation()}>
-                <Share2 className="h-4 w-4" />
-                <span>Share</span>
+              <Button variant="ghost" size="sm" className="flex items-center space-x-1 flex-1 justify-center min-w-0" onClick={(e) => e.stopPropagation()}>
+                <Share2 className="h-4 w-4 flex-shrink-0" />
+                <span className="hidden xs:inline sm:inline">Share</span>
               </Button>
             </div>
           </div>
