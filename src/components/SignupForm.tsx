@@ -2,12 +2,16 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from '@/components/ui/checkbox';
-import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Upload, Camera } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { LegalDocumentModal } from "./LegalDocumentModal";
 import { useAppContext } from '@/contexts/AppContext';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useNavigate } from 'react-router-dom';
@@ -47,6 +51,11 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
   const [loading, setLoading] = useState(false);
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showLegalModal, setShowLegalModal] = useState(false);
+  const [legalDocumentSigned, setLegalDocumentSigned] = useState(false);
+  const [signatureData, setSignatureData] = useState<{ signature: string; date: string } | null>(null);
+  const [emailVerification, setEmailVerification] = useState("");
+  const [passwordVerification, setPasswordVerification] = useState("");
   // Use state to control error dialog visibility
   const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [errorDialogConfig, setErrorDialogConfig] = useState<{
@@ -166,10 +175,34 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
     setStep(2);
   };
 
+  const handleTermsClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    
+    // For company accounts, verify email and password match
+    if (signupData.accountType === 'company') {
+      if (emailVerification !== signupData.email) {
+        setError("Email verification does not match your account email");
+        return;
+      }
+      if (passwordVerification !== signupData.password) {
+        setError("Password verification does not match your account password");
+        return;
+      }
+    }
+    
+    setShowLegalModal(true);
+  };
+
+  const handleLegalAccept = (signature: string, date: string) => {
+    setSignatureData({ signature, date });
+    setLegalDocumentSigned(true);
+    setShowLegalModal(false);
+  };
+
   const handleFinalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!signupData.agreeToTerms || !signupData.confirmAge) {
-      setError('Please accept all terms and confirm your age.');
+    if (!signupData.agreeToTerms || !signupData.confirmAge || !legalDocumentSigned) {
+      setError('Please complete the legal agreement and accept all terms.');
       return;
     }
     
@@ -372,6 +405,37 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
           </div>
 
           <div className="space-y-4">
+            {signupData.accountType === 'company' && (
+              <div className="space-y-4 mb-4 p-4 border rounded-lg bg-muted/50">
+                <h4 className="font-medium text-sm">Company Account Master Verification</h4>
+                <p className="text-xs text-muted-foreground">
+                  Please re-enter your email and password to verify you are the Company Account Master
+                </p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="emailVerification">Verify Email</Label>
+                    <Input
+                      id="emailVerification"
+                      type="email"
+                      value={emailVerification}
+                      onChange={(e) => setEmailVerification(e.target.value)}
+                      placeholder="Re-enter your email"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="passwordVerification">Verify Password</Label>
+                    <Input
+                      id="passwordVerification"
+                      type="password"
+                      value={passwordVerification}
+                      onChange={(e) => setPasswordVerification(e.target.value)}
+                      placeholder="Re-enter your password"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="phone">Phone Number</Label>
               <Input
@@ -410,31 +474,61 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
           </div>
 
           <div className="space-y-4 border-t pt-4">
-            <div className="flex items-start space-x-2">
-              <Checkbox
-                id="confirmAge"
-                checked={signupData.confirmAge}
-                onCheckedChange={(checked) => setSignupData(prev => ({ ...prev, confirmAge: checked as boolean }))}
-              />
-              <Label htmlFor="confirmAge" className="text-sm leading-relaxed">
-                I confirm that I am at least 18 years old.
-              </Label>
-            </div>
-            
-            <div className="flex items-start space-x-2">
-              <Checkbox
-                id="agreeToTerms"
-                checked={signupData.agreeToTerms}
-                onCheckedChange={(checked) => setSignupData(prev => ({ ...prev, agreeToTerms: checked as boolean }))}
-              />
-              <Label htmlFor="agreeToTerms" className="text-sm leading-relaxed">
-                I agree to the Terms of Service and Privacy Policy.
-              </Label>
+            <div className="space-y-3">
+              {legalDocumentSigned && (
+                <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-sm text-green-800 font-medium">
+                    ✓ Legal Protection Agreement Signed
+                  </p>
+                  <p className="text-xs text-green-600">
+                    Signed by: {signatureData?.signature} on {signatureData?.date}
+                  </p>
+                </div>
+              )}
+              
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="legal"
+                  checked={legalDocumentSigned}
+                  disabled
+                />
+                <Label htmlFor="legal" className="text-sm">
+                  <button
+                    type="button"
+                    onClick={handleTermsClick}
+                    className="text-primary underline hover:no-underline"
+                  >
+                    Sign Legal Protection Agreement (Required)
+                  </button>
+                </Label>
+              </div>
+
+              <div className="flex items-start space-x-2">
+                <Checkbox
+                  id="confirmAge"
+                  checked={signupData.confirmAge}
+                  onCheckedChange={(checked) => setSignupData(prev => ({ ...prev, confirmAge: checked as boolean }))}
+                />
+                <Label htmlFor="confirmAge" className="text-sm leading-relaxed">
+                  I confirm that I am at least 18 years old.
+                </Label>
+              </div>
+              
+              <div className="flex items-start space-x-2">
+                <Checkbox
+                  id="agreeToTerms"
+                  checked={signupData.agreeToTerms}
+                  onCheckedChange={(checked) => setSignupData(prev => ({ ...prev, agreeToTerms: checked as boolean }))}
+                />
+                <Label htmlFor="agreeToTerms" className="text-sm leading-relaxed">
+                  I agree to the Terms of Service and Privacy Policy.
+                </Label>
+              </div>
             </div>
           </div>
           
           <div className="space-y-2">
-            <Button type="submit" className="w-full" disabled={!signupData.agreeToTerms || !signupData.confirmAge || loading}>
+            <Button type="submit" className="w-full" disabled={!signupData.agreeToTerms || !signupData.confirmAge || !legalDocumentSigned || loading}>
               {loading ? 'Creating Account...' : 'Create Account'}
             </Button>
             <Button type="button" variant="outline" onClick={() => setStep(1)} className="w-full">
@@ -490,6 +584,13 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
         title={errorDialogConfig.title}
         message={errorDialogConfig.message}
         showResetPassword={false}
+      />
+
+      <LegalDocumentModal
+        isOpen={showLegalModal}
+        onClose={() => setShowLegalModal(false)}
+        onAccept={handleLegalAccept}
+        userEmail={signupData.email}
       />
     </>
   );
