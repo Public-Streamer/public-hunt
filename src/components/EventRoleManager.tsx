@@ -67,7 +67,7 @@ const EventRoleManager: React.FC<EventRoleManagerProps> = ({
               </>
             )}
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-4">
             {member.confirmed && (
               <Button
                 variant="ghost"
@@ -91,10 +91,10 @@ const EventRoleManager: React.FC<EventRoleManagerProps> = ({
             />
             
             {!member.confirmed && member.permissions.length > 0 && (
-              <div className="flex justify-center">
+              <div className="flex justify-center mt-6">
                 <Button
                   onClick={handleConfirm}
-                  className="bg-green-600 hover:bg-green-700 text-white"
+                  className="bg-green-600 hover:bg-green-700 text-white px-6"
                 >
                   Confirm Role
                 </Button>
