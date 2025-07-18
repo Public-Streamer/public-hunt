@@ -84,7 +84,7 @@ const EventRoleManager: React.FC<EventRoleManagerProps> = ({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              {member.confirmed && !isEditing && (
+              {member.confirmed && !isEditing && !disabled && (
                 <DropdownMenuItem onClick={() => setIsExpanded(!isExpanded)}>
                   {isExpanded ? (
                     <>
@@ -99,13 +99,28 @@ const EventRoleManager: React.FC<EventRoleManagerProps> = ({
                   )}
                 </DropdownMenuItem>
               )}
-              {member.confirmed && !isEditing && (
+              {member.confirmed && !disabled && (
                 <DropdownMenuItem onClick={handleEdit}>
                   <Edit className="h-4 w-4 mr-2" />
                   Edit Permissions
                 </DropdownMenuItem>
               )}
-              {(!member.confirmed || isEditing) && (
+              {member.confirmed && disabled && (
+                <DropdownMenuItem onClick={() => setIsExpanded(!isExpanded)}>
+                  {isExpanded ? (
+                    <>
+                      <ChevronUp className="h-4 w-4 mr-2" />
+                      Collapse Details
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="h-4 w-4 mr-2" />
+                      View Details
+                    </>
+                  )}
+                </DropdownMenuItem>
+              )}
+              {(!member.confirmed || isEditing) && !disabled && (
                 <DropdownMenuItem onClick={() => setIsExpanded(!isExpanded)}>
                   <Edit className="h-4 w-4 mr-2" />
                   {isExpanded ? 'Collapse' : 'Edit'} Permissions
@@ -129,12 +144,12 @@ const EventRoleManager: React.FC<EventRoleManagerProps> = ({
             <EventPermissionCheckboxes
               selectedRoles={member.permissions}
               onRolesChange={onPermissionsChange}
-              disabled={disabled && !isEditing}
+              disabled={disabled || (member.confirmed && !isEditing)}
               memberName={member.name}
               memberEmail={member.email}
             />
             
-            {(!member.confirmed || isEditing) && member.permissions.length > 0 && (
+            {(!member.confirmed || isEditing) && !disabled && member.permissions.length > 0 && (
               <div className="flex justify-center mt-6">
                 <Button
                   onClick={handleConfirm}
