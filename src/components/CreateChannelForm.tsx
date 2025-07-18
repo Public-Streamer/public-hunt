@@ -135,7 +135,7 @@ const CreateChannelForm: React.FC<CreateChannelFormProps> = ({
         />
       </TooltipWrapper>
       
-      <div className="flex justify-end">
+      <div className="flex justify-center">
         <TooltipWrapper content={isValid ? "Create your channel and become the Channel Master" : "Complete all required fields to create your channel"}>
           <Button 
             type="submit" 
