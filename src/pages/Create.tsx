@@ -242,7 +242,7 @@ const Create: React.FC = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
         <TooltipWrapper content="Create channels and events to start streaming and building your audience">
-          <h1 className="text-3xl font-bold mb-8">
+          <h1 className="text-3xl font-bold mb-8 text-center">
             {activeTab === 'create-channel' ? 'Create Channel' : 'Create Event'}
           </h1>
         </TooltipWrapper>
