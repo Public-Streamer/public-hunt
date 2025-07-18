@@ -498,6 +498,21 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                 </div>
               )}
               
+              {!legalDocumentSigned && (
+                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <p className="text-sm text-yellow-800 font-medium">
+                    ⚠️ Legal Protection Agreement Required
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setShowLegalModal(true)}
+                    className="text-blue-600 underline hover:text-blue-800 text-sm mt-1"
+                  >
+                    Click here to sign the Legal Protection Agreement
+                  </button>
+                </div>
+              )}
+
               <div className="flex items-start space-x-2">
                 <Checkbox
                   id="confirmAge"
