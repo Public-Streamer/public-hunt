@@ -250,22 +250,28 @@ const Create: React.FC = () => {
             <TooltipWrapper content="Set up your streaming channel to broadcast live events and build your audience">
               <TabsTrigger
                 value="create-channel"
-                className="text-white bg-gradient-to-r from-blue-600 to-purple-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-700 data-[state=active]:to-purple-700 hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg transform hover:scale-105 flex flex-col items-center justify-center py-3 px-2 min-h-[3.5rem]"
+                className="text-white bg-gradient-to-r from-blue-600 to-purple-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-700 data-[state=active]:to-purple-700 hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg transform hover:scale-105 flex items-center justify-center py-3 px-2 min-h-[3.5rem]"
               >
-                <div className="flex flex-col items-center justify-center leading-tight">
-                  <span className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl font-semibold">🚀 Create</span>
-                  <span className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl font-bold">Channel</span>
+                <div className="flex items-center justify-center gap-2 text-xl lg:text-2xl xl:text-3xl font-bold sm:flex-col sm:gap-0 sm:text-base md:flex-row md:gap-2 md:text-lg lg:flex-row">
+                  <span className="flex items-center gap-1">
+                    <span>🚀</span>
+                    <span className="hidden sm:inline md:inline lg:inline">Create</span>
+                  </span>
+                  <span>Channel</span>
                 </div>
               </TabsTrigger>
             </TooltipWrapper>
             <TooltipWrapper content={getEventTabTooltip()}>
               <TabsTrigger
                 value="create-event"
-                className="text-white bg-gradient-to-r from-pink-600 to-red-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-700 data-[state=active]:to-red-700 hover:from-pink-700 hover:to-red-700 transition-all duration-200 shadow-lg transform hover:scale-105 flex flex-col items-center justify-center py-3 px-2 min-h-[3.5rem]"
+                className="text-white bg-gradient-to-r from-pink-600 to-red-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-700 data-[state=active]:to-red-700 hover:from-pink-700 hover:to-red-700 transition-all duration-200 shadow-lg transform hover:scale-105 flex items-center justify-center py-3 px-2 min-h-[3.5rem]"
               >
-                <div className="flex flex-col items-center justify-center leading-tight">
-                  <span className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl font-semibold">⚡ Create</span>
-                  <span className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl font-bold">Event</span>
+                <div className="flex items-center justify-center gap-2 text-xl lg:text-2xl xl:text-3xl font-bold sm:flex-col sm:gap-0 sm:text-base md:flex-row md:gap-2 md:text-lg lg:flex-row">
+                  <span className="flex items-center gap-1">
+                    <span>⚡</span>
+                    <span className="hidden sm:inline md:inline lg:inline">Create</span>
+                  </span>
+                  <span>Event</span>
                 </div>
               </TabsTrigger>
             </TooltipWrapper>
