@@ -43,8 +43,6 @@ const LiveStreamLogo: React.FC<LiveStreamLogoProps> = ({ size = 'md', className 
       {/* Lightning Bolt - Top Right */}
       <Zap className={`absolute -top-0.5 -right-0.5 text-yellow-300 animate-pulse ${classes.accent}`} style={{ filter: 'drop-shadow(1px 1px 2px rgba(0,0,0,0.7))' }} />
       
-      {/* Dollar Sign - Bottom Right (alternating) */}
-      <DollarSign className={`absolute -bottom-0.5 -right-0.5 text-green-300 animate-pulse ${classes.accent}`} style={{ animationDelay: '0.5s', filter: 'drop-shadow(1px 1px 2px rgba(0,0,0,0.7))' }} />
       
       {/* Live Indicator */}
       <div className={`absolute flex items-center space-x-0.5 bg-red-500 text-white rounded-full animate-pulse ${classes.live}`} style={{ filter: 'drop-shadow(1px 1px 2px rgba(0,0,0,0.6))' }}>
