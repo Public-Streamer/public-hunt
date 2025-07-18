@@ -180,12 +180,14 @@ const ChannelSelector: React.FC<ChannelSelectorProps> = ({
     if (channelId === 'assign-later') {
       onChannelChange('', false);
       setShowSearchResults(false);
+      setSearchQuery('');
       return;
     }
     
     if (channelId === 'personal') {
       onChannelChange('personal', false);
       setShowSearchResults(false);
+      setSearchQuery('');
       return;
     }
 
@@ -197,14 +199,17 @@ const ChannelSelector: React.FC<ChannelSelectorProps> = ({
       // User has permission to assign to this channel
       onChannelChange(channelId, false);
       setShowSearchResults(false);
+      setSearchQuery('');
     } else if (userCompany && userCompany.role === 'company_master') {
       // User has permission to assign to this company
       onChannelChange(channelId, false);
       setShowSearchResults(false);
+      setSearchQuery('');
     } else if (searchChannel) {
       // User doesn't have permission, requires approval
       onChannelChange(channelId, true);
       setShowSearchResults(false);
+      setSearchQuery('');
       toast({
         title: "Approval Required",
         description: "A request will be sent to the channel administrators for approval.",
