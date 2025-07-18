@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, Zap, DollarSign } from 'lucide-react';
+import { Play } from 'lucide-react';
 
 interface LiveStreamLogoProps {
   size?: 'sm' | 'md' | 'lg';
