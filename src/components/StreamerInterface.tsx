@@ -202,7 +202,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                       size={screenSize === 'mobile' ? 'sm' : 'lg'}
                       disabled={!controls.isConnected}
                     >
-                      <LiveStreamLogo size="sm" className="mr-2" />
+                      <LiveStreamLogo size="lg" className="mr-2" />
                       <Play className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                       Go Live
                     </Button>

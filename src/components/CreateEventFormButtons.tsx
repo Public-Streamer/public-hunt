@@ -213,7 +213,7 @@ const CreateEventFormButtons: React.FC<CreateEventFormButtonsProps> = ({
                 isActive={isReadyToGoLive}
                 tooltipText={getSoloTooltip()}
                 >
-                  <LiveStreamLogo size="sm" className="mr-2" />
+                  <LiveStreamLogo size="lg" className="mr-2" />
                   <Zap className="h-5 w-5 mr-3" />Go Live Right Now Solo
                 </GoLiveButton>
             </div>
@@ -232,7 +232,7 @@ const CreateEventFormButtons: React.FC<CreateEventFormButtonsProps> = ({
                   isActive={teamButtonEnabled}
                   tooltipText={getTeamTooltip()}
                   >
-                    <LiveStreamLogo size="sm" className="mr-2" />
+                    <LiveStreamLogo size="lg" className="mr-2" />
                     <Users className="h-5 w-5 mr-3" />Go Live Now with Team
                   </GoLiveButton>
               </div>
