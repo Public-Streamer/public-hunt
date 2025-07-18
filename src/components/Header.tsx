@@ -52,6 +52,9 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                   {/* Dollar Sign - Bottom Left */}
                   <DollarSign className={`absolute -bottom-1 -left-1 text-green-300 animate-pulse ${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} style={{ animationDelay: '0.5s', filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
                   
+                  {/* Lightning Bolt - Bottom Right */}
+                  <Zap className={`absolute -bottom-1 -right-1 text-yellow-300 animate-pulse ${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} style={{ animationDelay: '1s', filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
+                  
                   {/* Subtle Strobe Effect */}
                   <div className="absolute inset-0 rounded-xl bg-white/20 opacity-0 group-hover:opacity-100 group-hover:animate-pulse transition-all duration-300"></div>
                   

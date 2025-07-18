@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Zap, Users } from 'lucide-react';
 import TooltipWrapper from '@/components/ui/tooltip-wrapper';
+import LiveStreamLogo from '@/components/ui/live-stream-logo';
 
 interface GoLiveButtonProps {
   children: React.ReactNode;
@@ -211,9 +212,10 @@ const CreateEventFormButtons: React.FC<CreateEventFormButtonsProps> = ({
                 disabled={!isReadyToGoLive}
                 isActive={isReadyToGoLive}
                 tooltipText={getSoloTooltip()}
-              >
-                <Zap className="h-5 w-5 mr-3" />Go Live Right Now Solo
-              </GoLiveButton>
+                >
+                  <LiveStreamLogo size="sm" className="mr-2" />
+                  <Zap className="h-5 w-5 mr-3" />Go Live Right Now Solo
+                </GoLiveButton>
             </div>
           </TooltipWrapper>
         </div>
@@ -229,9 +231,10 @@ const CreateEventFormButtons: React.FC<CreateEventFormButtonsProps> = ({
                   disabled={!teamButtonEnabled}
                   isActive={teamButtonEnabled}
                   tooltipText={getTeamTooltip()}
-                >
-                  <Users className="h-5 w-5 mr-3" />Go Live Now with Team
-                </GoLiveButton>
+                  >
+                    <LiveStreamLogo size="sm" className="mr-2" />
+                    <Users className="h-5 w-5 mr-3" />Go Live Now with Team
+                  </GoLiveButton>
               </div>
             </TooltipWrapper>
           </div>

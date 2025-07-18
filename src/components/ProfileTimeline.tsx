@@ -18,6 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAppContext } from '@/contexts/AppContext';
 import SocialPost from './SocialPost';
 import MultiSelectTags from './MultiSelectTags';
+import LiveStreamLogo from '@/components/ui/live-stream-logo';
 
 interface UserProfile {
   id: string;
@@ -1275,12 +1276,13 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
                          
                          {/* Go Live Right Now Solo Button */}
                          <Popover open={showGoLivePopover} onOpenChange={setShowGoLivePopover}>
-                           <PopoverTrigger asChild>
-                             <Button variant="ghost" size="sm" className="bg-red-600 hover:bg-red-700 text-white">
-                               <Zap className="w-4 h-4 mr-2" />
-                               Go Live Right Now Solo
-                             </Button>
-                           </PopoverTrigger>
+                            <PopoverTrigger asChild>
+                              <Button variant="ghost" size="sm" className="bg-red-600 hover:bg-red-700 text-white">
+                                <LiveStreamLogo size="sm" className="mr-2" />
+                                <Zap className="w-4 h-4 mr-2" />
+                                Go Live Right Now Solo
+                              </Button>
+                            </PopoverTrigger>
                            <PopoverContent className="w-80 p-4">
                              <div className="space-y-4">
                                <div className="text-center">
@@ -1328,14 +1330,15 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
                                  >
                                    Cancel
                                  </Button>
-                                 <Button 
-                                   size="sm" 
-                                   onClick={handleGoLiveSolo}
-                                   className="flex-1 bg-red-600 hover:bg-red-700 text-white"
-                                 >
-                                   <Zap className="w-4 h-4 mr-2" />
-                                   Go Live Now
-                                 </Button>
+                                  <Button 
+                                    size="sm" 
+                                    onClick={handleGoLiveSolo}
+                                    className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                                  >
+                                    <LiveStreamLogo size="sm" className="mr-2" />
+                                    <Zap className="w-4 h-4 mr-2" />
+                                    Go Live Now
+                                  </Button>
                                </div>
                              </div>
                            </PopoverContent>

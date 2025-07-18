@@ -28,6 +28,7 @@ import { useEventLiveStatus } from "@/hooks/useEventLiveStatus";
 import StageShareMenu from "@/components/StageShareMenu";
 import EventSharePanel from "@/components/EventSharePanel";
 import { useScreenSize } from "@/hooks/use-mobile";
+import LiveStreamLogo from "@/components/ui/live-stream-logo";
 
 interface StreamerInterfaceProps {
   eventId: string;
@@ -201,6 +202,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                       size={screenSize === 'mobile' ? 'sm' : 'lg'}
                       disabled={!controls.isConnected}
                     >
+                      <LiveStreamLogo size="sm" className="mr-2" />
                       <Play className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                       Go Live
                     </Button>
