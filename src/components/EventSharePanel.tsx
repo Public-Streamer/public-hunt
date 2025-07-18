@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Share2, MessageCircle, Facebook, Copy, Check, ExternalLink, Globe, Users2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useScreenSize } from '@/hooks/use-mobile';
 
 interface EventSharePanelProps {
   eventId: string;
@@ -18,6 +19,7 @@ const EventSharePanel: React.FC<EventSharePanelProps> = ({
 }) => {
   const [copiedStates, setCopiedStates] = useState<{ [key: string]: boolean }>({});
   const [isPostingToAll, setIsPostingToAll] = useState(false);
+  const screenSize = useScreenSize();
 
   const eventUrl = `${window.location.origin}/event/${eventId}`;
   const shareMessage = `Check out this live event: "${eventTitle}"\n\n${eventDescription ? eventDescription + '\n\n' : ''}Join here: ${eventUrl}`;
@@ -128,20 +130,20 @@ const EventSharePanel: React.FC<EventSharePanelProps> = ({
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Globe className="h-4 w-4" />
+      <CardHeader className="p-3 sm:p-6">
+        <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+          <Globe className="h-3 w-3 sm:h-4 sm:w-4" />
           Share Event
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-6">
         <div className="space-y-2">
-          <p className="text-sm text-muted-foreground">
-            Share this event with your audience:
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            {screenSize === 'mobile' ? 'Share event:' : 'Share this event with your audience:'}
           </p>
           <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
-            <ExternalLink className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-mono truncate flex-1">{eventUrl}</span>
+            <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
+            <span className="text-xs sm:text-sm font-mono truncate flex-1">{eventUrl}</span>
           </div>
         </div>
 
@@ -149,15 +151,15 @@ const EventSharePanel: React.FC<EventSharePanelProps> = ({
         <Button
           onClick={handlePostToAll}
           disabled={isPostingToAll}
-          className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-          size="lg"
+          className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-xs sm:text-sm"
+          size={screenSize === 'mobile' ? 'sm' : 'lg'}
         >
-          <Users2 className="h-4 w-4 mr-2" />
-          {isPostingToAll ? 'Posting to All...' : 'POST TO ALL PLATFORMS'}
+          <Users2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+          {isPostingToAll ? 'Posting...' : (screenSize === 'mobile' ? 'POST TO ALL' : 'POST TO ALL PLATFORMS')}
         </Button>
 
         {/* Individual Platform Buttons */}
-        <div className="grid grid-cols-2 gap-2">
+        <div className={`grid gap-2 ${screenSize === 'mobile' ? 'grid-cols-1' : 'grid-cols-2'}`}>
           {shareOptions.map((option) => {
             const Icon = option.icon;
             return (
@@ -165,13 +167,14 @@ const EventSharePanel: React.FC<EventSharePanelProps> = ({
                 key={option.id}
                 onClick={option.action}
                 variant="outline"
-                className="flex items-center gap-2 h-auto p-3"
+                className={`flex items-center gap-2 h-auto p-2 sm:p-3 ${screenSize === 'mobile' ? 'justify-start' : ''}`}
                 disabled={copiedStates[option.id]}
+                size={screenSize === 'mobile' ? 'sm' : 'default'}
               >
-                <div className={`p-1 rounded ${option.color}`}>
+                <div className={`p-1 rounded ${option.color} flex-shrink-0`}>
                   <Icon className="h-3 w-3 text-white" />
                 </div>
-                <span className="text-sm">{option.name}</span>
+                <span className="text-xs sm:text-sm truncate">{option.name}</span>
               </Button>
             );
           })}
@@ -182,7 +185,7 @@ const EventSharePanel: React.FC<EventSharePanelProps> = ({
             <Badge variant="secondary" className="text-xs">
               Host Only
             </Badge>
-            <span>Share your event across all platforms</span>
+            <span className="truncate">{screenSize === 'mobile' ? 'Share event' : 'Share your event across all platforms'}</span>
           </div>
         </div>
       </CardContent>

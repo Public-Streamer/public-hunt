@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Share2, MessageCircle, Facebook, Copy, Check, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
+import { useScreenSize } from '@/hooks/use-mobile';
 
 interface StageShareMenuProps {
   eventId: string;
@@ -17,6 +18,7 @@ const StageShareMenu: React.FC<StageShareMenuProps> = ({
   eventDescription 
 }) => {
   const [copiedStates, setCopiedStates] = useState<{ [key: string]: boolean }>({});
+  const screenSize = useScreenSize();
 
   const stageUrl = `${window.location.origin}/stage/${eventId}`;
   const shareMessage = `Join me for a live streaming event: "${eventTitle}"\n\n${eventDescription ? eventDescription + '\n\n' : ''}Access the stage here: ${stageUrl}`;
@@ -141,24 +143,24 @@ const StageShareMenu: React.FC<StageShareMenuProps> = ({
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Share2 className="h-4 w-4" />
-          Invite Other Streamers
+      <CardHeader className="p-3 sm:p-6">
+        <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+          <Share2 className="h-3 w-3 sm:h-4 sm:w-4" />
+          {screenSize === 'mobile' ? 'Invite Streamers' : 'Invite Other Streamers'}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-6">
         <div className="space-y-2">
-          <p className="text-sm text-muted-foreground">
-            Share this stage link to invite other streamers to join your event:
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            {screenSize === 'mobile' ? 'Share stage link:' : 'Share this stage link to invite other streamers to join your event:'}
           </p>
           <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
-            <ExternalLink className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-mono truncate flex-1">{stageUrl}</span>
+            <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
+            <span className="text-xs sm:text-sm font-mono truncate flex-1">{stageUrl}</span>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className={`grid gap-2 ${screenSize === 'mobile' ? 'grid-cols-1' : 'grid-cols-2'}`}>
           {shareOptions.map((option) => {
             const Icon = option.icon;
             return (
@@ -166,13 +168,14 @@ const StageShareMenu: React.FC<StageShareMenuProps> = ({
                 key={option.id}
                 onClick={option.action}
                 variant="outline"
-                className="flex items-center gap-2 h-auto p-3"
+                className={`flex items-center gap-2 h-auto p-2 sm:p-3 ${screenSize === 'mobile' ? 'justify-start' : ''}`}
                 disabled={copiedStates[option.id]}
+                size={screenSize === 'mobile' ? 'sm' : 'default'}
               >
-                <div className={`p-1 rounded ${option.color}`}>
+                <div className={`p-1 rounded ${option.color} flex-shrink-0`}>
                   <Icon className="h-3 w-3 text-white" />
                 </div>
-                <span className="text-sm">{option.name}</span>
+                <span className="text-xs sm:text-sm truncate">{option.name}</span>
               </Button>
             );
           })}
@@ -183,7 +186,7 @@ const StageShareMenu: React.FC<StageShareMenuProps> = ({
             <Badge variant="secondary" className="text-xs">
               Host Only
             </Badge>
-            <span>Only you can see this sharing panel</span>
+            <span className="truncate">{screenSize === 'mobile' ? 'Private panel' : 'Only you can see this sharing panel'}</span>
           </div>
         </div>
       </CardContent>
