@@ -91,7 +91,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                   className={`px-4 py-2 rounded-lg font-semibold text-white border-2 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl drop-shadow-lg ${
                     isActive('/create') 
                       ? 'bg-red-600 border-red-500 shadow-red-400/30' 
-                      : 'bg-blue-600 border-blue-500 hover:bg-blue-700 hover:border-blue-400'
+                      : 'bg-slate-600 border-slate-500 hover:bg-slate-700 hover:border-slate-400'
                   }`}
                   style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}
                 >
@@ -104,7 +104,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                   className={`px-4 py-2 rounded-lg font-semibold text-white border-2 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl drop-shadow-lg ${
                     isActive('/channels') 
                       ? 'bg-red-600 border-red-500 shadow-red-400/30' 
-                      : 'bg-blue-600 border-blue-500 hover:bg-blue-700 hover:border-blue-400'
+                      : 'bg-slate-600 border-slate-500 hover:bg-slate-700 hover:border-slate-400'
                   }`}
                   style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}
                 >
@@ -117,7 +117,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                   className={`px-4 py-2 rounded-lg font-semibold text-white border-2 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl drop-shadow-lg ${
                     isActive('/events') 
                       ? 'bg-red-600 border-red-500 shadow-red-400/30' 
-                      : 'bg-blue-600 border-blue-500 hover:bg-blue-700 hover:border-blue-400'
+                      : 'bg-slate-600 border-slate-500 hover:bg-slate-700 hover:border-slate-400'
                   }`}
                   style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}
                 >
@@ -130,7 +130,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                   className={`px-4 py-2 rounded-lg font-semibold text-white border-2 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl drop-shadow-lg ${
                     isActive('/qa') 
                       ? 'bg-red-600 border-red-500 shadow-red-400/30' 
-                      : 'bg-blue-600 border-blue-500 hover:bg-blue-700 hover:border-blue-400'
+                      : 'bg-slate-600 border-slate-500 hover:bg-slate-700 hover:border-slate-400'
                   }`}
                   style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}
                 >
