@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,7 +11,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Upload, Camera } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { LegalDocumentModal } from "./LegalDocumentModal";
+
 import { useAppContext } from '@/contexts/AppContext';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useNavigate } from 'react-router-dom';
@@ -29,6 +29,20 @@ interface SignupFormProps {
 const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = false }) => {
   const { signUp } = useAppContext();
   const navigate = useNavigate();
+
+  // Listen for messages from popup window
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data.type === 'LEGAL_AGREEMENT_SIGNED') {
+        const { fullName, signature, signDate } = event.data.data;
+        setSignatureData({ signature, date: signDate });
+        setLegalDocumentSigned(true);
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
   const [signupData, setSignupData] = useState({
     accountType: 'individual' as 'individual' | 'company',
     companyName: '',
@@ -51,14 +65,10 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
   const [loading, setLoading] = useState(false);
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showLegalModal, setShowLegalModal] = useState(false);
   const [legalDocumentSigned, setLegalDocumentSigned] = useState(false);
   const [signatureData, setSignatureData] = useState<{ signature: string; date: string } | null>(null);
   const [emailVerification, setEmailVerification] = useState("");
   const [passwordVerification, setPasswordVerification] = useState("");
-  const [acknowledgedRisks, setAcknowledgedRisks] = useState(false);
-  const [acknowledgedLiability, setAcknowledgedLiability] = useState(false);
-  const [acknowledgedCompliance, setAcknowledgedCompliance] = useState(false);
   // Use state to control error dialog visibility
   const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [errorDialogConfig, setErrorDialogConfig] = useState<{
@@ -178,19 +188,6 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
     setStep(2);
   };
 
-  const handleTermsClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    console.log("Legal button clicked, current showLegalModal:", showLegalModal);
-    setShowLegalModal(true);
-    console.log("setShowLegalModal called with true");
-  };
-
-  const handleLegalAccept = (signature: string, date: string) => {
-    setSignatureData({ signature, date });
-    setLegalDocumentSigned(true);
-    setShowLegalModal(false);
-  };
 
   const handleFinalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -506,16 +503,97 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                   <button
                     type="button"
                     onClick={() => {
-                      console.log("Legal button clicked - opening modal");
-                      setShowLegalModal(true);
+                      // Open legal document in new window for signing
+                      const legalWindow = window.open('', '_blank', 'width=800,height=600,scrollbars=yes');
+                      if (legalWindow) {
+                        legalWindow.document.write(`
+                          <html>
+                            <head>
+                              <title>Legal Protection Agreement</title>
+                              <style>
+                                body { font-family: Arial, sans-serif; padding: 20px; line-height: 1.6; }
+                                .header { text-align: center; margin-bottom: 30px; }
+                                .signature-section { margin-top: 40px; padding: 20px; border: 2px solid #ddd; background: #f9f9f9; }
+                                input[type="text"] { border: 1px solid #ccc; padding: 8px; margin: 5px; }
+                                button { background: #4F46E5; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+                                button:hover { background: #3730A3; }
+                                .terms { margin: 20px 0; }
+                              </style>
+                            </head>
+                            <body>
+                              <div class="header">
+                                <h1>Legal Protection Agreement</h1>
+                                <p><strong>Effective Date:</strong> ${new Date().toLocaleDateString()}</p>
+                              </div>
+                              
+                              <div class="terms">
+                                <h2>1. Risk Acknowledgment</h2>
+                                <p>By using this platform, you acknowledge that live streaming events carry inherent risks including but not limited to technical failures, content disputes, and potential exposure to inappropriate content.</p>
+                                
+                                <h2>2. Liability Limitations</h2>
+                                <p>The platform and its operators shall not be held liable for any damages, losses, or injuries resulting from your use of the service, participation in events, or interactions with other users.</p>
+                                
+                                <h2>3. User Compliance</h2>
+                                <p>You agree to comply with all applicable laws, platform terms of service, and community guidelines. You are responsible for your actions and content on the platform.</p>
+                                
+                                <h2>4. Age Verification</h2>
+                                <p>You confirm that you are at least 18 years of age and have the legal capacity to enter into this agreement.</p>
+                                
+                                <h2>5. Content Rights</h2>
+                                <p>You retain ownership of your content but grant the platform necessary rights to host, distribute, and display your content as part of the service.</p>
+                              </div>
+                              
+                              <div class="signature-section">
+                                <h3>Electronic Signature</h3>
+                                <p>By signing below, you acknowledge that you have read, understood, and agree to all terms in this Legal Protection Agreement.</p>
+                                
+                                <form onsubmit="submitSignature(event)">
+                                  <p>
+                                    <label>Full Name: </label>
+                                    <input type="text" id="fullName" required style="width: 300px;" />
+                                  </p>
+                                  <p>
+                                    <label>Electronic Signature: </label>
+                                    <input type="text" id="signature" placeholder="Type your full name" required style="width: 300px;" />
+                                  </p>
+                                  <p>
+                                    <label>Date: </label>
+                                    <input type="text" id="signDate" value="${new Date().toLocaleDateString()}" readonly />
+                                  </p>
+                                  <p style="margin-top: 20px;">
+                                    <button type="submit">Sign Agreement</button>
+                                    <button type="button" onclick="window.close()" style="background: #6B7280; margin-left: 10px;">Cancel</button>
+                                  </p>
+                                </form>
+                              </div>
+                              
+                              <script>
+                                function submitSignature(event) {
+                                  event.preventDefault();
+                                  const fullName = document.getElementById('fullName').value;
+                                  const signature = document.getElementById('signature').value;
+                                  const signDate = document.getElementById('signDate').value;
+                                  
+                                  if (fullName && signature) {
+                                    window.opener.postMessage({
+                                      type: 'LEGAL_AGREEMENT_SIGNED',
+                                      data: { fullName, signature, signDate }
+                                    }, '*');
+                                    alert('Agreement signed successfully! You can now close this window.');
+                                    window.close();
+                                  }
+                                }
+                              </script>
+                            </body>
+                          </html>
+                        `);
+                        legalWindow.document.close();
+                      }
                     }}
-                    className="text-blue-600 underline hover:text-blue-800 text-sm mt-1 cursor-pointer"
+                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors mt-2"
                   >
-                    Click here to sign the Legal Protection Agreement
+                    📄 Open Legal Agreement to Sign
                   </button>
-                  <div className="text-xs text-gray-500 mt-1">
-                    Modal state: {showLegalModal ? 'OPEN' : 'CLOSED'}
-                  </div>
                 </div>
               )}
 
@@ -637,143 +715,6 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
         showResetPassword={false}
       />
 
-      {/* Simple direct modal - no external component */}
-      {showLegalModal && (
-        <div 
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            zIndex: 9999,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '20px'
-          }}
-        >
-          <div 
-            style={{
-              backgroundColor: 'white',
-              borderRadius: '8px',
-              padding: '30px',
-              maxWidth: '800px',
-              maxHeight: '90vh',
-              overflow: 'auto',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.3)'
-            }}
-          >
-            <h2 style={{ color: 'red', fontSize: '24px', fontWeight: 'bold', marginBottom: '20px' }}>
-              🚨 LEGAL AGREEMENT REQUIRED 🚨
-            </h2>
-            
-            <div style={{ maxHeight: '400px', overflow: 'auto', marginBottom: '20px', padding: '15px', border: '2px solid #ccc' }}>
-              <h3 style={{ fontWeight: 'bold', marginBottom: '10px' }}>STREAMURA PROTECTION WAIVER</h3>
-              <p style={{ marginBottom: '15px' }}>
-                By using Streamura, you agree to HOLD HARMLESS and INDEMNIFY Streamura from ALL claims, damages, and liability arising from your content or use of the platform.
-              </p>
-              <p style={{ marginBottom: '15px' }}>
-                You acknowledge that Streamura is NOT LIABLE for any content you create, upload, or stream, including but not limited to copyright violations, defamatory content, privacy violations, or any damages whatsoever.
-              </p>
-              <p style={{ marginBottom: '15px' }}>
-                This agreement includes complete liability waiver, indemnification, and binding arbitration. By signing, you waive rights to class action lawsuits.
-              </p>
-            </div>
-
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '10px' }}>
-                <input 
-                  type="checkbox" 
-                  checked={acknowledgedRisks}
-                  onChange={(e) => setAcknowledgedRisks(e.target.checked)}
-                  style={{ marginRight: '8px' }}
-                />
-                I acknowledge the risks and liability waivers
-              </label>
-              
-              <label style={{ display: 'block', marginBottom: '10px' }}>
-                <input 
-                  type="checkbox" 
-                  checked={acknowledgedLiability}
-                  onChange={(e) => setAcknowledgedLiability(e.target.checked)}
-                  style={{ marginRight: '8px' }}
-                />
-                I agree to indemnify Streamura from all claims
-              </label>
-              
-              <label style={{ display: 'block', marginBottom: '15px' }}>
-                <input 
-                  type="checkbox" 
-                  checked={acknowledgedCompliance}
-                  onChange={(e) => setAcknowledgedCompliance(e.target.checked)}
-                  style={{ marginRight: '8px' }}
-                />
-                I will comply with all laws and platform terms
-              </label>
-            </div>
-
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                Electronic Signature (Type your full legal name):
-              </label>
-              <input
-                type="text"
-                value={signatureData?.signature || ''}
-                onChange={(e) => setSignatureData({ signature: e.target.value, date: new Date().toLocaleDateString() })}
-                placeholder="Type your full legal name here"
-                style={{ 
-                  width: '100%', 
-                  padding: '10px', 
-                  border: '2px solid #ccc', 
-                  borderRadius: '4px',
-                  fontSize: '16px'
-                }}
-              />
-            </div>
-
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-              <button
-                onClick={() => setShowLegalModal(false)}
-                style={{
-                  padding: '12px 24px',
-                  backgroundColor: '#6b7280',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '16px'
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  if (acknowledgedRisks && acknowledgedLiability && acknowledgedCompliance && signatureData?.signature) {
-                    setLegalDocumentSigned(true);
-                    setShowLegalModal(false);
-                  } else {
-                    alert('Please complete all fields and checkboxes before signing.');
-                  }
-                }}
-                style={{
-                  padding: '12px 24px',
-                  backgroundColor: '#dc2626',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '16px',
-                  fontWeight: 'bold'
-                }}
-              >
-                I ACCEPT AND SIGN
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 };
