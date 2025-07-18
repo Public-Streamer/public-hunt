@@ -40,8 +40,6 @@ const LiveStreamLogo: React.FC<LiveStreamLogoProps> = ({ size = 'md', className 
         <Play className={`text-white ${classes.play}`} style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
       </div>
       
-      
-      
       {/* Live Indicator */}
       <div className={`absolute flex items-center space-x-0.5 bg-red-500 text-white rounded-full animate-pulse ${classes.live}`} style={{ filter: 'drop-shadow(1px 1px 2px rgba(0,0,0,0.6))' }}>
         <div className={`bg-white rounded-full ${classes.dot}`}></div>

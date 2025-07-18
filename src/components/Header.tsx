@@ -36,15 +36,6 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                     <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/60 to-transparent opacity-40 pointer-events-none"></div>
                   </div>
                   
-                  {/* Lightning Bolt - Top Right */}
-                  <Zap className="absolute -top-1 -right-1 text-yellow-300 animate-pulse h-3 w-3" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
-                  
-                  {/* Lightning Bolt - Bottom Left */}
-                  <Zap className="absolute -bottom-1 -left-1 text-yellow-300 animate-pulse h-3 w-3" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
-                  
-                  {/* Dollar Sign - Bottom Right */}
-                  <DollarSign className="absolute -bottom-1 -right-1 text-green-300 animate-pulse h-3 w-3" style={{ animationDelay: '0.5s', filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
-                  
                   {/* Subtle Strobe Effect */}
                   <div className="absolute inset-0 rounded-xl bg-white/20 opacity-0 group-hover:opacity-100 group-hover:animate-pulse transition-all duration-300"></div>
                   
@@ -59,11 +50,9 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                   <h1 className="font-orbitron font-black text-white tracking-wide text-sm leading-tight" style={{ textShadow: '3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)' }}>
                     Public Streamer
                   </h1>
-                  <div className="flex items-center space-x-1 text-white/80 font-medium text-xs" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>
-                     <Zap className="text-yellow-300 h-2.5 w-2.5" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
-                     <span className="whitespace-nowrap text-xs">Go Live • Make Money</span>
-                     <DollarSign className="text-green-300 h-2.5 w-2.5" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
-                  </div>
+                   <div className="flex items-center space-x-1 text-white/80 font-medium text-xs" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>
+                      <span className="whitespace-nowrap text-xs">Go Live • Make Money</span>
+                   </div>
                 </div>
               </Link>
               
@@ -121,15 +110,6 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                       <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/60 to-transparent opacity-40 pointer-events-none"></div>
                     </div>
                     
-                    {/* Lightning Bolt - Top Right */}
-                    <Zap className="absolute -top-1 -right-1 text-yellow-300 animate-pulse h-4 w-4" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
-                    
-                    {/* Lightning Bolt - Bottom Left */}
-                    <Zap className="absolute -bottom-1 -left-1 text-yellow-300 animate-pulse h-4 w-4" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
-                    
-                    {/* Dollar Sign - Bottom Right */}
-                    <DollarSign className="absolute -bottom-1 -right-1 text-green-300 animate-pulse h-4 w-4" style={{ animationDelay: '0.5s', filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
-                    
                     {/* Subtle Strobe Effect */}
                     <div className="absolute inset-0 rounded-xl bg-white/20 opacity-0 group-hover:opacity-100 group-hover:animate-pulse transition-all duration-300"></div>
                     
@@ -144,11 +124,9 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                     <h1 className="font-orbitron font-black text-white tracking-wide text-2xl" style={{ textShadow: '3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)' }}>
                       Public Streamer
                     </h1>
-                    <div className="flex items-center space-x-1 text-white/80 font-medium text-xs" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>
-                       <Zap className="text-yellow-300 h-4 w-4" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
-                       <span className="whitespace-nowrap">Go Live • Make Money</span>
-                       <DollarSign className="text-green-300 h-4 w-4" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
-                    </div>
+                     <div className="flex items-center space-x-1 text-white/80 font-medium text-xs" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>
+                        <span className="whitespace-nowrap">Go Live • Make Money</span>
+                     </div>
                   </div>
                 </Link>
               </div>
