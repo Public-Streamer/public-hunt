@@ -4,7 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Info, AlertCircle } from 'lucide-react';
+import { Search, Info, AlertCircle, X } from 'lucide-react';
 import TooltipWrapper from '@/components/ui/tooltip-wrapper';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
@@ -41,7 +41,7 @@ const ChannelSelector: React.FC<ChannelSelectorProps> = ({
   const [searchResults, setSearchResults] = useState<Channel[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
-  const [showSearch, setShowSearch] = useState(false);
+  const [showSearchResults, setShowSearchResults] = useState(false);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -179,11 +179,13 @@ const ChannelSelector: React.FC<ChannelSelectorProps> = ({
   const handleChannelSelect = (channelId: string) => {
     if (channelId === 'assign-later') {
       onChannelChange('', false);
+      setShowSearchResults(false);
       return;
     }
     
     if (channelId === 'personal') {
       onChannelChange('personal', false);
+      setShowSearchResults(false);
       return;
     }
 
@@ -194,12 +196,15 @@ const ChannelSelector: React.FC<ChannelSelectorProps> = ({
     if (userChannel && (userChannel.role === 'channel_master' || userChannel.role === 'channel_admin')) {
       // User has permission to assign to this channel
       onChannelChange(channelId, false);
+      setShowSearchResults(false);
     } else if (userCompany && userCompany.role === 'company_master') {
       // User has permission to assign to this company
       onChannelChange(channelId, false);
+      setShowSearchResults(false);
     } else if (searchChannel) {
       // User doesn't have permission, requires approval
       onChannelChange(channelId, true);
+      setShowSearchResults(false);
       toast({
         title: "Approval Required",
         description: "A request will be sent to the channel administrators for approval.",
@@ -212,9 +217,18 @@ const ChannelSelector: React.FC<ChannelSelectorProps> = ({
     setSearchQuery(value);
     if (value.trim()) {
       searchChannels(value);
+      setShowSearchResults(true);
     } else {
       setSearchResults([]);
+      setShowSearchResults(false);
     }
+  };
+
+  const handleClearSelection = () => {
+    onChannelChange('', false);
+    setSearchQuery('');
+    setSearchResults([]);
+    setShowSearchResults(false);
   };
 
   const getDisplayName = (item: any): string => {
@@ -263,7 +277,7 @@ const ChannelSelector: React.FC<ChannelSelectorProps> = ({
           <Info className="h-4 w-4 text-muted-foreground" />
         </TooltipWrapper>
         <div className="text-sm text-muted-foreground">
-          If No Channel Selected Stream to Profile Page (Default)
+          *If no channel selected, event streamed to profile page (Default)
         </div>
       </div>
 
@@ -284,7 +298,7 @@ const ChannelSelector: React.FC<ChannelSelectorProps> = ({
               <div className="text-sm text-muted-foreground">Searching...</div>
             )}
             
-            {searchResults.length > 0 && (
+            {showSearchResults && searchResults.length > 0 && (
               <div className="space-y-2">
                 {searchResults.map(channel => {
                   const hasPermission = userChannels.some(uc => uc.id === channel.id);
@@ -326,16 +340,26 @@ const ChannelSelector: React.FC<ChannelSelectorProps> = ({
       {selectedChannel && (
         <Card>
           <CardContent className="p-4">
-            <div className="text-sm">
-              <div className="font-medium">
-                Selected: {getDisplayName(selectedChannel)}
-              </div>
-              <div className="text-muted-foreground">{selectedChannel.description}</div>
-              {selectedChannel.role && (
-                <div className="mt-2 text-xs text-green-600">
-                  ✓ You have {selectedChannel.role.replace('_', ' ')} permissions
+            <div className="flex items-start justify-between">
+              <div className="text-sm flex-1">
+                <div className="font-medium">
+                  Selected: {getDisplayName(selectedChannel)}
                 </div>
-              )}
+                <div className="text-muted-foreground">{selectedChannel.description}</div>
+                {selectedChannel.role && (
+                  <div className="mt-2 text-xs text-green-600">
+                    ✓ You have {selectedChannel.role.replace('_', ' ')} permissions
+                  </div>
+                )}
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleClearSelection}
+                className="ml-2 h-6 w-6 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </div>
           </CardContent>
         </Card>
