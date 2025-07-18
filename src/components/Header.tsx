@@ -26,40 +26,27 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
         <div className="container mx-auto px-4 py-4">
           {isMobile ? (
             // Mobile layout: Logo left, Menu center, Login right
-            <div className="flex items-center justify-between">
-              {/* Left: Logo and Public Streamer */}
-              <Link to="/" className="flex items-center space-x-1">
-                <div className="relative bg-gradient-to-br from-white/30 to-white/10 backdrop-blur-sm rounded-xl border border-white/40 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 group p-2" style={{ filter: 'drop-shadow(4px 4px 8px rgba(0,0,0,0.6))' }}>
-                  {/* Main Play Button with flanking icons */}
-                  <div className="relative z-10 flex items-center justify-center h-full">
-                    {/* Lightning bolt to the left of triangle */}
-                    <Zap className="text-yellow-300 animate-pulse h-2.5 w-2.5 mr-1" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))', animationDuration: '0.8s' }} />
-                    
-                    <Play className="text-white h-6 w-6" style={{ filter: 'drop-shadow(3px 3px 6px rgba(0,0,0,0.7))' }} />
-                    <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/60 to-transparent opacity-40 pointer-events-none"></div>
-                    
-                    {/* Dollar sign to the right of triangle */}
-                    <DollarSign className="text-green-300 animate-pulse h-2.5 w-2.5 ml-1" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))', animationDuration: '1.2s' }} />
+            <div className="flex items-center justify-between gap-2">
+              {/* Left: Compact Logo */}
+              <Link to="/" className="flex items-center space-x-1 flex-shrink-0">
+                <div className="relative bg-gradient-to-br from-white/30 to-white/10 backdrop-blur-sm rounded-lg border border-white/40 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group p-1.5" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.6))' }}>
+                  {/* Simplified Play Button */}
+                  <div className="relative z-10 flex items-center justify-center">
+                    <Play className="text-white h-4 w-4" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
                   </div>
                   
-                  {/* Subtle Strobe Effect */}
-                  <div className="absolute inset-0 rounded-xl bg-white/20 opacity-0 group-hover:opacity-100 group-hover:animate-pulse transition-all duration-300"></div>
-                  
                   {/* Live Indicator */}
-                  <div className="absolute -top-2 -right-2 flex items-center space-x-1 bg-red-500 text-white rounded-full animate-pulse text-xs px-1 py-0.5" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.6))' }}>
-                    <div className="bg-white rounded-full w-1.5 h-1.5"></div>
-                    <span className="font-bold text-xs">LIVE</span>
+                  <div className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full animate-pulse px-1 py-0.5" style={{ filter: 'drop-shadow(1px 1px 2px rgba(0,0,0,0.6))' }}>
+                    <div className="bg-white rounded-full w-1 h-1"></div>
                   </div>
                 </div>
                 
-                <div className="flex flex-col min-w-0">
-                  <h1 className="font-orbitron font-black text-white tracking-wide text-sm leading-tight" style={{ textShadow: '3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)' }}>
+                <div className="flex flex-col min-w-0 max-w-[120px]">
+                  <h1 className="font-orbitron font-black text-white tracking-tight text-xs leading-tight truncate" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>
                     Public Streamer
                   </h1>
-                  <div className="flex items-center space-x-1 text-white/80 font-medium text-xs" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>
-                     <Zap className="text-yellow-300 h-2.5 w-2.5" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
-                     <span className="whitespace-nowrap text-xs">Go Live • Make Money</span>
-                     <DollarSign className="text-green-300 h-2.5 w-2.5" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
+                  <div className="flex items-center text-white/80 font-medium text-xs truncate" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>
+                     <span className="text-xs">Go Live</span>
                   </div>
                 </div>
               </Link>
