@@ -140,6 +140,63 @@
   animation: lightning 2s infinite;
 }
 
+/* Dollar sparkle animations */
+.dollar-sparkle {
+  position: absolute;
+  color: #10b981;
+  font-weight: bold;
+  font-size: 1.2rem;
+  animation: sparkle 2s ease-in-out infinite;
+  opacity: 0;
+}
+
+.dollar-sparkle-1 {
+  top: 10%;
+  left: 20%;
+  animation-delay: 0s;
+}
+
+.dollar-sparkle-2 {
+  top: 30%;
+  right: 15%;
+  animation-delay: 0.3s;
+}
+
+.dollar-sparkle-3 {
+  bottom: 20%;
+  left: 10%;
+  animation-delay: 0.6s;
+}
+
+.dollar-sparkle-4 {
+  top: 60%;
+  right: 25%;
+  animation-delay: 0.9s;
+}
+
+.dollar-sparkle-5 {
+  top: 20%;
+  left: 70%;
+  animation-delay: 1.2s;
+}
+
+.dollar-sparkle-6 {
+  bottom: 40%;
+  right: 60%;
+  animation-delay: 1.5s;
+}
+
+@keyframes sparkle {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(0.5) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2) rotate(180deg);
+  }
+}
+
 /* Gradient backgrounds */
 .bg-gradient-public-streamer {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
