@@ -35,21 +35,24 @@ export const LegalDocumentModal: React.FC<LegalDocumentModalProps> = ({
   };
 
   console.log("LegalDocumentModal render - isOpen:", isOpen);
+  
+  if (!isOpen) return null;
+  
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-4xl max-h-[90vh]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-destructive">
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-4xl max-h-[90vh] w-full overflow-hidden">
+        <div className="p-6 border-b">
+          <div className="flex items-center gap-2 text-red-600">
             <AlertTriangle className="h-5 w-5" />
-            LEGAL AGREEMENT REQUIRED - STREAMURA PROTECTION WAIVER
-          </DialogTitle>
-        </DialogHeader>
+            <h2 className="text-lg font-bold">LEGAL AGREEMENT REQUIRED - STREAMURA PROTECTION WAIVER</h2>
+          </div>
+        </div>
         
-        <ScrollArea className="h-[60vh] pr-4">
+        <div className="p-6 max-h-[60vh] overflow-y-auto">
           <div className="space-y-6 text-sm">
-            <div className="bg-destructive/10 p-4 rounded-lg border border-destructive/20">
-              <h3 className="font-bold text-destructive mb-2">IMPORTANT LEGAL NOTICE</h3>
-              <p className="text-destructive">
+            <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+              <h3 className="font-bold text-red-700 mb-2">IMPORTANT LEGAL NOTICE</h3>
+              <p className="text-red-700">
                 This document contains critical legal terms that LIMIT STREAMURA'S LIABILITY and TRANSFER RISKS TO YOU. 
                 Read carefully before signing. Consult legal counsel if needed.
               </p>
@@ -123,81 +126,99 @@ export const LegalDocumentModal: React.FC<LegalDocumentModalProps> = ({
               </div>
             </div>
           </div>
-        </ScrollArea>
+        </div>
 
-        <div className="space-y-4 border-t pt-4">
+        <div className="p-6 border-t space-y-4">
           <div className="space-y-3">
             <div className="flex items-center space-x-2">
-              <Checkbox 
+              <input 
+                type="checkbox"
                 id="risks"
                 checked={acknowledgedRisks}
-                onCheckedChange={(checked) => setAcknowledgedRisks(checked as boolean)}
+                onChange={(e) => setAcknowledgedRisks(e.target.checked)}
+                className="w-4 h-4"
               />
-              <Label htmlFor="risks" className="text-sm font-medium">
+              <label htmlFor="risks" className="text-sm font-medium">
                 I acknowledge that I have read and understand the risks and liability waivers above
-              </Label>
+              </label>
             </div>
             
             <div className="flex items-center space-x-2">
-              <Checkbox 
+              <input 
+                type="checkbox"
                 id="liability"
                 checked={acknowledgedLiability}
-                onCheckedChange={(checked) => setAcknowledgedLiability(checked as boolean)}
+                onChange={(e) => setAcknowledgedLiability(e.target.checked)}
+                className="w-4 h-4"
               />
-              <Label htmlFor="liability" className="text-sm font-medium">
+              <label htmlFor="liability" className="text-sm font-medium">
                 I agree to indemnify and hold harmless Streamura from all claims and damages
-              </Label>
+              </label>
             </div>
             
             <div className="flex items-center space-x-2">
-              <Checkbox 
+              <input 
+                type="checkbox"
                 id="compliance"
                 checked={acknowledgedCompliance}
-                onCheckedChange={(checked) => setAcknowledgedCompliance(checked as boolean)}
+                onChange={(e) => setAcknowledgedCompliance(e.target.checked)}
+                className="w-4 h-4"
               />
-              <Label htmlFor="compliance" className="text-sm font-medium">
+              <label htmlFor="compliance" className="text-sm font-medium">
                 I certify that I will comply with all laws and platform terms
-              </Label>
+              </label>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="signature" className="text-sm font-medium">
+              <label htmlFor="signature" className="text-sm font-medium block mb-1">
                 Electronic Signature (Type your full legal name)
-              </Label>
-              <Input
+              </label>
+              <input
                 id="signature"
+                type="text"
                 value={signature}
                 onChange={(e) => setSignature(e.target.value)}
                 placeholder="Type your full legal name"
-                className="mt-1"
+                className="w-full p-2 border rounded"
               />
             </div>
             <div>
-              <Label className="text-sm font-medium">Date</Label>
-              <Input value={currentDate} disabled className="mt-1" />
+              <label className="text-sm font-medium block mb-1">Date</label>
+              <input 
+                value={currentDate} 
+                disabled 
+                className="w-full p-2 border rounded bg-gray-100"
+              />
             </div>
           </div>
 
-          <div className="text-xs text-muted-foreground">
+          <div className="text-xs text-gray-600">
             Email: {userEmail} | By signing, you agree this electronic signature has the same legal effect as a handwritten signature.
           </div>
 
           <div className="flex justify-end space-x-2">
-            <Button variant="outline" onClick={onClose}>
+            <button 
+              onClick={onClose}
+              className="px-4 py-2 border rounded hover:bg-gray-50"
+            >
               Cancel
-            </Button>
-            <Button 
+            </button>
+            <button 
               onClick={handleAccept}
               disabled={!canSubmit}
-              className="bg-destructive hover:bg-destructive/90"
+              className={`px-4 py-2 rounded text-white ${
+                canSubmit 
+                  ? 'bg-red-600 hover:bg-red-700' 
+                  : 'bg-gray-400 cursor-not-allowed'
+              }`}
             >
               I Accept and Electronically Sign
-            </Button>
+            </button>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 };
