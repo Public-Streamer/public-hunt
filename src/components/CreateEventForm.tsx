@@ -408,6 +408,23 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       
       <StreamerSelector onStreamersChange={handleStreamersChange} />
       
+      <Card className="mt-6">
+        <CardContent className="pt-6">
+          <CreateEventFormButtons
+            isReadyToGoLive={isCoreFieldsComplete()}
+            canGoLiveWithTeam={canGoLiveWithTeam()}
+            selectedStreamers={selectedStreamers}
+            teamConfirmed={teamConfirmed}
+            getRequiredFields={getRequiredFields}
+            onGoLiveNow={handleGoLiveNow}
+            onCreateEvent={handleCreateEvent}
+            isValid={isAllFieldsComplete()}
+            canCreateEvent={isAllFieldsComplete()}
+            showSoloButton={false}
+            hideCreateButton={true}
+          />
+        </CardContent>
+      </Card>
       
       <div className="space-y-6 max-w-full">
         <MediaUploader onUpload={handleMediaUpload} maxFiles={5} acceptedTypes={['image/jpeg', 'image/png', 'image/gif', 'application/pdf', 'video/mp4', 'video/mpeg', 'video/quicktime']} />
