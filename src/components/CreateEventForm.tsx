@@ -284,9 +284,6 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
 
   return (
     <div className="space-y-6 p-4 max-w-4xl mx-auto">
-      <div className="space-y-6 max-w-full">
-        <MediaUploader onUpload={handleMediaUpload} maxFiles={5} acceptedTypes={['image/jpeg', 'image/png', 'image/gif', 'application/pdf', 'video/mp4', 'video/mpeg', 'video/quicktime']} />
-      </div>
       
       <form onSubmit={handleCreateEvent} className="space-y-6">{/* Event Information and other form fields will go here */}
       
@@ -410,6 +407,10 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       </form>
       
       <StreamerSelector onStreamersChange={handleStreamersChange} />
+      
+      <div className="space-y-6 max-w-full">
+        <MediaUploader onUpload={handleMediaUpload} maxFiles={5} acceptedTypes={['image/jpeg', 'image/png', 'image/gif', 'application/pdf', 'video/mp4', 'video/mpeg', 'video/quicktime']} />
+      </div>
       
       <Card className="mt-6">
         <CardContent className="pt-6">
