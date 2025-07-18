@@ -18,6 +18,15 @@ interface Channel {
   role?: 'channel_master' | 'channel_admin' | 'member';
 }
 
+interface Company {
+  id: string;
+  company_name: string;
+  description: string;
+  company_id: string;
+  industry: string;
+  role?: 'company_master' | 'admin' | 'member';
+}
+
 interface ChannelSelectorProps {
   selectedChannelId: string;
   onChannelChange: (channelId: string, requiresApproval: boolean) => void;
@@ -28,6 +37,7 @@ const ChannelSelector: React.FC<ChannelSelectorProps> = ({
   onChannelChange
 }) => {
   const [userChannels, setUserChannels] = useState<Channel[]>([]);
+  const [userCompanies, setUserCompanies] = useState<Company[]>([]);
   const [searchResults, setSearchResults] = useState<Channel[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
@@ -36,10 +46,10 @@ const ChannelSelector: React.FC<ChannelSelectorProps> = ({
   const { toast } = useToast();
 
   useEffect(() => {
-    loadUserChannels();
+    loadUserChannelsAndCompanies();
   }, []);
 
-  const loadUserChannels = async () => {
+  const loadUserChannelsAndCompanies = async () => {
     try {
       const { data: userData, error: userError } = await supabase.auth.getUser();
       if (userError || !userData.user) return;
@@ -71,6 +81,25 @@ const ChannelSelector: React.FC<ChannelSelectorProps> = ({
 
       if (ownedError) throw ownedError;
 
+      // Get companies where user is company master
+      const { data: companyRoles, error: companyError } = await supabase
+        .from('company_roles')
+        .select(`
+          company_id,
+          role,
+          company_profiles!inner (
+            id,
+            company_id,
+            company_name,
+            description,
+            industry
+          )
+        `)
+        .eq('user_id', userData.user.id)
+        .eq('role', 'company_master');
+
+      if (companyError) throw companyError;
+
       // Combine and format channels
       const channelsFromPermissions = permissions?.map(p => ({
         id: (p.channels as any).id,
@@ -86,7 +115,7 @@ const ChannelSelector: React.FC<ChannelSelectorProps> = ({
         role: 'channel_master' as const
       })) || [];
 
-      // Remove duplicates and combine
+      // Remove duplicates and combine channels
       const allChannels = [...ownedChannelsFormatted];
       channelsFromPermissions.forEach(channel => {
         if (!allChannels.find(c => c.id === channel.id)) {
@@ -94,12 +123,23 @@ const ChannelSelector: React.FC<ChannelSelectorProps> = ({
         }
       });
 
+      // Format companies
+      const companiesFormatted = companyRoles?.map(cr => ({
+        id: (cr.company_profiles as any).id,
+        company_name: (cr.company_profiles as any).company_name,
+        description: (cr.company_profiles as any).description || '',
+        company_id: (cr.company_profiles as any).company_id,
+        industry: (cr.company_profiles as any).industry || '',
+        role: cr.role as 'company_master'
+      })) || [];
+
       setUserChannels(allChannels);
+      setUserCompanies(companiesFormatted);
     } catch (error) {
-      console.error('Error loading user channels:', error);
+      console.error('Error loading user channels and companies:', error);
       toast({
         title: "Error",
-        description: "Failed to load your channels.",
+        description: "Failed to load your channels and companies.",
         variant: "destructive"
       });
     } finally {
@@ -148,10 +188,14 @@ const ChannelSelector: React.FC<ChannelSelectorProps> = ({
     }
 
     const userChannel = userChannels.find(c => c.id === channelId);
+    const userCompany = userCompanies.find(c => c.id === channelId);
     const searchChannel = searchResults.find(c => c.id === channelId);
     
     if (userChannel && (userChannel.role === 'channel_master' || userChannel.role === 'channel_admin')) {
       // User has permission to assign to this channel
+      onChannelChange(channelId, false);
+    } else if (userCompany && userCompany.role === 'company_master') {
+      // User has permission to assign to this company
       onChannelChange(channelId, false);
     } else if (searchChannel) {
       // User doesn't have permission, requires approval
@@ -173,10 +217,34 @@ const ChannelSelector: React.FC<ChannelSelectorProps> = ({
     }
   };
 
-  const selectedChannel = selectedChannelId === 'personal' 
-    ? { id: 'personal', name: 'Personal Profile', description: 'Stream directly to your personal profile page', role: 'channel_master' }
-    : userChannels.find(c => c.id === selectedChannelId) || 
-      searchResults.find(c => c.id === selectedChannelId);
+  const getDisplayName = (item: any): string => {
+    if (item.company_name) {
+      return item.company_name;
+    }
+    if (item.name) {
+      return item.name;
+    }
+    return item.id || 'Unknown';
+  };
+
+  const getSelectedItem = () => {
+    if (selectedChannelId === 'personal') {
+      return { id: 'personal', name: 'Personal Profile', description: 'Stream directly to your personal profile page', role: 'channel_master' };
+    }
+    
+    const channel = userChannels.find(c => c.id === selectedChannelId);
+    if (channel) return channel;
+    
+    const company = userCompanies.find(c => c.id === selectedChannelId);
+    if (company) return company;
+    
+    const searchChannel = searchResults.find(c => c.id === selectedChannelId);
+    if (searchChannel) return searchChannel;
+    
+    return null;
+  };
+
+  const selectedChannel = getSelectedItem();
 
   if (loading) {
     return (
@@ -210,6 +278,16 @@ const ChannelSelector: React.FC<ChannelSelectorProps> = ({
                   <span>{channel.name}</span>
                   <span className="text-xs text-muted-foreground">
                     ({channel.role === 'channel_master' ? 'Master' : 'Admin'})
+                  </span>
+                </div>
+              </SelectItem>
+            ))}
+            {userCompanies.map(company => (
+              <SelectItem key={company.id} value={company.id}>
+                <div className="flex items-center space-x-2">
+                  <span>{company.company_name}</span>
+                  <span className="text-xs text-muted-foreground">
+                    (Company Master)
                   </span>
                 </div>
               </SelectItem>
@@ -289,7 +367,9 @@ const ChannelSelector: React.FC<ChannelSelectorProps> = ({
         <Card>
           <CardContent className="p-4">
             <div className="text-sm">
-              <div className="font-medium">Selected: {selectedChannel.name}</div>
+              <div className="font-medium">
+                Selected: {getDisplayName(selectedChannel)}
+              </div>
               <div className="text-muted-foreground">{selectedChannel.description}</div>
               {selectedChannel.role && (
                 <div className="mt-2 text-xs text-green-600">
