@@ -50,9 +50,11 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                   <h1 className="font-orbitron font-black text-white tracking-wide text-sm leading-tight" style={{ textShadow: '3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)' }}>
                     Public Streamer
                   </h1>
-                   <div className="flex items-center space-x-1 text-white/80 font-medium text-xs" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>
-                      <span className="whitespace-nowrap text-xs">Go Live • Make Money</span>
-                   </div>
+                  <div className="flex items-center space-x-1 text-white/80 font-medium text-xs" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>
+                     <Zap className="text-yellow-300 h-2.5 w-2.5" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
+                     <span className="whitespace-nowrap text-xs">Go Live • Make Money</span>
+                     <DollarSign className="text-green-300 h-2.5 w-2.5" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
+                  </div>
                 </div>
               </Link>
               
@@ -125,7 +127,9 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                       Public Streamer
                     </h1>
                      <div className="flex items-center space-x-1 text-white/80 font-medium text-xs" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>
+                        <Zap className="text-yellow-300 h-4 w-4" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
                         <span className="whitespace-nowrap">Go Live • Make Money</span>
+                        <DollarSign className="text-green-300 h-4 w-4" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
                      </div>
                   </div>
                 </Link>
