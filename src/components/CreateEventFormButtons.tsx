@@ -22,7 +22,7 @@ const GoLiveButton: React.FC<GoLiveButtonProps> = ({ children, onClick, disabled
         <Button 
           type="button" 
           disabled
-          className="bg-green-600 cursor-not-allowed text-yellow-200 px-6 py-6 text-2xl font-black leading-relaxed rounded-lg min-h-[64px] touch-manipulation opacity-50"
+          className="bg-green-700 cursor-not-allowed text-yellow-100 px-6 py-5 text-xl font-black leading-relaxed rounded-lg min-h-[56px] touch-manipulation opacity-50"
         >
           {children}
         </Button>
@@ -35,12 +35,12 @@ const GoLiveButton: React.FC<GoLiveButtonProps> = ({ children, onClick, disabled
       <AlertDialogTrigger asChild>
         <Button 
           type="button" 
-          className={`relative shadow-lg px-6 py-6 text-2xl font-black leading-relaxed rounded-lg min-h-[64px] touch-manipulation overflow-hidden
+          className={`relative shadow-lg px-6 py-5 text-xl font-black leading-relaxed rounded-lg min-h-[56px] touch-manipulation overflow-hidden
             transform hover:scale-105 active:scale-95 transition-all duration-200
             ${
               shouldAnimate 
-                ? 'bg-green-600 hover:bg-green-700 shadow-green-500/50 hover:shadow-green-500/70 border-2 border-green-400 hover:border-yellow-400 animate-pulse text-yellow-200 font-black'
-                : 'bg-green-600 hover:bg-green-700 shadow-green-500/50 hover:shadow-green-500/70 border-2 border-green-400 text-yellow-200 font-black'
+                ? 'bg-green-700 hover:bg-green-800 shadow-green-600/50 hover:shadow-green-600/70 border-2 border-green-500 hover:border-yellow-400 animate-pulse text-yellow-100 font-black'
+                : 'bg-green-700 hover:bg-green-800 shadow-green-600/50 hover:shadow-green-600/70 border-2 border-green-500 text-yellow-100 font-black'
             }`}
           style={shouldAnimate ? {
             animation: 'shake 0.5s ease-in-out infinite, tremor 0.8s ease-in-out infinite, flicker 0.6s ease-in-out infinite, lightning 0.2s ease-in-out infinite'
@@ -63,7 +63,7 @@ const GoLiveButton: React.FC<GoLiveButtonProps> = ({ children, onClick, disabled
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={onClick} className="bg-green-600 hover:bg-green-700 text-yellow-200 font-black text-xl py-3">
+          <AlertDialogAction onClick={onClick} className="bg-green-700 hover:bg-green-800 text-yellow-100 font-black text-lg py-3">
             Go Live
           </AlertDialogAction>
         </AlertDialogFooter>
@@ -206,7 +206,7 @@ const CreateEventFormButtons: React.FC<CreateEventFormButtonsProps> = ({
                 isActive={isReadyToGoLive}
                 tooltipText={getSoloTooltip()}
               >
-                <Zap className="h-8 w-8 mr-3" />Go Live Right Now Solo
+                <Zap className="h-6 w-6 mr-3" />Go Live Right Now Solo
               </GoLiveButton>
             </div>
           </TooltipWrapper>
@@ -224,7 +224,7 @@ const CreateEventFormButtons: React.FC<CreateEventFormButtonsProps> = ({
                   isActive={teamButtonEnabled}
                   tooltipText={getTeamTooltip()}
                 >
-                  <Users className="h-8 w-8 mr-3" />Go Live Now with Team
+                  <Users className="h-6 w-6 mr-3" />Go Live Now with Team
                 </GoLiveButton>
               </div>
             </TooltipWrapper>
