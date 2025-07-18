@@ -39,7 +39,7 @@ const GoLiveButton: React.FC<GoLiveButtonProps> = ({ children, onClick, disabled
       <AlertDialogTrigger asChild>
         <Button 
           type="button" 
-          className={`relative shadow-lg px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-sm sm:text-lg md:text-xl font-black leading-tight rounded-lg min-h-[40px] sm:min-h-[45px] touch-manipulation overflow-hidden max-w-full w-full
+          className={`relative shadow-lg px-3 sm:px-4 md:px-6 py-3 sm:py-3 md:py-4 text-base sm:text-lg md:text-xl font-black leading-tight rounded-lg min-h-[44px] sm:min-h-[45px] touch-manipulation overflow-hidden max-w-full w-full
             transform hover:scale-105 active:scale-95 transition-all duration-200
             ${
               shouldAnimate 
@@ -204,8 +204,8 @@ const CreateEventFormButtons: React.FC<CreateEventFormButtonsProps> = ({
       `}</style>
       
       {showSoloButton && (
-        <div className="flex justify-center py-4 px-4 w-full">
-          <div className="w-full max-w-xs sm:max-w-sm md:max-w-md">{/* Control button max width */}
+        <div className="flex justify-center py-4 px-2 w-full">
+          <div className="w-full max-w-sm sm:max-w-md md:max-w-lg">{/* Control button max width */}
           <TooltipWrapper content={getSoloTooltip()}>
             <div>
               <GoLiveButton 
@@ -214,9 +214,9 @@ const CreateEventFormButtons: React.FC<CreateEventFormButtonsProps> = ({
                 isActive={isReadyToGoLive}
                 tooltipText={getSoloTooltip()}
                 >
-                  <LiveStreamLogo size="sm" className="mr-1 flex-shrink-0" />
-                  <span className="truncate text-xs sm:text-sm md:text-base flex-1 text-center">Go Live Right Now Solo</span>
-                  <Zap className="h-3 w-3 sm:h-4 sm:w-4 ml-1 flex-shrink-0" />
+                  <LiveStreamLogo size="md" className="mr-1 flex-shrink-0" />
+                  <span className="truncate text-sm sm:text-base md:text-lg flex-1 text-center">Go Live Right Now Solo</span>
+                  <Zap className="h-4 w-4 sm:h-4 sm:w-4 md:h-5 md:w-5 ml-1 flex-shrink-0" />
                 </GoLiveButton>
             </div>
           </TooltipWrapper>
@@ -226,8 +226,8 @@ const CreateEventFormButtons: React.FC<CreateEventFormButtonsProps> = ({
       
       {!showSoloButton && (
         <>
-          <div className="flex justify-center py-4 px-4 w-full">
-            <div className="w-full max-w-xs sm:max-w-sm md:max-w-md">{/* Control button max width */}
+          <div className="flex justify-center py-4 px-2 w-full">
+            <div className="w-full max-w-sm sm:max-w-md md:max-w-lg">{/* Control button max width */}
             <TooltipWrapper content={getTeamTooltip()}>
               <div>
                 <GoLiveButton 
@@ -236,9 +236,9 @@ const CreateEventFormButtons: React.FC<CreateEventFormButtonsProps> = ({
                   isActive={teamButtonEnabled}
                   tooltipText={getTeamTooltip()}
                   >
-                    <LiveStreamLogo size="sm" className="mr-1 flex-shrink-0" />
-                    <span className="truncate text-xs sm:text-sm md:text-base flex-1 text-center">Go Live Now with Team</span>
-                    <Users className="h-3 w-3 sm:h-4 sm:w-4 ml-1 flex-shrink-0" />
+                    <LiveStreamLogo size="md" className="mr-1 flex-shrink-0" />
+                    <span className="truncate text-sm sm:text-base md:text-lg flex-1 text-center">Go Live Now with Team</span>
+                    <Users className="h-4 w-4 sm:h-4 sm:w-4 md:h-5 md:w-5 ml-1 flex-shrink-0" />
                   </GoLiveButton>
               </div>
             </TooltipWrapper>
