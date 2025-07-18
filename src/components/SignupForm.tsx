@@ -498,15 +498,15 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                   checked={legalDocumentSigned}
                   disabled
                 />
-                <Label htmlFor="legal" className="text-sm">
+                <div className="text-sm">
                   <button
                     type="button"
                     onClick={handleTermsClick}
-                    className="text-primary underline hover:no-underline"
+                    className="text-primary underline hover:no-underline cursor-pointer"
                   >
                     Sign Legal Protection Agreement (Required)
                   </button>
-                </Label>
+                </div>
               </div>
 
               <div className="flex items-start space-x-2">
