@@ -173,26 +173,24 @@ const Events: React.FC = () => {
         <h1 className="text-3xl font-bold mb-4">Events</h1>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 h-auto p-1 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
+          <TabsList className="grid w-full grid-cols-3 gap-4 p-2 bg-transparent">
             <TooltipWrapper content="View all currently live streaming events">
               <TabsTrigger 
                 value="live" 
-                className="flex items-center justify-center px-4 py-4 text-base font-semibold min-h-[60px] rounded-lg transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-white/20"
+                className="flex items-center justify-center px-6 py-4 text-base font-bold min-h-[70px] rounded-xl transition-all duration-200 border-2 border-gray-200 bg-white shadow-lg hover:shadow-xl hover:scale-105 data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:to-red-600 data-[state=active]:text-white data-[state=active]:border-red-500 data-[state=active]:shadow-red-200"
               >
-                <div className="relative">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                    <span className="text-sm sm:text-base font-bold">Live Events</span>
-                  </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-4 h-4 bg-red-500 rounded-full animate-pulse data-[state=active]:bg-white"></div>
+                  <span className="text-sm sm:text-base font-bold">Live Events</span>
                 </div>
               </TabsTrigger>
             </TooltipWrapper>
             <TooltipWrapper content="View upcoming scheduled events">
               <TabsTrigger 
                 value="scheduled"
-                className="flex items-center justify-center px-4 py-4 text-base font-semibold min-h-[60px] rounded-lg transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-white/20"
+                className="flex items-center justify-center px-6 py-4 text-base font-bold min-h-[70px] rounded-xl transition-all duration-200 border-2 border-gray-200 bg-white shadow-lg hover:shadow-xl hover:scale-105 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:border-blue-500 data-[state=active]:shadow-blue-200"
               >
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-3">
                   <Clock className="h-5 w-5 flex-shrink-0" />
                   <span className="text-sm sm:text-base font-bold">Scheduled Events</span>
                 </div>
@@ -201,9 +199,9 @@ const Events: React.FC = () => {
             <TooltipWrapper content="View previously completed events">
               <TabsTrigger 
                 value="past"
-                className="flex items-center justify-center px-4 py-4 text-base font-semibold min-h-[60px] rounded-lg transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-white/20"
+                className="flex items-center justify-center px-6 py-4 text-base font-bold min-h-[70px] rounded-xl transition-all duration-200 border-2 border-gray-200 bg-white shadow-lg hover:shadow-xl hover:scale-105 data-[state=active]:bg-gradient-to-r data-[state=active]:from-gray-500 data-[state=active]:to-gray-600 data-[state=active]:text-white data-[state=active]:border-gray-500 data-[state=active]:shadow-gray-200"
               >
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-3">
                   <History className="h-5 w-5 flex-shrink-0" />
                   <span className="text-sm sm:text-base font-bold">Past Events</span>
                 </div>
