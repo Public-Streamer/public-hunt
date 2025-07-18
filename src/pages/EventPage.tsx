@@ -348,220 +348,221 @@ const EventPage: React.FC = () => {
     })) || [];
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 max-w-7xl">
       {/* Back to Events Button */}
-      <div className="mb-6">
+      <div className="mb-4 sm:mb-6">
         <Button
           onClick={goBackToEvents}
           variant="outline"
-          className="flex items-center gap-2 hover:bg-gray-50"
+          className="flex items-center gap-2 hover:bg-gray-50 text-xs sm:text-sm"
+          size="sm"
         >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Events Page
+          <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4" />
+          Back to Events
         </Button>
       </div>
 
       {/* Page Title */}
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-center mb-4">{eventData.name}</h1>
+      <div className="mb-4 sm:mb-6">
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-center px-2">
+          {eventData.name}
+        </h1>
       </div>
 
-      {/* Top Admission Button */}
-      <div className="mb-8 max-w-md mx-auto">
-        <AdmissionButton />
-      </div>
+      {/* Responsive Layout */}
+      <div className="space-y-4 sm:space-y-6">
+        {/* Admission Button Section */}
+        <div className="w-full">
+          <AdmissionButton />
+        </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-6">
-          <Card>
-            <div className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100 relative">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Video className="h-24 w-24 text-purple-500" />
-              </div>
-              {eventData.is_live && (
-                <Badge className="absolute top-4 left-4 bg-red-600 text-white">
-                  <div className="w-2 h-2 bg-white rounded-full mr-1 animate-pulse" />
-                  LIVE
-                </Badge>
-              )}
-              <div className="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded">
-                Multi-camera
-              </div>
-            </div>
-
-            <CardHeader>
-              <CardTitle className="text-3xl font-bold">
-                {eventData.name}
-              </CardTitle>
-              <div className="flex flex-wrap gap-2">
-                {eventData.category && (
-                  <Badge variant="secondary">{eventData.category}</Badge>
-                )}
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+          {/* Left Column - Main Event Content */}
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+            {/* Event Preview Card */}
+            <Card className="overflow-hidden">
+              <div className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100 relative">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Video className="h-12 w-12 sm:h-16 sm:w-16 lg:h-24 lg:w-24 text-purple-500" />
+                </div>
                 {eventData.is_live && (
-                  <Badge className="bg-red-600 text-white">
-                    <div className="w-2 h-2 bg-white rounded-full mr-1 animate-pulse" />
+                  <Badge className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-red-600 text-white text-xs">
+                    <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full mr-1 animate-pulse" />
                     LIVE
                   </Badge>
                 )}
-              </div>
-            </CardHeader>
-
-            <CardContent>
-              <p className="text-lg text-gray-700 mb-6">
-                {eventData.description}
-              </p>
-
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div className="flex items-center">
-                  <Calendar className="h-5 w-5 mr-2 text-gray-500" />
-                  <span>{eventData.date}</span>
-                </div>
-                <div className="flex items-center">
-                  <Clock className="h-5 w-5 mr-2 text-gray-500" />
-                  <span>{eventData.time}</span>
-                </div>
-                <div className="flex items-center">
-                  <Users className="h-5 w-5 mr-2 text-gray-500" />
-                  <span>{eventData.viewer_count || 0} viewers</span>
-                </div>
-                <div className="flex items-center">
-                  <MapPin className="h-5 w-5 mr-2 text-gray-500" />
-                  <span>{eventData.location || "Online"}</span>
+                <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-black/70 text-white px-2 py-1 rounded text-xs sm:text-sm">
+                  Multi-camera
                 </div>
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Live Streams - Show LiveKit viewer interface when live */}
-          {eventData.is_live &&
-          eventData.livekit_room_name &&
-          livekitToken &&
-          serverUrl ? (
-            <LiveKitRoom
-              token={livekitToken}
-              serverUrl={serverUrl}
-              options={{
-                adaptiveStream: true,
-                dynacast: true,
-              }}
-              connect={true}
-            >
-              <ViewerInterface
-                eventId={eventData.id}
-                hasAccess={hasTicket || canEnterStage}
-                onUpgrade={handlePayment}
-                showUpgradePrompt={!hasTicket && !canEnterStage}
-              />
-            </LiveKitRoom>
-          ) : eventData.is_live && eventData.livekit_room_name ? (
-            <Card className="mb-6">
-              <CardContent className="p-8 text-center">
-                <div className="animate-spin h-8 w-8 border-4 border-purple-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-                <h3 className="text-xl font-semibold mb-2">
-                  Connecting to Live Stream
-                </h3>
-                <p className="text-gray-600">
-                  Preparing your connection to the live event...
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card className="mb-6">
-              <CardContent className="p-8 text-center">
-                <Video className="h-16 w-16 mx-auto mb-4 text-gray-400" />
-                <h3 className="text-xl font-semibold mb-2">Event Not Live</h3>
-                <p className="text-gray-600">
-                  This event is not currently streaming. Check back at the
-                  scheduled time.
-                </p>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Promotional Media */}
-          {mediaData.length > 0 && <MediaDisplay media={mediaData} />}
-
-          {/* Offline Streams - Show below promotional media when not live */}
-          {!eventData.is_live && (
-            <OfflineStreamSection
-              eventId={eventData.id}
-              hasPaid={hasTicket || canEnterStage}
-            />
-          )}
-
-          {/* Social Media Section */}
-          <SocialMediaSection eventId={eventData.id} type="event" />
-
-          {/* Social Share Menu */}
-          <SocialShareMenu
-            title={eventData.name}
-            url={eventUrl}
-            description={eventData.description}
-          />
-
-        </div>
-
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Share Event</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <SocialShareMenu
-                title={eventData.name}
-                url={eventUrl}
-                description={eventData.description}
-              />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Event Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <p className="font-semibold">Status</p>
-                <p className="text-gray-600">
-                  {eventData.is_live ? (
-                    <Badge className="bg-green-600 text-white">Live Now</Badge>
-                  ) : (
-                    <Badge variant="secondary">Scheduled</Badge>
+              <CardHeader className="p-3 sm:p-6">
+                <CardTitle className="text-lg sm:text-xl lg:text-2xl font-bold break-words">
+                  {eventData.name}
+                </CardTitle>
+                <div className="flex flex-wrap gap-1 sm:gap-2">
+                  {eventData.category && (
+                    <Badge variant="secondary" className="text-xs">{eventData.category}</Badge>
                   )}
-                </p>
-              </div>
-              <div>
-                <p className="font-semibold">Category</p>
-                <p className="text-gray-600">
-                  {eventData.category || "General"}
-                </p>
-              </div>
-              <div>
-                <p className="font-semibold">Created</p>
-                <p className="text-gray-600">
-                  {new Date(eventData.created_at).toLocaleDateString()}
-                </p>
-              </div>
-              <div>
-                <p className="font-semibold">Current Viewers</p>
-                <p className="text-gray-600">
-                  {(eventData.viewer_count || 0).toLocaleString()}
-                </p>
-              </div>
-              {hasTicket && (
-                <div>
-                  <p className="font-semibold">Your Access</p>
-                  <Badge className="bg-green-600 text-white">Full Access</Badge>
+                  {eventData.is_live && (
+                    <Badge className="bg-red-600 text-white text-xs">
+                      <div className="w-1.5 h-1.5 bg-white rounded-full mr-1 animate-pulse" />
+                      LIVE
+                    </Badge>
+                  )}
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+              </CardHeader>
 
-      {/* Bottom Admission Button */}
-      <div className="mt-8 max-w-md mx-auto">
-        <AdmissionButton />
+              <CardContent className="p-3 sm:p-6">
+                <p className="text-sm sm:text-base text-gray-700 mb-4 sm:mb-6 break-words">
+                  {eventData.description}
+                </p>
+
+                {/* Event Info Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
+                  <div className="flex items-center text-xs sm:text-sm">
+                    <Calendar className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 text-gray-500 flex-shrink-0" />
+                    <span className="truncate">{eventData.date}</span>
+                  </div>
+                  <div className="flex items-center text-xs sm:text-sm">
+                    <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 text-gray-500 flex-shrink-0" />
+                    <span className="truncate">{eventData.time}</span>
+                  </div>
+                  <div className="flex items-center text-xs sm:text-sm">
+                    <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 text-gray-500 flex-shrink-0" />
+                    <span className="truncate">{eventData.viewer_count || 0} viewers</span>
+                  </div>
+                  <div className="flex items-center text-xs sm:text-sm">
+                    <MapPin className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 text-gray-500 flex-shrink-0" />
+                    <span className="truncate">{eventData.location || "Online"}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Live Streams Section */}
+            {eventData.is_live &&
+            eventData.livekit_room_name &&
+            livekitToken &&
+            serverUrl ? (
+              <div className="w-full">
+                <LiveKitRoom
+                  token={livekitToken}
+                  serverUrl={serverUrl}
+                  options={{
+                    adaptiveStream: true,
+                    dynacast: true,
+                  }}
+                  connect={true}
+                >
+                  <ViewerInterface
+                    eventId={eventData.id}
+                    hasAccess={hasTicket || canEnterStage}
+                    onUpgrade={handlePayment}
+                    showUpgradePrompt={!hasTicket && !canEnterStage}
+                  />
+                </LiveKitRoom>
+              </div>
+            ) : eventData.is_live && eventData.livekit_room_name ? (
+              <Card>
+                <CardContent className="p-4 sm:p-6 lg:p-8 text-center">
+                  <div className="animate-spin h-6 w-6 sm:h-8 sm:w-8 border-4 border-purple-500 border-t-transparent rounded-full mx-auto mb-3 sm:mb-4"></div>
+                  <h3 className="text-lg sm:text-xl font-semibold mb-2">
+                    Connecting to Live Stream
+                  </h3>
+                  <p className="text-gray-600 text-sm sm:text-base">
+                    Preparing your connection to the live event...
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card>
+                <CardContent className="p-4 sm:p-6 lg:p-8 text-center">
+                  <Video className="h-12 w-12 sm:h-16 sm:w-16 mx-auto mb-3 sm:mb-4 text-gray-400" />
+                  <h3 className="text-lg sm:text-xl font-semibold mb-2">Event Not Live</h3>
+                  <p className="text-gray-600 text-sm sm:text-base">
+                    This event is not currently streaming. Check back at the scheduled time.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Promotional Media */}
+            {mediaData.length > 0 && <MediaDisplay media={mediaData} />}
+
+            {/* Offline Streams */}
+            {!eventData.is_live && (
+              <OfflineStreamSection
+                eventId={eventData.id}
+                hasPaid={hasTicket || canEnterStage}
+              />
+            )}
+
+            {/* Social Media Section */}
+            <SocialMediaSection eventId={eventData.id} type="event" />
+          </div>
+
+          {/* Right Column - Event Details and Actions */}
+          <div className="space-y-4 sm:space-y-6">
+            {/* Event Details Card */}
+            <Card>
+              <CardHeader className="p-3 sm:p-6">
+                <CardTitle className="text-base sm:text-lg">Event Details</CardTitle>
+              </CardHeader>
+              <CardContent className="p-3 sm:p-6 space-y-3 sm:space-y-4">
+                <div>
+                  <p className="font-semibold text-sm sm:text-base">Status</p>
+                  <div className="mt-1">
+                    {eventData.is_live ? (
+                      <Badge className="bg-green-600 text-white text-xs">Live Now</Badge>
+                    ) : (
+                      <Badge variant="secondary" className="text-xs">Scheduled</Badge>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <p className="font-semibold text-sm sm:text-base">Category</p>
+                  <p className="text-gray-600 text-sm sm:text-base">
+                    {eventData.category || "General"}
+                  </p>
+                </div>
+                <div>
+                  <p className="font-semibold text-sm sm:text-base">Created</p>
+                  <p className="text-gray-600 text-sm sm:text-base">
+                    {new Date(eventData.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+                <div>
+                  <p className="font-semibold text-sm sm:text-base">Current Viewers</p>
+                  <p className="text-gray-600 text-sm sm:text-base">
+                    {(eventData.viewer_count || 0).toLocaleString()}
+                  </p>
+                </div>
+                {hasTicket && (
+                  <div>
+                    <p className="font-semibold text-sm sm:text-base">Your Access</p>
+                    <Badge className="bg-green-600 text-white text-xs">Full Access</Badge>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Share Event Card */}
+            <Card>
+              <CardHeader className="p-3 sm:p-6">
+                <CardTitle className="text-base sm:text-lg">Share Event</CardTitle>
+              </CardHeader>
+              <CardContent className="p-3 sm:p-6">
+                <SocialShareMenu
+                  title={eventData.name}
+                  url={eventUrl}
+                  description={eventData.description}
+                />
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
 
       {eventData && (
