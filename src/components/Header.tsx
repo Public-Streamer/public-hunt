@@ -111,7 +111,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <Link to="/" className="flex items-center space-x-3">
-                  <div className="relative bg-gradient-to-br from-white/30 to-white/10 backdrop-blur-sm rounded-xl border border-white/40 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 group p-3" style={{ filter: 'drop-shadow(4px 4px 8px rgba(0,0,0,0.6))' }}>
+                  <div className="relative bg-gradient-to-br from-white/30 to-white/10 backdrop-blur-sm rounded-xl border border-white/40 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 group p-4 py-6" style={{ filter: 'drop-shadow(4px 4px 8px rgba(0,0,0,0.6))' }}>
                     {/* Main Play Button with flanking icons */}
                     <div className="relative z-10 flex items-center justify-center h-full">
                       {/* Lightning bolt to the left of triangle */}
