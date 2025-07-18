@@ -495,26 +495,35 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                 </div>
               )}
               
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="legal"
-                  checked={legalDocumentSigned}
-                  disabled
-                />
-                <div className="text-sm">
-                  <button
-                    type="button"
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="legal"
+                    checked={legalDocumentSigned}
+                    disabled
+                  />
+                  <span className="text-sm text-muted-foreground">Legal Agreement Status</span>
+                </div>
+                <div className="ml-6">
+                  <div
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      console.log("Button clicked directly");
-                      handleTermsClick(e);
+                      console.log("Div clicked - opening legal modal");
+                      setShowLegalModal(true);
                     }}
-                    className="text-primary underline hover:no-underline cursor-pointer bg-transparent border-none p-0"
-                    style={{ all: 'unset', color: 'hsl(var(--primary))', textDecoration: 'underline', cursor: 'pointer' }}
+                    className="text-primary underline hover:no-underline cursor-pointer inline-block"
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setShowLegalModal(true);
+                      }
+                    }}
                   >
                     Sign Legal Protection Agreement (Required)
-                  </button>
+                  </div>
                 </div>
               </div>
 
