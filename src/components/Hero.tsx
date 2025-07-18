@@ -34,8 +34,8 @@ const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
             <p className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-orange-500 to-red-600 tracking-wider animate-lightning font-orbitron drop-shadow-lg">
               ⚡ GO LIVE NOW, GET PAID NOW! ⚡
             </p>
-            {/* Dollar sign sparkles - extended container to prevent clipping */}
-            <div className="absolute inset-0 pointer-events-none overflow-visible" style={{ left: '-200px', right: '-200px', top: '-100px', bottom: '-100px', width: 'calc(100% + 400px)' }}>
+            {/* Dollar sign sparkles - constrained to stay around the text */}
+            <div className="absolute inset-0 pointer-events-none overflow-visible" style={{ left: '-100px', right: '-100px', top: '-20px', bottom: '-20px', width: 'calc(100% + 200px)', height: '120px' }}>
               <div className="dollar-sparkle dollar-sparkle-1">$</div>
               <div className="dollar-sparkle dollar-sparkle-2">$</div>
               <div className="dollar-sparkle dollar-sparkle-3">$</div>
