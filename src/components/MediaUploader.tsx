@@ -97,9 +97,24 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
         
       } catch (error) {
         console.error('Upload error:', error);
+        let errorMessage = `Failed to upload ${mediaFile.name}`;
+        
+        // Provide more specific error messages
+        if (error instanceof Error) {
+          if (error.message.includes('row-level security')) {
+            errorMessage = `Permission denied: Please make sure you're logged in to upload files`;
+          } else if (error.message.includes('size')) {
+            errorMessage = `File too large: ${mediaFile.name}`;
+          } else if (error.message.includes('bucket')) {
+            errorMessage = `Storage error: Cannot access media storage`;
+          } else {
+            errorMessage = `Upload failed: ${error.message}`;
+          }
+        }
+        
         toast({
           title: "Upload Failed",
-          description: `Failed to upload ${mediaFile.name}`,
+          description: errorMessage,
           variant: "destructive"
         });
         
