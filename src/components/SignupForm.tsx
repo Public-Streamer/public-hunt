@@ -505,11 +505,17 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                   </p>
                   <button
                     type="button"
-                    onClick={() => setShowLegalModal(true)}
-                    className="text-blue-600 underline hover:text-blue-800 text-sm mt-1"
+                    onClick={() => {
+                      console.log("Legal button clicked - opening modal");
+                      setShowLegalModal(true);
+                    }}
+                    className="text-blue-600 underline hover:text-blue-800 text-sm mt-1 cursor-pointer"
                   >
                     Click here to sign the Legal Protection Agreement
                   </button>
+                  <div className="text-xs text-gray-500 mt-1">
+                    Modal state: {showLegalModal ? 'OPEN' : 'CLOSED'}
+                  </div>
                 </div>
               )}
 
@@ -538,9 +544,44 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
           </div>
           
           <div className="space-y-2">
-            <Button type="submit" className="w-full" disabled={!signupData.agreeToTerms || !signupData.confirmAge || !legalDocumentSigned || loading}>
-              {loading ? 'Creating Account...' : 'Create Account'}
-            </Button>
+            <div className="relative group">
+              <Button 
+                type="submit" 
+                className="w-full" 
+                disabled={!signupData.agreeToTerms || !signupData.confirmAge || !legalDocumentSigned || loading}
+                onMouseEnter={() => console.log("Button hovered, disabled state:", !signupData.agreeToTerms || !signupData.confirmAge || !legalDocumentSigned || loading)}
+              >
+                {loading ? 'Creating Account...' : 'Create Account'}
+              </Button>
+              
+              {/* Always visible tooltip when button is disabled */}
+              {(!signupData.agreeToTerms || !signupData.confirmAge || !legalDocumentSigned) && (
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-red-600 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-20 whitespace-nowrap">
+                  <div className="text-center">
+                    {!legalDocumentSigned && "⚠️ Sign Legal Agreement"}
+                    {!signupData.agreeToTerms && (!legalDocumentSigned ? " • " : "") + "⚠️ Accept Terms"}
+                    {!signupData.confirmAge && ((!signupData.agreeToTerms || !legalDocumentSigned) ? " • " : "") + "⚠️ Confirm Age 18+"}
+                  </div>
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-red-600"></div>
+                </div>
+              )}
+              
+              {/* Click handler for disabled button to show alert */}
+              {(!signupData.agreeToTerms || !signupData.confirmAge || !legalDocumentSigned) && (
+                <div 
+                  className="absolute inset-0 cursor-not-allowed z-10"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    let message = "Please complete the following:\n";
+                    if (!legalDocumentSigned) message += "• Sign the Legal Protection Agreement\n";
+                    if (!signupData.agreeToTerms) message += "• Agree to Terms of Service\n";
+                    if (!signupData.confirmAge) message += "• Confirm you are 18+ years old\n";
+                    alert(message);
+                  }}
+                />
+              )}
+            </div>
             <Button type="button" variant="outline" onClick={() => setStep(1)} className="w-full">
               Back
             </Button>
