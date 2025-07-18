@@ -84,27 +84,30 @@ const EventRoleManager: React.FC<EventRoleManagerProps> = ({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              {member.confirmed && !isEditing && !disabled && (
-                <DropdownMenuItem onClick={() => setIsExpanded(!isExpanded)}>
-                  {isExpanded ? (
-                    <>
-                      <ChevronUp className="h-4 w-4 mr-2" />
-                      Collapse Details
-                    </>
-                  ) : (
-                    <>
-                      <ChevronDown className="h-4 w-4 mr-2" />
-                      Expand Details
-                    </>
-                  )}
-                </DropdownMenuItem>
-              )}
+              {/* For confirmed members when team is NOT locked */}
               {member.confirmed && !disabled && (
-                <DropdownMenuItem onClick={handleEdit}>
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit Permissions
-                </DropdownMenuItem>
+                <>
+                  <DropdownMenuItem onClick={() => setIsExpanded(!isExpanded)}>
+                    {isExpanded ? (
+                      <>
+                        <ChevronUp className="h-4 w-4 mr-2" />
+                        Collapse Details
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="h-4 w-4 mr-2" />
+                        Expand Details
+                      </>
+                    )}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleEdit}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Permissions
+                  </DropdownMenuItem>
+                </>
               )}
+              
+              {/* For confirmed members when team IS locked */}
               {member.confirmed && disabled && (
                 <DropdownMenuItem onClick={() => setIsExpanded(!isExpanded)}>
                   {isExpanded ? (
@@ -120,12 +123,16 @@ const EventRoleManager: React.FC<EventRoleManagerProps> = ({
                   )}
                 </DropdownMenuItem>
               )}
-              {(!member.confirmed || isEditing) && !disabled && (
+              
+              {/* For unconfirmed members when team is NOT locked */}
+              {!member.confirmed && !disabled && (
                 <DropdownMenuItem onClick={() => setIsExpanded(!isExpanded)}>
                   <Edit className="h-4 w-4 mr-2" />
                   {isExpanded ? 'Collapse' : 'Edit'} Permissions
                 </DropdownMenuItem>
               )}
+              
+              {/* Remove member option (only when team is NOT locked) */}
               {onRemove && !disabled && (
                 <>
                   <DropdownMenuSeparator />
