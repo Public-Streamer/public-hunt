@@ -40,11 +40,11 @@ const LiveStreamLogo: React.FC<LiveStreamLogoProps> = ({ size = 'md', className 
         <Play className={`text-white ${classes.play}`} style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
       </div>
       
-      {/* Lightning Bolt - Lower Left Corner */}
-      <Zap className={`absolute -bottom-0.5 -left-0.5 text-yellow-300 animate-pulse ${classes.accent}`} style={{ filter: 'drop-shadow(1px 1px 2px rgba(0,0,0,0.7))' }} />
+      {/* Lightning Bolt - Left Side Center */}
+      <Zap className={`absolute left-1 top-1/2 -translate-y-1/2 text-yellow-300 animate-pulse ${classes.accent}`} style={{ filter: 'drop-shadow(1px 1px 2px rgba(0,0,0,0.7))' }} />
       
-      {/* Dollar Sign - Lower Right Corner */}
-      <DollarSign className={`absolute -bottom-0.5 -right-0.5 text-green-300 animate-pulse ${classes.accent}`} style={{ animationDelay: '0.5s', filter: 'drop-shadow(1px 1px 2px rgba(0,0,0,0.7))' }} />
+      {/* Dollar Sign - Left Side Center (alternating) */}
+      <DollarSign className={`absolute left-1 top-1/2 -translate-y-1/2 text-green-300 animate-pulse ${classes.accent}`} style={{ animationDelay: '0.5s', filter: 'drop-shadow(1px 1px 2px rgba(0,0,0,0.7))' }} />
       
       {/* Live Indicator */}
       <div className={`absolute flex items-center space-x-1 bg-red-500 text-white rounded-full animate-pulse ${classes.live}`} style={{ filter: 'drop-shadow(1px 1px 2px rgba(0,0,0,0.6))' }}>
