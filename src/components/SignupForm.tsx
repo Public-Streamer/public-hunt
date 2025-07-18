@@ -177,7 +177,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
 
   const handleTermsClick = (e: React.MouseEvent) => {
     e.preventDefault();
+    console.log("Legal button clicked, showLegalModal:", showLegalModal);
     setShowLegalModal(true);
+    console.log("showLegalModal set to true");
   };
 
   const handleLegalAccept = (signature: string, date: string) => {

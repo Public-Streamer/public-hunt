@@ -34,6 +34,7 @@ export const LegalDocumentModal: React.FC<LegalDocumentModalProps> = ({
     }
   };
 
+  console.log("LegalDocumentModal render - isOpen:", isOpen);
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-4xl max-h-[90vh]">
