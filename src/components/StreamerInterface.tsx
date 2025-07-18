@@ -198,13 +198,13 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                   {!controls.isStreaming ? (
                     <Button
                       onClick={controls.startStream}
-                      className="w-full text-xs sm:text-sm"
+                      className="w-full text-sm sm:text-base px-3 sm:px-4 py-3 sm:py-4 max-w-full"
                       size={screenSize === 'mobile' ? 'sm' : 'lg'}
                       disabled={!controls.isConnected}
                     >
                       <LiveStreamLogo size="md" className="mr-1 flex-shrink-0" />
-                      <Play className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                      Go Live
+                      <Play className="h-4 w-4 sm:h-4 sm:w-4 md:h-5 md:w-5 mr-1 sm:mr-2 flex-shrink-0" />
+                      <span className="truncate">Go Live</span>
                     </Button>
                   ) : (
                     <Button

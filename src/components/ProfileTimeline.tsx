@@ -1277,11 +1277,11 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
                          {/* Go Live Right Now Solo Button */}
                          <Popover open={showGoLivePopover} onOpenChange={setShowGoLivePopover}>
                             <PopoverTrigger asChild>
-                              <Button variant="ghost" size="sm" className="bg-red-600 hover:bg-red-700 text-white">
-                                <LiveStreamLogo size="sm" className="mr-2" />
-                                <Zap className="w-4 h-4 mr-2" />
-                                Go Live Right Now Solo
-                              </Button>
+              <Button variant="ghost" size="sm" className="bg-red-600 hover:bg-red-700 text-white px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base max-w-full w-full">
+                <LiveStreamLogo size="md" className="mr-1 flex-shrink-0" />
+                <Zap className="w-4 h-4 sm:w-4 sm:w-4 md:w-5 md:h-5 mr-1 flex-shrink-0" />
+                <span className="truncate">Go Live Right Now Solo</span>
+              </Button>
                             </PopoverTrigger>
                            <PopoverContent className="w-80 p-4">
                              <div className="space-y-4">
@@ -1332,13 +1332,13 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
                                  </Button>
                                   <Button 
                                     size="sm" 
-                                    onClick={handleGoLiveSolo}
-                                    className="flex-1 bg-red-600 hover:bg-red-700 text-white"
-                                  >
-                                     <LiveStreamLogo size="sm" className="mr-1 flex-shrink-0" />
-                                     <Zap className="w-3 h-3 mr-1 flex-shrink-0" />
-                                     <span className="truncate">Go Live Now</span>
-                                  </Button>
+                    onClick={handleGoLiveSolo}
+                    className="flex-1 bg-red-600 hover:bg-red-700 text-white px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base max-w-full"
+                  >
+                     <LiveStreamLogo size="md" className="mr-1 flex-shrink-0" />
+                     <Zap className="w-4 h-4 sm:w-4 sm:w-4 md:w-5 md:h-5 mr-1 flex-shrink-0" />
+                     <span className="truncate">Go Live Now</span>
+                  </Button>
                                </div>
                              </div>
                            </PopoverContent>
