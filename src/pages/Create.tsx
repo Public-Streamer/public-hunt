@@ -250,17 +250,23 @@ const Create: React.FC = () => {
             <TooltipWrapper content="Set up your streaming channel to broadcast live events and build your audience">
               <TabsTrigger
                 value="create-channel"
-                className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-700 data-[state=active]:to-purple-700 hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg transform hover:scale-105"
+                className="text-white bg-gradient-to-r from-blue-600 to-purple-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-700 data-[state=active]:to-purple-700 hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg transform hover:scale-105 flex flex-col items-center justify-center py-3 px-2 min-h-[3.5rem]"
               >
-                🚀 CREATE CHANNEL
+                <div className="flex flex-col items-center justify-center leading-tight">
+                  <span className="text-sm sm:text-base font-semibold">🚀 Create</span>
+                  <span className="text-base sm:text-lg font-bold">Channel</span>
+                </div>
               </TabsTrigger>
             </TooltipWrapper>
             <TooltipWrapper content={getEventTabTooltip()}>
               <TabsTrigger
                 value="create-event"
-                className="text-xl font-bold bg-gradient-to-r from-pink-600 to-red-600 text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-700 data-[state=active]:to-red-700 hover:from-pink-700 hover:to-red-700 transition-all duration-200 shadow-lg transform hover:scale-105"
+                className="text-white bg-gradient-to-r from-pink-600 to-red-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-700 data-[state=active]:to-red-700 hover:from-pink-700 hover:to-red-700 transition-all duration-200 shadow-lg transform hover:scale-105 flex flex-col items-center justify-center py-3 px-2 min-h-[3.5rem]"
               >
-                ⚡ CREATE EVENT
+                <div className="flex flex-col items-center justify-center leading-tight">
+                  <span className="text-sm sm:text-base font-semibold">⚡ Create</span>
+                  <span className="text-base sm:text-lg font-bold">Event</span>
+                </div>
               </TabsTrigger>
             </TooltipWrapper>
           </TabsList>
