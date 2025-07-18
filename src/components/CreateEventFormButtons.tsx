@@ -220,9 +220,9 @@ const CreateEventFormButtons: React.FC<CreateEventFormButtonsProps> = ({
                 isActive={isReadyToGoLive}
                 tooltipText={getSoloTooltip()}
                 >
-                  <LiveStreamLogo size="md" className="mr-1 flex-shrink-0" />
+                  <LiveStreamLogo size="sm" className="mr-1 sm:mr-2 flex-shrink-0 w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8" />
                   <span className="text-xs sm:text-sm md:text-base lg:text-lg flex-1 text-center leading-tight break-words whitespace-normal">Go Live Right Now Solo</span>
-                  <Zap className="h-4 w-4 sm:h-4 sm:w-4 md:h-5 md:w-5 ml-1 flex-shrink-0" />
+                  <Zap className="h-4 w-4 sm:h-4 sm:w-4 md:h-5 md:w-5 ml-1 sm:ml-2 flex-shrink-0" />
                 </GoLiveButton>
             </div>
           </TooltipWrapper>
@@ -242,9 +242,9 @@ const CreateEventFormButtons: React.FC<CreateEventFormButtonsProps> = ({
                     isActive={teamButtonEnabled}
                     tooltipText={getTeamTooltip()}
                     >
-                      <LiveStreamLogo size="md" className="mr-1 flex-shrink-0" />
+                      <LiveStreamLogo size="sm" className="mr-1 sm:mr-2 flex-shrink-0 w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8" />
                       <span className="text-xs sm:text-sm md:text-base lg:text-lg flex-1 text-center leading-tight break-words whitespace-normal">Go Live Now with Team</span>
-                      <Users className="h-4 w-4 sm:h-4 sm:w-4 md:h-5 md:w-5 ml-1 flex-shrink-0" />
+                      <Users className="h-4 w-4 sm:h-4 sm:w-4 md:h-5 md:w-5 ml-1 sm:ml-2 flex-shrink-0" />
                     </GoLiveButton>
                 </div>
               </TooltipWrapper>

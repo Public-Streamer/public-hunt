@@ -34,7 +34,7 @@ const LiveStreamLogo: React.FC<LiveStreamLogoProps> = ({ size = 'md', className 
   const classes = sizeClasses[size];
 
   return (
-    <div className={`relative bg-gradient-to-br from-white/30 to-white/10 backdrop-blur-sm rounded-lg border border-white/40 shadow-lg hover:shadow-xl transition-all duration-300 ${classes.container} ${className}`}>
+    <div className={`relative bg-gradient-to-br from-white/30 to-white/10 backdrop-blur-sm rounded-lg border border-white/40 shadow-lg hover:shadow-xl transition-all duration-300 ${classes.container} ${className}`} style={{ maxWidth: '100%', maxHeight: '100%' }}>
       {/* Main Play Button */}
       <div className="relative z-10 flex items-center justify-center h-full">
         <Play className={`text-white ${classes.play}`} style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
