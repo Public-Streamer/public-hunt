@@ -22,7 +22,7 @@ const GoLiveButton: React.FC<GoLiveButtonProps> = ({ children, onClick, disabled
         <Button 
           type="button" 
           disabled
-          className="bg-green-600 cursor-not-allowed text-yellow-200 px-6 py-4 text-base font-bold rounded-lg min-h-[48px] touch-manipulation opacity-50"
+          className="bg-green-600 cursor-not-allowed text-yellow-200 px-6 py-6 text-2xl font-black leading-relaxed rounded-lg min-h-[64px] touch-manipulation opacity-50"
         >
           {children}
         </Button>
@@ -35,7 +35,7 @@ const GoLiveButton: React.FC<GoLiveButtonProps> = ({ children, onClick, disabled
       <AlertDialogTrigger asChild>
         <Button 
           type="button" 
-          className={`relative shadow-lg px-6 py-4 text-base font-bold rounded-lg min-h-[48px] touch-manipulation overflow-hidden
+          className={`relative shadow-lg px-6 py-6 text-2xl font-black leading-relaxed rounded-lg min-h-[64px] touch-manipulation overflow-hidden
             transform hover:scale-105 active:scale-95 transition-all duration-200
             ${
               shouldAnimate 
@@ -63,7 +63,7 @@ const GoLiveButton: React.FC<GoLiveButtonProps> = ({ children, onClick, disabled
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={onClick} className="bg-green-600 hover:bg-green-700 text-yellow-200 font-black">
+          <AlertDialogAction onClick={onClick} className="bg-green-600 hover:bg-green-700 text-yellow-200 font-black text-xl py-3">
             Go Live
           </AlertDialogAction>
         </AlertDialogFooter>
@@ -206,7 +206,7 @@ const CreateEventFormButtons: React.FC<CreateEventFormButtonsProps> = ({
                 isActive={isReadyToGoLive}
                 tooltipText={getSoloTooltip()}
               >
-                <Zap className="h-5 w-5 mr-2" />Go Live Right Now Solo
+                <Zap className="h-8 w-8 mr-3" />Go Live Right Now Solo
               </GoLiveButton>
             </div>
           </TooltipWrapper>
@@ -224,7 +224,7 @@ const CreateEventFormButtons: React.FC<CreateEventFormButtonsProps> = ({
                   isActive={teamButtonEnabled}
                   tooltipText={getTeamTooltip()}
                 >
-                  <Users className="h-5 w-5 mr-2" />Go Live Now with Team
+                  <Users className="h-8 w-8 mr-3" />Go Live Now with Team
                 </GoLiveButton>
               </div>
             </TooltipWrapper>
