@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { ThumbsUp, ThumbsDown, MessageCircle } from 'lucide-react';
+import TooltipWrapper from '@/components/ui/tooltip-wrapper';
 
 // UUID validation helper
 const isValidUUID = (str: string): boolean => {
@@ -178,9 +179,11 @@ const CommentSection: React.FC<CommentSectionProps> = ({ entityId, entityType })
               </div>
             </div>
             <div className="flex justify-end">
-              <Button type="submit" disabled={loading || !newComment.trim()}>
-                {loading ? 'Posting...' : 'Post Comment'}
-              </Button>
+              <TooltipWrapper content="Post your comment for others to see">
+                <Button type="submit" disabled={loading || !newComment.trim()}>
+                  {loading ? 'Posting...' : 'Post Comment'}
+                </Button>
+              </TooltipWrapper>
             </div>
           </form>
         )}
@@ -206,24 +209,28 @@ const CommentSection: React.FC<CommentSectionProps> = ({ entityId, entityType })
                 <p className="text-sm mt-1">{comment.content}</p>
                 
                 <div className="flex items-center space-x-4 mt-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleLike(comment.id, true)}
-                    className="flex items-center space-x-1 text-xs"
-                  >
-                    <ThumbsUp className="w-3 h-3" />
-                    <span>{comment.likes_count}</span>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleLike(comment.id, false)}
-                    className="flex items-center space-x-1 text-xs"
-                  >
-                    <ThumbsDown className="w-3 h-3" />
-                    <span>{comment.dislikes_count}</span>
-                  </Button>
+                  <TooltipWrapper content="Like this comment">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleLike(comment.id, true)}
+                      className="flex items-center space-x-1 text-xs"
+                    >
+                      <ThumbsUp className="w-3 h-3" />
+                      <span>{comment.likes_count}</span>
+                    </Button>
+                  </TooltipWrapper>
+                  <TooltipWrapper content="Dislike this comment">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleLike(comment.id, false)}
+                      className="flex items-center space-x-1 text-xs"
+                    >
+                      <ThumbsDown className="w-3 h-3" />
+                      <span>{comment.dislikes_count}</span>
+                    </Button>
+                  </TooltipWrapper>
                 </div>
               </div>
             </div>

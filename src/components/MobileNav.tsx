@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { X, User, Home, Search, Plus, Tv, Calendar, HelpCircle, LogOut } from 'lucide-react';
 import { useAppContext } from '@/contexts/AppContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import TooltipWrapper from '@/components/ui/tooltip-wrapper';
 
 interface MobileNavProps {
   isOpen: boolean;
@@ -31,9 +32,11 @@ const MobileNav: React.FC<MobileNavProps> = ({ isOpen, onClose, onLoginClick }) 
         <SheetHeader>
           <SheetTitle className="flex items-center justify-between">
             <span>Menu</span>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X className="h-4 w-4" />
-            </Button>
+            <TooltipWrapper content="Close navigation menu">
+              <Button variant="ghost" size="sm" onClick={onClose}>
+                <X className="h-4 w-4" />
+              </Button>
+            </TooltipWrapper>
           </SheetTitle>
         </SheetHeader>
         
@@ -93,15 +96,19 @@ const MobileNav: React.FC<MobileNavProps> = ({ isOpen, onClose, onLoginClick }) 
         
         <div className="mt-8 pt-6 border-t">
           {isAuthenticated ? (
-            <Button onClick={handleLogout} variant="outline" className="w-full">
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
-            </Button>
+            <TooltipWrapper content="Sign out of your account">
+              <Button onClick={handleLogout} variant="outline" className="w-full">
+                <LogOut className="h-4 w-4 mr-2" />
+                Logout
+              </Button>
+            </TooltipWrapper>
           ) : (
-            <Button onClick={handleLoginClick} className="w-full bg-purple-600 hover:bg-purple-700">
-              <User className="h-4 w-4 mr-2" />
-              Login
-            </Button>
+            <TooltipWrapper content="Sign in to your account">
+              <Button onClick={handleLoginClick} className="w-full bg-purple-600 hover:bg-purple-700">
+                <User className="h-4 w-4 mr-2" />
+                Login
+              </Button>
+            </TooltipWrapper>
           )}
         </div>
       </SheetContent>

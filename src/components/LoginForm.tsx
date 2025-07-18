@@ -9,6 +9,7 @@ import SignupForm from './SignupForm';
 import { ScrollArea } from './ui/scroll-area';
 import CompanyAccountSelector from './CompanyAccountSelector';
 import { supabase } from '@/integrations/supabase/client';
+import TooltipWrapper from '@/components/ui/tooltip-wrapper';
 
 interface LoginFormProps {
   onClose: () => void;
@@ -119,14 +120,16 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose }) => {
             <ScrollArea className="h-full w-full px-6 pb-6">
               <SignupForm onClose={onClose} onSuccess={handleSignupSuccess} inline />
               <div className="mt-4 text-center">
-                <Button 
-                  type="button" 
-                  variant="link" 
-                  onClick={() => setShowSignup(false)}
-                  className="text-sm"
-                >
-                  Already have an account? Sign in
-                </Button>
+                <TooltipWrapper content="Go back to login form">
+                  <Button 
+                    type="button" 
+                    variant="link" 
+                    onClick={() => setShowSignup(false)}
+                    className="text-sm"
+                  >
+                    Already have an account? Sign in
+                  </Button>
+                </TooltipWrapper>
               </div>
             </ScrollArea>
           </CardContent>
@@ -168,22 +171,28 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose }) => {
               <div className="text-red-600 text-sm text-center">{error}</div>
             )}
           <div className="space-y-2">
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Signing in...' : 'Login'}
-            </Button>
-            <Button type="button" variant="outline" onClick={onClose} className="w-full">
-              Cancel
-            </Button>
+            <TooltipWrapper content="Sign in to your account">
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? 'Signing in...' : 'Login'}
+              </Button>
+            </TooltipWrapper>
+            <TooltipWrapper content="Close login form">
+              <Button type="button" variant="outline" onClick={onClose} className="w-full">
+                Cancel
+              </Button>
+            </TooltipWrapper>
           </div>
             <div className="text-center">
-              <Button 
-                type="button" 
-                variant="link" 
-                onClick={() => setShowSignup(true)}
-                className="text-sm"
-              >
-                Don't have an account? Sign up
-              </Button>
+              <TooltipWrapper content="Create a new account">
+                <Button 
+                  type="button" 
+                  variant="link" 
+                  onClick={() => setShowSignup(true)}
+                  className="text-sm"
+                >
+                  Don't have an account? Sign up
+                </Button>
+              </TooltipWrapper>
             </div>
           </form>
         </CardContent>

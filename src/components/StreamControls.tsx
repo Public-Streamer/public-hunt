@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useLiveKit } from '@/hooks/useLiveKit';
 import { useToast } from '@/hooks/use-toast';
+import TooltipWrapper from '@/components/ui/tooltip-wrapper';
 
 interface StreamControlsProps {
   eventId: string;
@@ -171,25 +172,29 @@ const StreamControls: React.FC<StreamControlsProps> = ({
         {/* Main Controls */}
         <div className="space-y-4">
           {!isConnected ? (
-            <Button
-              onClick={handleStartStream}
-              disabled={isConnecting}
-              className="w-full"
-              size="lg"
-            >
-              <Play className="h-4 w-4 mr-2" />
-              {isConnecting ? 'Starting...' : 'Start Live Stream'}
-            </Button>
+            <TooltipWrapper content="Start live streaming to your audience">
+              <Button
+                onClick={handleStartStream}
+                disabled={isConnecting}
+                className="w-full"
+                size="lg"
+              >
+                <Play className="h-4 w-4 mr-2" />
+                {isConnecting ? 'Starting...' : 'Start Live Stream'}
+              </Button>
+            </TooltipWrapper>
           ) : (
-            <Button
-              onClick={handleEndStream}
-              variant="destructive"
-              className="w-full"
-              size="lg"
-            >
-              <StopCircle className="h-4 w-4 mr-2" />
-              End Stream
-            </Button>
+            <TooltipWrapper content="End the live stream and disconnect all viewers">
+              <Button
+                onClick={handleEndStream}
+                variant="destructive"
+                className="w-full"
+                size="lg"
+              >
+                <StopCircle className="h-4 w-4 mr-2" />
+                End Stream
+              </Button>
+            </TooltipWrapper>
           )}
         </div>
 
@@ -197,35 +202,41 @@ const StreamControls: React.FC<StreamControlsProps> = ({
         {isConnected && (
           <div className="space-y-4">
             <div className="grid grid-cols-3 gap-2">
-              <Button
-                onClick={toggleVideo}
-                variant={isVideoEnabled ? "default" : "destructive"}
-                size="sm"
-                className="flex flex-col h-16"
-              >
-                {isVideoEnabled ? <Video className="h-5 w-5 mb-1" /> : <VideoOff className="h-5 w-5 mb-1" />}
-                <span className="text-xs">Video</span>
-              </Button>
+              <TooltipWrapper content="Toggle video camera on/off">
+                <Button
+                  onClick={toggleVideo}
+                  variant={isVideoEnabled ? "default" : "destructive"}
+                  size="sm"
+                  className="flex flex-col h-16"
+                >
+                  {isVideoEnabled ? <Video className="h-5 w-5 mb-1" /> : <VideoOff className="h-5 w-5 mb-1" />}
+                  <span className="text-xs">Video</span>
+                </Button>
+              </TooltipWrapper>
               
-              <Button
-                onClick={toggleAudio}
-                variant={isAudioEnabled ? "default" : "destructive"}
-                size="sm"
-                className="flex flex-col h-16"
-              >
-                {isAudioEnabled ? <Mic className="h-5 w-5 mb-1" /> : <MicOff className="h-5 w-5 mb-1" />}
-                <span className="text-xs">Audio</span>
-              </Button>
+              <TooltipWrapper content="Toggle microphone on/off">
+                <Button
+                  onClick={toggleAudio}
+                  variant={isAudioEnabled ? "default" : "destructive"}
+                  size="sm"
+                  className="flex flex-col h-16"
+                >
+                  {isAudioEnabled ? <Mic className="h-5 w-5 mb-1" /> : <MicOff className="h-5 w-5 mb-1" />}
+                  <span className="text-xs">Audio</span>
+                </Button>
+              </TooltipWrapper>
               
-              <Button
-                onClick={toggleScreenShare}
-                variant={isScreenSharing ? "default" : "outline"}
-                size="sm"
-                className="flex flex-col h-16"
-              >
-                <Monitor className="h-5 w-5 mb-1" />
-                <span className="text-xs">Screen</span>
-              </Button>
+              <TooltipWrapper content="Share your screen with viewers">
+                <Button
+                  onClick={toggleScreenShare}
+                  variant={isScreenSharing ? "default" : "outline"}
+                  size="sm"
+                  className="flex flex-col h-16"
+                >
+                  <Monitor className="h-5 w-5 mb-1" />
+                  <span className="text-xs">Screen</span>
+                </Button>
+              </TooltipWrapper>
             </div>
           </div>
         )}
@@ -235,15 +246,16 @@ const StreamControls: React.FC<StreamControlsProps> = ({
           <Label className="text-sm font-medium">Stream Quality</Label>
           <div className="flex space-x-2">
             {(['HD', 'FHD', '4K'] as const).map((quality) => (
-              <Button
-                key={quality}
-                onClick={() => setStreamQuality(quality)}
-                variant={streamQuality === quality ? "default" : "outline"}
-                size="sm"
-                className="flex-1"
-              >
-                {quality}
-              </Button>
+              <TooltipWrapper key={quality} content={`Set stream quality to ${quality}`}>
+                <Button
+                  onClick={() => setStreamQuality(quality)}
+                  variant={streamQuality === quality ? "default" : "outline"}
+                  size="sm"
+                  className="flex-1"
+                >
+                  {quality}
+                </Button>
+              </TooltipWrapper>
             ))}
           </div>
         </div>

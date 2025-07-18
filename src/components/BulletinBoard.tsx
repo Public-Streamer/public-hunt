@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { MessageSquare, Clock, User } from 'lucide-react';
+import TooltipWrapper from '@/components/ui/tooltip-wrapper';
 
 interface BulletinPost {
   id: string;
@@ -82,14 +83,15 @@ const BulletinBoard: React.FC<BulletinBoardProps> = ({ eventId, userRole = 'view
           <div className="space-y-3 p-4 bg-gray-50 rounded-lg">
             <div className="flex space-x-2">
               {(['scoreboard', 'time', 'announcement', 'general'] as const).map((type) => (
-                <Button
-                  key={type}
-                  variant={postType === type ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setPostType(type)}
-                >
-                  {type}
-                </Button>
+                <TooltipWrapper key={type} content={`Select ${type} post type`}>
+                  <Button
+                    variant={postType === type ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setPostType(type)}
+                  >
+                    {type}
+                  </Button>
+                </TooltipWrapper>
               ))}
             </div>
             <Textarea
@@ -98,9 +100,11 @@ const BulletinBoard: React.FC<BulletinBoardProps> = ({ eventId, userRole = 'view
               onChange={(e) => setNewPost(e.target.value)}
               className="min-h-[80px]"
             />
-            <Button onClick={handleSubmit} className="w-full">
-              Post Update
-            </Button>
+            <TooltipWrapper content="Share this update with all event viewers">
+              <Button onClick={handleSubmit} className="w-full">
+                Post Update
+              </Button>
+            </TooltipWrapper>
           </div>
         )}
         

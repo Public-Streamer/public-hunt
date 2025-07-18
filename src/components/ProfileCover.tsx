@@ -16,6 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import TooltipWrapper from '@/components/ui/tooltip-wrapper';
 
 const profileFormSchema = z.object({
   display_name: z.string().min(1, 'Display name is required'),
@@ -226,12 +227,14 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
               </AvatarFallback>
             </Avatar>
             {isOwnProfile && (
-              <Button 
-                size="sm" 
-                className="absolute bottom-2 right-2 rounded-full w-8 h-8 p-0"
-              >
-                <Camera className="w-4 h-4" />
-              </Button>
+              <TooltipWrapper content="Change profile picture">
+                <Button 
+                  size="sm" 
+                  className="absolute bottom-2 right-2 rounded-full w-8 h-8 p-0"
+                >
+                  <Camera className="w-4 h-4" />
+                </Button>
+              </TooltipWrapper>
             )}
           </div>
           
@@ -249,10 +252,12 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
               <>
                 <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
                   <DialogTrigger asChild>
-                    <Button variant="outline">
-                      <Settings className="w-4 h-4 mr-2" />
-                      Edit Profile
-                    </Button>
+                    <TooltipWrapper content="Edit your profile information">
+                      <Button variant="outline">
+                        <Settings className="w-4 h-4 mr-2" />
+                        Edit Profile
+                      </Button>
+                    </TooltipWrapper>
                   </DialogTrigger>
                   <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
                     <DialogHeader>
@@ -317,10 +322,14 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
                           )}
                         />
                         <div className="flex justify-end space-x-2">
-                          <Button type="button" variant="outline" onClick={() => setShowEditDialog(false)}>
-                            Cancel
-                          </Button>
-                          <Button type="submit">Save Changes</Button>
+                          <TooltipWrapper content="Cancel changes and close dialog">
+                            <Button type="button" variant="outline" onClick={() => setShowEditDialog(false)}>
+                              Cancel
+                            </Button>
+                          </TooltipWrapper>
+                          <TooltipWrapper content="Save your profile changes">
+                            <Button type="submit">Save Changes</Button>
+                          </TooltipWrapper>
                         </div>
                       </form>
                     </Form>
@@ -328,10 +337,12 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
                 </Dialog>
                 <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
                   <DialogTrigger asChild>
-                    <Button variant="outline">
-                      <Share2 className="w-4 h-4 mr-2" />
-                      Share Profile
-                    </Button>
+                    <TooltipWrapper content="Share your profile with others">
+                      <Button variant="outline">
+                        <Share2 className="w-4 h-4 mr-2" />
+                        Share Profile
+                      </Button>
+                    </TooltipWrapper>
                   </DialogTrigger>
                   <DialogContent className="max-w-md">
                     <DialogHeader>
@@ -352,19 +363,25 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
                   targetType="user"
                   currentUserId={currentUser?.id}
                 />
-                <Button variant="outline" onClick={handleSendFriendRequest}>
-                  <UserPlus className="w-4 h-4 mr-2" />
-                  Add Friend
-                </Button>
-                <Button variant="outline">
-                  <MessageCircle className="w-4 h-4 mr-2" />
-                  Message
-                </Button>
+                <TooltipWrapper content="Send a friend request to this user">
+                  <Button variant="outline" onClick={handleSendFriendRequest}>
+                    <UserPlus className="w-4 h-4 mr-2" />
+                    Add Friend
+                  </Button>
+                </TooltipWrapper>
+                <TooltipWrapper content="Send a private message">
+                  <Button variant="outline">
+                    <MessageCircle className="w-4 h-4 mr-2" />
+                    Message
+                  </Button>
+                </TooltipWrapper>
                 <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
                   <DialogTrigger asChild>
-                    <Button variant="outline" size="sm">
-                      <Share2 className="w-4 h-4" />
-                    </Button>
+                    <TooltipWrapper content="Share this profile">
+                      <Button variant="outline" size="sm">
+                        <Share2 className="w-4 h-4" />
+                      </Button>
+                    </TooltipWrapper>
                   </DialogTrigger>
                   <DialogContent className="max-w-md">
                     <DialogHeader>

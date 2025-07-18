@@ -19,6 +19,7 @@ import ResetPasswordForm from './ResetPasswordForm';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import ErrorDialog from './ErrorDialog';
 import UserSearchBox from './UserSearchBox';
+import TooltipWrapper from '@/components/ui/tooltip-wrapper';
 
 interface SignupFormProps {
   onClose: () => void;
@@ -395,10 +396,14 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
           )}
           
           <div className="space-y-2">
-            <Button type="submit" className="w-full">Continue</Button>
-            <Button type="button" variant="outline" onClick={onClose} className="w-full">
-              Cancel
-            </Button>
+            <TooltipWrapper content="Continue to complete your profile">
+              <Button type="submit" className="w-full">Continue</Button>
+            </TooltipWrapper>
+            <TooltipWrapper content="Cancel signup and close form">
+              <Button type="button" variant="outline" onClick={onClose} className="w-full">
+                Cancel
+              </Button>
+            </TooltipWrapper>
           </div>
         </form>
       )}
