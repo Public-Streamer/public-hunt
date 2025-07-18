@@ -282,7 +282,7 @@ const ChannelSelector: React.FC<ChannelSelectorProps> = ({
           <Info className="h-4 w-4 text-muted-foreground" />
         </TooltipWrapper>
         <div className="text-sm text-muted-foreground">
-          *If no channel selected, event streamed to profile page (Default)
+          *If no channel selected, event automatically streamed to profile page (Default)
         </div>
       </div>
 
