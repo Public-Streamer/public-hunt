@@ -258,12 +258,12 @@ const ChannelSelector: React.FC<ChannelSelectorProps> = ({
   return (
     <div className="space-y-4">
       <div className="flex items-center space-x-2">
-        <Label className="text-base font-bold">Broadcast Channel for Event</Label>
+        <Label className="text-base font-bold">Broadcast Channel</Label>
         <TooltipWrapper content="Select a channel to assign this event to. You can only assign events to channels where you are a Channel Master or Channel Admin.">
           <Info className="h-4 w-4 text-muted-foreground" />
         </TooltipWrapper>
         <div className="text-sm text-muted-foreground">
-          Stream to profile page if no channel selected (Default)
+          If No Channel Selected Stream to Profile Page (Default)
         </div>
       </div>
 
