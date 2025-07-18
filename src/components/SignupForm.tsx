@@ -498,23 +498,6 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                 </div>
               )}
               
-              <div className="ml-6">
-                <div
-                  onClick={() => {
-                    console.log("CLICK DETECTED - Setting modal to open");
-                    setShowLegalModal(true);
-                    console.log("Modal state should now be:", true);
-                  }}
-                  className="text-blue-600 underline hover:text-blue-800 cursor-pointer inline-block p-2 bg-yellow-100 border border-yellow-300"
-                  style={{ pointerEvents: 'auto' }}
-                >
-                  *** CLICK HERE TO OPEN LEGAL AGREEMENT ***
-                </div>
-                <div className="mt-2 text-xs text-gray-600">
-                  Modal state: {showLegalModal ? 'OPEN' : 'CLOSED'}
-                </div>
-              </div>
-
               <div className="flex items-start space-x-2">
                 <Checkbox
                   id="confirmAge"
