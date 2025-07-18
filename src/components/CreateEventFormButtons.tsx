@@ -22,7 +22,10 @@ const GoLiveButton: React.FC<GoLiveButtonProps> = ({ children, onClick, disabled
         <Button 
           type="button" 
           disabled
-          className="bg-green-700 cursor-not-allowed text-yellow-100 px-6 py-5 text-xl font-black leading-relaxed rounded-lg min-h-[56px] touch-manipulation opacity-50"
+          className="bg-green-700 cursor-not-allowed text-yellow-50 px-6 py-5 text-2xl font-black leading-tight rounded-lg min-h-[56px] touch-manipulation opacity-50"
+          style={{
+            textShadow: '2px 2px 4px rgba(0,0,0,0.8), 0 0 8px rgba(255,255,0,0.3)'
+          }}
         >
           {children}
         </Button>
@@ -35,16 +38,19 @@ const GoLiveButton: React.FC<GoLiveButtonProps> = ({ children, onClick, disabled
       <AlertDialogTrigger asChild>
         <Button 
           type="button" 
-          className={`relative shadow-lg px-6 py-5 text-xl font-black leading-relaxed rounded-lg min-h-[56px] touch-manipulation overflow-hidden
+          className={`relative shadow-lg px-6 py-5 text-2xl font-black leading-tight rounded-lg min-h-[56px] touch-manipulation overflow-hidden
             transform hover:scale-105 active:scale-95 transition-all duration-200
             ${
               shouldAnimate 
-                ? 'bg-green-700 hover:bg-green-800 shadow-green-600/50 hover:shadow-green-600/70 border-2 border-green-500 hover:border-yellow-400 animate-pulse text-yellow-100 font-black'
-                : 'bg-green-700 hover:bg-green-800 shadow-green-600/50 hover:shadow-green-600/70 border-2 border-green-500 text-yellow-100 font-black'
+                ? 'bg-green-700 hover:bg-green-800 shadow-green-600/50 hover:shadow-green-600/70 border-2 border-green-500 hover:border-yellow-400 animate-pulse text-yellow-50 font-black'
+                : 'bg-green-700 hover:bg-green-800 shadow-green-600/50 hover:shadow-green-600/70 border-2 border-green-500 text-yellow-50 font-black'
             }`}
           style={shouldAnimate ? {
+            textShadow: '2px 2px 4px rgba(0,0,0,0.8), 0 0 8px rgba(255,255,0,0.3)',
             animation: 'shake 0.5s ease-in-out infinite, tremor 0.8s ease-in-out infinite, flicker 0.6s ease-in-out infinite, lightning 0.2s ease-in-out infinite'
-          } : {}}
+          } : {
+            textShadow: '2px 2px 4px rgba(0,0,0,0.8), 0 0 8px rgba(255,255,0,0.3)'
+          }}
         >
           <span className="relative z-10 flex items-center">
             {children}
@@ -63,7 +69,7 @@ const GoLiveButton: React.FC<GoLiveButtonProps> = ({ children, onClick, disabled
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={onClick} className="bg-green-700 hover:bg-green-800 text-yellow-100 font-black text-lg py-3">
+          <AlertDialogAction onClick={onClick} className="bg-green-700 hover:bg-green-800 text-yellow-50 font-black text-lg py-3" style={{textShadow: '2px 2px 4px rgba(0,0,0,0.8), 0 0 8px rgba(255,255,0,0.3)'}}>
             Go Live
           </AlertDialogAction>
         </AlertDialogFooter>
