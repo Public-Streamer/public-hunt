@@ -37,20 +37,20 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                 </Button>
               )}
               <Link to="/" className="flex items-center space-x-1 sm:space-x-3">
-                <div className={`relative bg-gradient-to-br from-white/30 to-white/10 backdrop-blur-sm rounded-xl border border-white/40 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group ${
+                <div className={`relative bg-gradient-to-br from-white/30 to-white/10 backdrop-blur-sm rounded-xl border border-white/40 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 group ${
                   isMobile ? 'p-2' : 'p-3'
-                }`}>
+                }`} style={{ filter: 'drop-shadow(4px 4px 8px rgba(0,0,0,0.6))' }}>
                   {/* Main Play Button */}
                   <div className="relative z-10">
-                    <Play className={`text-white drop-shadow-lg ${isMobile ? 'h-6 w-6' : 'h-8 w-8'}`} />
+                    <Play className={`text-white ${isMobile ? 'h-6 w-6' : 'h-8 w-8'}`} style={{ filter: 'drop-shadow(3px 3px 6px rgba(0,0,0,0.7))' }} />
                     <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/60 to-transparent opacity-40 pointer-events-none"></div>
                   </div>
                   
                   {/* Lightning Bolt - Top Right */}
-                  <Zap className={`absolute -top-1 -right-1 text-yellow-300 animate-pulse ${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
+                  <Zap className={`absolute -top-1 -right-1 text-yellow-300 animate-pulse ${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
                   
                   {/* Dollar Sign - Bottom Left */}
-                  <DollarSign className={`absolute -bottom-1 -left-1 text-green-300 animate-pulse ${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} style={{ animationDelay: '0.5s' }} />
+                  <DollarSign className={`absolute -bottom-1 -left-1 text-green-300 animate-pulse ${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} style={{ animationDelay: '0.5s', filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
                   
                   {/* Subtle Strobe Effect */}
                   <div className="absolute inset-0 rounded-xl bg-white/20 opacity-0 group-hover:opacity-100 group-hover:animate-pulse transition-all duration-300"></div>
@@ -58,24 +58,24 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                   {/* Live Indicator */}
                   <div className={`absolute -top-2 -right-2 flex items-center space-x-1 bg-red-500 text-white rounded-full animate-pulse ${
                     isMobile ? 'text-xs px-1 py-0.5' : 'text-xs px-2 py-1'
-                  }`}>
+                  }`} style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.6))' }}>
                     <div className={`bg-white rounded-full ${isMobile ? 'w-1.5 h-1.5' : 'w-2 h-2'}`}></div>
                     <span className={`font-bold ${isMobile ? 'text-xs' : ''}`}>LIVE</span>
                   </div>
                 </div>
                 
                 <div className="flex flex-col min-w-0 flex-1">
-                  <h1 className={`font-orbitron font-black text-white drop-shadow-lg tracking-wide ${
+                  <h1 className={`font-orbitron font-black text-white tracking-wide ${
                     isMobile ? 'text-lg leading-tight' : 'text-2xl'
-                  }`}>
+                  }`} style={{ textShadow: '3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)' }}>
                     Public Streamer
                   </h1>
                   <div className={`flex items-center space-x-1 text-white/80 font-medium ${
                     isMobile ? 'text-xs' : 'text-xs'
-                  }`}>
-                     <Zap className={`text-yellow-300 ${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
+                  }`} style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>
+                     <Zap className={`text-yellow-300 ${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
                      <span className="whitespace-nowrap">Go Live • Make Money</span>
-                     <DollarSign className={`text-green-300 ${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
+                     <DollarSign className={`text-green-300 ${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
                   </div>
                 </div>
               </Link>
@@ -87,8 +87,8 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                   to="/create" 
                   className={`px-4 py-2 rounded-lg font-semibold text-white border-2 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl drop-shadow-lg ${
                     isActive('/create') 
-                      ? 'bg-purple-700 border-purple-600 shadow-purple-400/30' 
-                      : 'bg-purple-600 border-purple-500 hover:bg-purple-700 hover:border-purple-400'
+                      ? 'bg-red-600 border-red-500 shadow-red-400/30' 
+                      : 'bg-blue-600 border-blue-500 hover:bg-blue-700 hover:border-blue-400'
                   }`}
                   style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}
                 >
@@ -100,8 +100,8 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                   to="/channels" 
                   className={`px-4 py-2 rounded-lg font-semibold text-white border-2 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl drop-shadow-lg ${
                     isActive('/channels') 
-                      ? 'bg-pink-700 border-pink-600 shadow-pink-400/30' 
-                      : 'bg-pink-600 border-pink-500 hover:bg-pink-700 hover:border-pink-400'
+                      ? 'bg-red-600 border-red-500 shadow-red-400/30' 
+                      : 'bg-blue-600 border-blue-500 hover:bg-blue-700 hover:border-blue-400'
                   }`}
                   style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}
                 >
@@ -113,8 +113,8 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                   to="/events" 
                   className={`px-4 py-2 rounded-lg font-semibold text-white border-2 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl drop-shadow-lg ${
                     isActive('/events') 
-                      ? 'bg-indigo-700 border-indigo-600 shadow-indigo-400/30' 
-                      : 'bg-indigo-600 border-indigo-500 hover:bg-indigo-700 hover:border-indigo-400'
+                      ? 'bg-red-600 border-red-500 shadow-red-400/30' 
+                      : 'bg-blue-600 border-blue-500 hover:bg-blue-700 hover:border-blue-400'
                   }`}
                   style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}
                 >
@@ -126,8 +126,8 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                   to="/qa" 
                   className={`px-4 py-2 rounded-lg font-semibold text-white border-2 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl drop-shadow-lg ${
                     isActive('/qa') 
-                      ? 'bg-violet-700 border-violet-600 shadow-violet-400/30' 
-                      : 'bg-violet-600 border-violet-500 hover:bg-violet-700 hover:border-violet-400'
+                      ? 'bg-red-600 border-red-500 shadow-red-400/30' 
+                      : 'bg-blue-600 border-blue-500 hover:bg-blue-700 hover:border-blue-400'
                   }`}
                   style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}
                 >
