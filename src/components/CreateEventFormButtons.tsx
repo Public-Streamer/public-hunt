@@ -39,8 +39,8 @@ const GoLiveButton: React.FC<GoLiveButtonProps> = ({ children, onClick, disabled
             transform hover:scale-105 active:scale-95 transition-all duration-200
             ${
               shouldAnimate 
-                ? 'bg-green-600 hover:bg-green-700 shadow-green-500/50 hover:shadow-green-500/70 border-2 border-green-400 hover:border-lime-400 animate-pulse text-yellow-300'
-                : 'bg-green-600 hover:bg-green-700 shadow-green-500/50 hover:shadow-green-500/70 border-2 border-green-400 text-yellow-300'
+                ? 'bg-green-500 hover:bg-green-600 shadow-green-400/50 hover:shadow-green-400/70 border-2 border-green-300 hover:border-lime-300 animate-pulse text-yellow-300'
+                : 'bg-green-500 hover:bg-green-600 shadow-green-400/50 hover:shadow-green-400/70 border-2 border-green-300 text-yellow-300'
             }`}
           style={shouldAnimate ? {
             animation: 'shake 0.5s ease-in-out infinite, tremor 0.8s ease-in-out infinite, flicker 0.6s ease-in-out infinite, lightning 0.2s ease-in-out infinite'
@@ -63,7 +63,7 @@ const GoLiveButton: React.FC<GoLiveButtonProps> = ({ children, onClick, disabled
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={onClick} className="bg-green-600 hover:bg-green-700 text-yellow-300">
+          <AlertDialogAction onClick={onClick} className="bg-green-500 hover:bg-green-600 text-yellow-300">
             Go Live
           </AlertDialogAction>
         </AlertDialogFooter>
