@@ -4,11 +4,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TooltipWrapper from "@/components/ui/tooltip-wrapper";
 import CreateChannelForm from "@/components/CreateChannelForm";
 import CreateEventForm from "@/components/CreateEventForm";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
 
 const Create: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("create-channel");
+  const { toast } = useToast();
   
   useEffect(() => {
     const tab = searchParams.get('tab');
@@ -84,16 +87,141 @@ const Create: React.FC = () => {
   // Allow event creation - remove restrictions
   const canCreateEvent = true;
 
-  const handleChannelSubmit = (e: React.FormEvent) => {
+  const generateChannelThumbnail = async (channelName: string, category: string): Promise<string> => {
+    // Create a canvas element for generating thumbnail
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    if (!ctx) return '';
+    
+    canvas.width = 1200;
+    canvas.height = 630;
+    
+    // Create gradient background based on category
+    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    switch (category.toLowerCase()) {
+      case 'gaming':
+        gradient.addColorStop(0, '#667eea');
+        gradient.addColorStop(1, '#764ba2');
+        break;
+      case 'music':
+        gradient.addColorStop(0, '#f093fb');
+        gradient.addColorStop(1, '#f5576c');
+        break;
+      case 'sports':
+        gradient.addColorStop(0, '#4facfe');
+        gradient.addColorStop(1, '#00f2fe');
+        break;
+      case 'education':
+        gradient.addColorStop(0, '#43e97b');
+        gradient.addColorStop(1, '#38f9d7');
+        break;
+      default:
+        gradient.addColorStop(0, '#667eea');
+        gradient.addColorStop(1, '#764ba2');
+    }
+    
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Add channel name
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 72px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(channelName, canvas.width / 2, canvas.height / 2 - 50);
+    
+    // Add category
+    ctx.font = '36px Arial';
+    ctx.fillText(category.toUpperCase(), canvas.width / 2, canvas.height / 2 + 50);
+    
+    // Convert to data URL
+    return canvas.toDataURL('image/jpeg', 0.8);
+  };
+
+  const handleChannelSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isChannelFormValid()) {
-      console.log(
-        "Channel creation data:",
-        channelFormData,
-        "Media:",
-        channelMedia
-      );
+    if (!isChannelFormValid()) {
+      toast({
+        title: "Incomplete Form",
+        description: "Please fill in all required fields.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // Get current user
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError || !userData.user) {
+        toast({
+          title: "Authentication Required",
+          description: "You must be logged in to create a channel.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Generate channel thumbnail
+      const thumbnailDataUrl = await generateChannelThumbnail(channelFormData.channelName, channelFormData.category);
+      
+      // Prepare media URLs (including generated thumbnail)
+      const mediaUrls = [thumbnailDataUrl];
+      if (channelMedia && channelMedia.length > 0) {
+        // Add any uploaded media URLs
+        channelMedia.forEach((media: any) => {
+          if (media.url) {
+            mediaUrls.push(media.url);
+          }
+        });
+      }
+
+      // Create channel in database
+      const { data: channelData, error: channelError } = await supabase
+        .from('channels')
+        .insert({
+          name: channelFormData.channelName,
+          description: channelFormData.channelDescription,
+          category: channelFormData.category,
+          user_id: userData.user.id,
+          media_urls: mediaUrls,
+          owner_first_name: channelFormData.firstName,
+          owner_last_name: channelFormData.lastName,
+          owner_email: channelFormData.email
+        })
+        .select()
+        .single();
+
+      if (channelError) {
+        console.error('Error creating channel:', channelError);
+        toast({
+          title: "Error",
+          description: "Failed to create channel. Please try again.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // The channel_master permission is automatically created by the database trigger
+      
+      toast({
+        title: "Channel Created Successfully!",
+        description: `Your channel "${channelFormData.channelName}" has been created and you are now the Channel Master.`,
+        variant: "default"
+      });
+
+      // Navigate to the new channel page
+      setTimeout(() => {
+        navigate(`/channel/${channelData.id}`);
+      }, 1500);
+
       setHasChannel(true);
+    } catch (error) {
+      console.error('Error creating channel:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 
