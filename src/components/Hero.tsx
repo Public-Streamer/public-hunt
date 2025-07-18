@@ -33,7 +33,7 @@ const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
           <div className="relative mb-6">
             <p className="text-2xl sm:text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-orange-500 to-red-600 tracking-wider animate-lightning font-orbitron drop-shadow-lg">
               <span className="inline sm:inline">⚡ GO LIVE NOW,</span>{' '}
-              <span className="block sm:inline">GET PAID NOW! ⚡</span>
+              <span className="block sm:inline whitespace-nowrap">GET PAID NOW! ⚡</span>
             </p>
             {/* Dollar sign sparkles - centered around the GO LIVE NOW text */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ left: '-50px', right: '-50px', top: '-10px', bottom: '30px', width: 'calc(100% + 100px)', height: '60px' }}>
