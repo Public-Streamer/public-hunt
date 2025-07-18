@@ -35,7 +35,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                     {/* Lightning bolt to the left of triangle */}
                     <Zap className="text-yellow-300 animate-pulse h-5 w-5 mr-0.5" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))', animationDuration: '0.8s' }} />
                     
-                    <Play className="text-white h-8 w-8" style={{ filter: 'drop-shadow(3px 3px 6px rgba(0,0,0,0.7))' }} />
+                    <Play className="text-white h-12 w-12" style={{ filter: 'drop-shadow(3px 3px 6px rgba(0,0,0,0.7))' }} />
                     <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/60 to-transparent opacity-40 pointer-events-none"></div>
                     
                     {/* Dollar sign to the right of triangle */}
@@ -117,7 +117,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                       {/* Lightning bolt to the left of triangle */}
                       <Zap className="text-yellow-300 animate-pulse h-7 w-7 mr-0.5" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))', animationDuration: '0.8s' }} />
                       
-                      <Play className="text-white h-11 w-11" style={{ filter: 'drop-shadow(3px 3px 6px rgba(0,0,0,0.7))' }} />
+                      <Play className="text-white h-16 w-16" style={{ filter: 'drop-shadow(3px 3px 6px rgba(0,0,0,0.7))' }} />
                       <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/60 to-transparent opacity-40 pointer-events-none"></div>
                       
                       {/* Dollar sign to the right of triangle */}
