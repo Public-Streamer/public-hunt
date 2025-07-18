@@ -73,9 +73,9 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                   <div className={`flex items-center space-x-1 text-white/80 font-medium ${
                     isMobile ? 'text-xs' : 'text-xs'
                   }`}>
-                    <DollarSign className={`text-green-300 ${isMobile ? 'h-2.5 w-2.5' : 'h-3 w-3'}`} />
-                    <span className="whitespace-nowrap">Go Live • Make Money</span>
-                    <Zap className={`text-yellow-300 ${isMobile ? 'h-2.5 w-2.5' : 'h-3 w-3'}`} />
+                     <Zap className={`text-yellow-300 ${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
+                     <span className="whitespace-nowrap">Go Live • Make Money</span>
+                     <DollarSign className={`text-green-300 ${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
                   </div>
                 </div>
               </Link>
