@@ -197,11 +197,49 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
-          <Upload className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-          <p className="text-lg font-medium mb-2">Drop files here or click to upload</p>
-          <p className="text-sm text-gray-500 mb-4">
-            Supported formats: JPG, PNG, GIF, PDF, MP4, MPEG, MOV
-          </p>
+          {files.length > 0 && files.some(f => f.uploadProgress === 100) ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+              {files.filter(f => f.uploadProgress === 100).map(file => (
+                <div key={file.id} className="relative group">
+                  {file.type.startsWith('image/') ? (
+                    <img 
+                      src={file.url} 
+                      alt={file.name}
+                      className="w-full h-24 object-cover rounded border"
+                    />
+                  ) : file.type.startsWith('video/') ? (
+                    <video 
+                      src={file.url}
+                      className="w-full h-24 object-cover rounded border"
+                      controls={false}
+                      muted
+                    />
+                  ) : (
+                    <div className="w-full h-24 bg-gray-100 rounded border flex items-center justify-center">
+                      {getFileIcon(file.type)}
+                    </div>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => removeFile(file.id)}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <>
+              <Upload className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+              <p className="text-lg font-medium mb-2">Drop files here or click to upload</p>
+              <p className="text-sm text-gray-500 mb-4">
+                Supported formats: JPG, PNG, GIF, PDF, MP4, MPEG, MOV
+              </p>
+            </>
+          )}
+          
           <input
             type="file"
             multiple
@@ -213,7 +251,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
           />
           <Label htmlFor="file-upload" className="cursor-pointer">
             <div className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
-              {isUploading ? 'Uploading...' : 'Select Files'}
+              {isUploading ? 'Uploading...' : files.length > 0 ? 'Add More Files' : 'Select Files'}
             </div>
           </Label>
         </div>
