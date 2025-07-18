@@ -34,8 +34,8 @@ const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
             <p className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-orange-500 to-red-600 tracking-wider animate-lightning font-orbitron drop-shadow-lg">
               ⚡ GO LIVE NOW, GET PAID NOW! ⚡
             </p>
-            {/* Dollar sign sparkles - tightly constrained to stay between hero text lines */}
-            <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ left: '-50px', right: '-50px', top: '10px', bottom: '10px', width: 'calc(100% + 100px)', height: '80px' }}>
+            {/* Dollar sign sparkles - centered around the GO LIVE NOW text */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ left: '-50px', right: '-50px', top: '-10px', bottom: '30px', width: 'calc(100% + 100px)', height: '60px' }}>
               <div className="dollar-sparkle dollar-sparkle-1">$</div>
               <div className="dollar-sparkle dollar-sparkle-2">$</div>
               <div className="dollar-sparkle dollar-sparkle-3">$</div>
@@ -50,7 +50,7 @@ const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
           </div>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
             Create pay-per-view livestream events with multiple camera angles. 
-            Turn any phone into a professional streaming camera.
+            Turn any phone into a professional streaming camera: Become a production company of one and boldly become one!
           </p>
           <Button 
             onClick={handleGetStarted}
