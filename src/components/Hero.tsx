@@ -50,7 +50,7 @@ const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
           </div>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
             Create pay-per-view livestream events with multiple camera angles. 
-            Turn any phone into a professional streaming camera: Become a production company of one and boldly become one!
+            Turn any phone into a professional streaming camera—become a production company of one.
           </p>
           <Button 
             onClick={handleGetStarted}
