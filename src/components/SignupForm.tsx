@@ -177,6 +177,17 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
 
   const handleTermsClick = (e: React.MouseEvent) => {
     e.preventDefault();
+    setShowLegalModal(true);
+  };
+
+  const handleLegalAccept = (signature: string, date: string) => {
+    setSignatureData({ signature, date });
+    setLegalDocumentSigned(true);
+    setShowLegalModal(false);
+  };
+
+  const handleFinalSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     
     // For company accounts, verify email and password match
     if (signupData.accountType === 'company') {
@@ -190,17 +201,6 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
       }
     }
     
-    setShowLegalModal(true);
-  };
-
-  const handleLegalAccept = (signature: string, date: string) => {
-    setSignatureData({ signature, date });
-    setLegalDocumentSigned(true);
-    setShowLegalModal(false);
-  };
-
-  const handleFinalSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
     if (!signupData.agreeToTerms || !signupData.confirmAge || !legalDocumentSigned) {
       setError('Please complete the legal agreement and accept all terms.');
       return;
@@ -311,7 +311,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                 />
               </label>
             </div>
-            <Label className="text-sm text-gray-600">Profile Photo</Label>
+            <Label className="text-sm text-gray-600">
+              {signupData.accountType === 'company' ? 'Company Profile Photo' : 'Profile Photo'}
+            </Label>
           </div>
           
           {/* Only show name fields for individual accounts or company accounts without master selected */}
@@ -437,7 +439,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
+              <Label htmlFor="phone">
+                {signupData.accountType === 'company' ? 'Company Phone Number' : 'Phone Number'}
+              </Label>
               <Input
                 id="phone"
                 type="tel"
@@ -449,7 +453,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="location">Location</Label>
+              <Label htmlFor="location">
+                {signupData.accountType === 'company' ? 'Company Location' : 'Location'}
+              </Label>
               <Input
                 id="location"
                 value={signupData.location}
