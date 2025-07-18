@@ -56,6 +56,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
   const [signatureData, setSignatureData] = useState<{ signature: string; date: string } | null>(null);
   const [emailVerification, setEmailVerification] = useState("");
   const [passwordVerification, setPasswordVerification] = useState("");
+  const [acknowledgedRisks, setAcknowledgedRisks] = useState(false);
+  const [acknowledgedLiability, setAcknowledgedLiability] = useState(false);
+  const [acknowledgedCompliance, setAcknowledgedCompliance] = useState(false);
   // Use state to control error dialog visibility
   const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [errorDialogConfig, setErrorDialogConfig] = useState<{
@@ -605,28 +608,140 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
         showResetPassword={false}
       />
 
-      <LegalDocumentModal
-        isOpen={showLegalModal}
-        onClose={() => {
-          console.log("Modal closing");
-          setShowLegalModal(false);
-        }}
-        onAccept={handleLegalAccept}
-        userEmail={signupData.email}
-      />
-      
-      {/* Debug overlay */}
+      {/* Simple direct modal - no external component */}
       {showLegalModal && (
-        <div className="fixed inset-0 bg-red-500 bg-opacity-50 z-50 flex items-center justify-center">
-          <div className="bg-white p-4 rounded border">
-            <h3 className="text-lg font-bold">DEBUG: Modal Should Be Open</h3>
-            <p>showLegalModal: {showLegalModal.toString()}</p>
-            <button 
-              onClick={() => setShowLegalModal(false)}
-              className="mt-2 px-4 py-2 bg-red-500 text-white rounded"
-            >
-              Close Debug Modal
-            </button>
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px'
+          }}
+        >
+          <div 
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '8px',
+              padding: '30px',
+              maxWidth: '800px',
+              maxHeight: '90vh',
+              overflow: 'auto',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.3)'
+            }}
+          >
+            <h2 style={{ color: 'red', fontSize: '24px', fontWeight: 'bold', marginBottom: '20px' }}>
+              🚨 LEGAL AGREEMENT REQUIRED 🚨
+            </h2>
+            
+            <div style={{ maxHeight: '400px', overflow: 'auto', marginBottom: '20px', padding: '15px', border: '2px solid #ccc' }}>
+              <h3 style={{ fontWeight: 'bold', marginBottom: '10px' }}>STREAMURA PROTECTION WAIVER</h3>
+              <p style={{ marginBottom: '15px' }}>
+                By using Streamura, you agree to HOLD HARMLESS and INDEMNIFY Streamura from ALL claims, damages, and liability arising from your content or use of the platform.
+              </p>
+              <p style={{ marginBottom: '15px' }}>
+                You acknowledge that Streamura is NOT LIABLE for any content you create, upload, or stream, including but not limited to copyright violations, defamatory content, privacy violations, or any damages whatsoever.
+              </p>
+              <p style={{ marginBottom: '15px' }}>
+                This agreement includes complete liability waiver, indemnification, and binding arbitration. By signing, you waive rights to class action lawsuits.
+              </p>
+            </div>
+
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '10px' }}>
+                <input 
+                  type="checkbox" 
+                  checked={acknowledgedRisks}
+                  onChange={(e) => setAcknowledgedRisks(e.target.checked)}
+                  style={{ marginRight: '8px' }}
+                />
+                I acknowledge the risks and liability waivers
+              </label>
+              
+              <label style={{ display: 'block', marginBottom: '10px' }}>
+                <input 
+                  type="checkbox" 
+                  checked={acknowledgedLiability}
+                  onChange={(e) => setAcknowledgedLiability(e.target.checked)}
+                  style={{ marginRight: '8px' }}
+                />
+                I agree to indemnify Streamura from all claims
+              </label>
+              
+              <label style={{ display: 'block', marginBottom: '15px' }}>
+                <input 
+                  type="checkbox" 
+                  checked={acknowledgedCompliance}
+                  onChange={(e) => setAcknowledgedCompliance(e.target.checked)}
+                  style={{ marginRight: '8px' }}
+                />
+                I will comply with all laws and platform terms
+              </label>
+            </div>
+
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                Electronic Signature (Type your full legal name):
+              </label>
+              <input
+                type="text"
+                value={signatureData?.signature || ''}
+                onChange={(e) => setSignatureData({ signature: e.target.value, date: new Date().toLocaleDateString() })}
+                placeholder="Type your full legal name here"
+                style={{ 
+                  width: '100%', 
+                  padding: '10px', 
+                  border: '2px solid #ccc', 
+                  borderRadius: '4px',
+                  fontSize: '16px'
+                }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setShowLegalModal(false)}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: '#6b7280',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '16px'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (acknowledgedRisks && acknowledgedLiability && acknowledgedCompliance && signatureData?.signature) {
+                    setLegalDocumentSigned(true);
+                    setShowLegalModal(false);
+                  } else {
+                    alert('Please complete all fields and checkboxes before signing.');
+                  }
+                }}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: '#dc2626',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  fontWeight: 'bold'
+                }}
+              >
+                I ACCEPT AND SIGN
+              </button>
+            </div>
           </div>
         </div>
       )}
