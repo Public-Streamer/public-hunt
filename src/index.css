@@ -149,6 +149,10 @@
   opacity: 0;
 }
 
+.dark .dollar-sparkle {
+  color: #34d399;
+}
+
 .dollar-sparkle-1 {
   top: 30%;
   left: 40%;

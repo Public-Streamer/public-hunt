@@ -24,11 +24,11 @@ const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
   };
 
   return (
-    <div className="bg-gradient-to-br from-purple-50 to-pink-50 py-20">
+    <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 py-20 transition-colors duration-300">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold text-gray-900 mb-6">
-            Monetize Your <span className="text-purple-600">Live Streams</span>
+          <h1 className="text-5xl font-bold text-foreground mb-6">
+            Monetize Your <span className="text-purple-600 dark:text-purple-400">Live Streams</span>
           </h1>
           <div className="relative mb-6">
             <div className="flex items-center justify-center gap-4 text-2xl sm:text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-orange-500 to-red-600 tracking-wider animate-lightning font-orbitron drop-shadow-lg">
@@ -53,7 +53,7 @@ const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
               <div className="dollar-sparkle dollar-sparkle-10">$</div>
             </div>
           </div>
-          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+          <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
             Create pay-per-view livestream events with multiple camera angles. 
             Turn any phone into a professional streaming camera—become a production company of one.
           </p>
@@ -67,35 +67,35 @@ const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
         </div>
         
         <div className="grid md:grid-cols-4 gap-6">
-          <Card className="text-center p-6 hover:shadow-lg transition-shadow">
+          <Card className="text-center p-6 hover:shadow-lg transition-shadow border-border">
             <CardContent className="pt-6">
-              <Video className="h-12 w-12 text-purple-600 mx-auto mb-4" />
-              <h3 className="font-semibold mb-2">Multi-Camera Events</h3>
-              <p className="text-sm text-gray-600">Multiple phone streams in one event</p>
+              <Video className="h-12 w-12 text-purple-600 dark:text-purple-400 mx-auto mb-4" />
+              <h3 className="font-semibold mb-2 text-foreground">Multi-Camera Events</h3>
+              <p className="text-sm text-muted-foreground">Multiple phone streams in one event</p>
             </CardContent>
           </Card>
           
-          <Card className="text-center p-6 hover:shadow-lg transition-shadow">
+          <Card className="text-center p-6 hover:shadow-lg transition-shadow border-border">
             <CardContent className="pt-6">
-              <DollarSign className="h-12 w-12 text-green-600 mx-auto mb-4" />
-              <h3 className="font-semibold mb-2">Stripe Payments</h3>
-              <p className="text-sm text-gray-600">Secure pay-per-view monetization</p>
+              <DollarSign className="h-12 w-12 text-green-600 dark:text-green-400 mx-auto mb-4" />
+              <h3 className="font-semibold mb-2 text-foreground">Stripe Payments</h3>
+              <p className="text-sm text-muted-foreground">Secure pay-per-view monetization</p>
             </CardContent>
           </Card>
           
-          <Card className="text-center p-6 hover:shadow-lg transition-shadow">
+          <Card className="text-center p-6 hover:shadow-lg transition-shadow border-border">
             <CardContent className="pt-6">
-              <Users className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-              <h3 className="font-semibold mb-2">Channel System</h3>
-              <p className="text-sm text-gray-600">Create and subscribe to channels</p>
+              <Users className="h-12 w-12 text-blue-600 dark:text-blue-400 mx-auto mb-4" />
+              <h3 className="font-semibold mb-2 text-foreground">Channel System</h3>
+              <p className="text-sm text-muted-foreground">Create and subscribe to channels</p>
             </CardContent>
           </Card>
           
-          <Card className="text-center p-6 hover:shadow-lg transition-shadow">
+          <Card className="text-center p-6 hover:shadow-lg transition-shadow border-border">
             <CardContent className="pt-6">
-              <Smartphone className="h-12 w-12 text-pink-600 mx-auto mb-4" />
-              <h3 className="font-semibold mb-2">SMS Integration</h3>
-              <p className="text-sm text-gray-600">One-click phone streaming</p>
+              <Smartphone className="h-12 w-12 text-pink-600 dark:text-pink-400 mx-auto mb-4" />
+              <h3 className="font-semibold mb-2 text-foreground">SMS Integration</h3>
+              <p className="text-sm text-muted-foreground">One-click phone streaming</p>
             </CardContent>
           </Card>
         </div>

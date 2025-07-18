@@ -6,6 +6,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useAppContext } from '@/contexts/AppContext';
 import MobileNav from './MobileNav';
 import TooltipWrapper from '@/components/ui/tooltip-wrapper';
+import ThemeToggle from './ThemeToggle';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface HeaderProps {
@@ -125,6 +126,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
             </nav>
             
             <div className={`flex items-center ${isMobile ? 'space-x-1' : 'space-x-2'}`}>
+              <ThemeToggle compact />
               {isAuthenticated && user && userProfile ? (
                 <>
                   <Link to="/profile" className={`flex items-center hover:bg-white/20 rounded-lg transition-colors ${
