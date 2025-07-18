@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ChevronDown, ChevronUp, User } from 'lucide-react';
+import { ChevronDown, ChevronUp, User, MoreHorizontal, X, Edit } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import EventPermissionCheckboxes from '@/components/EventPermissionCheckboxes';
 
 interface TeamMember {
@@ -17,6 +18,7 @@ interface EventRoleManagerProps {
   member: TeamMember;
   onPermissionsChange: (permissions: string[]) => void;
   onConfirm: () => void;
+  onRemove?: () => void;
   disabled?: boolean;
 }
 
@@ -24,6 +26,7 @@ const EventRoleManager: React.FC<EventRoleManagerProps> = ({
   member,
   onPermissionsChange,
   onConfirm,
+  onRemove,
   disabled = false
 }) => {
   const [isExpanded, setIsExpanded] = useState(!member.confirmed);
@@ -67,17 +70,45 @@ const EventRoleManager: React.FC<EventRoleManagerProps> = ({
               </>
             )}
           </div>
-          <div className="flex items-center space-x-4">
-            {member.confirmed && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsExpanded(!isExpanded)}
-              >
-                {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <MoreHorizontal className="h-4 w-4" />
               </Button>
-            )}
-          </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              {member.confirmed && (
+                <DropdownMenuItem onClick={() => setIsExpanded(!isExpanded)}>
+                  {isExpanded ? (
+                    <>
+                      <ChevronUp className="h-4 w-4 mr-2" />
+                      Collapse Details
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="h-4 w-4 mr-2" />
+                      Expand Details
+                    </>
+                  )}
+                </DropdownMenuItem>
+              )}
+              {!member.confirmed && (
+                <DropdownMenuItem onClick={() => setIsExpanded(!isExpanded)}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit Permissions
+                </DropdownMenuItem>
+              )}
+              {onRemove && !disabled && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={onRemove} className="text-destructive focus:text-destructive">
+                    <X className="h-4 w-4 mr-2" />
+                    Remove Member
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         
         {isExpanded && (

@@ -223,20 +223,11 @@ const StreamerSelector: React.FC<StreamerSelectorProps> = ({ onStreamersChange }
           <div className="space-y-4">
             {selectedMembers.map(member => (
               <div key={member.id} className="relative">
-                {!isLocked && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => removeMember(member.id)}
-                    className="absolute top-2 right-12 z-10"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                )}
                 <EventRoleManager
                   member={member}
                   onPermissionsChange={(permissions) => updateMemberPermissions(member.id, permissions)}
                   onConfirm={() => confirmMember(member.id)}
+                  onRemove={!isLocked ? () => removeMember(member.id) : undefined}
                   disabled={isLocked}
                 />
               </div>
