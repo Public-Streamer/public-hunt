@@ -418,23 +418,41 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
   const handleFinalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('handleFinalSubmit called', { 
+      signupData, 
+      emailVerification, 
+      passwordVerification, 
+      legalDocumentSigned 
+    });
+    
     // For company accounts, verify email and password match
     if (signupData.accountType === 'company') {
+      console.log('Company account validation');
       if (emailVerification !== signupData.email) {
+        console.log('Email verification failed');
         setError("Email verification does not match your account email");
         return;
       }
       if (passwordVerification !== signupData.password) {
+        console.log('Password verification failed');
         setError("Password verification does not match your account password");
         return;
       }
     }
     
+    console.log('Checking final validations:', {
+      agreeToTerms: signupData.agreeToTerms,
+      confirmAge: signupData.confirmAge,
+      legalDocumentSigned
+    });
+    
     if (!signupData.agreeToTerms || !signupData.confirmAge || !legalDocumentSigned) {
+      console.log('Final validation failed');
       setError('Please complete the legal agreement and accept all terms.');
       return;
     }
     
+    console.log('Starting signup process');
     setLoading(true);
     setError(null);
     try {
