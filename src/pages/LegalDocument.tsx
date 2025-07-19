@@ -96,8 +96,8 @@ const LegalDocumentPage: React.FC = () => {
           setTimeout(() => {
             console.log('Trying navigation fallbacks...');
             try {
-              // Navigate back to the main app instead of blank page
-              window.location.href = window.location.origin + '/';
+              // Navigate back to the signup form instead of home page
+              window.location.href = window.location.origin + '/login?tab=signup';
             } catch (e) {
               try {
                 // Try to go back in history
@@ -168,8 +168,8 @@ const LegalDocumentPage: React.FC = () => {
             // For mobile, also try to navigate the parent directly
             if (isMobile && target.name === 'parent') {
               try {
-                // Try to navigate parent back to login/signup
-                target.ref.location.href = target.ref.location.origin + '/';
+                // Try to navigate parent back to signup form
+                target.ref.location.href = target.ref.location.origin + '/login?tab=signup';
               } catch (navError) {
                 console.log('Parent navigation failed:', navError);
               }
@@ -196,8 +196,8 @@ const LegalDocumentPage: React.FC = () => {
         // Method 2: Try navigation approaches
         setTimeout(() => {
           try {
-            // Navigate directly to main app instead of going back
-            window.location.href = window.location.origin + '/';
+            // Navigate directly to signup form instead of main app
+            window.location.href = window.location.origin + '/login?tab=signup';
           } catch (e) {
             console.log('Navigation fallback failed:', e);
             // Show success message with manual close instruction (no blank page)
@@ -205,7 +205,7 @@ const LegalDocumentPage: React.FC = () => {
               <div style="padding: 20px; text-align: center; font-family: Arial, sans-serif; background: #f0f9ff;">
                 <h2 style="color: green;">✓ Document Signed Successfully!</h2>
                 <p style="font-size: 18px; margin: 20px 0;">You can now close this window and return to the signup form.</p>
-                <button onclick="window.location.href='${window.location.origin}/';" style="padding: 15px 30px; font-size: 16px; background: #007cba; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 10px;">Return to App</button>
+                <button onclick="window.location.href='${window.location.origin}/login?tab=signup';" style="padding: 15px 30px; font-size: 16px; background: #007cba; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 10px;">Return to Signup</button>
                 <br>
                 <button onclick="window.close();" style="padding: 15px 30px; font-size: 16px; background: #6b7280; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 10px;">Close Window</button>
                 <br>
@@ -221,8 +221,8 @@ const LegalDocumentPage: React.FC = () => {
           try {
             window.close();
           } catch (e) {
-            // Navigate to main app instead of blank page
-            window.location.href = window.location.origin + '/';
+            // Navigate to signup form instead of blank page
+            window.location.href = window.location.origin + '/login?tab=signup';
           }
         }, 200);
       }
@@ -234,7 +234,7 @@ const LegalDocumentPage: React.FC = () => {
         <div style="padding: 20px; text-align: center; font-family: Arial, sans-serif; background: #f0f9ff;">
           <h2 style="color: green;">✓ Document Completed!</h2>
           <p>Please close this window to return to the signup form.</p>
-          <button onclick="window.close(); window.history.back();" style="padding: 15px 30px; font-size: 16px; background: #007cba; color: white; border: none; border-radius: 8px; cursor: pointer;">Close Window</button>
+          <button onclick="window.location.href='${window.location.origin}/login?tab=signup';" style="padding: 15px 30px; font-size: 16px; background: #007cba; color: white; border: none; border-radius: 8px; cursor: pointer;">Return to Signup</button>
         </div>
       `;
     }
