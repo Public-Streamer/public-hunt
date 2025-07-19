@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Share2, Facebook, Instagram, MessageCircle, Mail, Phone, Copy, Twitter } from 'lucide-react';
+import { Share2, Facebook, Instagram, MessageCircle, Mail, Phone, Copy, Twitter, Youtube } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface SocialShareMenuProps {
@@ -19,6 +19,7 @@ const SocialShareMenu: React.FC<SocialShareMenuProps> = ({ title, url, descripti
     { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'bg-blue-600', tooltip: 'Share on Facebook' },
     { id: 'instagram', name: 'Instagram', icon: Instagram, color: 'bg-pink-600', tooltip: 'Copy link for Instagram' },
     { id: 'x', name: 'X (Twitter)', icon: Twitter, color: 'bg-gray-900', tooltip: 'Share on X (Twitter)' },
+    { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'bg-red-600', tooltip: 'Share on YouTube' },
     { id: 'email', name: 'Email', icon: Mail, color: 'bg-blue-500', tooltip: 'Share via Email' },
     { id: 'sms', name: 'SMS', icon: Phone, color: 'bg-green-600', tooltip: 'Share via SMS' },
     { id: 'copy', name: 'Copy Link', icon: Copy, color: 'bg-gray-600', tooltip: 'Copy link to clipboard' }
@@ -122,6 +123,14 @@ const SocialShareMenu: React.FC<SocialShareMenuProps> = ({ title, url, descripti
           toast({ 
             title: 'SMS opened!', 
             description: 'Send the event details via text message' 
+          });
+          break;
+        
+        case 'youtube':
+          await copyToClipboard(url);
+          toast({ 
+            title: 'Link copied for YouTube!', 
+            description: 'Paste the link in your YouTube video description, community post, or comments' 
           });
           break;
         
