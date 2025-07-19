@@ -48,7 +48,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                    <div className="flex items-center text-white/80 font-medium text-xs truncate" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>
                      <Zap className="text-yellow-300 h-3 w-3 mr-1 flex-shrink-0" style={{ filter: 'drop-shadow(1px 1px 2px rgba(0,0,0,0.7))' }} />
                      <span className="text-xs whitespace-nowrap">Go Live</span>
-                     <Triangle className="text-yellow-400 h-2 w-2 mx-0.5 flex-shrink-0 rotate-90 stroke-2" style={{ filter: 'drop-shadow(1px 1px 2px rgba(0,0,0,0.7)) brightness(1.3)', animation: 'strobe 1.5s ease-in-out infinite' }} />
+                     <Triangle className="text-yellow-400 h-1.5 w-1.5 mx-0.5 flex-shrink-0 rotate-90 stroke-[3]" style={{ filter: 'drop-shadow(1px 1px 2px rgba(0,0,0,0.7)) brightness(1.3)', animation: 'strobe 1.5s ease-in-out infinite' }} />
                      <span className="text-xs whitespace-nowrap">Get Paid</span>
                      <DollarSign className="text-green-300 h-3 w-3 ml-1 flex-shrink-0" style={{ filter: 'drop-shadow(1px 1px 2px rgba(0,0,0,0.7))' }} />
                    </div>
@@ -132,7 +132,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                      <div className="flex items-center space-x-1 text-white/80 font-medium text-xs" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>
                         <Zap className="text-yellow-300 h-4 w-4" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
                         <span className="whitespace-nowrap">Go Live</span>
-                        <Triangle className="text-yellow-400 h-3 w-3 mx-1 rotate-90 stroke-2" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7)) brightness(1.3)', animation: 'strobe 1.5s ease-in-out infinite' }} />
+                        <Triangle className="text-yellow-400 h-2 w-2 mx-1 rotate-90 stroke-[3]" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7)) brightness(1.3)', animation: 'strobe 1.5s ease-in-out infinite' }} />
                         <span className="whitespace-nowrap">Get Paid</span>
                         <DollarSign className="text-green-300 h-4 w-4" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
                      </div>
