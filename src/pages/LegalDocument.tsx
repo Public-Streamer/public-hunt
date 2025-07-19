@@ -12,6 +12,7 @@ const LegalDocumentPage: React.FC = () => {
   const [acknowledgedRisks, setAcknowledgedRisks] = useState(false);
   const [acknowledgedLiability, setAcknowledgedLiability] = useState(false);
   const [acknowledgedCompliance, setAcknowledgedCompliance] = useState(false);
+  const [documentSigned, setDocumentSigned] = useState(false);
 
   const currentDate = new Date().toLocaleDateString();
   const canSubmit = signature.trim() && acknowledgedRisks && acknowledgedLiability && acknowledgedCompliance;
@@ -39,6 +40,7 @@ const LegalDocumentPage: React.FC = () => {
 
     try {
       console.log('Processing signature...');
+      setDocumentSigned(true);
       
       // Always send message first - even if no opener is detected
       const messageData = {
@@ -430,6 +432,44 @@ const LegalDocumentPage: React.FC = () => {
               ) : (
                 'Accept and Sign'
               )}
+            </button>
+          </div>
+
+          {/* Close Window Button - only enabled after document is signed */}
+          <div className="flex justify-center pt-4">
+            <button 
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Close Window button clicked via onClick');
+                if (documentSigned) {
+                  handleCancel();
+                }
+              }}
+              onTouchEnd={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Close Window button touched via onTouchEnd');
+                if (documentSigned) {
+                  setTimeout(() => handleCancel(), 100);
+                }
+              }}
+              disabled={!documentSigned}
+              className={`px-8 py-3 min-h-[48px] text-base font-medium rounded-lg transition-colors duration-200 cursor-pointer ${
+                documentSigned 
+                  ? 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white border-2 border-blue-600' 
+                  : 'bg-gray-300 cursor-not-allowed text-gray-500 border-2 border-gray-300'
+              }`}
+              style={{ 
+                WebkitTapHighlightColor: documentSigned ? 'rgba(0,0,255,0.2)' : 'rgba(0,0,0,0.1)',
+                touchAction: 'manipulation',
+                WebkitTouchCallout: 'none',
+                WebkitUserSelect: 'none',
+                userSelect: 'none'
+              }}
+            >
+              Close Window
             </button>
           </div>
         </div>
