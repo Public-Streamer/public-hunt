@@ -123,18 +123,8 @@ const LegalDocumentPage: React.FC = () => {
               console.log('window.close() failed, trying navigation fallbacks...');
             }
             
-            // If window.close() didn't work, try navigation methods
-            setTimeout(() => {
-              try {
-                // Try to go back in history first
-                console.log('Trying window.history.back()...');
-                window.history.back();
-              } catch (e) {
-                console.log('history.back() failed, navigating to signup...');
-                // Final fallback - navigate to signup form
-                window.location.href = window.location.origin + '/login?tab=signup';
-              }
-            }, 500);
+            // Don't use navigation fallbacks - let the parent window handle the flow
+            console.log('Window close attempted, relying on message handling by parent window');
           }, 1000);
           
         } catch (error) {
@@ -199,16 +189,8 @@ const LegalDocumentPage: React.FC = () => {
           console.log('window.close() failed, trying navigation...');
         }
         
-        // If window.close() didn't work, try navigation methods
-        setTimeout(() => {
-          try {
-            // Try to go back in history first
-            window.history.back();
-          } catch (e) {
-            // Final fallback - navigate to signup form
-            window.location.href = window.location.origin + '/login?tab=signup';
-          }
-        }, 300);
+        // Don't use navigation fallbacks - let the parent window handle the flow
+        console.log('Window close attempted, relying on message handling by parent window');
       }, 300);
       
     } catch (error) {
@@ -217,14 +199,8 @@ const LegalDocumentPage: React.FC = () => {
       try {
         window.close();
       } catch (e) {
-        // If close doesn't work, try navigation
-        setTimeout(() => {
-          try {
-            window.history.back();
-          } catch (e2) {
-            window.location.href = window.location.origin + '/login?tab=signup';
-          }
-        }, 500);
+        // Don't use navigation fallbacks - let the parent window handle the flow
+        console.log('Window close attempted, relying on message handling by parent window');
       }
     }
   };
