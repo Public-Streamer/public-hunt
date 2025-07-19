@@ -12,6 +12,19 @@ export const BirthdaySelector: React.FC<BirthdaySelectorProps> = ({ value, onCha
   // Parse the current value
   const [year, month, day] = value ? value.split('-') : ['', '', ''];
   
+  // Track individual selections
+  const [selectedMonth, setSelectedMonth] = React.useState(month);
+  const [selectedDay, setSelectedDay] = React.useState(day);
+  const [selectedYear, setSelectedYear] = React.useState(year);
+  
+  // Update individual selections when value prop changes
+  React.useEffect(() => {
+    const [newYear, newMonth, newDay] = value ? value.split('-') : ['', '', ''];
+    setSelectedYear(newYear);
+    setSelectedMonth(newMonth);
+    setSelectedDay(newDay);
+  }, [value]);
+  
   // Generate year options (current year - 120 to current year - 13)
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 108 }, (_, i) => currentYear - 13 - i);
@@ -38,27 +51,35 @@ export const BirthdaySelector: React.FC<BirthdaySelectorProps> = ({ value, onCha
     return new Date(parseInt(year), parseInt(month), 0).getDate();
   };
   
-  const daysInMonth = getDaysInMonth(year, month);
+  const daysInMonth = getDaysInMonth(selectedYear, selectedMonth);
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
   
   const handleChange = (type: 'year' | 'month' | 'day', newValue: string) => {
-    let newYear = year;
-    let newMonth = month;
-    let newDay = day;
+    let newYear = selectedYear;
+    let newMonth = selectedMonth;
+    let newDay = selectedDay;
     
-    if (type === 'year') newYear = newValue;
-    if (type === 'month') newMonth = newValue;
-    if (type === 'day') newDay = newValue.padStart(2, '0');
+    if (type === 'year') {
+      newYear = newValue;
+      setSelectedYear(newValue);
+    }
+    if (type === 'month') {
+      newMonth = newValue;
+      setSelectedMonth(newValue);
+    }
+    if (type === 'day') {
+      newDay = newValue.padStart(2, '0');
+      setSelectedDay(newDay);
+    }
     
     // Validate day doesn't exceed month limits
     if (newYear && newMonth && newDay) {
       const maxDays = getDaysInMonth(newYear, newMonth);
       if (parseInt(newDay) > maxDays) {
         newDay = maxDays.toString().padStart(2, '0');
+        setSelectedDay(newDay);
       }
-    }
-    
-    if (newYear && newMonth && newDay) {
+      // Only call onChange when all three values are present
       onChange(`${newYear}-${newMonth}-${newDay}`);
     }
   };
@@ -69,7 +90,7 @@ export const BirthdaySelector: React.FC<BirthdaySelectorProps> = ({ value, onCha
       <div className="grid grid-cols-3 gap-2">
         <div>
           <Label className="text-xs text-muted-foreground mb-1 block">Month</Label>
-          <Select value={month} onValueChange={(value) => {
+          <Select value={selectedMonth} onValueChange={(value) => {
             console.log('Month selected:', value);
             handleChange('month', value);
           }}>
@@ -84,16 +105,16 @@ export const BirthdaySelector: React.FC<BirthdaySelectorProps> = ({ value, onCha
               ))}
             </SelectContent>
           </Select>
-          <div className="mt-2 p-3 bg-primary/10 border-2 border-primary/20 rounded-md text-center min-h-[40px] flex items-center justify-center">
-            <span className="text-sm font-bold text-primary">
-              {month ? months.find(m => m.value === month)?.label : 'No month selected'}
+          <div className="mt-2 p-3 border-2 rounded-md text-center min-h-[40px] flex items-center justify-center">
+            <span className={`text-sm font-bold ${selectedMonth ? 'text-green-600 bg-green-50 border-green-200' : 'text-red-600 bg-red-50 border-red-200'}`}>
+              {selectedMonth ? months.find(m => m.value === selectedMonth)?.label : 'No month selected'}
             </span>
           </div>
         </div>
         
         <div>
           <Label className="text-xs text-muted-foreground mb-1 block">Day</Label>
-          <Select value={day} onValueChange={(value) => {
+          <Select value={selectedDay} onValueChange={(value) => {
             console.log('Day selected:', value);
             handleChange('day', value);
           }}>
@@ -108,16 +129,16 @@ export const BirthdaySelector: React.FC<BirthdaySelectorProps> = ({ value, onCha
               ))}
             </SelectContent>
           </Select>
-          <div className="mt-2 p-3 bg-primary/10 border-2 border-primary/20 rounded-md text-center min-h-[40px] flex items-center justify-center">
-            <span className="text-sm font-bold text-primary">
-              {day ? day : 'No day selected'}
+          <div className="mt-2 p-3 border-2 rounded-md text-center min-h-[40px] flex items-center justify-center">
+            <span className={`text-sm font-bold ${selectedDay ? 'text-blue-600 bg-blue-50 border-blue-200' : 'text-red-600 bg-red-50 border-red-200'}`}>
+              {selectedDay ? selectedDay : 'No day selected'}
             </span>
           </div>
         </div>
         
         <div>
           <Label className="text-xs text-muted-foreground mb-1 block">Year</Label>
-          <Select value={year} onValueChange={(value) => {
+          <Select value={selectedYear} onValueChange={(value) => {
             console.log('Year selected:', value);
             handleChange('year', value);
           }}>
@@ -132,9 +153,9 @@ export const BirthdaySelector: React.FC<BirthdaySelectorProps> = ({ value, onCha
               ))}
             </SelectContent>
           </Select>
-          <div className="mt-2 p-3 bg-primary/10 border-2 border-primary/20 rounded-md text-center min-h-[40px] flex items-center justify-center">
-            <span className="text-sm font-bold text-primary">
-              {year ? year : 'No year selected'}
+          <div className="mt-2 p-3 border-2 rounded-md text-center min-h-[40px] flex items-center justify-center">
+            <span className={`text-sm font-bold ${selectedYear ? 'text-green-600 bg-green-50 border-green-200' : 'text-red-600 bg-red-50 border-red-200'}`}>
+              {selectedYear ? selectedYear : 'No year selected'}
             </span>
           </div>
         </div>
