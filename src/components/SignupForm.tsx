@@ -687,12 +687,12 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 auth-template">
-        <Card className="w-full max-w-md max-h-[90vh] auth-template">
-          <CardHeader>
-            <CardTitle>Create Your Public Streamer Account</CardTitle>
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="w-full max-w-md bg-card rounded-lg border shadow-lg">
+          <div className="p-6">
+            <h2 className="text-xl font-semibold text-center mb-6">Create Your Public Streamer Account</h2>
             {error && (
-              <Alert variant="destructive" className="mt-4">
+              <Alert variant="destructive" className="mb-4">
                 <AlertDescription>{error}</AlertDescription>
                 {showResetPassword && (
                   <Button
@@ -705,13 +705,11 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                 )}
               </Alert>
             )}
-          </CardHeader>
-          <CardContent className="h-[75vh] p-0 auth-template">
-            <ScrollArea className="h-full w-full px-6 pb-6 auth-template">
+            <div className="space-y-4">
               {formContent}
-            </ScrollArea>
-          </CardContent>
-        </Card>
+            </div>
+          </div>
+        </div>
       </div>
       {showResetPassword && (
         <ResetPasswordForm onClose={() => setShowResetPassword(false)} />
@@ -723,7 +721,6 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
         message={errorDialogConfig.message}
         showResetPassword={false}
       />
-
     </>
   );
 };
