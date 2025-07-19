@@ -176,7 +176,7 @@ const ChannelSelector: React.FC<ChannelSelectorProps> = ({
     }
   };
 
-  const handleChannelSelect = (channelId: string) => {
+  const handleChannelSelect = async (channelId: string) => {
     if (channelId === 'assign-later') {
       onChannelChange('', false);
       setShowSearchResults(false);
@@ -195,16 +195,25 @@ const ChannelSelector: React.FC<ChannelSelectorProps> = ({
     const userCompany = userCompanies.find(c => c.id === channelId);
     const searchChannel = searchResults.find(c => c.id === channelId);
     
-    if (userChannel && (userChannel.role === 'channel_master' || userChannel.role === 'channel_admin')) {
-      // User has permission to assign to this channel
+    // Check if user is the channel owner or has master/admin permissions
+    const hasDirectPermission = userChannel && (
+      userChannel.role === 'channel_master' || 
+      userChannel.role === 'channel_admin'
+    );
+    
+    // Check if user is company master for this company
+    const hasCompanyPermission = userCompany && userCompany.role === 'company_master';
+    
+    if (hasDirectPermission || hasCompanyPermission) {
+      // User has permission to assign to this channel immediately
       onChannelChange(channelId, false);
       setShowSearchResults(false);
       setSearchQuery('');
-    } else if (userCompany && userCompany.role === 'company_master') {
-      // User has permission to assign to this company
-      onChannelChange(channelId, false);
-      setShowSearchResults(false);
-      setSearchQuery('');
+      toast({
+        title: "Channel Selected",
+        description: "Event will be assigned to this channel.",
+        variant: "default"
+      });
     } else if (searchChannel) {
       // User doesn't have permission, requires approval
       onChannelChange(channelId, true);

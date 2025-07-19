@@ -257,14 +257,35 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         await supabase.from('event_streamers').insert(streamerData);
       }
       
-      // Handle channel assignment requests
+      // Handle channel assignment requests only if approval is required
       if (channelRequiresApproval && selectedChannelId) {
+        // Create the approval request
         await supabase.from('event_channel_requests').insert({
           event_id: data.id,
           channel_id: selectedChannelId,
           requested_by: userData.user.id,
           message: `Event "${formData.name}" requesting assignment to channel`
         });
+        
+        // Send notification to channel masters/admins
+        const { data: channelMasters, error: mastersError } = await supabase
+          .from('channel_permissions')
+          .select('user_id')
+          .eq('channel_id', selectedChannelId)
+          .in('role', ['channel_master', 'channel_admin']);
+
+        if (!mastersError && channelMasters) {
+          const notifications = channelMasters.map(master => ({
+            user_id: master.user_id,
+            type: 'channel_assignment_request',
+            title: 'New Channel Assignment Request',
+            content: `Event "${formData.name}" is requesting assignment to your channel`,
+            related_type: 'event_channel_request',
+            related_id: data.id
+          }));
+
+          await supabase.from('notifications').insert(notifications);
+        }
         
         toast({ 
           title: "Event Created!", 

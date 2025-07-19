@@ -16,6 +16,7 @@ import {
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { useAppContext } from '@/contexts/AppContext';
+import ChannelApprovalMessage from '@/components/ChannelApprovalMessage';
 
 interface Message {
   id: string;
@@ -24,6 +25,14 @@ interface Message {
   content: string;
   is_read: boolean;
   created_at: string;
+  type?: 'text' | 'channel_approval_request';
+  approval_request?: {
+    request_id: string;
+    event_name: string;
+    event_description: string;
+    channel_name: string;
+    status: 'pending' | 'approved' | 'rejected';
+  };
   sender_profile: {
     id: string;
     display_name: string;
@@ -66,11 +75,13 @@ const Messages: React.FC<MessagesProps> = ({ userId }) => {
   const [userSearch, setUserSearch] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [approvalRequests, setApprovalRequests] = useState<any[]>([]);
   const { toast } = useToast();
   const { user } = useAppContext();
 
   useEffect(() => {
     fetchConversations();
+    fetchApprovalRequests();
   }, [userId]);
 
   useEffect(() => {
@@ -79,9 +90,39 @@ const Messages: React.FC<MessagesProps> = ({ userId }) => {
     }
   }, [selectedConversation]);
 
+  const fetchApprovalRequests = async () => {
+    try {
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError || !userData.user) return;
+
+      // Get approval requests for channels the user is master/admin of
+      const { data: requests, error } = await supabase
+        .from('event_channel_requests')
+        .select(`
+          *,
+          events!inner (
+            name,
+            description,
+            created_by
+          ),
+          channels!inner (
+            name,
+            user_id
+          )
+        `)
+        .eq('status', 'pending')
+        .or(`channels.user_id.eq.${userData.user.id},channel_id.in.(select channel_id from channel_permissions where user_id = ${userData.user.id} and role in ('channel_master','channel_admin'))`);
+
+      if (error) throw error;
+      setApprovalRequests(requests || []);
+    } catch (error) {
+      console.error('Error fetching approval requests:', error);
+    }
+  };
+
   const fetchConversations = async () => {
     try {
-      // Mock conversations data
+      // Mock conversations data - in real app, this would include approval requests
       const mockConversations: Conversation[] = [
         {
           user_id: 'user-1',
@@ -123,6 +164,24 @@ const Messages: React.FC<MessagesProps> = ({ userId }) => {
           is_online: true
         }
       ];
+      // Add approval requests as special conversations
+      if (approvalRequests.length > 0) {
+        const approvalConversations: Conversation[] = approvalRequests.map(request => ({
+          user_id: `approval-${request.id}`,
+          user_profile: {
+            id: request.requested_by,
+            display_name: 'Channel Assignment Request',
+            username: 'system',
+            profile_picture_url: '/placeholder.svg'
+          },
+          last_message: `New event "${(request.events as any).name}" requesting channel assignment`,
+          last_message_time: request.requested_at,
+          unread_count: 1,
+          is_online: false
+        }));
+        mockConversations.unshift(...approvalConversations);
+      }
+
       setConversations(mockConversations);
     } catch (error) {
       console.error('Error fetching conversations:', error);
@@ -138,6 +197,44 @@ const Messages: React.FC<MessagesProps> = ({ userId }) => {
 
   const fetchMessages = async (conversationUserId: string) => {
     try {
+      // Check if this is an approval request conversation
+      if (conversationUserId.startsWith('approval-')) {
+        const requestId = conversationUserId.replace('approval-', '');
+        const request = approvalRequests.find(r => r.id === requestId);
+        if (request) {
+          const approvalMessage: Message = {
+            id: `approval-${request.id}`,
+            sender_id: 'system',
+            receiver_id: userId,
+            content: `Event "${(request.events as any).name}" is requesting assignment to channel "${(request.channels as any).name}"`,
+            is_read: false,
+            created_at: request.requested_at,
+            type: 'channel_approval_request',
+            approval_request: {
+              request_id: request.id,
+              event_name: (request.events as any).name,
+              event_description: (request.events as any).description,
+              channel_name: (request.channels as any).name,
+              status: request.status
+            },
+            sender_profile: {
+              id: 'system',
+              display_name: 'System',
+              username: 'system',
+              profile_picture_url: '/placeholder.svg'
+            },
+            receiver_profile: {
+              id: userId,
+              display_name: 'You',
+              username: 'you',
+              profile_picture_url: '/placeholder.svg'
+            }
+          };
+          setMessages([approvalMessage]);
+          return;
+        }
+      }
+
       // Mock messages data
       const mockMessages: Message[] = [
         {
@@ -491,40 +588,67 @@ const Messages: React.FC<MessagesProps> = ({ userId }) => {
                           key={message.id}
                           className={`flex gap-3 ${message.sender_id === userId ? 'justify-end' : 'justify-start'}`}
                         >
-                          {message.sender_id !== userId && (
-                            <Avatar className="w-8 h-8">
-                              <AvatarImage src={message.sender_profile.profile_picture_url} />
-                              <AvatarFallback>{message.sender_profile.display_name[0]}</AvatarFallback>
-                            </Avatar>
-                          )}
-                          <div className={`max-w-[70%] ${message.sender_id === userId ? 'order-first' : ''}`}>
-                            <div
-                              className={`p-3 rounded-lg ${
-                                message.sender_id === userId
-                                  ? 'bg-primary text-primary-foreground'
-                                  : 'bg-muted'
-                              }`}
-                            >
-                              <p className="text-sm">{message.content}</p>
+                          {message.type === 'channel_approval_request' && message.approval_request ? (
+                            <div className="w-full flex justify-center">
+                              <ChannelApprovalMessage
+                                requestId={message.approval_request.request_id}
+                                eventName={message.approval_request.event_name}
+                                eventDescription={message.approval_request.event_description}
+                                channelName={message.approval_request.channel_name}
+                                requestedBy={message.sender_id}
+                                requestedByName={message.sender_profile.display_name}
+                                requestedAt={message.created_at}
+                                status={message.approval_request.status}
+                                onStatusChange={(newStatus) => {
+                                  // Update the message status
+                                  setMessages(prev => prev.map(msg => 
+                                    msg.id === message.id && msg.approval_request
+                                      ? { ...msg, approval_request: { ...msg.approval_request, status: newStatus } }
+                                      : msg
+                                  ));
+                                  // Refresh approval requests
+                                  fetchApprovalRequests();
+                                }}
+                              />
                             </div>
-                            <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                              <span>
-                                {new Date(message.created_at).toLocaleTimeString([], { 
-                                  hour: '2-digit', 
-                                  minute: '2-digit' 
-                                })}
-                              </span>
-                              {message.sender_id === userId && (
-                                <div className="flex items-center">
-                                  {message.is_read ? (
-                                    <CheckCheck className="w-3 h-3 text-primary" />
-                                  ) : (
-                                    <Check className="w-3 h-3" />
+                          ) : (
+                            <>
+                              {message.sender_id !== userId && (
+                                <Avatar className="w-8 h-8">
+                                  <AvatarImage src={message.sender_profile.profile_picture_url} />
+                                  <AvatarFallback>{message.sender_profile.display_name[0]}</AvatarFallback>
+                                </Avatar>
+                              )}
+                              <div className={`max-w-[70%] ${message.sender_id === userId ? 'order-first' : ''}`}>
+                                <div
+                                  className={`p-3 rounded-lg ${
+                                    message.sender_id === userId
+                                      ? 'bg-primary text-primary-foreground'
+                                      : 'bg-muted'
+                                  }`}
+                                >
+                                  <p className="text-sm">{message.content}</p>
+                                </div>
+                                <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                                  <span>
+                                    {new Date(message.created_at).toLocaleTimeString([], { 
+                                      hour: '2-digit', 
+                                      minute: '2-digit' 
+                                    })}
+                                  </span>
+                                  {message.sender_id === userId && (
+                                    <div className="flex items-center">
+                                      {message.is_read ? (
+                                        <CheckCheck className="w-3 h-3 text-primary" />
+                                      ) : (
+                                        <Check className="w-3 h-3" />
+                                      )}
+                                    </div>
                                   )}
                                 </div>
-                              )}
-                            </div>
-                          </div>
+                              </div>
+                            </>
+                          )}
                         </div>
                       ))}
                     </div>
