@@ -110,16 +110,16 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose }) => {
 
   if (showSignup) {
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 auth-template">
-        <Card className="w-full max-w-md auth-template">
-          <CardHeader>
-            <CardTitle>Create Account</CardTitle>
-            <CardDescription>Join Public Streamer today</CardDescription>
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 auth-template">
+        <Card className="w-full max-w-md max-h-[95vh] sm:max-h-[90vh] auth-template">
+          <CardHeader className="pb-3 sm:pb-6">
+            <CardTitle className="text-lg sm:text-xl">Create Account</CardTitle>
+            <CardDescription className="text-sm">Join Public Streamer today</CardDescription>
           </CardHeader>
-          <CardContent className="h-[75vh] p-0 auth-template">
-            <ScrollArea className="h-full w-full px-6 pb-6 auth-template">
+          <CardContent className="h-[70vh] sm:h-[75vh] p-0 auth-template">
+            <ScrollArea className="h-full w-full px-3 sm:px-6 pb-3 sm:pb-6 auth-template">
               <SignupForm onClose={onClose} onSuccess={handleSignupSuccess} inline />
-              <div className="mt-4 w-full">
+              <div className="mt-2 sm:mt-4 w-full">
                 <div className="flex justify-center items-center w-full">
                   <TooltipWrapper content="Go back to login form">
                     <Button 
@@ -141,31 +141,33 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose }) => {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 auth-template">
-      <Card className="w-full max-w-md auth-template">
-        <CardHeader>
-          <CardTitle>Welcome to Public Streamer</CardTitle>
-          <CardDescription>Sign in to your account</CardDescription>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 auth-template">
+      <Card className="w-full max-w-md max-h-[95vh] sm:max-h-[90vh] auth-template">
+        <CardHeader className="pb-3 sm:pb-6">
+          <CardTitle className="text-lg sm:text-xl">Welcome to Public Streamer</CardTitle>
+          <CardDescription className="text-sm">Sign in to your account</CardDescription>
         </CardHeader>
-        <CardContent className="auth-template">
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+        <CardContent className="auth-template px-3 sm:px-6 pb-3 sm:pb-6">
+          <form onSubmit={handleLogin} className="space-y-3 sm:space-y-4">
+            <div className="space-y-1 sm:space-y-2">
+              <Label htmlFor="email" className="text-sm">Email</Label>
               <Input
                 id="email"
                 type="email"
                 value={loginData.email}
                 onChange={(e) => setLoginData(prev => ({ ...prev, email: e.target.value }))}
+                className="h-10 sm:h-11"
                 required
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+            <div className="space-y-1 sm:space-y-2">
+              <Label htmlFor="password" className="text-sm">Password</Label>
               <Input
                 id="password"
                 type="password"
                 value={loginData.password}
                 onChange={(e) => setLoginData(prev => ({ ...prev, password: e.target.value }))}
+                className="h-10 sm:h-11"
                 required
               />
             </div>
@@ -173,21 +175,21 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose }) => {
               <div className="text-red-600 text-sm text-center">{error}</div>
             )}
             
-            <div className="space-y-2">
+            <div className="space-y-2 sm:space-y-3">
               <TooltipWrapper content="Sign in to your account">
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button type="submit" className="w-full h-10 sm:h-11" disabled={isLoading}>
                   {isLoading ? 'Signing in...' : 'Login'}
                 </Button>
               </TooltipWrapper>
               <TooltipWrapper content="Close login form">
-                <Button type="button" variant="outline" onClick={onClose} className="w-full">
+                <Button type="button" variant="outline" onClick={onClose} className="w-full h-10 sm:h-11">
                   Cancel
                 </Button>
               </TooltipWrapper>
             </div>
             
             {/* Centered signup link with proper spacing and positioning */}
-            <div className="pt-4 w-full">
+            <div className="pt-2 sm:pt-4 w-full">
               <div className="flex justify-center items-center w-full">
                 <TooltipWrapper content="Create a new account">
                   <Button 
