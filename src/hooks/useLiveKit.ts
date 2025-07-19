@@ -1,3 +1,4 @@
+
 import { useEffect, useState, useCallback } from 'react';
 import { Room, RoomConnectOptions, RoomOptions, LocalParticipant, RemoteParticipant } from 'livekit-client';
 import { supabase } from '@/lib/supabase';
@@ -26,6 +27,7 @@ export const useLiveKit = ({ eventId, userRole = 'viewer', autoConnect = false }
   // Add room lookup function to find existing room for event
   const findExistingRoom = useCallback(async (eventId: string) => {
     try {
+      console.log('🔍 useLiveKit: Looking up existing room for event:', eventId);
       const { data, error } = await supabase
         .from('livekit_rooms')
         .select('*')
@@ -34,20 +36,27 @@ export const useLiveKit = ({ eventId, userRole = 'viewer', autoConnect = false }
         .maybeSingle();
 
       if (error) {
-        console.error('Error finding existing room:', error);
+        console.error('❌ useLiveKit: Error finding existing room:', error);
         return null;
       }
 
-      console.log('Existing room lookup result:', data);
+      console.log('🏠 useLiveKit: Room lookup result:', data ? {
+        roomName: data.room_name,
+        roomSid: data.livekit_room_sid,
+        isActive: data.is_active,
+        eventId: data.event_id
+      } : 'No active room found');
+      
       return data;
     } catch (err) {
-      console.error('Error in findExistingRoom:', err);
+      console.error('❌ useLiveKit: Error in findExistingRoom:', err);
       return null;
     }
   }, []);
 
   const createRoom = useCallback(async () => {
     try {
+      console.log('🏗️ useLiveKit: Creating new room for event:', eventId);
       const { data, error } = await supabase.functions.invoke('manage-livekit-room', {
         body: {
           action: 'create',
@@ -60,8 +69,12 @@ export const useLiveKit = ({ eventId, userRole = 'viewer', autoConnect = false }
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ useLiveKit: Room creation failed:', error);
+        throw error;
+      }
       
+      console.log('✅ useLiveKit: Room created successfully:', data);
       toast({
         title: "Room Created",
         description: "Live streaming room is ready"
@@ -69,7 +82,7 @@ export const useLiveKit = ({ eventId, userRole = 'viewer', autoConnect = false }
       
       return data;
     } catch (err) {
-      console.error('Error creating LiveKit room:', err);
+      console.error('❌ useLiveKit: Error creating LiveKit room:', err);
       toast({
         title: "Room Creation Failed",
         description: "Could not create streaming room",
@@ -81,6 +94,7 @@ export const useLiveKit = ({ eventId, userRole = 'viewer', autoConnect = false }
 
   const createLiveKitToken = useCallback(async (): Promise<LiveKitConfig | null> => {
     try {
+      console.log('🎫 useLiveKit: Requesting token for event:', eventId, 'role:', userRole);
       const { data, error } = await supabase.functions.invoke('create-livekit-token', {
         body: {
           eventId,
@@ -93,10 +107,20 @@ export const useLiveKit = ({ eventId, userRole = 'viewer', autoConnect = false }
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ useLiveKit: Token creation failed:', error);
+        throw error;
+      }
+      
+      console.log('✅ useLiveKit: Token created successfully:', {
+        roomName: data.roomName,
+        serverUrl: data.serverUrl,
+        userRole
+      });
+      
       return data;
     } catch (err) {
-      console.error('Error creating LiveKit token:', err);
+      console.error('❌ useLiveKit: Error creating LiveKit token:', err);
       setError('Failed to create session token');
       toast({
         title: "Connection Error",
@@ -108,19 +132,26 @@ export const useLiveKit = ({ eventId, userRole = 'viewer', autoConnect = false }
   }, [eventId, userRole, toast]);
 
   const connectToRoom = useCallback(async () => {
-    if (isConnecting || isConnected) return;
+    if (isConnecting || isConnected) {
+      console.log('⚠️ useLiveKit: Already connecting or connected, skipping');
+      return;
+    }
 
     setIsConnecting(true);
     setError(null);
 
     try {
+      console.log('🔗 useLiveKit: Starting connection process for event:', eventId, 'role:', userRole);
+      
       // Check if room already exists for this event
       const existingRoom = await findExistingRoom(eventId);
-      console.log('Room lookup before connection:', { eventId, existingRoom, userRole });
+      console.log('🏠 useLiveKit: Room lookup before connection:', { eventId, existingRoom, userRole });
 
       // Only hosts can create new rooms, others must wait for existing room
       if (!existingRoom && userRole !== 'host') {
-        setError('No active stream found for this event');
+        const errorMsg = 'No active stream found for this event';
+        console.error('❌ useLiveKit:', errorMsg);
+        setError(errorMsg);
         toast({
           title: "No Stream Available",
           description: "This event is not currently live",
@@ -132,21 +163,26 @@ export const useLiveKit = ({ eventId, userRole = 'viewer', autoConnect = false }
 
       // If host and no room exists, create one first
       if (!existingRoom && userRole === 'host') {
-        console.log('Host creating new room for event:', eventId);
+        console.log('👑 useLiveKit: Host creating new room for event:', eventId);
         const roomCreated = await createRoom();
         if (!roomCreated) {
+          console.error('❌ useLiveKit: Room creation failed');
           setIsConnecting(false);
           return;
         }
+        // Wait a moment for room creation to complete
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
+      // Now get the token (this will verify the room exists)
       const config = await createLiveKitToken();
       if (!config) {
+        console.error('❌ useLiveKit: Token creation failed');
         setIsConnecting(false);
         return;
       }
 
-      console.log('Connecting to LiveKit with config:', {
+      console.log('🔗 useLiveKit: Connecting to LiveKit with config:', {
         roomName: config.roomName,
         serverUrl: config.serverUrl,
         userRole
@@ -156,7 +192,7 @@ export const useLiveKit = ({ eventId, userRole = 'viewer', autoConnect = false }
       
       // Set up event listeners
       roomInstance.on('connected', () => {
-        console.log('Connected to LiveKit room');
+        console.log('✅ useLiveKit: Connected to LiveKit room:', config.roomName);
         setIsConnected(true);
         setParticipants([roomInstance.localParticipant, ...Array.from(roomInstance.remoteParticipants.values())]);
         toast({
@@ -166,18 +202,18 @@ export const useLiveKit = ({ eventId, userRole = 'viewer', autoConnect = false }
       });
 
       roomInstance.on('disconnected', () => {
-        console.log('Disconnected from LiveKit room');
+        console.log('🔌 useLiveKit: Disconnected from LiveKit room');
         setIsConnected(false);
         setParticipants([]);
       });
 
       roomInstance.on('participantConnected', (participant: RemoteParticipant) => {
-        console.log('Participant connected:', participant.identity);
+        console.log('👤 useLiveKit: Participant connected:', participant.identity);
         setParticipants(prev => [...prev, participant]);
       });
 
       roomInstance.on('participantDisconnected', (participant: RemoteParticipant) => {
-        console.log('Participant disconnected:', participant.identity);
+        console.log('👤 useLiveKit: Participant disconnected:', participant.identity);
         setParticipants(prev => prev.filter(p => p.identity !== participant.identity));
       });
 
@@ -188,8 +224,10 @@ export const useLiveKit = ({ eventId, userRole = 'viewer', autoConnect = false }
       await roomInstance.connect(config.serverUrl, config.token, connectOptions);
       setRoom(roomInstance);
 
+      console.log('🎉 useLiveKit: Successfully connected to room:', config.roomName);
+
     } catch (err) {
-      console.error('Error connecting to LiveKit room:', err);
+      console.error('❌ useLiveKit: Error connecting to LiveKit room:', err);
       setError('Failed to connect to stream');
       toast({
         title: "Connection Failed",
@@ -203,6 +241,7 @@ export const useLiveKit = ({ eventId, userRole = 'viewer', autoConnect = false }
 
   const disconnectFromRoom = useCallback(async () => {
     if (room) {
+      console.log('🔌 useLiveKit: Disconnecting from room');
       await room.disconnect();
       setRoom(null);
       setIsConnected(false);
@@ -210,9 +249,9 @@ export const useLiveKit = ({ eventId, userRole = 'viewer', autoConnect = false }
     }
   }, [room]);
 
-
   const closeRoom = useCallback(async () => {
     try {
+      console.log('🚪 useLiveKit: Closing room for event:', eventId);
       const { data, error } = await supabase.functions.invoke('manage-livekit-room', {
         body: {
           action: 'close',
@@ -224,6 +263,7 @@ export const useLiveKit = ({ eventId, userRole = 'viewer', autoConnect = false }
       
       await disconnectFromRoom();
       
+      console.log('✅ useLiveKit: Room closed successfully');
       toast({
         title: "Stream Ended",
         description: "Live streaming room has been closed"
@@ -231,7 +271,7 @@ export const useLiveKit = ({ eventId, userRole = 'viewer', autoConnect = false }
       
       return data;
     } catch (err) {
-      console.error('Error closing LiveKit room:', err);
+      console.error('❌ useLiveKit: Error closing LiveKit room:', err);
       toast({
         title: "Error",
         description: "Could not close streaming room",
@@ -243,6 +283,7 @@ export const useLiveKit = ({ eventId, userRole = 'viewer', autoConnect = false }
 
   const cleanupInactiveRooms = useCallback(async () => {
     try {
+      console.log('🧹 useLiveKit: Starting cleanup of inactive rooms');
       const { data, error } = await supabase.functions.invoke('manage-livekit-room', {
         body: {
           action: 'cleanup',
@@ -252,10 +293,10 @@ export const useLiveKit = ({ eventId, userRole = 'viewer', autoConnect = false }
 
       if (error) throw error;
       
-      console.log('Room cleanup completed:', data);
+      console.log('✅ useLiveKit: Room cleanup completed:', data);
       return data;
     } catch (err) {
-      console.error('Error cleaning up rooms:', err);
+      console.error('❌ useLiveKit: Error cleaning up rooms:', err);
       return null;
     }
   }, [eventId]);
@@ -263,6 +304,7 @@ export const useLiveKit = ({ eventId, userRole = 'viewer', autoConnect = false }
   // Auto-connect if specified
   useEffect(() => {
     if (autoConnect && !isConnected && !isConnecting) {
+      console.log('🚀 useLiveKit: Auto-connecting to room');
       connectToRoom();
     }
   }, [autoConnect, isConnected, isConnecting, connectToRoom]);
@@ -271,6 +313,7 @@ export const useLiveKit = ({ eventId, userRole = 'viewer', autoConnect = false }
   useEffect(() => {
     return () => {
       if (room) {
+        console.log('🧹 useLiveKit: Cleaning up room connection on unmount');
         room.disconnect();
       }
     };
