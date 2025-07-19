@@ -73,6 +73,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
     accountType: 'individual' as 'individual' | 'company',
     companyName: '',
     companyAccountMaster: null as any,
+    companyAccountMasterName: '',
     firstName: '',
     lastName: '',
     email: '',
@@ -603,19 +604,30 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                 </TooltipWrapper>
               </div>
               
-              <div className="space-y-1">
-                <Label className="text-sm">Company Account Master</Label>
-                <UserSearchBox
-                  onUserSelect={(user) => {
-                    setSignupData(prev => ({ 
-                      ...prev, 
-                      companyAccountMaster: user
-                    }));
-                  }}
-                  selectedUser={signupData.companyAccountMaster}
-                  placeholder="Search for existing profile..."
-                />
-              </div>
+               <div className="space-y-1">
+                 <Label className="text-sm">Company Account Master</Label>
+                 <UserSearchBox
+                   onUserSelect={(user) => {
+                     setSignupData(prev => ({ 
+                       ...prev, 
+                       companyAccountMaster: user
+                     }));
+                   }}
+                   selectedUser={signupData.companyAccountMaster}
+                   placeholder="Search for existing profile..."
+                 />
+               </div>
+               
+               <div className="space-y-1">
+                 <Label htmlFor="companyAccountMasterName" className="text-sm">Name of company account master/executor</Label>
+                 <Input
+                   id="companyAccountMasterName"
+                   value={signupData.companyAccountMasterName}
+                   onChange={(e) => setSignupData(prev => ({ ...prev, companyAccountMasterName: e.target.value }))}
+                   placeholder="Enter the full name of the company account master"
+                   className="h-8 text-sm"
+                 />
+               </div>
             </div>
           )}
           
