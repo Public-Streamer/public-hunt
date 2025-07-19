@@ -74,6 +74,8 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
     companyName: '',
     companyAccountMaster: null as any,
     companyAccountMasterName: '',
+    companyExecutorFirstName: '',
+    companyExecutorLastName: '',
     companyExecutorAcknowledged: false,
     firstName: '',
     lastName: '',
@@ -178,6 +180,12 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
         }
         if ((signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && !signupData.companyAccountMaster) {
           errors.companyAccountMaster = 'Account Master is required';
+        }
+        if ((signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && !signupData.companyExecutorFirstName.trim()) {
+          errors.companyExecutorFirstName = 'Executor first name is required';
+        }
+        if ((signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && !signupData.companyExecutorLastName.trim()) {
+          errors.companyExecutorLastName = 'Executor last name is required';
         }
         if (!signupData.email) {
           errors.email = 'Email is required';
@@ -626,18 +634,53 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                  </TooltipWrapper>
                </div>
                
-               <div className="space-y-1">
-                 <Label htmlFor="companyAccountMasterName" className="text-sm">
-                   {signupData.accountType === 'business/organization' ? 'Name of Business/Organization Account Master' : 'Name of Group/Team Account Master'}
-                 </Label>
-                 <Input
-                   id="companyAccountMasterName"
-                   value={signupData.companyAccountMasterName}
-                   onChange={(e) => setSignupData(prev => ({ ...prev, companyAccountMasterName: e.target.value }))}
-                   placeholder={signupData.accountType === 'business/organization' ? 'Enter the full name of the business/organization account master' : 'Enter the full name of the group/team account master'}
-                   className="h-8 text-sm"
-                 />
-               </div>
+                <div className="space-y-1">
+                  <Label htmlFor="companyAccountMasterName" className="text-sm">
+                    {signupData.accountType === 'business/organization' ? 'Name of Business/Organization Account Master and Executor' : 'Name of Group/Team Account Master and Executor'}
+                  </Label>
+                  <Input
+                    id="companyAccountMasterName"
+                    value={signupData.companyAccountMasterName}
+                    onChange={(e) => setSignupData(prev => ({ ...prev, companyAccountMasterName: e.target.value }))}
+                    placeholder={signupData.accountType === 'business/organization' ? 'Enter the full name of the business/organization account master and executor' : 'Enter the full name of the group/team account master and executor'}
+                    className="h-8 text-sm"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <Label htmlFor="companyExecutorFirstName" className="text-sm">
+                      {signupData.accountType === 'business/organization' ? 'First Name of Business/Organization Account Master Executor' : 'First Name of Group/Team Account Master Executor'}
+                    </Label>
+                     <Input
+                       id="companyExecutorFirstName"
+                       value={signupData.companyExecutorFirstName}
+                       onChange={(e) => setSignupData(prev => ({ ...prev, companyExecutorFirstName: e.target.value }))}
+                       placeholder="First name"
+                       className={`h-8 text-sm ${getFieldErrorClass('companyExecutorFirstName')}`}
+                       required
+                     />
+                     {validationErrors.companyExecutorFirstName && (
+                       <p className="text-xs text-destructive mt-1">{validationErrors.companyExecutorFirstName}</p>
+                     )}
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="companyExecutorLastName" className="text-sm">
+                      {signupData.accountType === 'business/organization' ? 'Last Name of Business/Organization Account Master Executor' : 'Last Name of Group/Team Account Master Executor'}
+                    </Label>
+                     <Input
+                       id="companyExecutorLastName"
+                       value={signupData.companyExecutorLastName}
+                       onChange={(e) => setSignupData(prev => ({ ...prev, companyExecutorLastName: e.target.value }))}
+                       placeholder="Last name"
+                       className={`h-8 text-sm ${getFieldErrorClass('companyExecutorLastName')}`}
+                       required
+                     />
+                     {validationErrors.companyExecutorLastName && (
+                       <p className="text-xs text-destructive mt-1">{validationErrors.companyExecutorLastName}</p>
+                     )}
+                  </div>
+                </div>
 
                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                  <div className="flex items-start space-x-2">
@@ -1017,17 +1060,17 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                        // Save form data and current step for mobile legal document flow
                        sessionStorage.setItem('signupFormData', JSON.stringify(signupData));
                        sessionStorage.setItem('signupStep', step.toString());
-                       const userFullName = signupData.companyAccountMaster 
-                         ? `${signupData.companyAccountMaster.first_name} ${signupData.companyAccountMaster.last_name}`
-                         : `${signupData.firstName} ${signupData.lastName}`;
+                        const userFullName = (signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && signupData.companyExecutorFirstName && signupData.companyExecutorLastName
+                          ? `${signupData.companyExecutorFirstName} ${signupData.companyExecutorLastName}`
+                          : `${signupData.firstName} ${signupData.lastName}`;
                        const encodedName = encodeURIComponent(userFullName);
                        window.location.href = `/legal?mobile=true&return=signup&tab=signup&name=${encodedName}`;
                     } else {
                        // Desktop: use popup as before
                        const popupFeatures = 'width=800,height=600,scrollbars=yes,resizable=yes';
-                       const userFullName = signupData.companyAccountMaster 
-                         ? `${signupData.companyAccountMaster.first_name} ${signupData.companyAccountMaster.last_name}`
-                         : `${signupData.firstName} ${signupData.lastName}`;
+                        const userFullName = (signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && signupData.companyExecutorFirstName && signupData.companyExecutorLastName
+                          ? `${signupData.companyExecutorFirstName} ${signupData.companyExecutorLastName}`
+                          : `${signupData.firstName} ${signupData.lastName}`;
                        const encodedName = encodeURIComponent(userFullName);
                        const popup = window.open(`/legal?name=${encodedName}`, '_blank', popupFeatures);
                       if (!popup) {
