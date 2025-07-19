@@ -178,13 +178,17 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
         }
         if (!signupData.password) {
           errors.password = 'Password is required';
+        } else if (!isPasswordValid(signupData.password)) {
+          errors.password = 'Password must be at least 8 characters long';
         }
       }
 
       // Step 2 validations
       if (step >= 2 && (signupData.accountType === 'individual' || 
           (signupData.accountType === 'company' && !signupData.companyAccountMaster))) {
-        if (signupData.password !== signupData.confirmPassword && signupData.confirmPassword) {
+        if (signupData.confirmPassword && !isPasswordValid(signupData.confirmPassword)) {
+          errors.confirmPassword = 'Confirm password must be at least 8 characters long';
+        } else if (signupData.password !== signupData.confirmPassword && signupData.confirmPassword) {
           errors.confirmPassword = 'Passwords do not match';
         }
         if (!signupData.firstName) {
@@ -269,6 +273,11 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
     return age;
   };
 
+  // Password validation helper
+  const isPasswordValid = (password: string) => {
+    return password && password.length >= 8;
+  };
+
   // Validation helper functions
   const getStep1ValidationError = () => {
     if (signupData.accountType === 'company' && !signupData.companyName.trim()) {
@@ -283,12 +292,21 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
     if (!signupData.password) {
       return 'Please enter your password';
     }
+    if (!isPasswordValid(signupData.password)) {
+      return 'Password must be at least 8 characters long';
+    }
     return null;
   };
 
   const getStep2ValidationError = () => {
     if (signupData.accountType === 'individual' || 
         (signupData.accountType === 'company' && !signupData.companyAccountMaster)) {
+      if (!isPasswordValid(signupData.password)) {
+        return 'Password must be at least 8 characters long';
+      }
+      if (!isPasswordValid(signupData.confirmPassword)) {
+        return 'Confirm password must be at least 8 characters long';
+      }
       if (signupData.password !== signupData.confirmPassword) {
         return 'Passwords do not match';
       }
@@ -362,6 +380,16 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
       return;
     }
     
+    // Validate password strength
+    if (!isPasswordValid(signupData.password)) {
+      setErrorDialogConfig({
+        title: 'Password Requirements',
+        message: 'Password must be at least 8 characters long.'
+      });
+      setShowErrorDialog(true);
+      return;
+    }
+    
     setStep(2);
   };
 
@@ -371,6 +399,25 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
     // Only validate personal info fields if individual account or company without master selected
     if (signupData.accountType === 'individual' || 
         (signupData.accountType === 'company' && !signupData.companyAccountMaster)) {
+      
+      // Validate password strength first
+      if (!isPasswordValid(signupData.password)) {
+        setErrorDialogConfig({
+          title: 'Password Requirements',
+          message: 'Password must be at least 8 characters long.'
+        });
+        setShowErrorDialog(true);
+        return;
+      }
+      
+      if (!isPasswordValid(signupData.confirmPassword)) {
+        setErrorDialogConfig({
+          title: 'Password Requirements',
+          message: 'Confirm password must be at least 8 characters long.'
+        });
+        setShowErrorDialog(true);
+        return;
+      }
       
       // Validate passwords match
       if (signupData.password !== signupData.confirmPassword) {
