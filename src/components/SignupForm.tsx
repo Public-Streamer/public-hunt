@@ -125,6 +125,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
   const [error, setError] = useState<string | null>(null);
   const [legalDocumentSigned, setLegalDocumentSigned] = useState(false);
   const [signatureData, setSignatureData] = useState<{ signature: string; date: string } | null>(null);
+  const [debugStatus, setDebugStatus] = useState<string>('');
   const [emailVerification, setEmailVerification] = useState("");
   const [passwordVerification, setPasswordVerification] = useState("");
   // Use state to control error dialog visibility
@@ -417,6 +418,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
 
   const handleFinalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setDebugStatus('🔍 Form submitted, starting validation...');
     
     console.log('handleFinalSubmit called', { 
       signupData, 
@@ -1014,8 +1016,13 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                   >
                     Reset Password
                   </Button>
-                )}
-              </Alert>
+              )}
+            </Alert>
+            )}
+            {debugStatus && (
+              <div className="mb-3 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
+                <strong>Debug Status:</strong> {debugStatus}
+              </div>
             )}
             {formContent}
           </div>
