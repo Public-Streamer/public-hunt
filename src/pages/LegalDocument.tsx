@@ -6,8 +6,13 @@ import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { TooltipWrapper } from '@/components/ui/tooltip-wrapper';
 import { AlertTriangle, CheckCircle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { useAppContext } from '@/contexts/AppContext';
 
 const LegalDocumentPage: React.FC = () => {
+  const { user } = useAppContext();
+  const { toast } = useToast();
   const [signature, setSignature] = useState('');
   const [acknowledgedRisks, setAcknowledgedRisks] = useState(false);
   const [acknowledgedLiability, setAcknowledgedLiability] = useState(false);
@@ -29,7 +34,7 @@ const LegalDocumentPage: React.FC = () => {
     }
   }, []);
 
-  const handleAccept = () => {
+  const handleAccept = async () => {
     console.log('Accept button clicked', { canSubmit, signature, acknowledgedRisks, acknowledgedLiability, acknowledgedCompliance });
     
     if (!canSubmit) {
@@ -41,6 +46,45 @@ const LegalDocumentPage: React.FC = () => {
     try {
       console.log('Processing signature...');
       setDocumentSigned(true);
+      
+      const signDate = new Date().toISOString();
+      
+      // Save to database first
+      try {
+        const { data, error } = await supabase
+          .from('legal_documents')
+          .insert({
+            user_id: user?.id || null,
+            email: user?.email || 'guest@example.com',
+            signature: signature,
+            document_type: 'user_agreement',
+            document_version: '1.0',
+            ip_address: '127.0.0.1', // In production, get real IP
+            user_agent: navigator.userAgent
+          })
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Error saving legal document:', error);
+          toast({
+            title: "Error",
+            description: "Failed to save legal document. Please try again.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        console.log('Legal document saved:', data);
+        
+        toast({
+          title: "Success",
+          description: "Legal document signed successfully!",
+        });
+      } catch (dbError) {
+        console.error('Database error:', dbError);
+        // Continue with messaging even if DB save fails
+      }
       
       // Always send message first - even if no opener is detected
       const messageData = {
@@ -122,8 +166,9 @@ const LegalDocumentPage: React.FC = () => {
         const returnTo = urlParams.get('return');
         
         if (isMobileParam && returnTo === 'signup') {
-          console.log('Mobile detected, redirecting back to signup form immediately...');
-          window.location.href = '/login?tab=signup';
+          console.log('Mobile detected, saving completion status and redirecting back to signup form...');
+          sessionStorage.setItem('legalDocumentCompleted', 'true');
+          window.location.href = '/auth?tab=signup';
           return;
         }
         

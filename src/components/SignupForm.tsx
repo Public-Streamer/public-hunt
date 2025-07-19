@@ -85,9 +85,12 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
     confirmAge: false
   });
 
-  // Restore form data from sessionStorage if returning from mobile legal document
+  // Restore form data and step from sessionStorage if returning from mobile legal document
   useEffect(() => {
     const savedFormData = sessionStorage.getItem('signupFormData');
+    const savedStep = sessionStorage.getItem('signupStep');
+    const legalCompleted = sessionStorage.getItem('legalDocumentCompleted');
+    
     if (savedFormData) {
       try {
         const parsedData = JSON.parse(savedFormData);
@@ -97,6 +100,21 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
       } catch (error) {
         console.error('Error restoring signup form data:', error);
       }
+    }
+    
+    if (savedStep) {
+      const stepNumber = parseInt(savedStep, 10);
+      if (stepNumber >= 1 && stepNumber <= 3) {
+        setStep(stepNumber);
+        sessionStorage.removeItem('signupStep');
+        console.log('Restored signup step:', stepNumber);
+      }
+    }
+    
+    if (legalCompleted === 'true') {
+      setLegalDocumentSigned(true);
+      sessionStorage.removeItem('legalDocumentCompleted');
+      console.log('Restored legal document completion status');
     }
   }, []);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -861,11 +879,10 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
                     
                     if (isMobile) {
-                      // Open in same window with special mobile handling
-                      const currentUrl = window.location.href;
-                      sessionStorage.setItem('signupReturnUrl', currentUrl);
-                      sessionStorage.setItem('signupFormData', JSON.stringify(signupData));
-                      window.location.href = '/legal?mobile=true&return=signup';
+                       // Save form data and current step for mobile legal document flow
+                       sessionStorage.setItem('signupFormData', JSON.stringify(signupData));
+                       sessionStorage.setItem('signupStep', step.toString());
+                       window.location.href = '/legal?mobile=true&return=signup&tab=signup';
                     } else {
                       // Desktop: use popup as before
                       const popupFeatures = 'width=800,height=600,scrollbars=yes,resizable=yes';
