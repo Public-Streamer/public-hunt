@@ -687,10 +687,10 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-        <div className="w-full max-w-md bg-card rounded-lg border shadow-lg">
-          <div className="p-6">
-            <h2 className="text-xl font-semibold text-center mb-6">Create Your Public Streamer Account</h2>
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-hidden">
+        <div className="w-full max-w-md bg-card rounded-lg border shadow-lg max-h-[90vh] flex flex-col">
+          <div className="p-6 pb-4 flex-shrink-0">
+            <h2 className="text-xl font-semibold text-center mb-4">Create Your Public Streamer Account</h2>
             {error && (
               <Alert variant="destructive" className="mb-4">
                 <AlertDescription>{error}</AlertDescription>
@@ -705,10 +705,12 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                 )}
               </Alert>
             )}
+          </div>
+          <ScrollArea className="flex-1 px-6 pb-6">
             <div className="space-y-4">
               {formContent}
             </div>
-          </div>
+          </ScrollArea>
         </div>
       </div>
       {showResetPassword && (
