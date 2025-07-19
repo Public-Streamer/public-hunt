@@ -10,7 +10,7 @@ import { supabase } from "@/lib/supabase";
 const Create: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("create-channel");
+  const [activeTab, setActiveTab] = useState("create-event");
   const { toast } = useToast();
   
   useEffect(() => {
@@ -243,26 +243,12 @@ const Create: React.FC = () => {
       <div className="max-w-4xl mx-auto">
         <TooltipWrapper content="Create channels and events to start streaming and building your audience">
           <h1 className="text-3xl font-bold mb-8 text-center">
-            {activeTab === 'create-channel' ? 'Create Channel' : 'Create Event'}
+            {activeTab === 'create-event' ? 'Create Event' : 'Create Channel'}
           </h1>
         </TooltipWrapper>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TooltipWrapper content="Set up your streaming channel to broadcast live events and build your audience">
-              <TabsTrigger
-                value="create-channel"
-                className="text-white bg-gradient-to-r from-blue-600 to-purple-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-700 data-[state=active]:to-purple-700 hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg transform hover:scale-105 flex items-center justify-center py-3 px-2 min-h-[3.5rem]"
-              >
-                <div className="flex items-center justify-center gap-2 text-xl lg:text-2xl xl:text-3xl font-bold sm:flex-col sm:gap-0 sm:text-base md:flex-row md:gap-2 md:text-lg lg:flex-row">
-                  <span className="flex items-center gap-1">
-                    <span>🚀</span>
-                    <span className="hidden sm:inline md:inline lg:inline">Create</span>
-                  </span>
-                  <span>Channel</span>
-                </div>
-              </TabsTrigger>
-            </TooltipWrapper>
             <TooltipWrapper content={getEventTabTooltip()}>
               <TabsTrigger
                 value="create-event"
@@ -274,6 +260,20 @@ const Create: React.FC = () => {
                     <span className="hidden sm:inline md:inline lg:inline">Create</span>
                   </span>
                   <span>Event</span>
+                </div>
+              </TabsTrigger>
+            </TooltipWrapper>
+            <TooltipWrapper content="Set up your streaming channel to broadcast live events and build your audience">
+              <TabsTrigger
+                value="create-channel"
+                className="text-white bg-gradient-to-r from-blue-600 to-purple-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-700 data-[state=active]:to-purple-700 hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg transform hover:scale-105 flex items-center justify-center py-3 px-2 min-h-[3.5rem]"
+              >
+                <div className="flex items-center justify-center gap-2 text-xl lg:text-2xl xl:text-3xl font-bold sm:flex-col sm:gap-0 sm:text-base md:flex-row md:gap-2 md:text-lg lg:flex-row">
+                  <span className="flex items-center gap-1">
+                    <span>🚀</span>
+                    <span className="hidden sm:inline md:inline lg:inline">Create</span>
+                  </span>
+                  <span>Channel</span>
                 </div>
               </TabsTrigger>
             </TooltipWrapper>
