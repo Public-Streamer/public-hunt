@@ -137,7 +137,7 @@ export const BirthdaySelector: React.FC<BirthdaySelectorProps> = ({ value, onCha
             </SelectContent>
           </Select>
           <div className="mt-2 p-3 border-2 rounded-md text-center min-h-[40px] flex items-center justify-center">
-            <span className={`text-sm font-bold ${selectedDay ? 'text-blue-600 bg-blue-50 border-blue-200' : 'text-red-600 bg-red-50 border-red-200'}`}>
+            <span className={`text-sm font-bold ${selectedDay ? 'text-green-600 bg-green-50 border-green-200' : 'text-red-600 bg-red-50 border-red-200'}`}>
               {selectedDay ? selectedDay : 'No day selected'}
             </span>
           </div>
