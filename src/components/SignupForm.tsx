@@ -507,8 +507,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
       }
     } catch (error) {
       console.log('SignUp exception:', error);
-      alert(`DEBUG: Account creation failed with error: ${(error as Error).message}`);
-      setError(`Account creation failed: ${(error as Error).message}`);
+      setError(`DEBUG - Account creation failed: ${(error as Error).message}. Please try again or contact support.`);
     } finally {
       setLoading(false);
     }
