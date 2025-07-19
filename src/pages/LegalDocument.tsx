@@ -120,21 +120,18 @@ const LegalDocumentPage: React.FC = () => {
               console.log('Attempting window.close()...');
               window.close();
             } catch (e) {
-              console.log('window.close() failed, trying navigation fallbacks...');
-            }
-            
-            // If window.close() didn't work, try navigation methods
-            setTimeout(() => {
-              try {
-                // Try to go back in history first
-                console.log('Trying window.history.back()...');
-                window.history.back();
-              } catch (e) {
-                console.log('history.back() failed, navigating to signup...');
-                // Final fallback - navigate to signup form
-                window.location.href = window.location.origin + '/login?tab=signup';
+              console.log('window.close() failed, checking mobile redirect...');
+              
+              // For mobile, check if we need to redirect back to signup
+              const urlParams = new URLSearchParams(window.location.search);
+              const isMobile = urlParams.get('mobile') === 'true';
+              const returnTo = urlParams.get('return');
+              
+              if (isMobile && returnTo === 'signup') {
+                console.log('Mobile detected, redirecting back to signup form...');
+                window.location.href = '/login?tab=signup';
               }
-            }, 500);
+            }
           }, 1000);
           
         } catch (error) {
@@ -196,19 +193,18 @@ const LegalDocumentPage: React.FC = () => {
         try {
           window.close();
         } catch (e) {
-          console.log('window.close() failed, trying navigation...');
-        }
-        
-        // If window.close() didn't work, try navigation methods
-        setTimeout(() => {
-          try {
-            // Try to go back in history first
-            window.history.back();
-          } catch (e) {
-            // Final fallback - navigate to signup form
-            window.location.href = window.location.origin + '/login?tab=signup';
+          console.log('window.close() failed, checking mobile redirect...');
+          
+          // For mobile, check if we need to redirect back to signup
+          const urlParams = new URLSearchParams(window.location.search);
+          const isMobile = urlParams.get('mobile') === 'true';
+          const returnTo = urlParams.get('return');
+          
+          if (isMobile && returnTo === 'signup') {
+            console.log('Mobile detected, redirecting back to signup form...');
+            window.location.href = '/login?tab=signup';
           }
-        }, 300);
+        }
       }, 300);
       
     } catch (error) {

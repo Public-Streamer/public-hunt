@@ -31,6 +31,21 @@ interface SignupFormProps {
 const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = false }) => {
   const { signUp } = useAppContext();
   const navigate = useNavigate();
+  
+  // Restore form data from sessionStorage if returning from mobile legal document
+  useEffect(() => {
+    const savedFormData = sessionStorage.getItem('signupFormData');
+    if (savedFormData) {
+      try {
+        const parsedData = JSON.parse(savedFormData);
+        setSignupData(parsedData);
+        sessionStorage.removeItem('signupFormData'); // Clean up
+        console.log('Restored signup form data from sessionStorage');
+      } catch (error) {
+        console.error('Error restoring signup form data:', error);
+      }
+    }
+  }, []);
 
   // Listen for messages from popup window
   useEffect(() => {
@@ -841,29 +856,26 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                   type="button"
                   variant="outline"
                   onClick={() => {
-                    // Mobile-optimized popup handling
+                    // Use modal instead of popup on mobile to prevent sliding issues
                     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-                    const popupFeatures = isMobile 
-                      ? 'width=100%,height=100%,scrollbars=yes,resizable=yes'
-                      : 'width=800,height=600,scrollbars=yes,resizable=yes';
                     
-                    const popup = window.open('/legal', '_blank', popupFeatures);
-                    if (!popup) {
-                      alert('Please allow popups to view the legal document');
+                    if (isMobile) {
+                      // Open in same window with special mobile handling
+                      const currentUrl = window.location.href;
+                      sessionStorage.setItem('signupReturnUrl', currentUrl);
+                      sessionStorage.setItem('signupFormData', JSON.stringify(signupData));
+                      window.location.href = '/legal?mobile=true&return=signup';
                     } else {
-                      popupWindowRef.current = popup;
-                      
-                      // Mobile-specific: Check if popup is closed manually
-                      if (isMobile) {
-                        const checkClosed = setInterval(() => {
-                          if (popup.closed) {
-                            clearInterval(checkClosed);
-                            popupWindowRef.current = null;
-                          }
-                        }, 1000);
+                      // Desktop: use popup as before
+                      const popupFeatures = 'width=800,height=600,scrollbars=yes,resizable=yes';
+                      const popup = window.open('/legal', '_blank', popupFeatures);
+                      if (!popup) {
+                        alert('Please allow popups to view the legal document');
+                      } else {
+                        popupWindowRef.current = popup;
                       }
                     }
-                  }}
+                  }
                   className={`text-xs h-8 transition-all duration-300 ${
                     legalDocumentSigned 
                       ? 'bg-green-100 border-green-300 text-green-800 hover:bg-green-200' 
