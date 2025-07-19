@@ -31,48 +31,67 @@ const LegalDocumentPage: React.FC = () => {
   const handleAccept = () => {
     console.log('Accept button clicked', { canSubmit, signature, acknowledgedRisks, acknowledgedLiability, acknowledgedCompliance });
     
-    if (canSubmit) {
-      try {
-        // Send signature data back to parent window
-        if (window.opener && !window.opener.closed) {
-          window.opener.postMessage({
-            type: 'LEGAL_AGREEMENT_SIGNED',
-            data: {
-              signature,
-              signDate: currentDate,
-              fullName: signature
-            }
-          }, '*');
-          
-          // Small delay to ensure message is received
-          setTimeout(() => {
-            try {
-              window.close();
-            } catch (e) {
-              // Mobile fallback
-              window.location.href = 'about:blank';
-            }
-          }, 100);
-        } else {
-          // If no opener, try to close anyway (mobile)
+    if (!canSubmit) {
+      console.log('Form validation failed:', getValidationMessage());
+      alert(getValidationMessage());
+      return;
+    }
+
+    try {
+      console.log('Processing signature...');
+      
+      // Send signature data back to parent window
+      if (window.opener && !window.opener.closed) {
+        console.log('Sending message to parent window...');
+        window.opener.postMessage({
+          type: 'LEGAL_AGREEMENT_SIGNED',
+          data: {
+            signature,
+            signDate: currentDate,
+            fullName: signature
+          }
+        }, '*');
+        
+        // Longer delay for mobile devices
+        setTimeout(() => {
           try {
+            console.log('Attempting to close window...');
             window.close();
           } catch (e) {
-            // Mobile Safari fallback
-            window.location.href = 'about:blank';
+            console.log('Window.close failed, trying mobile fallback...');
+            // Mobile fallback - try multiple approaches
+            try {
+              window.location.href = 'about:blank';
+            } catch (e2) {
+              window.history.back();
+            }
           }
-        }
-      } catch (error) {
-        console.error('Error processing signature:', error);
-        // Emergency fallback - try to go back
+        }, 300);
+      } else {
+        console.log('No opener found, trying mobile close approaches...');
+        // If no opener, try multiple mobile approaches
         try {
+          // Try to close first
           window.close();
         } catch (e) {
-          window.history.back();
+          console.log('Direct close failed, trying alternative approaches...');
+          try {
+            // Try going to blank page
+            window.location.href = 'about:blank';
+          } catch (e2) {
+            try {
+              // Try going back in history
+              window.history.back();
+            } catch (e3) {
+              // Last resort - reload to root
+              window.location.href = '/';
+            }
+          }
         }
       }
-    } else {
-      console.log('Form validation failed:', getValidationMessage());
+    } catch (error) {
+      console.error('Error processing signature:', error);
+      alert('Document signed successfully, but there was an issue closing the window. Please close this tab manually.');
     }
   };
 
@@ -85,35 +104,51 @@ const LegalDocumentPage: React.FC = () => {
   };
 
   const handleCancel = () => {
+    console.log('Cancel button clicked');
+    
     try {
       if (window.opener && !window.opener.closed) {
+        console.log('Sending cancel message to parent window...');
         window.opener.postMessage({
           type: 'legal-document-cancelled'
         }, '*');
         
-        // Small delay to ensure message is received
+        // Longer delay for mobile devices
         setTimeout(() => {
           try {
+            console.log('Attempting to close window after cancel...');
             window.close();
           } catch (e) {
-            window.location.href = 'about:blank';
+            console.log('Window.close failed on cancel, trying mobile fallback...');
+            try {
+              window.location.href = 'about:blank';
+            } catch (e2) {
+              window.history.back();
+            }
           }
-        }, 100);
+        }, 300);
       } else {
-        // If no opener, try to close anyway (mobile)
+        console.log('No opener found on cancel, trying mobile close approaches...');
+        // If no opener, try multiple mobile approaches
         try {
           window.close();
         } catch (e) {
-          window.location.href = 'about:blank';
+          console.log('Direct close failed on cancel, trying alternatives...');
+          try {
+            window.location.href = 'about:blank';
+          } catch (e2) {
+            try {
+              window.history.back();
+            } catch (e3) {
+              // Last resort - reload to root
+              window.location.href = '/';
+            }
+          }
         }
       }
     } catch (error) {
-      console.error('Error closing window:', error);
-      try {
-        window.close();
-      } catch (e) {
-        window.history.back();
-      }
+      console.error('Error closing window on cancel:', error);
+      alert('Document cancelled. Please close this tab manually.');
     }
   };
 
@@ -280,19 +315,24 @@ const LegalDocumentPage: React.FC = () => {
             </div>
           )}
 
-          <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2 pt-4">
+          <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-3 pt-6">
             <button 
               type="button"
-              onClick={handleCancel}
-              onTouchStart={(e) => e.preventDefault()}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Cancel button clicked via onClick');
+                handleCancel();
+              }}
               onTouchEnd={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                setTimeout(handleCancel, 50);
+                console.log('Cancel button touched via onTouchEnd');
+                setTimeout(() => handleCancel(), 100);
               }}
-              className="w-full sm:w-auto px-6 min-h-[48px] text-base border border-gray-300 rounded-lg bg-white hover:bg-gray-50 active:bg-gray-100 transition-colors duration-200 cursor-pointer touch-manipulation"
+              className="w-full sm:w-auto px-8 py-4 min-h-[56px] text-lg font-medium border-2 border-gray-300 rounded-lg bg-white hover:bg-gray-50 active:bg-gray-100 transition-colors duration-200 cursor-pointer"
               style={{ 
-                WebkitTapHighlightColor: 'rgba(0,0,0,0.1)',
+                WebkitTapHighlightColor: 'rgba(0,0,0,0.2)',
                 touchAction: 'manipulation',
                 WebkitTouchCallout: 'none',
                 WebkitUserSelect: 'none',
@@ -303,23 +343,34 @@ const LegalDocumentPage: React.FC = () => {
             </button>
             <button 
               type="button"
-              onClick={handleAccept}
-              onTouchStart={(e) => e.preventDefault()}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Accept button clicked via onClick', { canSubmit });
+                if (canSubmit) {
+                  handleAccept();
+                } else {
+                  alert(getValidationMessage());
+                }
+              }}
               onTouchEnd={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                console.log('Accept button touched via onTouchEnd', { canSubmit });
                 if (canSubmit) {
-                  setTimeout(handleAccept, 50);
+                  setTimeout(() => handleAccept(), 100);
+                } else {
+                  setTimeout(() => alert(getValidationMessage()), 100);
                 }
               }}
               disabled={!canSubmit}
-              className={`w-full sm:w-auto px-6 min-h-[48px] text-base rounded-lg transition-colors duration-200 cursor-pointer touch-manipulation ${
+              className={`w-full sm:w-auto px-8 py-4 min-h-[56px] text-lg font-medium rounded-lg transition-colors duration-200 cursor-pointer ${
                 canSubmit 
-                  ? 'bg-green-600 hover:bg-green-700 active:bg-green-800 text-white' 
-                  : 'bg-gray-400 cursor-not-allowed text-white'
+                  ? 'bg-green-600 hover:bg-green-700 active:bg-green-800 text-white border-2 border-green-600' 
+                  : 'bg-gray-400 cursor-not-allowed text-white border-2 border-gray-400'
               }`}
               style={{ 
-                WebkitTapHighlightColor: 'rgba(0,0,0,0.1)',
+                WebkitTapHighlightColor: canSubmit ? 'rgba(0,255,0,0.2)' : 'rgba(0,0,0,0.1)',
                 touchAction: 'manipulation',
                 WebkitTouchCallout: 'none',
                 WebkitUserSelect: 'none',
@@ -328,7 +379,7 @@ const LegalDocumentPage: React.FC = () => {
             >
               {canSubmit ? (
                 <div className="flex items-center justify-center gap-2">
-                  <CheckCircle className="h-4 w-4" />
+                  <CheckCircle className="h-5 w-5" />
                   Accept and Sign
                 </div>
               ) : (
