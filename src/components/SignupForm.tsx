@@ -875,7 +875,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                         popupWindowRef.current = popup;
                       }
                     }
-                  }
+                  }}
                   className={`text-xs h-8 transition-all duration-300 ${
                     legalDocumentSigned 
                       ? 'bg-green-100 border-green-300 text-green-800 hover:bg-green-200' 
