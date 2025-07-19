@@ -40,58 +40,88 @@ const LegalDocumentPage: React.FC = () => {
     try {
       console.log('Processing signature...');
       
-      // Send signature data back to parent window
-      if (window.opener && !window.opener.closed) {
-        console.log('Sending message to parent window...');
-        window.opener.postMessage({
-          type: 'LEGAL_AGREEMENT_SIGNED',
-          data: {
-            signature,
-            signDate: currentDate,
-            fullName: signature
-          }
-        }, '*');
-        
-        // Longer delay for mobile devices
-        setTimeout(() => {
-          try {
-            console.log('Attempting to close window...');
-            window.close();
-          } catch (e) {
-            console.log('Window.close failed, trying mobile fallback...');
-            // Mobile fallback - try multiple approaches
-            try {
-              window.location.href = 'about:blank';
-            } catch (e2) {
-              window.history.back();
-            }
-          }
-        }, 300);
-      } else {
-        console.log('No opener found, trying mobile close approaches...');
-        // If no opener, try multiple mobile approaches
-        try {
-          // Try to close first
-          window.close();
-        } catch (e) {
-          console.log('Direct close failed, trying alternative approaches...');
-          try {
-            // Try going to blank page
-            window.location.href = 'about:blank';
-          } catch (e2) {
-            try {
-              // Try going back in history
-              window.history.back();
-            } catch (e3) {
-              // Last resort - reload to root
-              window.location.href = '/';
-            }
-          }
+      // Always send message first - even if no opener is detected
+      const messageData = {
+        type: 'LEGAL_AGREEMENT_SIGNED',
+        data: {
+          signature,
+          signDate: currentDate,
+          fullName: signature
         }
+      };
+
+      // Try multiple messaging approaches for mobile compatibility
+      try {
+        // Try parent window first
+        if (window.parent && window.parent !== window) {
+          console.log('Sending message to parent window...');
+          window.parent.postMessage(messageData, '*');
+        }
+        
+        // Try opener if exists
+        if (window.opener && !window.opener.closed) {
+          console.log('Sending message to opener window...');
+          window.opener.postMessage(messageData, '*');
+        }
+
+        // Also try sending to all frames
+        if (window.top && window.top !== window) {
+          console.log('Sending message to top window...');
+          window.top.postMessage(messageData, '*');
+        }
+      } catch (msgError) {
+        console.log('Message sending failed:', msgError);
       }
+
+      // For mobile: Show confirmation and allow manual close
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
+      if (isMobile) {
+        alert('Legal document signed successfully! This window will now close. If it doesn\'t close automatically, please close it manually.');
+      }
+      
+      // Try to close the window with multiple fallbacks
+      setTimeout(() => {
+        try {
+          console.log('Attempting to close window...');
+          
+          // Method 1: Standard window.close()
+          if (window.close) {
+            window.close();
+          }
+          
+          // Method 2: If that doesn't work, try navigation approaches
+          setTimeout(() => {
+            console.log('Trying navigation fallbacks...');
+            try {
+              // Try to navigate to blank page
+              window.location.replace('about:blank');
+            } catch (e) {
+              try {
+                // Try to go back
+                window.history.back();
+              } catch (e2) {
+                console.log('All close attempts failed');
+                // Show instructions for manual close
+                document.body.innerHTML = `
+                  <div style="padding: 20px; text-align: center; font-family: Arial, sans-serif;">
+                    <h2 style="color: green;">✓ Legal Document Signed Successfully!</h2>
+                    <p>Please close this window/tab manually to return to the main application.</p>
+                    <button onclick="window.close()" style="padding: 10px 20px; font-size: 16px; background: #007cba; color: white; border: none; border-radius: 5px; cursor: pointer;">Close Window</button>
+                  </div>
+                `;
+              }
+            }
+          }, 1000);
+          
+        } catch (error) {
+          console.log('Close attempt failed:', error);
+        }
+      }, 500);
+      
     } catch (error) {
       console.error('Error processing signature:', error);
-      alert('Document signed successfully, but there was an issue closing the window. Please close this tab manually.');
+      alert('Document signed successfully! Please close this window manually.');
     }
   };
 
@@ -107,48 +137,63 @@ const LegalDocumentPage: React.FC = () => {
     console.log('Cancel button clicked');
     
     try {
-      if (window.opener && !window.opener.closed) {
-        console.log('Sending cancel message to parent window...');
-        window.opener.postMessage({
-          type: 'legal-document-cancelled'
-        }, '*');
+      // Send cancel message to all possible parent windows
+      const cancelMessage = { type: 'legal-document-cancelled' };
+      
+      try {
+        if (window.parent && window.parent !== window) {
+          console.log('Sending cancel message to parent window...');
+          window.parent.postMessage(cancelMessage, '*');
+        }
         
-        // Longer delay for mobile devices
+        if (window.opener && !window.opener.closed) {
+          console.log('Sending cancel message to opener window...');
+          window.opener.postMessage(cancelMessage, '*');
+        }
+
+        if (window.top && window.top !== window) {
+          console.log('Sending cancel message to top window...');
+          window.top.postMessage(cancelMessage, '*');
+        }
+      } catch (msgError) {
+        console.log('Cancel message sending failed:', msgError);
+      }
+
+      // Try to close the window immediately for cancel
+      try {
+        console.log('Attempting to close window after cancel...');
+        
+        if (window.close) {
+          window.close();
+        }
+        
+        // Fallback methods
         setTimeout(() => {
           try {
-            console.log('Attempting to close window after cancel...');
-            window.close();
+            window.location.replace('about:blank');
           } catch (e) {
-            console.log('Window.close failed on cancel, trying mobile fallback...');
             try {
-              window.location.href = 'about:blank';
+              window.history.back();
             } catch (e2) {
-              window.history.back();
+              // Show manual close instructions
+              document.body.innerHTML = `
+                <div style="padding: 20px; text-align: center; font-family: Arial, sans-serif;">
+                  <h2>Document Cancelled</h2>
+                  <p>Please close this window/tab manually to return to the main application.</p>
+                  <button onclick="window.close()" style="padding: 10px 20px; font-size: 16px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">Close Window</button>
+                </div>
+              `;
             }
           }
-        }, 300);
-      } else {
-        console.log('No opener found on cancel, trying mobile close approaches...');
-        // If no opener, try multiple mobile approaches
-        try {
-          window.close();
-        } catch (e) {
-          console.log('Direct close failed on cancel, trying alternatives...');
-          try {
-            window.location.href = 'about:blank';
-          } catch (e2) {
-            try {
-              window.history.back();
-            } catch (e3) {
-              // Last resort - reload to root
-              window.location.href = '/';
-            }
-          }
-        }
+        }, 500);
+        
+      } catch (error) {
+        console.log('Close attempt failed on cancel:', error);
       }
+      
     } catch (error) {
-      console.error('Error closing window on cancel:', error);
-      alert('Document cancelled. Please close this tab manually.');
+      console.error('Error handling cancel:', error);
+      alert('Document cancelled. Please close this window manually.');
     }
   };
 
