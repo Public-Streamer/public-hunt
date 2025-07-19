@@ -17,11 +17,14 @@ const LegalDocumentPage: React.FC = () => {
 
   const handleAccept = () => {
     if (canSubmit && window.opener) {
-      // Send signature data back to parent window
+      // Send signature data back to parent window in the correct format
       window.opener.postMessage({
-        type: 'legal-document-signed',
-        signature,
-        date: currentDate
+        type: 'LEGAL_AGREEMENT_SIGNED',
+        data: {
+          signature,
+          signDate: currentDate,
+          fullName: signature
+        }
       }, '*');
       window.close();
     }
