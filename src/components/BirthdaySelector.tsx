@@ -70,8 +70,10 @@ export const BirthdaySelector: React.FC<BirthdaySelectorProps> = ({ value, onCha
         <div>
           <Label className="text-xs text-muted-foreground mb-1 block">Month</Label>
           <Select value={month} onValueChange={(value) => handleChange('month', value)}>
-            <SelectTrigger className="h-8 text-sm">
-              <SelectValue placeholder="Month" />
+            <SelectTrigger className="h-12 text-sm font-medium bg-background border-2">
+              <SelectValue placeholder="Select Month">
+                {month ? months.find(m => m.value === month)?.label : "Select Month"}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {months.map((m) => (
@@ -81,13 +83,20 @@ export const BirthdaySelector: React.FC<BirthdaySelectorProps> = ({ value, onCha
               ))}
             </SelectContent>
           </Select>
+          {month && (
+            <div className="mt-1 p-2 bg-accent/20 rounded text-xs text-center font-medium">
+              Selected: {months.find(m => m.value === month)?.label}
+            </div>
+          )}
         </div>
         
         <div>
           <Label className="text-xs text-muted-foreground mb-1 block">Day</Label>
           <Select value={day} onValueChange={(value) => handleChange('day', value)}>
-            <SelectTrigger className="h-8 text-sm">
-              <SelectValue placeholder="Day" />
+            <SelectTrigger className="h-12 text-sm font-medium bg-background border-2">
+              <SelectValue placeholder="Select Day">
+                {day || "Select Day"}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {days.map((d) => (
@@ -97,13 +106,20 @@ export const BirthdaySelector: React.FC<BirthdaySelectorProps> = ({ value, onCha
               ))}
             </SelectContent>
           </Select>
+          {day && (
+            <div className="mt-1 p-2 bg-accent/20 rounded text-xs text-center font-medium">
+              Selected: {day}
+            </div>
+          )}
         </div>
         
         <div>
           <Label className="text-xs text-muted-foreground mb-1 block">Year</Label>
           <Select value={year} onValueChange={(value) => handleChange('year', value)}>
-            <SelectTrigger className="h-8 text-sm">
-              <SelectValue placeholder="Year" />
+            <SelectTrigger className="h-12 text-sm font-medium bg-background border-2">
+              <SelectValue placeholder="Select Year">
+                {year || "Select Year"}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent className="max-h-[200px]">
               {years.map((y) => (
@@ -113,6 +129,11 @@ export const BirthdaySelector: React.FC<BirthdaySelectorProps> = ({ value, onCha
               ))}
             </SelectContent>
           </Select>
+          {year && (
+            <div className="mt-1 p-2 bg-accent/20 rounded text-xs text-center font-medium">
+              Selected: {year}
+            </div>
+          )}
         </div>
       </div>
     </div>
