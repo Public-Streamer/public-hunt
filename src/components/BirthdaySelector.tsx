@@ -55,7 +55,6 @@ export const BirthdaySelector: React.FC<BirthdaySelectorProps> = ({ value, onCha
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
   
   const handleChange = (type: 'year' | 'month' | 'day', newValue: string) => {
-    console.log(`Handle change called: ${type} = ${newValue}`);
     let newYear = selectedYear;
     let newMonth = selectedMonth;
     let newDay = selectedDay;
@@ -63,31 +62,20 @@ export const BirthdaySelector: React.FC<BirthdaySelectorProps> = ({ value, onCha
     if (type === 'year') {
       newYear = newValue;
       setSelectedYear(newValue);
-      console.log('Year set to:', newValue);
     }
     if (type === 'month') {
       newMonth = newValue;
       setSelectedMonth(newValue);
-      console.log('Month set to:', newValue);
     }
     if (type === 'day') {
-      // Don't pad the day for display, keep it as the original number
       newDay = newValue;
       setSelectedDay(newValue);
-      console.log('Day set to:', newValue);
     }
     
-    // For the final onChange callback, pad the day to 2 digits
+    // Only call onChange if all values are present
     if (newYear && newMonth && newDay) {
       const paddedDay = newDay.padStart(2, '0');
-      const maxDays = getDaysInMonth(newYear, newMonth);
-      if (parseInt(newDay) > maxDays) {
-        const correctedDay = maxDays.toString();
-        setSelectedDay(correctedDay);
-        onChange(`${newYear}-${newMonth}-${correctedDay.padStart(2, '0')}`);
-      } else {
-        onChange(`${newYear}-${newMonth}-${paddedDay}`);
-      }
+      onChange(`${newYear}-${newMonth}-${paddedDay}`);
     }
   };
   
