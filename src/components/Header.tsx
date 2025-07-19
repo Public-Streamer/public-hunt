@@ -29,19 +29,15 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
             <div className="flex items-center justify-between gap-2">
               {/* Left: Compact Logo */}
               <Link to="/" className="flex items-center space-x-1 flex-shrink-0">
-                <div className="relative cursor-pointer transform transition-all duration-200 hover:scale-95 active:scale-90 active:translate-y-0.5">
-                  <div className="absolute inset-0 bg-gradient-to-br from-gray-400/60 to-gray-600/80 rounded-lg blur-sm translate-x-1 translate-y-1"></div>
-                  <div className="relative bg-gradient-to-br from-white/40 via-white/25 to-white/10 backdrop-blur-sm rounded-lg border-2 border-white/50 shadow-[inset_0_2px_4px_rgba(255,255,255,0.3),_inset_0_-2px_4px_rgba(0,0,0,0.2),_0_4px_8px_rgba(0,0,0,0.3)] hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.4),_inset_0_-1px_2px_rgba(0,0,0,0.3),_0_2px_4px_rgba(0,0,0,0.4)] active:shadow-[inset_0_2px_6px_rgba(0,0,0,0.4),_inset_0_-1px_2px_rgba(255,255,255,0.2)] transition-all duration-200 group p-1.5">
-                    <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/10 to-white/20 rounded-lg pointer-events-none"></div>
-                    {/* Simplified Play Button */}
-                    <div className="relative z-10 flex items-center justify-center">
-                      <Play className="text-white h-4 w-4" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
-                    </div>
-                    
-                    {/* Live Indicator */}
-                    <div className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full animate-pulse px-1 py-0.5" style={{ filter: 'drop-shadow(1px 1px 2px rgba(0,0,0,0.6))' }}>
-                      <div className="bg-white rounded-full w-1 h-1"></div>
-                    </div>
+                <div className="relative bg-gradient-to-br from-white/30 to-white/10 backdrop-blur-sm rounded-lg border border-white/40 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group p-1.5" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.6))' }}>
+                  {/* Simplified Play Button */}
+                  <div className="relative z-10 flex items-center justify-center">
+                    <Play className="text-white h-4 w-4" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
+                  </div>
+                  
+                  {/* Live Indicator */}
+                  <div className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full animate-pulse px-1 py-0.5" style={{ filter: 'drop-shadow(1px 1px 2px rgba(0,0,0,0.6))' }}>
+                    <div className="bg-white rounded-full w-1 h-1"></div>
                   </div>
                 </div>
                 
@@ -106,30 +102,26 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <Link to="/" className="flex items-center space-x-3">
-                  <div className="relative cursor-pointer transform transition-all duration-200 hover:scale-95 active:scale-90 active:translate-y-1">
-                    <div className="absolute inset-0 bg-gradient-to-br from-gray-400/50 to-gray-600/70 rounded-xl blur-md translate-x-2 translate-y-2"></div>
-                    <div className="relative bg-gradient-to-br from-white/40 via-white/25 to-white/10 backdrop-blur-sm rounded-xl border-3 border-white/60 shadow-[inset_0_4px_8px_rgba(255,255,255,0.4),_inset_0_-4px_8px_rgba(0,0,0,0.3),_0_8px_16px_rgba(0,0,0,0.4)] hover:shadow-[inset_0_2px_4px_rgba(255,255,255,0.5),_inset_0_-2px_4px_rgba(0,0,0,0.4),_0_4px_8px_rgba(0,0,0,0.5)] active:shadow-[inset_0_4px_12px_rgba(0,0,0,0.5),_inset_0_-2px_4px_rgba(255,255,255,0.3)] transition-all duration-200 group p-4 py-6">
-                      <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/15 to-white/30 rounded-xl pointer-events-none"></div>
-                      {/* Main Play Button with flanking icons */}
-                      <div className="relative z-10 flex items-center justify-center h-full">
-                        {/* Lightning bolt to the left of triangle */}
-                        <Zap className="text-yellow-300 animate-pulse h-3 w-3 mr-1" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))', animationDuration: '0.8s' }} />
-                        
-                        <Play className="text-white h-8 w-8" style={{ filter: 'drop-shadow(3px 3px 6px rgba(0,0,0,0.7))' }} />
-                        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/60 to-transparent opacity-40 pointer-events-none"></div>
-                        
-                        {/* Dollar sign to the right of triangle */}
-                        <DollarSign className="text-green-300 animate-pulse h-3 w-3 ml-1" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))', animationDuration: '1.2s' }} />
-                      </div>
+                  <div className="relative bg-gradient-to-br from-white/30 to-white/10 backdrop-blur-sm rounded-xl border border-white/40 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 group p-4 py-6" style={{ filter: 'drop-shadow(4px 4px 8px rgba(0,0,0,0.6))' }}>
+                    {/* Main Play Button with flanking icons */}
+                    <div className="relative z-10 flex items-center justify-center h-full">
+                      {/* Lightning bolt to the left of triangle */}
+                      <Zap className="text-yellow-300 animate-pulse h-3 w-3 mr-1" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))', animationDuration: '0.8s' }} />
                       
-                      {/* Subtle Strobe Effect */}
-                      <div className="absolute inset-0 rounded-xl bg-white/20 opacity-0 group-hover:opacity-100 group-hover:animate-pulse transition-all duration-300"></div>
+                      <Play className="text-white h-8 w-8" style={{ filter: 'drop-shadow(3px 3px 6px rgba(0,0,0,0.7))' }} />
+                      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/60 to-transparent opacity-40 pointer-events-none"></div>
                       
-                      {/* Live Indicator */}
-                      <div className="absolute -top-2 -right-2 flex items-center space-x-1 bg-red-500 text-white rounded-full animate-pulse text-xs px-2 py-1" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.6))' }}>
-                        <div className="bg-white rounded-full w-2 h-2"></div>
-                        <span className="font-bold">LIVE</span>
-                      </div>
+                      {/* Dollar sign to the right of triangle */}
+                      <DollarSign className="text-green-300 animate-pulse h-3 w-3 ml-1" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))', animationDuration: '1.2s' }} />
+                    </div>
+                    
+                    {/* Subtle Strobe Effect */}
+                    <div className="absolute inset-0 rounded-xl bg-white/20 opacity-0 group-hover:opacity-100 group-hover:animate-pulse transition-all duration-300"></div>
+                    
+                    {/* Live Indicator */}
+                    <div className="absolute -top-2 -right-2 flex items-center space-x-1 bg-red-500 text-white rounded-full animate-pulse text-xs px-2 py-1" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.6))' }}>
+                      <div className="bg-white rounded-full w-2 h-2"></div>
+                      <span className="font-bold">LIVE</span>
                     </div>
                   </div>
                   
