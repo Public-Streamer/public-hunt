@@ -497,29 +497,23 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
           
           <div className="space-y-1">
             <Label htmlFor="email" className="text-sm">Email</Label>
-            <TooltipWrapper 
-              content={validationErrors.email || "Enter your email address"}
-              disabled={!validationErrors.email}
-            >
-              <Input
-                id="email"
-                type="email"
-                value={signupData.email}
-                onChange={(e) => setSignupData(prev => ({ ...prev, email: e.target.value }))}
-                required
-                className={`h-8 text-sm ${getFieldErrorClass('email')}`}
-                autoComplete="email"
-                key="email-input" // Stable key to prevent re-mounting
-              />
-            </TooltipWrapper>
+            <Input
+              id="email"
+              type="email"
+              value={signupData.email}
+              onChange={(e) => setSignupData(prev => ({ ...prev, email: e.target.value }))}
+              required
+              className={`h-8 text-sm ${getFieldErrorClass('email')}`}
+              autoComplete="email"
+              placeholder="Enter your email address"
+            />
+            {validationErrors.email && (
+              <p className="text-xs text-destructive mt-1">{validationErrors.email}</p>
+            )}
           </div>
           
           <div className="space-y-1">
             <Label htmlFor="password" className="text-sm">Password</Label>
-            <TooltipWrapper 
-              content={validationErrors.password || "Create a secure password"}
-              disabled={!validationErrors.password}
-            >
             <Input
               id="password"
               type="password"
@@ -528,9 +522,11 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
               required
               className={`h-8 text-sm ${getFieldErrorClass('password')}`}
               autoComplete="new-password"
-              key="password-input" // Stable key to prevent re-mounting
+              placeholder="Create a secure password"
             />
-            </TooltipWrapper>
+            {validationErrors.password && (
+              <p className="text-xs text-destructive mt-1">{validationErrors.password}</p>
+            )}
           </div>
           
           <div className="flex space-x-2 pt-3">
@@ -631,19 +627,18 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
 
               <div className="space-y-1">
                 <Label htmlFor="confirmPassword" className="text-sm">Confirm Password</Label>
-                <TooltipWrapper 
-                  content={validationErrors.confirmPassword || "Re-enter your password to confirm"}
-                  disabled={!validationErrors.confirmPassword}
-                >
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    value={signupData.confirmPassword}
-                    onChange={(e) => setSignupData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                    required
-                    className={`h-8 text-sm ${getFieldErrorClass('confirmPassword')}`}
-                  />
-                </TooltipWrapper>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  value={signupData.confirmPassword}
+                  onChange={(e) => setSignupData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                  required
+                  className={`h-8 text-sm ${getFieldErrorClass('confirmPassword')}`}
+                  placeholder="Re-enter your password to confirm"
+                />
+                {validationErrors.confirmPassword && (
+                  <p className="text-xs text-destructive mt-1">{validationErrors.confirmPassword}</p>
+                )}
               </div>
 
               <div className="space-y-1">

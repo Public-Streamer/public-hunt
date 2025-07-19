@@ -121,16 +121,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose }) => {
               <SignupForm onClose={onClose} onSuccess={handleSignupSuccess} inline />
               <div className="mt-2 sm:mt-4 w-full">
                 <div className="flex justify-center items-center w-full">
-                  <TooltipWrapper content="Go back to login form">
-                    <Button 
-                      type="button" 
-                      variant="link" 
-                      onClick={() => setShowSignup(false)}
-                      className="text-sm px-0 mx-auto"
-                    >
-                      Already have an account? Sign in
-                    </Button>
-                  </TooltipWrapper>
+                  <Button 
+                    type="button" 
+                    variant="secondary" 
+                    onClick={() => setShowSignup(false)}
+                    className="text-base font-medium h-10 px-6 rounded-lg border-2 border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary hover:text-primary transition-all duration-200"
+                  >
+                    Already have an account? Sign in
+                  </Button>
                 </div>
               </div>
             </ScrollArea>
@@ -191,16 +189,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose }) => {
             {/* Centered signup link with proper spacing and positioning */}
             <div className="pt-2 sm:pt-4 w-full">
               <div className="flex justify-center items-center w-full">
-                <TooltipWrapper content="Create a new account">
-                  <Button 
-                    type="button" 
-                    variant="link" 
-                    onClick={() => setShowSignup(true)}
-                    className="text-sm px-0 mx-auto"
-                  >
-                    Don't have an account? Sign up
-                  </Button>
-                </TooltipWrapper>
+                <Button 
+                  type="button" 
+                  variant="secondary" 
+                  onClick={() => setShowSignup(true)}
+                  className="text-base font-medium h-10 px-6 rounded-lg border-2 border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary hover:text-primary transition-all duration-200"
+                >
+                  Don't have an account? Sign up
+                </Button>
               </div>
             </div>
           </form>
