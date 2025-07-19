@@ -646,7 +646,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
               required
               className={`h-8 text-sm ${getFieldErrorClass('password')}`}
               autoComplete="new-password"
-              placeholder="Create a secure password"
+              placeholder={signupData.accountType === 'company' && signupData.companyAccountMaster ? "Enter password" : "Create a secure password"}
             />
             {validationErrors.password && (
               <p className="text-xs text-destructive mt-1">{validationErrors.password}</p>
