@@ -41,15 +41,15 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                   </div>
                 </div>
                 
-                <div className="flex flex-col min-w-0 max-w-[120px]">
+                <div className="flex flex-col min-w-0 flex-1">
                   <h1 className="font-orbitron font-black text-white tracking-tight text-xs leading-tight truncate" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>
                     Public Streamer
                   </h1>
-                   <div className="flex items-center text-white/80 font-medium text-xs truncate" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>
+                   <div className="flex items-center text-white/80 font-medium text-xs overflow-hidden" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>
                      <Zap className="text-yellow-300 h-3 w-3 mr-1 flex-shrink-0" style={{ filter: 'drop-shadow(1px 1px 2px rgba(0,0,0,0.7))' }} />
-                     <span className="text-xs whitespace-nowrap">Go Live</span>
+                     <span className="text-xs whitespace-nowrap truncate">Go Live</span>
                      <Triangle className="text-yellow-400 h-1.5 w-1.5 mx-0.5 flex-shrink-0 rotate-90 stroke-[3]" style={{ filter: 'drop-shadow(1px 1px 2px rgba(0,0,0,0.7)) brightness(1.3)', animation: 'strobe 1.5s ease-in-out infinite' }} />
-                     <span className="text-xs whitespace-nowrap">Get Paid</span>
+                     <span className="text-xs whitespace-nowrap truncate">Get Paid</span>
                      <DollarSign className="text-green-300 h-3 w-3 ml-1 flex-shrink-0" style={{ filter: 'drop-shadow(1px 1px 2px rgba(0,0,0,0.7))' }} />
                    </div>
                 </div>
