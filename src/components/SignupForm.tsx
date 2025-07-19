@@ -8,7 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Upload, Camera } from 'lucide-react';
+import { Upload, Camera, Info } from 'lucide-react';
+import TooltipWrapper from '@/components/ui/tooltip-wrapper';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -19,7 +20,6 @@ import ResetPasswordForm from './ResetPasswordForm';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import ErrorDialog from './ErrorDialog';
 import UserSearchBox from './UserSearchBox';
-import TooltipWrapper from '@/components/ui/tooltip-wrapper';
 
 interface SignupFormProps {
   onClose: () => void;
@@ -396,19 +396,26 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                   <Camera className="w-6 h-6 text-gray-400" />
                 </AvatarFallback>
               </Avatar>
-              <label className="absolute bottom-0 right-0 bg-primary text-primary-foreground rounded-full p-1 cursor-pointer hover:bg-primary/90">
-                <Upload className="w-3 h-3" />
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handlePhotoUpload}
-                  className="hidden"
-                />
-              </label>
+              <TooltipWrapper content="Upload a profile photo to increase your profile visibility and engagement by up to 300%">
+                <label className="absolute bottom-0 right-0 bg-primary text-primary-foreground rounded-full p-1 cursor-pointer hover:bg-primary/90 transition-colors">
+                  <Upload className="w-3 h-3" />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePhotoUpload}
+                    className="hidden"
+                  />
+                </label>
+              </TooltipWrapper>
             </div>
-            <Label className="text-xs text-muted-foreground">
-              {signupData.accountType === 'company' ? 'Company Logo' : 'Profile Photo'}
-            </Label>
+            <div className="flex items-center space-x-1">
+              <Label className="text-xs text-muted-foreground">
+                {signupData.accountType === 'company' ? 'Company Logo' : 'Profile Photo'}
+              </Label>
+              <TooltipWrapper content="Profiles with photos receive significantly more interest and interaction from other users">
+                <Info className="w-3 h-3 text-muted-foreground hover:text-primary cursor-help transition-colors" />
+              </TooltipWrapper>
+            </div>
           </div>
 
           {/* Only show name fields for individual accounts or company accounts without master selected */}
