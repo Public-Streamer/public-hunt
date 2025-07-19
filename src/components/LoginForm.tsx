@@ -123,9 +123,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose }) => {
                 <div className="flex justify-center items-center w-full">
                   <Button 
                     type="button" 
-                    variant="secondary" 
+                    variant="ghost" 
                     onClick={() => setShowSignup(false)}
-                    className="text-base font-medium h-10 px-6 rounded-lg border-2 border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary hover:text-primary transition-all duration-200"
+                    className="text-base font-medium h-auto px-4 py-2 bg-muted/30 hover:bg-muted/50 text-foreground hover:text-foreground shadow-sm border-0 rounded-md transition-all duration-200"
                   >
                     Already have an account? Sign in
                   </Button>
@@ -191,9 +191,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose }) => {
               <div className="flex justify-center items-center w-full">
                 <Button 
                   type="button" 
-                  variant="secondary" 
+                  variant="ghost" 
                   onClick={() => setShowSignup(true)}
-                  className="text-base font-medium h-10 px-6 rounded-lg border-2 border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary hover:text-primary transition-all duration-200"
+                  className="text-base font-medium h-auto px-4 py-2 bg-muted/30 hover:bg-muted/50 text-foreground hover:text-foreground shadow-sm border-0 rounded-md transition-all duration-200"
                 >
                   Don't have an account? Sign up
                 </Button>

@@ -811,7 +811,11 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                       alert('Please allow popups to view the legal document');
                     }
                   }}
-                  className={`text-xs h-8 ${hasFieldError('legalDocument') ? 'border-red-500 bg-red-50' : ''}`}
+                  className={`text-xs h-8 transition-all duration-300 ${
+                    legalDocumentSigned 
+                      ? 'bg-green-100 border-green-300 text-green-800 hover:bg-green-200' 
+                      : 'bg-yellow-100 border-yellow-300 text-yellow-800 hover:bg-yellow-200'
+                  } ${hasFieldError('legalDocument') ? 'border-red-500 bg-red-50' : ''}`}
                 >
                   {legalDocumentSigned ? '✓ Legal Document Signed' : 'Sign Legal Document'}
                 </Button>
