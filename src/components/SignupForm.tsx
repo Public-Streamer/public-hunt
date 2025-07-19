@@ -800,8 +800,12 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
             )}
           </div>
           
-          {/* Scrollable Content */}
-          <div className="flex-1 overflow-y-auto p-6">
+          {/* Scrollable Content with Custom Scrollbar */}
+          <div className="flex-1 overflow-y-auto p-6 scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400" 
+               style={{
+                 scrollbarWidth: 'thin',
+                 scrollbarColor: '#d1d5db #f3f4f6'
+               }}>
             {formContent}
           </div>
         </div>
