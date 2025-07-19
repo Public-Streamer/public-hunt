@@ -94,68 +94,73 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
     return hasFieldError(fieldName) ? 'border-red-500 bg-red-50 ring-red-500' : '';
   };
 
-  // Real-time validation effect
+  // Real-time validation effect - optimized to prevent focus issues
   useEffect(() => {
-    const errors: { [key: string]: string } = {};
+    // Debounce validation to prevent excessive re-renders during typing
+    const timeoutId = setTimeout(() => {
+      const errors: { [key: string]: string } = {};
 
-    // Step 1 validations
-    if (step >= 1) {
-      if (signupData.accountType === 'company' && !signupData.companyName.trim()) {
-        errors.companyName = 'Company name is required';
-      }
-      if (signupData.accountType === 'company' && !signupData.companyAccountMaster) {
-        errors.companyAccountMaster = 'Company Account Master is required';
-      }
-      if (!signupData.email) {
-        errors.email = 'Email is required';
-      }
-      if (!signupData.password) {
-        errors.password = 'Password is required';
-      }
-    }
-
-    // Step 2 validations
-    if (step >= 2 && (signupData.accountType === 'individual' || 
-        (signupData.accountType === 'company' && !signupData.companyAccountMaster))) {
-      if (signupData.password !== signupData.confirmPassword && signupData.confirmPassword) {
-        errors.confirmPassword = 'Passwords do not match';
-      }
-      if (!signupData.firstName) {
-        errors.firstName = 'First name is required';
-      }
-      if (!signupData.lastName) {
-        errors.lastName = 'Last name is required';
-      }
-      if (!signupData.birthDate) {
-        errors.birthDate = 'Birth date is required';
-      }
-      if (signupData.birthDate && calculateAge(signupData.birthDate) < 18) {
-        errors.birthDate = 'You must be at least 18 years old';
-      }
-    }
-
-    // Step 3 validations
-    if (step >= 3) {
-      if (signupData.accountType === 'company') {
-        if (emailVerification && emailVerification !== signupData.email) {
-          errors.emailVerification = 'Email verification does not match';
+      // Step 1 validations
+      if (step >= 1) {
+        if (signupData.accountType === 'company' && !signupData.companyName.trim()) {
+          errors.companyName = 'Company name is required';
         }
-        if (passwordVerification && passwordVerification !== signupData.password) {
-          errors.passwordVerification = 'Password verification does not match';
+        if (signupData.accountType === 'company' && !signupData.companyAccountMaster) {
+          errors.companyAccountMaster = 'Company Account Master is required';
+        }
+        if (!signupData.email) {
+          errors.email = 'Email is required';
+        }
+        if (!signupData.password) {
+          errors.password = 'Password is required';
         }
       }
-      if (!signupData.agreeToTerms) {
-        errors.agreeToTerms = 'You must agree to the Terms of Service';
-      }
-      if (!signupData.confirmAge) {
-        errors.confirmAge = 'You must confirm you are 18 or older';
-      }
-      if (!legalDocumentSigned) {
-        errors.legalDocument = 'Legal document must be signed';
-      }
-    }
 
-    setValidationErrors(errors);
+      // Step 2 validations
+      if (step >= 2 && (signupData.accountType === 'individual' || 
+          (signupData.accountType === 'company' && !signupData.companyAccountMaster))) {
+        if (signupData.password !== signupData.confirmPassword && signupData.confirmPassword) {
+          errors.confirmPassword = 'Passwords do not match';
+        }
+        if (!signupData.firstName) {
+          errors.firstName = 'First name is required';
+        }
+        if (!signupData.lastName) {
+          errors.lastName = 'Last name is required';
+        }
+        if (!signupData.birthDate) {
+          errors.birthDate = 'Birth date is required';
+        }
+        if (signupData.birthDate && calculateAge(signupData.birthDate) < 18) {
+          errors.birthDate = 'You must be at least 18 years old';
+        }
+      }
+
+      // Step 3 validations
+      if (step >= 3) {
+        if (signupData.accountType === 'company') {
+          if (emailVerification && emailVerification !== signupData.email) {
+            errors.emailVerification = 'Email verification does not match';
+          }
+          if (passwordVerification && passwordVerification !== signupData.password) {
+            errors.passwordVerification = 'Password verification does not match';
+          }
+        }
+        if (!signupData.agreeToTerms) {
+          errors.agreeToTerms = 'You must agree to the Terms of Service';
+        }
+        if (!signupData.confirmAge) {
+          errors.confirmAge = 'You must confirm you are 18 or older';
+        }
+        if (!legalDocumentSigned) {
+          errors.legalDocument = 'Legal document must be signed';
+        }
+      }
+
+      setValidationErrors(errors);
+    }, 300); // 300ms debounce to prevent focus issues
+
+    return () => clearTimeout(timeoutId);
   }, [signupData, emailVerification, passwordVerification, legalDocumentSigned, step]);
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -503,6 +508,8 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                 onChange={(e) => setSignupData(prev => ({ ...prev, email: e.target.value }))}
                 required
                 className={`h-8 text-sm ${getFieldErrorClass('email')}`}
+                autoComplete="email"
+                key="email-input" // Stable key to prevent re-mounting
               />
             </TooltipWrapper>
           </div>
@@ -513,14 +520,16 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
               content={validationErrors.password || "Create a secure password"}
               disabled={!validationErrors.password}
             >
-              <Input
-                id="password"
-                type="password"
-                value={signupData.password}
-                onChange={(e) => setSignupData(prev => ({ ...prev, password: e.target.value }))}
-                required
-                className={`h-8 text-sm ${getFieldErrorClass('password')}`}
-              />
+            <Input
+              id="password"
+              type="password"
+              value={signupData.password}
+              onChange={(e) => setSignupData(prev => ({ ...prev, password: e.target.value }))}
+              required
+              className={`h-8 text-sm ${getFieldErrorClass('password')}`}
+              autoComplete="new-password"
+              key="password-input" // Stable key to prevent re-mounting
+            />
             </TooltipWrapper>
           </div>
           

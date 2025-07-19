@@ -18,10 +18,14 @@ const TooltipWrapper: React.FC<TooltipWrapperProps> = ({
 
   return (
     <Tooltip>
-      <TooltipTrigger asChild>
+      <TooltipTrigger 
+        asChild
+        onFocus={(e) => e.stopPropagation()} // Prevent focus stealing
+        tabIndex={-1} // Remove from tab order to prevent focus issues
+      >
         {children}
       </TooltipTrigger>
-      <TooltipContent>
+      <TooltipContent side="top" sideOffset={5}>
         <p className="max-w-xs text-sm">{content}</p>
       </TooltipContent>
     </Tooltip>
