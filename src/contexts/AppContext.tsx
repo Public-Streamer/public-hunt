@@ -163,13 +163,35 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const logout = async () => {
     try {
-      await supabase.auth.signOut();
+      // Clean up auth state first
+      Object.keys(localStorage).forEach((key) => {
+        if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+          localStorage.removeItem(key);
+        }
+      });
+      
+      // Attempt global sign out
+      await supabase.auth.signOut({ scope: 'global' });
+      
+      // Clear state immediately
+      setUser(null);
+      setUserProfile(null);
+      
       toast({
         title: 'Logged out',
         description: 'You have been successfully logged out.',
       });
+      
+      // Force page reload for clean state
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 500);
     } catch (error) {
       console.error('Error logging out:', error);
+      // Even if signOut fails, clear local state
+      setUser(null);
+      setUserProfile(null);
+      window.location.href = '/';
     }
   };
 
