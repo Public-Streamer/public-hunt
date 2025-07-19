@@ -17,17 +17,36 @@ const LegalDocumentPage: React.FC = () => {
   const canSubmit = signature.trim() && acknowledgedRisks && acknowledgedLiability && acknowledgedCompliance;
 
   const handleAccept = () => {
-    if (canSubmit && window.opener) {
-      // Send signature data back to parent window in the correct format
-      window.opener.postMessage({
-        type: 'LEGAL_AGREEMENT_SIGNED',
-        data: {
-          signature,
-          signDate: currentDate,
-          fullName: signature
+    console.log('Accept button clicked', { canSubmit, signature, acknowledgedRisks, acknowledgedLiability, acknowledgedCompliance });
+    
+    if (canSubmit) {
+      try {
+        if (window.opener) {
+          // Send signature data back to parent window in the correct format
+          window.opener.postMessage({
+            type: 'LEGAL_AGREEMENT_SIGNED',
+            data: {
+              signature,
+              signDate: currentDate,
+              fullName: signature
+            }
+          }, '*');
         }
-      }, '*');
-      window.close();
+        
+        // Fallback for mobile devices that might have issues with window.close()
+        if (window.close) {
+          window.close();
+        } else {
+          // Mobile Safari fallback
+          window.location.href = 'about:blank';
+        }
+      } catch (error) {
+        console.error('Error processing signature:', error);
+        // Emergency fallback - try to go back
+        window.history.back();
+      }
+    } else {
+      console.log('Form validation failed:', getValidationMessage());
     }
   };
 
@@ -40,12 +59,24 @@ const LegalDocumentPage: React.FC = () => {
   };
 
   const handleCancel = () => {
-    if (window.opener) {
-      window.opener.postMessage({
-        type: 'legal-document-cancelled'
-      }, '*');
+    try {
+      if (window.opener) {
+        window.opener.postMessage({
+          type: 'legal-document-cancelled'
+        }, '*');
+      }
+      // Fallback for mobile devices that might have issues with window.close()
+      if (window.close) {
+        window.close();
+      } else {
+        // Mobile Safari fallback
+        window.location.href = 'about:blank';
+      }
+    } catch (error) {
+      console.error('Error closing window:', error);
+      // Emergency fallback - try to go back
+      window.history.back();
     }
-    window.close();
   };
 
   return (
@@ -172,7 +203,7 @@ const LegalDocumentPage: React.FC = () => {
             </Label>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="signature" className="text-sm font-medium block mb-1">
                 Electronic Signature (Type your full legal name)
@@ -183,7 +214,7 @@ const LegalDocumentPage: React.FC = () => {
                 value={signature}
                 onChange={(e) => setSignature(e.target.value)}
                 placeholder="Your full legal name"
-                className="w-full"
+                className="w-full min-h-[48px]"
               />
             </div>
             <div>
@@ -191,7 +222,7 @@ const LegalDocumentPage: React.FC = () => {
               <Input 
                 value={currentDate} 
                 disabled 
-                className="w-full bg-gray-100"
+                className="w-full bg-gray-100 min-h-[48px]"
               />
             </div>
           </div>
@@ -211,37 +242,32 @@ const LegalDocumentPage: React.FC = () => {
             </div>
           )}
 
-          <div className="flex justify-end space-x-2 pt-4">
+          <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2 pt-4">
             <Button 
               variant="outline" 
               onClick={handleCancel}
-              className="px-6 min-h-[48px] touch-manipulation"
+              className="w-full sm:w-auto px-6 min-h-[48px] text-base"
             >
               Cancel
             </Button>
-            <TooltipWrapper 
-              content={getValidationMessage() || "Complete all requirements above to sign"}
-              disabled={canSubmit}
+            <Button 
+              onClick={handleAccept}
+              disabled={!canSubmit}
+              className={`w-full sm:w-auto px-6 min-h-[48px] text-base ${
+                canSubmit 
+                  ? 'bg-green-600 hover:bg-green-700 text-white' 
+                  : 'bg-gray-400 cursor-not-allowed text-white'
+              }`}
             >
-              <Button 
-                onClick={handleAccept}
-                disabled={!canSubmit}
-                className={`px-6 min-h-[48px] touch-manipulation ${
-                  canSubmit 
-                    ? 'bg-green-600 hover:bg-green-700' 
-                    : 'bg-gray-400 cursor-not-allowed'
-                }`}
-              >
-                {canSubmit ? (
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4" />
-                    Accept and Sign
-                  </div>
-                ) : (
-                  'Accept and Sign'
-                )}
-              </Button>
-            </TooltipWrapper>
+              {canSubmit ? (
+                <div className="flex items-center justify-center gap-2">
+                  <CheckCircle className="h-4 w-4" />
+                  Accept and Sign
+                </div>
+              ) : (
+                'Accept and Sign'
+              )}
+            </Button>
           </div>
         </div>
       </div>
