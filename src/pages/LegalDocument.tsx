@@ -4,7 +4,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { AlertTriangle } from 'lucide-react';
+import { TooltipWrapper } from '@/components/ui/tooltip-wrapper';
+import { AlertTriangle, CheckCircle } from 'lucide-react';
 
 const LegalDocumentPage: React.FC = () => {
   const [signature, setSignature] = useState('');
@@ -28,6 +29,14 @@ const LegalDocumentPage: React.FC = () => {
       }, '*');
       window.close();
     }
+  };
+
+  const getValidationMessage = () => {
+    if (!signature.trim()) return 'Please enter your full legal name as your electronic signature';
+    if (!acknowledgedRisks) return 'Please acknowledge that you understand the risks of live streaming';
+    if (!acknowledgedLiability) return 'Please agree to release Public Streamer from liability and provide indemnification';
+    if (!acknowledgedCompliance) return 'Please agree to comply with all applicable laws and platform terms';
+    return null;
   };
 
   const handleCancel = () => {
@@ -191,21 +200,48 @@ const LegalDocumentPage: React.FC = () => {
             By signing, you agree this electronic signature has the same legal effect as a handwritten signature.
           </div>
 
+          {/* Validation Error Message */}
+          {!canSubmit && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+              <div className="flex items-center gap-2 text-yellow-800">
+                <AlertTriangle className="h-4 w-4" />
+                <span className="text-sm font-medium">Unable to proceed:</span>
+              </div>
+              <p className="text-sm text-yellow-700 mt-1">{getValidationMessage()}</p>
+            </div>
+          )}
+
           <div className="flex justify-end space-x-2 pt-4">
             <Button 
               variant="outline" 
               onClick={handleCancel}
-              className="px-6"
+              className="px-6 min-h-[48px] touch-manipulation"
             >
               Cancel
             </Button>
-            <Button 
-              onClick={handleAccept}
-              disabled={!canSubmit}
-              className="px-6 bg-green-600 hover:bg-green-700"
+            <TooltipWrapper 
+              content={getValidationMessage() || "Complete all requirements above to sign"}
+              disabled={canSubmit}
             >
-              Accept and Sign
-            </Button>
+              <Button 
+                onClick={handleAccept}
+                disabled={!canSubmit}
+                className={`px-6 min-h-[48px] touch-manipulation ${
+                  canSubmit 
+                    ? 'bg-green-600 hover:bg-green-700' 
+                    : 'bg-gray-400 cursor-not-allowed'
+                }`}
+              >
+                {canSubmit ? (
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4" />
+                    Accept and Sign
+                  </div>
+                ) : (
+                  'Accept and Sign'
+                )}
+              </Button>
+            </TooltipWrapper>
           </div>
         </div>
       </div>
