@@ -678,13 +678,17 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
   );
 
   if (inline) {
-    return formContent;
+    return (
+      <div className="auth-template">
+        {formContent}
+      </div>
+    );
   }
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-        <Card className="w-full max-w-md max-h-[90vh]">
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 auth-template">
+        <Card className="w-full max-w-md max-h-[90vh] auth-template">
           <CardHeader>
             <CardTitle>Create Your Public Streamer Account</CardTitle>
             {error && (
@@ -702,8 +706,8 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
               </Alert>
             )}
           </CardHeader>
-          <CardContent className="h-[75vh] p-0">
-            <ScrollArea className="h-full w-full px-6 pb-6">
+          <CardContent className="h-[75vh] p-0 auth-template">
+            <ScrollArea className="h-full w-full px-6 pb-6 auth-template">
               {formContent}
             </ScrollArea>
           </CardContent>

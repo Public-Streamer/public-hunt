@@ -78,9 +78,9 @@ const CompanyAccountSelector: React.FC<CompanyAccountSelectorProps> = ({
 
   if (isLoading) {
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-        <Card className="w-full max-w-md">
-          <CardContent className="flex items-center justify-center p-8">
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 auth-template">
+        <Card className="w-full max-w-md auth-template">
+          <CardContent className="flex items-center justify-center p-8 auth-template">
             <div className="text-center">Loading...</div>
           </CardContent>
         </Card>
@@ -89,15 +89,15 @@ const CompanyAccountSelector: React.FC<CompanyAccountSelectorProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-md">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 auth-template">
+      <Card className="w-full max-w-md auth-template">
         <CardHeader>
           <CardTitle>Select Account Type</CardTitle>
           <CardDescription>
             How would you like to sign in today?
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 auth-template">
           <Button 
             onClick={handleIndividualLogin}
             className="w-full"

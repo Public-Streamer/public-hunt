@@ -49,12 +49,12 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({ onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-md">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 auth-template">
+      <Card className="w-full max-w-md auth-template">
         <CardHeader>
           <CardTitle>Reset Password</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="auth-template">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Recovery Email</Label>

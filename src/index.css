@@ -453,4 +453,41 @@
   .safe-area-pr {
     padding-right: env(safe-area-inset-right);
   }
+  
+  /* Force persistent scroll bars for auth templates */
+  .auth-template {
+    overflow-x: auto !important;
+    overflow-y: auto !important;
+    scrollbar-gutter: stable both-edges;
+  }
+  
+  .auth-template::-webkit-scrollbar {
+    width: 16px !important;
+    height: 16px !important;
+  }
+  
+  .auth-template::-webkit-scrollbar-track {
+    background: hsl(var(--muted)) !important;
+    border-radius: 8px;
+  }
+  
+  .auth-template::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground)) !important;
+    border-radius: 8px;
+    border: 2px solid hsl(var(--muted));
+  }
+  
+  .auth-template::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--foreground)) !important;
+  }
+  
+  .auth-template::-webkit-scrollbar-corner {
+    background: hsl(var(--muted)) !important;
+  }
+  
+  /* Force scrollbars on Firefox */
+  .auth-template {
+    scrollbar-width: thick;
+    scrollbar-color: hsl(var(--muted-foreground)) hsl(var(--muted));
+  }
 }
