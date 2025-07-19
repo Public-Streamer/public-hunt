@@ -24,7 +24,7 @@ const LegalDocumentPage: React.FC = () => {
   // Get user's full name from URL parameter or user metadata
   const urlParams = new URLSearchParams(window.location.search);
   const nameFromUrl = urlParams.get('name');
-  const userFullName = nameFromUrl || 
+  const userFullName = nameFromUrl ? decodeURIComponent(nameFromUrl) : 
     (user?.user_metadata?.firstName && user?.user_metadata?.lastName
       ? `${user.user_metadata.firstName} ${user.user_metadata.lastName}`
       : null);
