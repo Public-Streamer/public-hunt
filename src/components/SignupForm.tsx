@@ -21,6 +21,7 @@ import ResetPasswordForm from './ResetPasswordForm';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import ErrorDialog from './ErrorDialog';
 import UserSearchBox from './UserSearchBox';
+import { BirthdaySelector } from './BirthdaySelector';
 
 interface SignupFormProps {
   onClose: () => void;
@@ -764,28 +765,19 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                 )}
               </div>
 
-              <div className="space-y-1">
-                <Label htmlFor="birthDate" className="text-sm">Birth Date (Must be 18+)</Label>
-                <TooltipWrapper 
-                  content={validationErrors.birthDate || "You must be at least 18 years old to join"}
-                  disabled={!validationErrors.birthDate}
-                >
-                  <Input
-                    id="birthDate"
-                    type="date"
-                    value={signupData.birthDate}
-                    onChange={(e) => {
-                      e.stopPropagation();
-                      setSignupData(prev => ({ ...prev, birthDate: e.target.value }));
-                    }}
-                    onFocus={(e) => e.stopPropagation()}
-                    onBlur={(e) => e.stopPropagation()}
-                    onClick={(e) => e.stopPropagation()}
-                    required
-                    className={`h-8 text-sm ${getFieldErrorClass('birthDate')}`}
-                  />
-                </TooltipWrapper>
-              </div>
+              <TooltipWrapper 
+                content={validationErrors.birthDate || "You must be at least 18 years old to join"}
+                disabled={!validationErrors.birthDate}
+              >
+                <BirthdaySelector
+                  value={signupData.birthDate}
+                  onChange={(value) => setSignupData(prev => ({ ...prev, birthDate: value }))}
+                  className={validationErrors.birthDate ? 'border-destructive' : ''}
+                />
+              </TooltipWrapper>
+              {validationErrors.birthDate && (
+                <p className="text-xs text-destructive mt-1">{validationErrors.birthDate}</p>
+              )}
             </>
           )}
           
