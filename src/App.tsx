@@ -21,6 +21,7 @@ import WithdrawFunds from "./pages/WithdrawFunds";
 import QA from "./pages/QA";
 import PastEvents from "./pages/PastEvents";
 import NotFound from "./pages/NotFound";
+import LegalDocumentPage from "./pages/LegalDocument";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +50,7 @@ const App = () => (
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/withdraw" element={<WithdrawFunds />} />
                 <Route path="/qa" element={<QA />} />
+                <Route path="/legal-document" element={<LegalDocumentPage />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Layout>
