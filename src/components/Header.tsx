@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Play, User, Menu, LogOut, Zap, DollarSign } from 'lucide-react';
+import { Play, User, Menu, LogOut, Zap, DollarSign, Triangle } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAppContext } from '@/contexts/AppContext';
@@ -45,11 +45,13 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                   <h1 className="font-orbitron font-black text-white tracking-tight text-xs leading-tight truncate" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>
                     Public Streamer
                   </h1>
-                  <div className="flex items-center text-white/80 font-medium text-xs truncate" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>
+                   <div className="flex items-center text-white/80 font-medium text-xs truncate" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>
                      <Zap className="text-yellow-300 h-3 w-3 mr-1 flex-shrink-0" style={{ filter: 'drop-shadow(1px 1px 2px rgba(0,0,0,0.7))' }} />
-                     <span className="text-xs whitespace-nowrap">Go Live Get Paid</span>
+                     <span className="text-xs whitespace-nowrap">Go Live</span>
+                     <Triangle className="text-white/60 h-1.5 w-1.5 mx-0.5 flex-shrink-0" style={{ filter: 'drop-shadow(1px 1px 2px rgba(0,0,0,0.7))' }} />
+                     <span className="text-xs whitespace-nowrap">Get Paid</span>
                      <DollarSign className="text-green-300 h-3 w-3 ml-1 flex-shrink-0" style={{ filter: 'drop-shadow(1px 1px 2px rgba(0,0,0,0.7))' }} />
-                  </div>
+                   </div>
                 </div>
               </Link>
               
@@ -129,7 +131,9 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                     </h1>
                      <div className="flex items-center space-x-1 text-white/80 font-medium text-xs" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>
                         <Zap className="text-yellow-300 h-4 w-4" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
-                        <span className="whitespace-nowrap">Go Live Get Paid</span>
+                        <span className="whitespace-nowrap">Go Live</span>
+                        <Triangle className="text-white/60 h-2 w-2 mx-1" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
+                        <span className="whitespace-nowrap">Get Paid</span>
                         <DollarSign className="text-green-300 h-4 w-4" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
                      </div>
                   </div>
