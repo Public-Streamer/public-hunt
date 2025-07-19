@@ -1,4 +1,3 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -41,7 +40,7 @@ serve(async (req) => {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
-    console.log("🔧 Environment check:", {
+    console.log("Environment check:", {
       hasLiveKitKey: !!LIVEKIT_API_KEY,
       hasLiveKitSecret: !!LIVEKIT_API_SECRET,
       hasLiveKitUrl: !!LIVEKIT_WS_URL,
@@ -50,21 +49,21 @@ serve(async (req) => {
     });
 
     if (!LIVEKIT_API_KEY || !LIVEKIT_API_SECRET || !LIVEKIT_WS_URL) {
-      console.error("❌ Missing LiveKit credentials");
+      console.error("Missing LiveKit credentials");
       throw new Error("LiveKit credentials not configured");
     }
 
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-      console.error("❌ Missing Supabase credentials");
+      console.error("Missing Supabase credentials");
       throw new Error("Supabase credentials not configured");
     }
 
     // Authenticate user
     const authHeader = req.headers.get("Authorization");
-    console.log("🔐 Auth header received:", !!authHeader);
+    console.log("Auth header received:", !!authHeader);
 
     if (!authHeader) {
-      console.error("❌ No authorization header provided");
+      console.error("No authorization header provided");
       return new Response("Unauthorized - No auth header", {
         status: 401,
         headers: corsHeaders,
@@ -80,14 +79,14 @@ serve(async (req) => {
       },
     });
 
-    console.log("🔍 Attempting to verify user with token...");
+    console.log("Attempting to verify user with token...");
     const {
       data: { user },
       error: userError,
     } = await supabase.auth.getUser();
 
     if (userError) {
-      console.error("❌ User verification error:", userError);
+      console.error("User verification error:", userError);
       return new Response("Unauthorized - Invalid token", {
         status: 401,
         headers: corsHeaders,
@@ -95,14 +94,14 @@ serve(async (req) => {
     }
 
     if (!user) {
-      console.error("❌ No user found with provided token");
+      console.error("No user found with provided token");
       return new Response("Unauthorized - User not found", {
         status: 401,
         headers: corsHeaders,
       });
     }
 
-    console.log("✅ User authenticated:", { userId: user.id, email: user.email });
+    console.log("User authenticated:", { userId: user.id, email: user.email });
 
     // Parse request body
     const {
@@ -118,94 +117,33 @@ serve(async (req) => {
       });
     }
 
-    console.log("📋 Token request details:", { eventId, userRole, userId: user.id });
-
-    // CRITICAL FIX: Look up the actual LiveKit room from livekit_rooms table
-    console.log("🔍 Looking up LiveKit room for event:", eventId);
-    const { data: livekitRoom, error: roomError } = await supabase
-      .from("livekit_rooms")
-      .select("*")
-      .eq("event_id", eventId)
-      .eq("is_active", true)
-      .maybeSingle();
-
-    if (roomError) {
-      console.error("❌ Error looking up LiveKit room:", roomError);
-      return new Response("Failed to lookup room", {
-        status: 500,
-        headers: corsHeaders,
-      });
-    }
-
-    console.log("🏠 LiveKit room lookup result:", livekitRoom ? {
-      roomName: livekitRoom.room_name,
-      roomSid: livekitRoom.livekit_room_sid,
-      isActive: livekitRoom.is_active,
-      eventId: livekitRoom.event_id
-    } : null);
-
-    // If no active room exists, only hosts can request tokens (they need to create room first)
-    if (!livekitRoom) {
-      console.warn("⚠️ No active LiveKit room found for event:", eventId);
-      
-      // Check if user is the event host
-      const { data: event, error: eventError } = await supabase
-        .from("events")
-        .select("created_by")
-        .eq("id", eventId)
-        .single();
-
-      if (eventError || !event) {
-        console.error("❌ Event not found:", eventError);
-        return new Response("Event not found", {
-          status: 404,
-          headers: corsHeaders,
-        });
-      }
-
-      if (event.created_by !== user.id) {
-        console.error("❌ Non-host user trying to join non-existent room");
-        return new Response("No active stream found for this event. Only the event host can start streaming.", {
-          status: 403,
-          headers: corsHeaders,
-        });
-      }
-
-      console.log("🎯 Host requesting token for event without active room - this should trigger room creation first");
-      return new Response("No active room found. Please create the room first.", {
-        status: 404,
-        headers: corsHeaders,
-      });
-    }
-
-    // Get event details for role verification
+    // Get event details
     const { data: event, error: eventError } = await supabase
       .from("events")
-      .select("*")
+      .select("*, livekit_room_name")
       .eq("id", eventId)
       .single();
 
     if (eventError || !event) {
-      console.error("❌ Event not found:", eventError);
       return new Response("Event not found", {
         status: 404,
         headers: corsHeaders,
       });
     }
 
-    console.log("📅 Event details:", {
+    console.log("Event details:", {
       eventId,
       createdBy: event.created_by,
       userId: user.id,
     });
 
-    // Determine user's actual role in the event
+    // Determine user's actual role in the event (same logic as StagePage)
     let actualRole = userRole; // fallback to provided role
 
     // Check if user is host (event creator)
     if (event.created_by === user.id) {
       actualRole = "host";
-      console.log("👑 User is event host");
+      console.log("User is event host");
     } else {
       // Check if user is assigned as streamer
       const { data: streamerData } = await supabase
@@ -217,21 +155,21 @@ serve(async (req) => {
 
       if (streamerData) {
         actualRole = "streamer";
-        console.log("🎥 User is assigned streamer");
+        console.log("User is assigned streamer");
       } else {
         actualRole = "viewer";
-        console.log("👀 User is viewer");
+        console.log("User is viewer");
       }
     }
 
     // Validate that the passed userRole matches the determined role (security check)
     if (userRole !== "viewer" && userRole !== actualRole) {
       console.warn(
-        `⚠️ Role mismatch: passed=${userRole}, actual=${actualRole}. Using actual role.`
+        `Role mismatch: passed=${userRole}, actual=${actualRole}. Using actual role.`
       );
     }
 
-    console.log("🎭 Final role determination:", {
+    console.log("Final role determination:", {
       passedRole: userRole,
       actualRole,
     });
@@ -252,7 +190,7 @@ serve(async (req) => {
         .single();
 
       hasTicket = !!ticket;
-      console.log("🎫 Ticket check for viewer:", {
+      console.log("Ticket check for viewer:", {
         hasTicket,
         ticketPrice: event.ticket_price,
       });
@@ -299,32 +237,30 @@ serve(async (req) => {
     const tokenPermissions = getPermissions(actualRole, hasTicket);
 
     if (!tokenPermissions.roomJoin) {
-      console.error("❌ Access denied - ticket required");
       return new Response("Access denied - ticket required", {
         status: 403,
         headers: corsHeaders,
       });
     }
 
-    // CRITICAL: Use the actual room name from livekit_rooms table, not from events table
-    const actualRoomName = livekitRoom.room_name;
-    console.log("🏠 Using ACTUAL room name from database:", actualRoomName);
-    console.log("🔗 Room SID from database:", livekitRoom.livekit_room_sid);
-    
+    console.log(
+      "Creating LiveKit token for user:",
+      user.id,
+      "role:",
+      actualRole,
+      "event:",
+      eventId,
+      "room:",
+      event.livekit_room_name
+    );
+
     // Create LiveKit access token with unique identity
-    const uniqueIdentity = `${user.id}-${eventId}`;
-    console.log("🆔 Creating token with identity:", uniqueIdentity);
-    
     const at = new AccessToken(LIVEKIT_API_KEY, LIVEKIT_API_SECRET, {
-      identity: uniqueIdentity,
+      identity: `${user.id}-${eventId}`, // Ensures unique identity per user per event
       name: user.email || `User ${user.id}`,
     });
 
-    // CRITICAL: Use the actual room name from the database
-    at.addGrant({
-      ...tokenPermissions,
-      room: actualRoomName, // This is the ACTUAL room name from livekit_rooms table
-    });
+    at.addGrant(tokenPermissions);
 
     const token = await at.toJwt();
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
@@ -342,34 +278,26 @@ serve(async (req) => {
 
     const response: CreateTokenResponse = {
       token,
-      roomName: actualRoomName, // Return the ACTUAL room name
+      roomName: event.livekit_room_name,
       serverUrl: LIVEKIT_WS_URL,
       expiresAt: expiresAt.toISOString(),
     };
 
-    console.log(`✅ Token created successfully for user ${user.id} in event ${eventId}:`, {
-      roomName: response.roomName,
-      roomSid: livekitRoom.livekit_room_sid,
-      identity: uniqueIdentity,
-      role: actualRole,
-      permissions: tokenPermissions,
-      databaseRoomId: livekitRoom.id
-    });
-
-    console.log("🎯 CRITICAL VERIFICATION - Room Mapping:", {
-      "Event ID": eventId,
-      "Database Room Name": livekitRoom.room_name,
-      "Database Room SID": livekitRoom.livekit_room_sid,
-      "Token Room Name": response.roomName,
-      "Room Active": livekitRoom.is_active,
-      "Match Check": livekitRoom.room_name === response.roomName ? "✅ MATCH" : "❌ MISMATCH"
-    });
+    console.log(
+      `✅ Token created successfully for user ${user.id} in event ${eventId}:`,
+      {
+        roomName: response.roomName,
+        identity: `${user.id}-${eventId}`,
+        role: actualRole,
+        permissions: tokenPermissions,
+      }
+    );
 
     return new Response(JSON.stringify(response), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("❌ Error creating LiveKit token:", error);
+    console.error("Error creating LiveKit token:", error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
