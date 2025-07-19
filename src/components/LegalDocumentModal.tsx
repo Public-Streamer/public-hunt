@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { AlertTriangle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface LegalDocumentModalProps {
   isOpen: boolean;
@@ -28,9 +29,37 @@ export const LegalDocumentModal: React.FC<LegalDocumentModalProps> = ({
   const currentDate = new Date().toLocaleDateString();
   const canSubmit = signature.trim() && acknowledgedRisks && acknowledgedLiability && acknowledgedCompliance;
 
-  const handleAccept = () => {
+  const handleAccept = async () => {
     if (canSubmit) {
-      onAccept(signature, currentDate);
+      try {
+        // Save legal document to database
+        const { error } = await supabase
+          .from('legal_documents')
+          .insert({
+            user_id: 'temp-user-id', // Will be updated when user actually signs up
+            email: userEmail,
+            signature: signature,
+            document_type: 'user_agreement',
+            document_version: '1.0',
+            ip_address: 'unknown', // Could be enhanced to get real IP
+            user_agent: navigator.userAgent
+          });
+
+        if (error) {
+          console.error('Error saving legal document:', error);
+        }
+
+        // Call the accept callback with signature data
+        onAccept(signature, currentDate);
+        
+        // Force close the modal completely
+        onClose();
+      } catch (error) {
+        console.error('Error handling legal document acceptance:', error);
+        // Still proceed with acceptance even if database save fails
+        onAccept(signature, currentDate);
+        onClose();
+      }
     }
   };
 

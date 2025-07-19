@@ -720,6 +720,45 @@ export type Database = {
           },
         ]
       }
+      legal_documents: {
+        Row: {
+          created_at: string
+          document_type: string
+          document_version: string
+          email: string
+          id: string
+          ip_address: string | null
+          signature: string
+          signed_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          document_type?: string
+          document_version?: string
+          email: string
+          id?: string
+          ip_address?: string | null
+          signature: string
+          signed_at?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          document_type?: string
+          document_version?: string
+          email?: string
+          id?: string
+          ip_address?: string | null
+          signature?: string
+          signed_at?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       livekit_rooms: {
         Row: {
           closed_at: string | null
