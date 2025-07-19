@@ -63,21 +63,21 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
   return (
     <div className="space-y-4">
       {/* Create Post */}
-      <Card className="overflow-hidden">
+      <Card className="w-full overflow-hidden">
         <CardHeader>
           <CardTitle className="text-lg">Create Post</CardTitle>
         </CardHeader>
-        <CardContent className="max-w-full">
+        <CardContent className="w-full overflow-hidden">
           <div className="flex space-x-3 w-full">
             <Avatar className="h-10 w-10 flex-shrink-0">
               <AvatarFallback>U</AvatarFallback>
             </Avatar>
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 w-full overflow-hidden">
               <Textarea
                 placeholder={placeholder}
                 value={newPost}
                 onChange={(e) => setNewPost(e.target.value)}
-                className="min-h-[100px] resize-none w-full"
+                className="min-h-[100px] resize-none w-full max-w-full"
               />
               <div className="flex items-center justify-between mt-3 flex-wrap gap-2">
                 <div className="flex space-x-2 flex-wrap">

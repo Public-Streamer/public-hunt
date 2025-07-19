@@ -859,15 +859,15 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
                    </div>
                  )}
                  
-                 <Textarea
-                   placeholder="What's on your mind?"
-                   value={newPost}
-                   onChange={(e) => setNewPost(e.target.value)}
-                   onFocus={() => setExpandedPost(true)}
-                   className={`resize-none border-0 focus:ring-0 text-lg transition-all duration-300 ${
-                     expandedPost ? 'min-h-[120px]' : 'min-h-[60px]'
-                   }`}
-                 />
+                  <Textarea
+                    placeholder="What's on your mind?"
+                    value={newPost}
+                    onChange={(e) => setNewPost(e.target.value)}
+                    onFocus={() => setExpandedPost(true)}
+                    className={`resize-none border-0 focus:ring-0 text-lg transition-all duration-300 w-full max-w-full ${
+                      expandedPost ? 'min-h-[120px]' : 'min-h-[60px]'
+                    }`}
+                  />
                  
                  {/* Expanded Post Creation Template */}
                  {expandedPost && (
@@ -1468,7 +1468,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
                   placeholder="Write a comment..."
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
-                  className="min-h-[60px] resize-none"
+                  className="min-h-[60px] resize-none w-full max-w-full"
                 />
                 <div className="flex justify-end mt-2">
                   <Button onClick={handleAddComment} disabled={!newComment.trim()}>

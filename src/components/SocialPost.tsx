@@ -261,7 +261,7 @@ const SocialPost: React.FC<SocialPostProps> = ({
             <Textarea
               value={editContent}
               onChange={(e) => setEditContent(e.target.value)}
-              className="min-h-[100px]"
+              className="min-h-[100px] w-full max-w-full resize-none"
               placeholder="Edit your post..."
             />
             <div className="flex items-center gap-2">
@@ -401,17 +401,17 @@ const SocialPost: React.FC<SocialPostProps> = ({
         </div>
         
         {showComments && (
-          <div className="mt-4 border-t pt-4 max-w-full">
+          <div className="mt-4 border-t pt-4 w-full overflow-hidden">
             <div className="flex space-x-3 w-full">
               <Avatar className="h-8 w-8 flex-shrink-0">
                 <AvatarFallback>U</AvatarFallback>
               </Avatar>
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 w-full overflow-hidden">
                 <Textarea
                   placeholder="Write a comment..."
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
-                  className="min-h-[60px] w-full resize-none"
+                  className="min-h-[60px] w-full max-w-full resize-none"
                 />
                 <Button
                   onClick={handleComment}
