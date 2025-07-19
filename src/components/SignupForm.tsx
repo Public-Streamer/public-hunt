@@ -1044,8 +1044,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
             </Alert>
             )}
             {debugStatus && (
-              <div className="mb-3 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
-                <strong>Debug Status:</strong> {debugStatus}
+              <div className="mb-3 p-4 bg-yellow-200 border-2 border-yellow-500 rounded-lg text-lg font-bold text-black text-center">
+                <div className="text-xl">🔍 DEBUG STATUS:</div>
+                <div>{debugStatus}</div>
               </div>
             )}
             {formContent}
