@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAppContext } from '@/contexts/AppContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import SignupForm from './SignupForm';
 import { ScrollArea } from './ui/scroll-area';
 import CompanyAccountSelector from './CompanyAccountSelector';
@@ -18,12 +18,21 @@ interface LoginFormProps {
 const LoginForm: React.FC<LoginFormProps> = ({ onClose }) => {
   const { signIn } = useAppContext();
   const navigate = useNavigate();
+  const location = useLocation();
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [showSignup, setShowSignup] = useState(false);
   const [showAccountSelector, setShowAccountSelector] = useState(false);
   const [pendingUser, setPendingUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Check URL parameters to show signup form automatically
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    if (urlParams.get('tab') === 'signup') {
+      setShowSignup(true);
+    }
+  }, [location.search]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

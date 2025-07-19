@@ -32,20 +32,6 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
   const { signUp } = useAppContext();
   const navigate = useNavigate();
   
-  // Restore form data from sessionStorage if returning from mobile legal document
-  useEffect(() => {
-    const savedFormData = sessionStorage.getItem('signupFormData');
-    if (savedFormData) {
-      try {
-        const parsedData = JSON.parse(savedFormData);
-        setSignupData(parsedData);
-        sessionStorage.removeItem('signupFormData'); // Clean up
-        console.log('Restored signup form data from sessionStorage');
-      } catch (error) {
-        console.error('Error restoring signup form data:', error);
-      }
-    }
-  }, []);
 
   // Listen for messages from popup window
   useEffect(() => {
@@ -98,6 +84,21 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
     agreeToTerms: false,
     confirmAge: false
   });
+
+  // Restore form data from sessionStorage if returning from mobile legal document
+  useEffect(() => {
+    const savedFormData = sessionStorage.getItem('signupFormData');
+    if (savedFormData) {
+      try {
+        const parsedData = JSON.parse(savedFormData);
+        setSignupData(parsedData);
+        sessionStorage.removeItem('signupFormData'); // Clean up
+        console.log('Restored signup form data from sessionStorage:', parsedData);
+      } catch (error) {
+        console.error('Error restoring signup form data:', error);
+      }
+    }
+  }, []);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [step, setStep] = useState(1);
   const totalSteps = 3;
