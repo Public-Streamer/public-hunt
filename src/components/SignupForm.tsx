@@ -84,6 +84,80 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
     [key: string]: string;
   }>({});
 
+  // Helper function to check if a field has an error
+  const hasFieldError = (fieldName: string) => {
+    return validationErrors[fieldName] !== undefined;
+  };
+
+  // Helper function to get field error class
+  const getFieldErrorClass = (fieldName: string) => {
+    return hasFieldError(fieldName) ? 'border-red-500 bg-red-50 ring-red-500' : '';
+  };
+
+  // Real-time validation effect
+  useEffect(() => {
+    const errors: { [key: string]: string } = {};
+
+    // Step 1 validations
+    if (step >= 1) {
+      if (signupData.accountType === 'company' && !signupData.companyName.trim()) {
+        errors.companyName = 'Company name is required';
+      }
+      if (signupData.accountType === 'company' && !signupData.companyAccountMaster) {
+        errors.companyAccountMaster = 'Company Account Master is required';
+      }
+      if (!signupData.email) {
+        errors.email = 'Email is required';
+      }
+      if (!signupData.password) {
+        errors.password = 'Password is required';
+      }
+    }
+
+    // Step 2 validations
+    if (step >= 2 && (signupData.accountType === 'individual' || 
+        (signupData.accountType === 'company' && !signupData.companyAccountMaster))) {
+      if (signupData.password !== signupData.confirmPassword && signupData.confirmPassword) {
+        errors.confirmPassword = 'Passwords do not match';
+      }
+      if (!signupData.firstName) {
+        errors.firstName = 'First name is required';
+      }
+      if (!signupData.lastName) {
+        errors.lastName = 'Last name is required';
+      }
+      if (!signupData.birthDate) {
+        errors.birthDate = 'Birth date is required';
+      }
+      if (signupData.birthDate && calculateAge(signupData.birthDate) < 18) {
+        errors.birthDate = 'You must be at least 18 years old';
+      }
+    }
+
+    // Step 3 validations
+    if (step >= 3) {
+      if (signupData.accountType === 'company') {
+        if (emailVerification && emailVerification !== signupData.email) {
+          errors.emailVerification = 'Email verification does not match';
+        }
+        if (passwordVerification && passwordVerification !== signupData.password) {
+          errors.passwordVerification = 'Password verification does not match';
+        }
+      }
+      if (!signupData.agreeToTerms) {
+        errors.agreeToTerms = 'You must agree to the Terms of Service';
+      }
+      if (!signupData.confirmAge) {
+        errors.confirmAge = 'You must confirm you are 18 or older';
+      }
+      if (!legalDocumentSigned) {
+        errors.legalDocument = 'Legal document must be signed';
+      }
+    }
+
+    setValidationErrors(errors);
+  }, [signupData, emailVerification, passwordVerification, legalDocumentSigned, step]);
+
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -386,13 +460,18 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
             <div className="space-y-3">
               <div className="space-y-1">
                 <Label htmlFor="companyName" className="text-sm">Company Name</Label>
-                <Input
-                  id="companyName"
-                  value={signupData.companyName}
-                  onChange={(e) => setSignupData(prev => ({ ...prev, companyName: e.target.value }))}
-                  required
-                  className="h-8 text-sm"
-                />
+                <TooltipWrapper 
+                  content={validationErrors.companyName || "Enter your company name"}
+                  disabled={!validationErrors.companyName}
+                >
+                  <Input
+                    id="companyName"
+                    value={signupData.companyName}
+                    onChange={(e) => setSignupData(prev => ({ ...prev, companyName: e.target.value }))}
+                    required
+                    className={`h-8 text-sm ${getFieldErrorClass('companyName')}`}
+                  />
+                </TooltipWrapper>
               </div>
               
               <div className="space-y-1">
@@ -413,26 +492,36 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
           
           <div className="space-y-1">
             <Label htmlFor="email" className="text-sm">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={signupData.email}
-              onChange={(e) => setSignupData(prev => ({ ...prev, email: e.target.value }))}
-              required
-              className="h-8 text-sm"
-            />
+            <TooltipWrapper 
+              content={validationErrors.email || "Enter your email address"}
+              disabled={!validationErrors.email}
+            >
+              <Input
+                id="email"
+                type="email"
+                value={signupData.email}
+                onChange={(e) => setSignupData(prev => ({ ...prev, email: e.target.value }))}
+                required
+                className={`h-8 text-sm ${getFieldErrorClass('email')}`}
+              />
+            </TooltipWrapper>
           </div>
           
           <div className="space-y-1">
             <Label htmlFor="password" className="text-sm">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              value={signupData.password}
-              onChange={(e) => setSignupData(prev => ({ ...prev, password: e.target.value }))}
-              required
-              className="h-8 text-sm"
-            />
+            <TooltipWrapper 
+              content={validationErrors.password || "Create a secure password"}
+              disabled={!validationErrors.password}
+            >
+              <Input
+                id="password"
+                type="password"
+                value={signupData.password}
+                onChange={(e) => setSignupData(prev => ({ ...prev, password: e.target.value }))}
+                required
+                className={`h-8 text-sm ${getFieldErrorClass('password')}`}
+              />
+            </TooltipWrapper>
           </div>
           
           <div className="flex space-x-2 pt-3">
@@ -501,48 +590,68 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
                   <Label htmlFor="firstName" className="text-sm">First Name</Label>
-                  <Input
-                    id="firstName"
-                    value={signupData.firstName}
-                    onChange={(e) => setSignupData(prev => ({ ...prev, firstName: e.target.value }))}
-                    required
-                    className="h-8 text-sm"
-                  />
+                  <TooltipWrapper 
+                    content={validationErrors.firstName || "Enter your first name"}
+                    disabled={!validationErrors.firstName}
+                  >
+                    <Input
+                      id="firstName"
+                      value={signupData.firstName}
+                      onChange={(e) => setSignupData(prev => ({ ...prev, firstName: e.target.value }))}
+                      required
+                      className={`h-8 text-sm ${getFieldErrorClass('firstName')}`}
+                    />
+                  </TooltipWrapper>
                 </div>
                 <div className="space-y-1">
                   <Label htmlFor="lastName" className="text-sm">Last Name</Label>
-                  <Input
-                    id="lastName"
-                    value={signupData.lastName}
-                    onChange={(e) => setSignupData(prev => ({ ...prev, lastName: e.target.value }))}
-                    required
-                    className="h-8 text-sm"
-                  />
+                  <TooltipWrapper 
+                    content={validationErrors.lastName || "Enter your last name"}
+                    disabled={!validationErrors.lastName}
+                  >
+                    <Input
+                      id="lastName"
+                      value={signupData.lastName}
+                      onChange={(e) => setSignupData(prev => ({ ...prev, lastName: e.target.value }))}
+                      required
+                      className={`h-8 text-sm ${getFieldErrorClass('lastName')}`}
+                    />
+                  </TooltipWrapper>
                 </div>
               </div>
 
               <div className="space-y-1">
                 <Label htmlFor="confirmPassword" className="text-sm">Confirm Password</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  value={signupData.confirmPassword}
-                  onChange={(e) => setSignupData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                  required
-                  className="h-8 text-sm"
-                />
+                <TooltipWrapper 
+                  content={validationErrors.confirmPassword || "Re-enter your password to confirm"}
+                  disabled={!validationErrors.confirmPassword}
+                >
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    value={signupData.confirmPassword}
+                    onChange={(e) => setSignupData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                    required
+                    className={`h-8 text-sm ${getFieldErrorClass('confirmPassword')}`}
+                  />
+                </TooltipWrapper>
               </div>
 
               <div className="space-y-1">
                 <Label htmlFor="birthDate" className="text-sm">Birth Date (Must be 18+)</Label>
-                <Input
-                  id="birthDate"
-                  type="date"
-                  value={signupData.birthDate}
-                  onChange={(e) => setSignupData(prev => ({ ...prev, birthDate: e.target.value }))}
-                  required
-                  className="h-8 text-sm"
-                />
+                <TooltipWrapper 
+                  content={validationErrors.birthDate || "You must be at least 18 years old to join"}
+                  disabled={!validationErrors.birthDate}
+                >
+                  <Input
+                    id="birthDate"
+                    type="date"
+                    value={signupData.birthDate}
+                    onChange={(e) => setSignupData(prev => ({ ...prev, birthDate: e.target.value }))}
+                    required
+                    className={`h-8 text-sm ${getFieldErrorClass('birthDate')}`}
+                  />
+                </TooltipWrapper>
               </div>
             </>
           )}
@@ -578,28 +687,38 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
           {signupData.accountType === 'company' && (
             <div className="space-y-3 mb-3 p-3 border rounded-lg bg-muted/50">
               <h4 className="font-medium text-xs">Verify Account Master</h4>
-              <div className="grid grid-cols-1 gap-2">
+               <div className="grid grid-cols-1 gap-2">
                 <div>
                   <Label htmlFor="emailVerification" className="text-sm">Verify Email</Label>
-                  <Input
-                    id="emailVerification"
-                    type="email"
-                    value={emailVerification}
-                    onChange={(e) => setEmailVerification(e.target.value)}
-                    placeholder="Re-enter your email"
-                    className="h-8 text-sm"
-                  />
+                  <TooltipWrapper 
+                    content={validationErrors.emailVerification || "Re-enter your email to confirm"}
+                    disabled={!validationErrors.emailVerification}
+                  >
+                    <Input
+                      id="emailVerification"
+                      type="email"
+                      value={emailVerification}
+                      onChange={(e) => setEmailVerification(e.target.value)}
+                      placeholder="Re-enter your email"
+                      className={`h-8 text-sm ${getFieldErrorClass('emailVerification')}`}
+                    />
+                  </TooltipWrapper>
                 </div>
                 <div>
                   <Label htmlFor="passwordVerification" className="text-sm">Verify Password</Label>
-                  <Input
-                    id="passwordVerification"
-                    type="password"
-                    value={passwordVerification}
-                    onChange={(e) => setPasswordVerification(e.target.value)}
-                    placeholder="Re-enter your password"
-                    className="h-8 text-sm"
-                  />
+                  <TooltipWrapper 
+                    content={validationErrors.passwordVerification || "Re-enter your password to confirm"}
+                    disabled={!validationErrors.passwordVerification}
+                  >
+                    <Input
+                      id="passwordVerification"
+                      type="password"
+                      value={passwordVerification}
+                      onChange={(e) => setPasswordVerification(e.target.value)}
+                      placeholder="Re-enter your password"
+                      className={`h-8 text-sm ${getFieldErrorClass('passwordVerification')}`}
+                    />
+                  </TooltipWrapper>
                 </div>
               </div>
             </div>
@@ -642,42 +761,57 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
           </div>
           
           <div className="space-y-2 pt-2">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="agreeToTerms"
-                checked={signupData.agreeToTerms}
-                onCheckedChange={(checked) => setSignupData(prev => ({ ...prev, agreeToTerms: checked as boolean }))}
-              />
-              <Label htmlFor="agreeToTerms" className="text-xs">
-                I agree to the Terms of Service and Privacy Policy
-              </Label>
-            </div>
+            <TooltipWrapper 
+              content={validationErrors.agreeToTerms || "You must agree to continue"}
+              disabled={!validationErrors.agreeToTerms}
+            >
+              <div className={`flex items-center space-x-2 p-2 rounded ${hasFieldError('agreeToTerms') ? 'bg-red-50 border border-red-500' : ''}`}>
+                <Checkbox
+                  id="agreeToTerms"
+                  checked={signupData.agreeToTerms}
+                  onCheckedChange={(checked) => setSignupData(prev => ({ ...prev, agreeToTerms: checked as boolean }))}
+                />
+                <Label htmlFor="agreeToTerms" className="text-xs">
+                  I agree to the Terms of Service and Privacy Policy
+                </Label>
+              </div>
+            </TooltipWrapper>
             
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="confirmAge"
-                checked={signupData.confirmAge}
-                onCheckedChange={(checked) => setSignupData(prev => ({ ...prev, confirmAge: checked as boolean }))}
-              />
-              <Label htmlFor="confirmAge" className="text-xs">
-                I confirm that I am 18 years of age or older
-              </Label>
-            </div>
+            <TooltipWrapper 
+              content={validationErrors.confirmAge || "You must be 18 or older to join"}
+              disabled={!validationErrors.confirmAge}
+            >
+              <div className={`flex items-center space-x-2 p-2 rounded ${hasFieldError('confirmAge') ? 'bg-red-50 border border-red-500' : ''}`}>
+                <Checkbox
+                  id="confirmAge"
+                  checked={signupData.confirmAge}
+                  onCheckedChange={(checked) => setSignupData(prev => ({ ...prev, confirmAge: checked as boolean }))}
+                />
+                <Label htmlFor="confirmAge" className="text-xs">
+                  I confirm that I am 18 years of age or older
+                </Label>
+              </div>
+            </TooltipWrapper>
             
             <div className="text-center">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  const popup = window.open('/legal', '_blank', 'width=800,height=600');
-                  if (!popup) {
-                    alert('Please allow popups to view the legal document');
-                  }
-                }}
-                className="text-xs h-8"
+              <TooltipWrapper 
+                content={validationErrors.legalDocument || "Sign the legal document to proceed"}
+                disabled={!validationErrors.legalDocument}
               >
-                {legalDocumentSigned ? '✓ Legal Document Signed' : 'Sign Legal Document'}
-              </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    const popup = window.open('/legal', '_blank', 'width=800,height=600');
+                    if (!popup) {
+                      alert('Please allow popups to view the legal document');
+                    }
+                  }}
+                  className={`text-xs h-8 ${hasFieldError('legalDocument') ? 'border-red-500 bg-red-50' : ''}`}
+                >
+                  {legalDocumentSigned ? '✓ Legal Document Signed' : 'Sign Legal Document'}
+                </Button>
+              </TooltipWrapper>
             </div>
           </div>
           
