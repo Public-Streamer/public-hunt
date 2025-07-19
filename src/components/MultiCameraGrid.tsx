@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Video, Users, VolumeX, Monitor } from 'lucide-react';
-import { TrackReference, VideoTrack, useRoomContext } from '@livekit/components-react';
+import { TrackReference, VideoTrack } from '@livekit/components-react';
 import { Track } from 'livekit-client';
 
 interface MultiCameraGridProps {
@@ -18,30 +17,12 @@ const MultiCameraGrid: React.FC<MultiCameraGridProps> = ({
   onTrackSelect,
   selectedTrack
 }) => {
-  const room = useRoomContext();
-
-  // Debug logging for track verification
-  React.useEffect(() => {
-    console.log(`[MultiCameraGrid] Rendering ${tracks.length} tracks in room: ${room?.name}`);
-    tracks.forEach((track, index) => {
-      console.log(`[MultiCameraGrid] Track ${index}:`, {
-        participantIdentity: track.participant.identity,
-        participantName: track.participant.name,
-        trackSid: track.publication.trackSid,
-        roomName: room?.name
-      });
-    });
-  }, [tracks, room]);
-
   if (tracks.length === 0) {
     return (
       <div className="w-full h-full flex items-center justify-center text-white">
         <div className="text-center">
           <Video className="h-16 w-16 mx-auto mb-4 text-white/50" />
-          <p className="text-white/70">No active streams in this event</p>
-          {room && (
-            <p className="text-white/50 text-sm mt-2">Room: {room.name}</p>
-          )}
+          <p className="text-white/70">No active streams</p>
         </div>
       </div>
     );
@@ -65,16 +46,9 @@ const MultiCameraGrid: React.FC<MultiCameraGridProps> = ({
             </AvatarFallback>
           </Avatar>
           <span className="text-sm">
-            {track.participant.name || track.participant.identity || 'Anonymous'}
+            {track.participant.name || 'Anonymous'}
           </span>
         </div>
-        
-        {/* Room Info Debug Overlay */}
-        {room && (
-          <div className="absolute top-4 right-4 bg-black/70 text-white px-2 py-1 rounded text-xs">
-            Room: {room.name}
-          </div>
-        )}
       </div>
     );
   }
@@ -125,20 +99,13 @@ const MultiCameraGrid: React.FC<MultiCameraGridProps> = ({
                   </AvatarFallback>
                 </Avatar>
                 <div className="text-white text-sm truncate">
-                  {track.participant.name || track.participant.identity || 'Anonymous'}
+                  {track.participant.name || 'Anonymous'}
                 </div>
               </div>
             </div>
           </div>
         </Card>
       ))}
-      
-      {/* Debug Info Footer */}
-      {room && (
-        <div className="col-span-full text-center text-xs text-white/50 mt-2">
-          Room: {room.name} | Tracks: {tracks.length}
-        </div>
-      )}
     </div>
   );
 };

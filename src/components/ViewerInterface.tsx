@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -101,39 +100,11 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
   
   const room = useRoomContext();
   const participants = useParticipants();
-  
-  // CRITICAL FIX: Filter tracks to only show those from the current event's room
-  // The room name should match the expected format: `event-${eventId}`
-  const expectedRoomName = `event-${eventId}`;
   const tracks = useTracks([Track.Source.Camera], { onlySubscribed: true });
   const audioTracks = useTracks([Track.Source.Microphone], { onlySubscribed: true });
 
-  // Debug logging to identify cross-event contamination
-  useEffect(() => {
-    if (room) {
-      console.log(`[ViewerInterface] Connected to room: ${room.name}, Expected: ${expectedRoomName}`);
-      console.log(`[ViewerInterface] Event ID: ${eventId}`);
-      console.log(`[ViewerInterface] Total tracks found: ${tracks.length}`);
-      
-      // Verify we're in the correct room for this event
-      if (room.name !== expectedRoomName) {
-        console.warn(`[ViewerInterface] ROOM MISMATCH! Current room: ${room.name}, Expected: ${expectedRoomName}`);
-      }
-      
-      // Log track details for debugging
-      tracks.forEach((track, index) => {
-        console.log(`[ViewerInterface] Track ${index}:`, {
-          participantIdentity: track.participant.identity,
-          participantName: track.participant.name,
-          trackSid: track.publication.trackSid,
-          roomName: room.name
-        });
-      });
-    }
-  }, [room, tracks, eventId, expectedRoomName]);
-
-  // Additional safety check: Only proceed if we're in the correct room
-  const isConnected = room && room.state === 'connected' && room.name === expectedRoomName;
+  // Check if we're properly connected to the room
+  const isConnected = room && room.state === 'connected';
 
   // Access control check
   if (!hasAccess) {
@@ -146,34 +117,22 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
     );
   }
 
-  // Check if we're still connecting to the room or in wrong room
+  // Check if we're still connecting to the room
   if (!isConnected) {
-    const isWrongRoom = room && room.state === 'connected' && room.name !== expectedRoomName;
-    
     return (
       <Card className="mb-6">
         <CardContent className="p-8 text-center">
           <div className="animate-spin h-8 w-8 border-4 border-purple-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-          <h3 className="text-xl font-semibold mb-2">
-            {isWrongRoom ? 'Connecting to Event Room' : 'Connecting to Live Stream'}
-          </h3>
+          <h3 className="text-xl font-semibold mb-2">Connecting to Live Stream</h3>
           <p className="text-gray-600">
-            {isWrongRoom 
-              ? `Switching to event room: ${expectedRoomName}` 
-              : 'Establishing connection to the live event...'
-            }
+            Establishing connection to the live event...
           </p>
-          {isWrongRoom && (
-            <p className="text-sm text-red-600 mt-2">
-              Room mismatch detected - reconnecting to correct event room
-            </p>
-          )}
         </CardContent>
       </Card>
     );
   }
 
-  // No active streams in this specific event room
+  // No active streams
   if (tracks.length === 0) {
     return (
       <Card className="mb-6">
@@ -182,9 +141,6 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
           <h3 className="text-xl font-semibold mb-2">No Live Streams</h3>
           <p className="text-gray-600">
             This event is not currently live. Check back later or contact the organizer.
-          </p>
-          <p className="text-sm text-gray-500 mt-2">
-            Event ID: {eventId} | Room: {room.name}
           </p>
         </CardContent>
       </Card>
@@ -319,7 +275,7 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
                 </div>
               </div>
               <div className="text-gray-500">
-                Event ID: {eventId} | Room: {room?.name}
+                Event ID: {eventId}
               </div>
             </div>
           </div>

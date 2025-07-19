@@ -1,4 +1,3 @@
-
 import React from "react";
 import {
   VideoTrack,
@@ -6,7 +5,6 @@ import {
   useLocalParticipant,
   useParticipants,
   useTracks,
-  useRoomContext,
 } from "@livekit/components-react";
 import { Track } from "livekit-client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -52,11 +50,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   const controls = useStreamingControls(eventId);
   const { goLive } = controls;
   const screenSize = useScreenSize();
-  const room = useRoomContext();
 
-  // CRITICAL FIX: Ensure we're in the correct room for this event
-  const expectedRoomName = `event-${eventId}`;
-  
   // Get local camera track
   const localCameraTracks = useTracks([Track.Source.Camera], {
     onlySubscribed: false,
@@ -65,35 +59,10 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     (t) => t.participant === localParticipant
   );
 
-  // CRITICAL FIX: Filter other participants' tracks to only show those from this event's room
+  // Get other participants' camera tracks
   const otherCameraTracks = useTracks([Track.Source.Camera], {
     onlySubscribed: true,
   }).filter((t) => t.participant !== localParticipant);
-
-  // Debug logging to identify cross-event contamination
-  React.useEffect(() => {
-    if (room) {
-      console.log(`[StreamerInterface] Connected to room: ${room.name}, Expected: ${expectedRoomName}`);
-      console.log(`[StreamerInterface] Event ID: ${eventId}`);
-      console.log(`[StreamerInterface] Local tracks: ${localCameraTracks.length}`);
-      console.log(`[StreamerInterface] Other tracks: ${otherCameraTracks.length}`);
-      
-      // Verify we're in the correct room for this event
-      if (room.name !== expectedRoomName) {
-        console.warn(`[StreamerInterface] ROOM MISMATCH! Current room: ${room.name}, Expected: ${expectedRoomName}`);
-      }
-      
-      // Log track details for debugging
-      otherCameraTracks.forEach((track, index) => {
-        console.log(`[StreamerInterface] Other Track ${index}:`, {
-          participantIdentity: track.participant.identity,
-          participantName: track.participant.name,
-          trackSid: track.publication.trackSid,
-          roomName: room.name
-        });
-      });
-    }
-  }, [room, localCameraTracks, otherCameraTracks, eventId, expectedRoomName]);
 
   // Update event live status based on go live status
   useEventLiveStatus({
@@ -112,23 +81,6 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     );
   }
 
-  // Additional safety check: Only proceed if we're in the correct room
-  const isInCorrectRoom = room && room.name === expectedRoomName;
-  
-  if (!isInCorrectRoom) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-destructive mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Connecting to event room...</p>
-          <p className="text-sm text-destructive mt-2">
-            Expected: {expectedRoomName} | Current: {room?.name || 'none'}
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-background p-2 sm:p-4">
       <div className="container mx-auto space-y-3 sm:space-y-6 max-w-7xl">
@@ -141,9 +93,6 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                   <Video className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
                   <span className="truncate">{screenSize === 'mobile' ? 'Streaming' : `${eventTitle} - Streaming Controls`}</span>
                 </CardTitle>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Room: {room?.name} | Event: {eventId}
-                </p>
               </div>
               <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
                 <Badge variant={controls.isConnected ? "default" : "secondary"} className="text-xs">
@@ -209,12 +158,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
             {otherCameraTracks.length > 0 && (
               <Card>
                 <CardHeader className="p-3 sm:p-6">
-                  <CardTitle className="text-sm sm:text-base">
-                    Other Streamers ({otherCameraTracks.length})
-                  </CardTitle>
-                  <p className="text-xs text-muted-foreground">
-                    Participants in this event room only
-                  </p>
+                  <CardTitle className="text-sm sm:text-base">Other Streamers</CardTitle>
                 </CardHeader>
                 <CardContent className="p-3 sm:p-6">
                   <div className={`grid gap-2 sm:gap-4 ${screenSize === 'mobile' ? 'grid-cols-1' : 'grid-cols-2'}`}>
