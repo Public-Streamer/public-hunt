@@ -35,10 +35,13 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
   // Listen for messages from popup window
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      if (event.data.type === 'LEGAL_AGREEMENT_SIGNED') {
+      // Handle both old and new message types for legal document completion
+      if (event.data.type === 'LEGAL_AGREEMENT_SIGNED' || event.data.type === 'LEGAL_AGREEMENT_COMPLETED') {
         const { fullName, signature, signDate } = event.data.data;
         setSignatureData({ signature, date: signDate });
         setLegalDocumentSigned(true);
+        
+        console.log('Legal document completed successfully, signature received:', { fullName, signature, signDate });
         
         // Mobile-specific: Force close popup if it's still open
         if (popupWindowRef.current && !popupWindowRef.current.closed) {
@@ -48,7 +51,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
             console.log('Error closing popup:', error);
           }
         }
-      } else if (event.data.type === 'legal-document-cancelled') {
+      } else if (event.data.type === 'legal-document-cancelled' || event.data.type === 'LEGAL_DOCUMENT_CLOSE_REQUESTED') {
         // Handle cancellation - just close the popup
         if (popupWindowRef.current && !popupWindowRef.current.closed) {
           try {
