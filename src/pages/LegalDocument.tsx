@@ -284,23 +284,47 @@ const LegalDocumentPage: React.FC = () => {
             <button 
               type="button"
               onClick={handleCancel}
-              onTouchEnd={handleCancel}
-              className="w-full sm:w-auto px-6 min-h-[48px] text-base border border-gray-300 rounded-lg bg-white hover:bg-gray-50 active:bg-gray-100 transition-colors duration-200 cursor-pointer"
-              style={{ WebkitTapHighlightColor: 'rgba(0,0,0,0.1)' }}
+              onTouchStart={(e) => e.preventDefault()}
+              onTouchEnd={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setTimeout(handleCancel, 50);
+              }}
+              className="w-full sm:w-auto px-6 min-h-[48px] text-base border border-gray-300 rounded-lg bg-white hover:bg-gray-50 active:bg-gray-100 transition-colors duration-200 cursor-pointer touch-manipulation"
+              style={{ 
+                WebkitTapHighlightColor: 'rgba(0,0,0,0.1)',
+                touchAction: 'manipulation',
+                WebkitTouchCallout: 'none',
+                WebkitUserSelect: 'none',
+                userSelect: 'none'
+              }}
             >
               Cancel
             </button>
             <button 
               type="button"
               onClick={handleAccept}
-              onTouchEnd={handleAccept}
+              onTouchStart={(e) => e.preventDefault()}
+              onTouchEnd={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (canSubmit) {
+                  setTimeout(handleAccept, 50);
+                }
+              }}
               disabled={!canSubmit}
-              className={`w-full sm:w-auto px-6 min-h-[48px] text-base rounded-lg transition-colors duration-200 cursor-pointer ${
+              className={`w-full sm:w-auto px-6 min-h-[48px] text-base rounded-lg transition-colors duration-200 cursor-pointer touch-manipulation ${
                 canSubmit 
                   ? 'bg-green-600 hover:bg-green-700 active:bg-green-800 text-white' 
                   : 'bg-gray-400 cursor-not-allowed text-white'
               }`}
-              style={{ WebkitTapHighlightColor: 'rgba(0,0,0,0.1)' }}
+              style={{ 
+                WebkitTapHighlightColor: 'rgba(0,0,0,0.1)',
+                touchAction: 'manipulation',
+                WebkitTouchCallout: 'none',
+                WebkitUserSelect: 'none',
+                userSelect: 'none'
+              }}
             >
               {canSubmit ? (
                 <div className="flex items-center justify-center gap-2">
