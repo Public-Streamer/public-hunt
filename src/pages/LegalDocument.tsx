@@ -168,7 +168,7 @@ const LegalDocumentPage: React.FC = () => {
         if (isMobileParam && returnTo === 'signup') {
           console.log('Mobile detected, saving completion status and redirecting back to signup form...');
           sessionStorage.setItem('legalDocumentCompleted', 'true');
-          window.location.href = '/auth?tab=signup';
+          window.location.href = '/login?tab=signup';
           return;
         }
         
