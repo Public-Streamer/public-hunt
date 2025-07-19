@@ -29,8 +29,18 @@ const LegalDocumentPage: React.FC = () => {
       ? `${user.user_metadata.firstName} ${user.user_metadata.lastName}`
       : null);
   
+  // Debug logging to understand the validation issue
+  console.log('Debug signature validation:', {
+    signature: signature,
+    signatureTrimmed: signature.trim(),
+    signatureLower: signature.trim().toLowerCase(),
+    userFullName: userFullName,
+    userFullNameLower: userFullName?.toLowerCase(),
+    match: userFullName ? signature.trim().toLowerCase() === userFullName.toLowerCase() : null
+  });
+  
   const isValidSignature = userFullName 
-    ? signature.trim().toLowerCase() === userFullName.toLowerCase()
+    ? signature.trim().toLowerCase() === userFullName.toLowerCase().trim()
     : signature.trim().length >= 8; // Require at least 8 characters if no user name
   
   const canSubmit = isValidSignature && acknowledgedRisks && acknowledgedLiability && acknowledgedCompliance;
