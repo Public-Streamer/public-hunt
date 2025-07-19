@@ -5,7 +5,7 @@ import { toast } from '@/hooks/use-toast';
 
 interface UserProfile {
   id: string;
-  accountType?: 'individual' | 'company';
+  accountType?: 'individual' | 'business/organization' | 'group/team';
   companyName?: string;
   companyAccountMaster?: any;
   firstName: string;
@@ -94,8 +94,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return { error: error.message };
       }
 
-      // If this is a company account and we have a user, set up company structure
-      if (userData.accountType === 'company' && userData.companyAccountMaster && data.user) {
+      // If this is a business/organization or group/team account and we have a user, set up company structure
+      if ((userData.accountType === 'business/organization' || userData.accountType === 'group/team') && userData.companyAccountMaster && data.user) {
         try {
           // Create or update the user profile with company information
           const { error: profileError } = await supabase
@@ -150,8 +150,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       toast({
         title: 'Account created!',
-        description: userData.accountType === 'company' 
-          ? 'Company account created! The designated Company Account Master has been granted full permissions.' 
+        description: (userData.accountType === 'business/organization' || userData.accountType === 'group/team')
+          ? 'Account created! The designated Account Master has been granted full permissions.' 
           : 'Please check your email to verify your account.',
       });
 

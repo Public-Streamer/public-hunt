@@ -70,7 +70,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
     return () => window.removeEventListener('message', handleMessage);
   }, []);
   const [signupData, setSignupData] = useState({
-    accountType: 'individual' as 'individual' | 'company',
+    accountType: 'individual' as 'individual' | 'business/organization' | 'group/team',
     companyName: '',
     companyAccountMaster: null as any,
     companyAccountMasterName: '',
@@ -170,14 +170,14 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
 
       // Step 1 validations
       if (step >= 1) {
-        if (signupData.accountType === 'company' && !signupData.companyName.trim()) {
-          errors.companyName = 'Company name is required';
+        if ((signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && !signupData.companyName.trim()) {
+          errors.companyName = signupData.accountType === 'business/organization' ? 'Business/Organization name is required' : 'Group/Team name is required';
         }
-        if (signupData.accountType === 'company' && !signupData.companyExecutorAcknowledged) {
-          errors.companyExecutorAcknowledged = 'Must acknowledge Company Account Master executor authority';
+        if ((signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && !signupData.companyExecutorAcknowledged) {
+          errors.companyExecutorAcknowledged = 'Must acknowledge Account Master executor authority';
         }
-        if (signupData.accountType === 'company' && !signupData.companyAccountMaster) {
-          errors.companyAccountMaster = 'Company Account Master is required';
+        if ((signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && !signupData.companyAccountMaster) {
+          errors.companyAccountMaster = 'Account Master is required';
         }
         if (!signupData.email) {
           errors.email = 'Email is required';
@@ -191,7 +191,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
 
       // Step 2 validations
       if (step >= 2 && (signupData.accountType === 'individual' || 
-          (signupData.accountType === 'company' && !signupData.companyAccountMaster))) {
+          ((signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && !signupData.companyAccountMaster))) {
         if (signupData.confirmPassword && !isPasswordValid(signupData.confirmPassword)) {
           errors.confirmPassword = 'Confirm password must be at least 8 characters long';
         } else if (signupData.password !== signupData.confirmPassword && signupData.confirmPassword) {
@@ -213,7 +213,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
 
       // Step 3 validations
       if (step >= 3) {
-        if (signupData.accountType === 'company') {
+        if (signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') {
           if (emailVerification && emailVerification !== signupData.email) {
             errors.emailVerification = 'Email verification does not match';
           }
@@ -286,14 +286,14 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
 
   // Validation helper functions
   const getStep1ValidationError = () => {
-    if (signupData.accountType === 'company' && !signupData.companyName.trim()) {
-      return 'Please enter a company name';
+    if ((signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && !signupData.companyName.trim()) {
+      return signupData.accountType === 'business/organization' ? 'Please enter a business/organization name' : 'Please enter a group/team name';
     }
-    if (signupData.accountType === 'company' && !signupData.companyExecutorAcknowledged) {
-      return 'Please acknowledge that the Company Account Master has executor authority';
+    if ((signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && !signupData.companyExecutorAcknowledged) {
+      return 'Please acknowledge that the Account Master has executor authority';
     }
-    if (signupData.accountType === 'company' && !signupData.companyAccountMaster) {
-      return 'Please select a Company Account Master';
+    if ((signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && !signupData.companyAccountMaster) {
+      return 'Please select an Account Master';
     }
     if (!signupData.email) {
       return 'Please enter your email';
@@ -309,7 +309,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
 
   const getStep2ValidationError = () => {
     if (signupData.accountType === 'individual' || 
-        (signupData.accountType === 'company' && !signupData.companyAccountMaster)) {
+        ((signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && !signupData.companyAccountMaster)) {
       if (!isPasswordValid(signupData.password)) {
         return 'Password must be at least 8 characters long';
       }
@@ -337,7 +337,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
   };
 
   const getStep3ValidationError = () => {
-    if (signupData.accountType === 'company') {
+    if (signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') {
       if (emailVerification !== signupData.email) {
         return 'Email verification does not match';
       }
@@ -361,28 +361,28 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
     e.preventDefault();
     
     // Validate account type and basic info
-    if (signupData.accountType === 'company' && !signupData.companyName.trim()) {
+    if ((signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && !signupData.companyName.trim()) {
       setErrorDialogConfig({
-        title: 'Company Name Required',
-        message: 'Please enter a company name.'
+        title: signupData.accountType === 'business/organization' ? 'Business/Organization Name Required' : 'Group/Team Name Required',
+        message: signupData.accountType === 'business/organization' ? 'Please enter a business/organization name.' : 'Please enter a group/team name.'
       });
       setShowErrorDialog(true);
       return;
     }
      
-     if (signupData.accountType === 'company' && !signupData.companyExecutorAcknowledged) {
+     if ((signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && !signupData.companyExecutorAcknowledged) {
        setErrorDialogConfig({
          title: 'Executor Authority Acknowledgment Required',
-         message: 'Please acknowledge that the Company Account Master has executor authority for the company.'
+         message: 'Please acknowledge that the Account Master has executor authority.'
        });
        setShowErrorDialog(true);
        return;
      }
      
-     if (signupData.accountType === 'company' && !signupData.companyAccountMaster) {
+     if ((signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && !signupData.companyAccountMaster) {
        setErrorDialogConfig({
-         title: 'Company Account Master Required',
-         message: 'Please select a Company Account Master.'
+         title: 'Account Master Required',
+         message: 'Please select an Account Master.'
        });
        setShowErrorDialog(true);
        return;
@@ -416,7 +416,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
     
     // Only validate personal info fields if individual account or company without master selected
     if (signupData.accountType === 'individual' || 
-        (signupData.accountType === 'company' && !signupData.companyAccountMaster)) {
+        ((signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && !signupData.companyAccountMaster)) {
       
       // Validate password strength first
       if (!isPasswordValid(signupData.password)) {
@@ -501,7 +501,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
     
     try {
       const result = await signUp(signupData.email, signupData.password, {
-        accountType: signupData.accountType,
+        accountType: signupData.accountType as 'individual' | 'business/organization' | 'group/team',
         companyName: signupData.companyName,
         companyAccountMaster: signupData.companyAccountMaster,
         firstName: signupData.firstName,
@@ -589,25 +589,31 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
             <Label className="text-sm">Account Type</Label>
             <RadioGroup
               value={signupData.accountType}
-              onValueChange={(value: 'individual' | 'company') => setSignupData(prev => ({ ...prev, accountType: value }))}
+              onValueChange={(value: 'individual' | 'business/organization' | 'group/team') => setSignupData(prev => ({ ...prev, accountType: value }))}
             >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="individual" id="individual" />
                 <Label htmlFor="individual" className="text-sm">Individual</Label>
               </div>
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="company" id="company" />
-                <Label htmlFor="company" className="text-sm">Company</Label>
+                <RadioGroupItem value="business/organization" id="business-organization" />
+                <Label htmlFor="business-organization" className="text-sm">Business / Organization</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="group/team" id="group-team" />
+                <Label htmlFor="group-team" className="text-sm">Group / Team</Label>
               </div>
             </RadioGroup>
           </div>
           
-           {signupData.accountType === 'company' && (
+           {(signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && (
              <div className="space-y-3">
                <div className="space-y-1">
-                 <Label htmlFor="companyName" className="text-sm">Company Name</Label>
+                 <Label htmlFor="companyName" className="text-sm">
+                   {signupData.accountType === 'business/organization' ? 'Business/Organization Name' : 'Group/Team Name'}
+                 </Label>
                  <TooltipWrapper 
-                   content={validationErrors.companyName || "Enter your company name"}
+                   content={validationErrors.companyName || (signupData.accountType === 'business/organization' ? 'Enter your business/organization name' : 'Enter your group/team name')}
                    disabled={!validationErrors.companyName}
                  >
                    <Input
@@ -621,12 +627,14 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                </div>
                
                <div className="space-y-1">
-                 <Label htmlFor="companyAccountMasterName" className="text-sm">Name of Company Account Master</Label>
+                 <Label htmlFor="companyAccountMasterName" className="text-sm">
+                   {signupData.accountType === 'business/organization' ? 'Name of Business/Organization Account Master' : 'Name of Group/Team Account Master'}
+                 </Label>
                  <Input
                    id="companyAccountMasterName"
                    value={signupData.companyAccountMasterName}
                    onChange={(e) => setSignupData(prev => ({ ...prev, companyAccountMasterName: e.target.value }))}
-                   placeholder="Enter the full name of the company account master"
+                   placeholder={signupData.accountType === 'business/organization' ? 'Enter the full name of the business/organization account master' : 'Enter the full name of the group/team account master'}
                    className="h-8 text-sm"
                  />
                </div>
@@ -641,17 +649,23 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                    />
                    <div className="flex-1">
                      <Label htmlFor="companyExecutorAcknowledged" className="text-sm font-medium text-yellow-800 cursor-pointer">
-                       I acknowledge that the Company Account Master has executor authority for the company
+                       {signupData.accountType === 'business/organization' 
+                         ? 'I acknowledge that the Business/Organization Account Master has executor authority for the business/organization'
+                         : 'I acknowledge that the Group/Team Account Master has executor authority for the group/team'}
                      </Label>
                      <p className="text-xs text-yellow-700 mt-1">
-                       The Company Account Master will have full control and authority to act on behalf of the company account, including but not limited to managing content, financial transactions, and legal agreements.
+                       {signupData.accountType === 'business/organization'
+                         ? 'The Business/Organization Account Master will have full control and authority to act on behalf of the business/organization account, including but not limited to managing content, financial transactions, and legal agreements.'
+                         : 'The Group/Team Account Master will have full control and authority to act on behalf of the group/team account, including but not limited to managing content, financial transactions, and legal agreements.'}
                      </p>
                    </div>
                  </div>
                </div>
                
                <div className="space-y-1">
-                 <Label className="text-sm">Company Account Master</Label>
+                 <Label className="text-sm">
+                   {signupData.accountType === 'business/organization' ? 'Business/Organization Account Master' : 'Group/Team Account Master'}
+                 </Label>
                  <UserSearchBox
                    onUserSelect={(user) => {
                      setSignupData(prev => ({ 
@@ -666,10 +680,11 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
              </div>
            )}
           
-          <div className="space-y-1">
-             <Label htmlFor="email" className="text-sm">
-               {signupData.accountType === 'company' ? 'Company Account Master Email' : 'Email'}
-             </Label>
+           <div className="space-y-1">
+              <Label htmlFor="email" className="text-sm">
+                {signupData.accountType === 'business/organization' ? 'Business/Organization Account Master Email' : 
+                 signupData.accountType === 'group/team' ? 'Group/Team Account Master Email' : 'Email'}
+              </Label>
             <Input
               id="email"
               type="email"
@@ -686,9 +701,10 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
           </div>
           
           <div className="space-y-1">
-             <Label htmlFor="password" className="text-sm">
-               {signupData.accountType === 'company' ? 'Company Account Master Password' : 'Password'}
-             </Label>
+              <Label htmlFor="password" className="text-sm">
+                {signupData.accountType === 'business/organization' ? 'Business/Organization Account Master Password' : 
+                 signupData.accountType === 'group/team' ? 'Group/Team Account Master Password' : 'Password'}
+              </Label>
             <Input
               id="password"
               type="password"
@@ -697,7 +713,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
               required
               className={`h-8 text-sm ${getFieldErrorClass('password')}`}
               autoComplete="new-password"
-              placeholder={signupData.accountType === 'company' && signupData.companyAccountMaster ? "Enter password" : "Create a secure password"}
+              placeholder={(signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && signupData.companyAccountMaster ? "Enter password" : "Create a secure password"}
             />
             {validationErrors.password && (
               <p className="text-xs text-destructive mt-1">{validationErrors.password}</p>
@@ -754,9 +770,10 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
               </TooltipWrapper>
             </div>
             <div className="flex items-center space-x-1">
-              <Label className="text-xs text-muted-foreground">
-                {signupData.accountType === 'company' ? 'Company Logo' : 'Profile Photo'}
-              </Label>
+               <Label className="text-xs text-muted-foreground">
+                 {signupData.accountType === 'business/organization' ? 'Business/Organization Logo' : 
+                  signupData.accountType === 'group/team' ? 'Group/Team Logo' : 'Profile Photo'}
+               </Label>
               <TooltipWrapper content="Profiles with photos receive significantly more interest and interaction from other users">
                 <Info className="w-3 h-3 text-muted-foreground hover:text-primary cursor-help transition-colors" />
               </TooltipWrapper>
@@ -765,7 +782,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
 
           {/* Only show name fields for individual accounts or company accounts without master selected */}
           {(signupData.accountType === 'individual' || 
-            (signupData.accountType === 'company' && !signupData.companyAccountMaster)) && (
+            ((signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && !signupData.companyAccountMaster)) && (
             <>
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
@@ -860,10 +877,10 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
             <p className="text-xs text-muted-foreground">Complete your registration</p>
           </div>
 
-          {signupData.accountType === 'company' && (
+          {(signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && (
             <div className="space-y-3 mb-3 p-3 border rounded-lg bg-muted/50">
              <h4 className="font-medium text-xs">
-               Verify Company Account Master
+               {signupData.accountType === 'business/organization' ? 'Verify Business/Organization Account Master' : 'Verify Group/Team Account Master'}
                {signupData.companyAccountMasterName && (
                  <span className="text-muted-foreground font-normal"> - {signupData.companyAccountMasterName}</span>
                )}
@@ -907,7 +924,8 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
 
           <div className="space-y-1">
              <Label htmlFor="phone" className="text-sm">
-               {signupData.accountType === 'company' ? 'Company Phone Number' : 'Phone Number'}
+               {signupData.accountType === 'business/organization' ? 'Business/Organization Phone Number' : 
+                signupData.accountType === 'group/team' ? 'Group/Team Phone Number' : 'Phone Number'}
              </Label>
             <Input
               id="phone"
@@ -922,7 +940,8 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
           
           <div className="space-y-1">
              <Label htmlFor="location" className="text-sm">
-               {signupData.accountType === 'company' ? 'Company Location' : 'Location'}
+               {signupData.accountType === 'business/organization' ? 'Business/Organization Location' : 
+                signupData.accountType === 'group/team' ? 'Group/Team Location' : 'Location'}
              </Label>
             <Input
               id="location"
