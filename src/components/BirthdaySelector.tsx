@@ -90,7 +90,7 @@ export const BirthdaySelector: React.FC<BirthdaySelectorProps> = ({ value, onCha
             console.log('Month selected:', value);
             handleChange('month', value);
           }}>
-            <SelectTrigger className="h-12 text-sm font-medium bg-background border-2">
+            <SelectTrigger className="h-12 text-lg font-semibold bg-background border-2 shadow-sm">
               <SelectValue placeholder="Select Month" />
             </SelectTrigger>
             <SelectContent className="max-h-[200px]">
@@ -102,7 +102,7 @@ export const BirthdaySelector: React.FC<BirthdaySelectorProps> = ({ value, onCha
             </SelectContent>
           </Select>
           <div className="mt-2 p-3 border-2 rounded-md text-center min-h-[40px] flex items-center justify-center">
-            <span className={`text-sm font-bold ${selectedMonth ? 'text-green-600 bg-green-50 border-green-200' : 'text-red-600 bg-red-50 border-red-200'}`}>
+            <span className={`text-lg font-bold drop-shadow-sm ${selectedMonth ? 'text-green-600 bg-green-50 border-green-200' : 'text-red-600 bg-red-50 border-red-200'}`}>
               {selectedMonth ? months.find(m => m.value === selectedMonth)?.label : 'No month selected'}
             </span>
           </div>
@@ -114,7 +114,7 @@ export const BirthdaySelector: React.FC<BirthdaySelectorProps> = ({ value, onCha
             console.log('Day selected:', value);
             handleChange('day', value);
           }}>
-            <SelectTrigger className="h-12 text-sm font-medium bg-background border-2">
+            <SelectTrigger className="h-12 text-lg font-semibold bg-background border-2 shadow-sm">
               <SelectValue placeholder="Select Day" />
             </SelectTrigger>
             <SelectContent className="max-h-[200px]">
@@ -126,7 +126,7 @@ export const BirthdaySelector: React.FC<BirthdaySelectorProps> = ({ value, onCha
             </SelectContent>
           </Select>
           <div className="mt-2 p-3 border-2 rounded-md text-center min-h-[40px] flex items-center justify-center">
-            <span className={`text-sm font-bold ${selectedDay ? 'text-green-600 bg-green-50 border-green-200' : 'text-red-600 bg-red-50 border-red-200'}`}>
+            <span className={`text-lg font-bold drop-shadow-sm ${selectedDay ? 'text-green-600 bg-green-50 border-green-200' : 'text-red-600 bg-red-50 border-red-200'}`}>
               {selectedDay ? selectedDay : 'No day selected'}
             </span>
           </div>
@@ -138,7 +138,7 @@ export const BirthdaySelector: React.FC<BirthdaySelectorProps> = ({ value, onCha
             console.log('Year selected:', value);
             handleChange('year', value);
           }}>
-            <SelectTrigger className="h-12 text-sm font-medium bg-background border-2">
+            <SelectTrigger className="h-12 text-lg font-semibold bg-background border-2 shadow-sm">
               <SelectValue placeholder="Select Year" />
             </SelectTrigger>
             <SelectContent className="max-h-[200px]">
@@ -150,7 +150,7 @@ export const BirthdaySelector: React.FC<BirthdaySelectorProps> = ({ value, onCha
             </SelectContent>
           </Select>
           <div className="mt-2 p-3 border-2 rounded-md text-center min-h-[40px] flex items-center justify-center">
-            <span className={`text-sm font-bold ${selectedYear ? 'text-green-600 bg-green-50 border-green-200' : 'text-red-600 bg-red-50 border-red-200'}`}>
+            <span className={`text-lg font-bold drop-shadow-sm ${selectedYear ? 'text-green-600 bg-green-50 border-green-200' : 'text-red-600 bg-red-50 border-red-200'}`}>
               {selectedYear ? selectedYear : 'No year selected'}
             </span>
           </div>
