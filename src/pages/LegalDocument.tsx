@@ -33,8 +33,8 @@ const LegalDocumentPage: React.FC = () => {
     
     if (canSubmit) {
       try {
-        if (window.opener) {
-          // Send signature data back to parent window in the correct format
+        // Send signature data back to parent window
+        if (window.opener && !window.opener.closed) {
           window.opener.postMessage({
             type: 'LEGAL_AGREEMENT_SIGNED',
             data: {
@@ -43,19 +43,33 @@ const LegalDocumentPage: React.FC = () => {
               fullName: signature
             }
           }, '*');
-        }
-        
-        // Fallback for mobile devices that might have issues with window.close()
-        if (window.close) {
-          window.close();
+          
+          // Small delay to ensure message is received
+          setTimeout(() => {
+            try {
+              window.close();
+            } catch (e) {
+              // Mobile fallback
+              window.location.href = 'about:blank';
+            }
+          }, 100);
         } else {
-          // Mobile Safari fallback
-          window.location.href = 'about:blank';
+          // If no opener, try to close anyway (mobile)
+          try {
+            window.close();
+          } catch (e) {
+            // Mobile Safari fallback
+            window.location.href = 'about:blank';
+          }
         }
       } catch (error) {
         console.error('Error processing signature:', error);
         // Emergency fallback - try to go back
-        window.history.back();
+        try {
+          window.close();
+        } catch (e) {
+          window.history.back();
+        }
       }
     } else {
       console.log('Form validation failed:', getValidationMessage());
@@ -72,22 +86,34 @@ const LegalDocumentPage: React.FC = () => {
 
   const handleCancel = () => {
     try {
-      if (window.opener) {
+      if (window.opener && !window.opener.closed) {
         window.opener.postMessage({
           type: 'legal-document-cancelled'
         }, '*');
-      }
-      // Fallback for mobile devices that might have issues with window.close()
-      if (window.close) {
-        window.close();
+        
+        // Small delay to ensure message is received
+        setTimeout(() => {
+          try {
+            window.close();
+          } catch (e) {
+            window.location.href = 'about:blank';
+          }
+        }, 100);
       } else {
-        // Mobile Safari fallback
-        window.location.href = 'about:blank';
+        // If no opener, try to close anyway (mobile)
+        try {
+          window.close();
+        } catch (e) {
+          window.location.href = 'about:blank';
+        }
       }
     } catch (error) {
       console.error('Error closing window:', error);
-      // Emergency fallback - try to go back
-      window.history.back();
+      try {
+        window.close();
+      } catch (e) {
+        window.history.back();
+      }
     }
   };
 

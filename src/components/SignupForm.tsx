@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -39,6 +39,24 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
         const { fullName, signature, signDate } = event.data.data;
         setSignatureData({ signature, date: signDate });
         setLegalDocumentSigned(true);
+        
+        // Mobile-specific: Force close popup if it's still open
+        if (popupWindowRef.current && !popupWindowRef.current.closed) {
+          try {
+            popupWindowRef.current.close();
+          } catch (error) {
+            console.log('Error closing popup:', error);
+          }
+        }
+      } else if (event.data.type === 'legal-document-cancelled') {
+        // Handle cancellation - just close the popup
+        if (popupWindowRef.current && !popupWindowRef.current.closed) {
+          try {
+            popupWindowRef.current.close();
+          } catch (error) {
+            console.log('Error closing popup:', error);
+          }
+        }
       }
     };
 
@@ -78,6 +96,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
     title: string;
     message: string;
   }>({ title: '', message: '' });
+  
+  // Keep reference to popup window for mobile closing
+  const popupWindowRef = useRef<Window | null>(null);
   
   // Validation error states for real-time feedback
   const [validationErrors, setValidationErrors] = useState<{
@@ -806,9 +827,27 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                   type="button"
                   variant="outline"
                   onClick={() => {
-                    const popup = window.open('/legal', '_blank', 'width=800,height=600');
+                    // Mobile-optimized popup handling
+                    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                    const popupFeatures = isMobile 
+                      ? 'width=100%,height=100%,scrollbars=yes,resizable=yes'
+                      : 'width=800,height=600,scrollbars=yes,resizable=yes';
+                    
+                    const popup = window.open('/legal', '_blank', popupFeatures);
                     if (!popup) {
                       alert('Please allow popups to view the legal document');
+                    } else {
+                      popupWindowRef.current = popup;
+                      
+                      // Mobile-specific: Check if popup is closed manually
+                      if (isMobile) {
+                        const checkClosed = setInterval(() => {
+                          if (popup.closed) {
+                            clearInterval(checkClosed);
+                            popupWindowRef.current = null;
+                          }
+                        }, 1000);
+                      }
                     }
                   }}
                   className={`text-xs h-8 transition-all duration-300 ${
