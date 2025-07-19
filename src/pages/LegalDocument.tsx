@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -15,6 +15,18 @@ const LegalDocumentPage: React.FC = () => {
 
   const currentDate = new Date().toLocaleDateString();
   const canSubmit = signature.trim() && acknowledgedRisks && acknowledgedLiability && acknowledgedCompliance;
+
+  // Add mobile detection and force touch event handling
+  useEffect(() => {
+    // Force enable touch events for iOS Safari
+    if (typeof window !== 'undefined') {
+      const body = document.body as any;
+      body.style.webkitTouchCallout = 'none';
+      body.style.webkitUserSelect = 'none';
+      body.style.userSelect = 'none';
+      body.style.touchAction = 'manipulation';
+    }
+  }, []);
 
   const handleAccept = () => {
     console.log('Accept button clicked', { canSubmit, signature, acknowledgedRisks, acknowledgedLiability, acknowledgedCompliance });
@@ -243,21 +255,26 @@ const LegalDocumentPage: React.FC = () => {
           )}
 
           <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2 pt-4">
-            <Button 
-              variant="outline" 
+            <button 
+              type="button"
               onClick={handleCancel}
-              className="w-full sm:w-auto px-6 min-h-[48px] text-base"
+              onTouchEnd={handleCancel}
+              className="w-full sm:w-auto px-6 min-h-[48px] text-base border border-gray-300 rounded-lg bg-white hover:bg-gray-50 active:bg-gray-100 transition-colors duration-200 cursor-pointer"
+              style={{ WebkitTapHighlightColor: 'rgba(0,0,0,0.1)' }}
             >
               Cancel
-            </Button>
-            <Button 
+            </button>
+            <button 
+              type="button"
               onClick={handleAccept}
+              onTouchEnd={handleAccept}
               disabled={!canSubmit}
-              className={`w-full sm:w-auto px-6 min-h-[48px] text-base ${
+              className={`w-full sm:w-auto px-6 min-h-[48px] text-base rounded-lg transition-colors duration-200 cursor-pointer ${
                 canSubmit 
-                  ? 'bg-green-600 hover:bg-green-700 text-white' 
+                  ? 'bg-green-600 hover:bg-green-700 active:bg-green-800 text-white' 
                   : 'bg-gray-400 cursor-not-allowed text-white'
               }`}
+              style={{ WebkitTapHighlightColor: 'rgba(0,0,0,0.1)' }}
             >
               {canSubmit ? (
                 <div className="flex items-center justify-center gap-2">
@@ -267,7 +284,7 @@ const LegalDocumentPage: React.FC = () => {
               ) : (
                 'Accept and Sign'
               )}
-            </Button>
+            </button>
           </div>
         </div>
       </div>
