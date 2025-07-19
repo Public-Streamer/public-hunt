@@ -10,20 +10,35 @@
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
+    --primary: 262 83% 58%;
     --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
+    --secondary: 220 14.3% 95.9%;
     --secondary-foreground: 222.2 84% 4.9%;
-    --muted: 210 40% 96%;
+    --muted: 220 14.3% 95.9%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222.2 84% 4.9%;
+    --accent: 262 83% 58%;
+    --accent-foreground: 210 40% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
+    --ring: 262 83% 58%;
     --radius: 0.5rem;
+    
+    /* Custom semantic tokens for professional design */
+    --header-gradient-start: 262 83% 58%;
+    --header-gradient-end: 316 73% 52%;
+    --logo-button-bg: 262 83% 98%;
+    --logo-button-border: 262 83% 88%;
+    --logo-button-shadow: 262 83% 58%;
+    --nav-button-bg: 215 20% 65%;
+    --nav-button-hover: 215 25% 55%;
+    --nav-button-active: 0 84% 60%;
+    --hero-accent: 262 83% 58%;
+    --hero-secondary: 316 73% 52%;
+    --gradient-hero: linear-gradient(135deg, hsl(262 83% 98%), hsl(316 73% 96%));
+    --gradient-primary: linear-gradient(135deg, hsl(262 83% 58%), hsl(316 73% 52%));
+    --gradient-card: linear-gradient(135deg, hsl(0 0% 100%), hsl(262 83% 99%));
   }
 
   .dark {
@@ -33,19 +48,34 @@
     --card-foreground: 210 40% 98%;
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
+    --primary: 262 83% 68%;
     --primary-foreground: 222.2 84% 4.9%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 262 83% 68%;
+    --accent-foreground: 222.2 84% 4.9%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 94.1%;
+    --ring: 262 83% 68%;
+    
+    /* Dark mode custom tokens */
+    --header-gradient-start: 262 83% 28%;
+    --header-gradient-end: 316 73% 22%;
+    --logo-button-bg: 262 83% 8%;
+    --logo-button-border: 262 83% 18%;
+    --logo-button-shadow: 262 83% 68%;
+    --nav-button-bg: 215 20% 25%;
+    --nav-button-hover: 215 25% 35%;
+    --nav-button-active: 0 84% 50%;
+    --hero-accent: 262 83% 68%;
+    --hero-secondary: 316 73% 62%;
+    --gradient-hero: linear-gradient(135deg, hsl(262 83% 8%), hsl(316 73% 6%));
+    --gradient-primary: linear-gradient(135deg, hsl(262 83% 28%), hsl(316 73% 22%));
+    --gradient-card: linear-gradient(135deg, hsl(222.2 84% 4.9%), hsl(262 83% 9%));
   }
 }
 

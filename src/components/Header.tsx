@@ -22,26 +22,31 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
   
   return (
     <>
-      <header className="bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg sticky top-0 z-40">
+      <header className="text-white shadow-lg sticky top-0 z-40" style={{ background: 'var(--gradient-primary)' }}>
         <div className="container mx-auto px-4 py-4">
           {isMobile ? (
             // Mobile layout: Logo left, Menu center, Login right
             <div className="flex items-center justify-between gap-2">
               {/* Left: Compact Logo */}
               <Link to="/" className="flex items-center space-x-1 flex-shrink-0">
-                <div className="relative cursor-pointer transform transition-all duration-200 hover:scale-95 active:scale-90 active:translate-y-0.5">
-                  <div className="absolute inset-0 bg-black/15 rounded-lg blur-sm translate-x-0.5 translate-y-0.5"></div>
-                  <div className="relative bg-gradient-to-br from-white/45 to-white/25 backdrop-blur-sm rounded-lg border-2 border-white/60 shadow-[inset_0_2px_4px_rgba(255,255,255,0.5),_inset_0_-2px_4px_rgba(0,0,0,0.1),_0_4px_8px_rgba(0,0,0,0.25)] hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.6),_inset_0_-1px_2px_rgba(0,0,0,0.15),_0_2px_4px_rgba(0,0,0,0.3)] active:shadow-[inset_0_2px_6px_rgba(0,0,0,0.25),_inset_0_-1px_2px_rgba(255,255,255,0.4)] transition-all duration-200 group p-1.5">
-                    <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/5 to-white/12 rounded-lg pointer-events-none"></div>
+                  <div className="relative cursor-pointer transform transition-all duration-200 hover:scale-95 active:scale-90 active:translate-y-0.5">
+                    <div className="absolute inset-0 blur-sm translate-x-0.5 translate-y-0.5" style={{ backgroundColor: 'hsl(var(--logo-button-shadow) / 0.15)' }}></div>
+                    <div className="relative backdrop-blur-sm rounded-lg border-2 transition-all duration-200 group p-1.5" style={{ 
+                      backgroundColor: 'hsl(var(--logo-button-bg) / 0.9)',
+                      borderColor: 'hsl(var(--logo-button-border))',
+                      boxShadow: 'inset 0 2px 4px hsl(var(--logo-button-bg)), inset 0 -2px 4px hsl(var(--logo-button-shadow) / 0.1), 0 4px 8px hsl(var(--logo-button-shadow) / 0.25)'
+                    }}>
+                    <div className="absolute inset-0 rounded-lg pointer-events-none" style={{ background: 'linear-gradient(to top, transparent, hsl(var(--logo-button-bg) / 0.3))' }}></div>
                     {/* Enhanced 3D Play Button */}
                     <div className="relative z-10 flex items-center justify-center">
                       <div className="relative cursor-pointer transform transition-all duration-150 hover:scale-110 active:scale-95">
-                        <div className="absolute inset-0 bg-white/30 rounded-full blur-sm scale-125"></div>
-                        <Play className="relative text-white h-4 w-4 z-10" style={{ 
-                          filter: 'drop-shadow(0 0 6px rgba(255,255,255,0.7)) drop-shadow(2px 2px 4px rgba(0,0,0,0.8)) drop-shadow(0 0 12px rgba(255,255,255,0.4))',
-                          textShadow: '0 0 8px rgba(255,255,255,0.8)'
+                        <div className="absolute inset-0 rounded-full blur-sm scale-125" style={{ backgroundColor: 'hsl(var(--hero-accent) / 0.3)' }}></div>
+                        <Play className="relative h-4 w-4 z-10" style={{ 
+                          color: 'hsl(var(--hero-accent))',
+                          filter: `drop-shadow(0 0 6px hsl(var(--hero-accent) / 0.7)) drop-shadow(2px 2px 4px rgba(0,0,0,0.8)) drop-shadow(0 0 12px hsl(var(--hero-accent) / 0.4))`,
+                          textShadow: `0 0 8px hsl(var(--hero-accent) / 0.8)`
                         }} />
-                        <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-white/20 to-transparent rounded-full pointer-events-none"></div>
+                        <div className="absolute inset-0 rounded-full pointer-events-none" style={{ background: `linear-gradient(to bottom right, hsl(var(--hero-accent) / 0.5), transparent)` }}></div>
                       </div>
                     </div>
                     
@@ -113,22 +118,27 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <Link to="/" className="flex items-center space-x-3">
-                  <div className="relative cursor-pointer transform transition-all duration-200 hover:scale-95 active:scale-90 active:translate-y-1">
-                    <div className="absolute inset-0 bg-black/25 rounded-xl blur-md translate-x-1 translate-y-1"></div>
-                    <div className="relative bg-gradient-to-br from-white/45 to-white/25 backdrop-blur-sm rounded-xl border-3 border-white/70 shadow-[inset_0_4px_8px_rgba(255,255,255,0.5),_inset_0_-4px_8px_rgba(0,0,0,0.15),_0_8px_16px_rgba(0,0,0,0.3)] hover:shadow-[inset_0_2px_4px_rgba(255,255,255,0.6),_inset_0_-2px_4px_rgba(0,0,0,0.2),_0_4px_8px_rgba(0,0,0,0.4)] active:shadow-[inset_0_4px_12px_rgba(0,0,0,0.3),_inset_0_-2px_4px_rgba(255,255,255,0.5)] transition-all duration-200 group p-4 py-6">
-                      <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/15 to-white/30 rounded-xl pointer-events-none"></div>
+                <div className="relative cursor-pointer transform transition-all duration-200 hover:scale-95 active:scale-90 active:translate-y-1">
+                  <div className="absolute inset-0 rounded-xl blur-md translate-x-1 translate-y-1" style={{ backgroundColor: 'hsl(var(--logo-button-shadow) / 0.25)' }}></div>
+                  <div className="relative backdrop-blur-sm rounded-xl border-3 transition-all duration-200 group p-4 py-6" style={{ 
+                    backgroundColor: 'hsl(var(--logo-button-bg) / 0.9)',
+                    borderColor: 'hsl(var(--logo-button-border))',
+                    boxShadow: 'inset 0 4px 8px hsl(var(--logo-button-bg)), inset 0 -4px 8px hsl(var(--logo-button-shadow) / 0.15), 0 8px 16px hsl(var(--logo-button-shadow) / 0.3)'
+                  }}>
+                      <div className="absolute inset-0 rounded-xl pointer-events-none" style={{ background: 'linear-gradient(to top, transparent, hsl(var(--logo-button-bg) / 0.3))' }}></div>
                       {/* Main Play Button with flanking icons */}
                       <div className="relative z-10 flex items-center justify-center h-full">
                         {/* Lightning bolt to the left of triangle */}
                         <Zap className="text-yellow-300 animate-pulse h-3 w-3 mr-1" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))', animationDuration: '0.8s' }} />
                         
                         <div className="relative cursor-pointer transform transition-all duration-150 hover:scale-110 active:scale-95">
-                          <div className="absolute inset-0 bg-white/30 rounded-full blur-md scale-150"></div>
-                          <Play className="relative text-white h-8 w-8 z-10" style={{ 
-                            filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.8)) drop-shadow(3px 3px 6px rgba(0,0,0,0.9)) drop-shadow(0 0 16px rgba(255,255,255,0.5))',
-                            textShadow: '0 0 12px rgba(255,255,255,0.9)'
+                          <div className="absolute inset-0 rounded-full blur-md scale-150" style={{ backgroundColor: 'hsl(var(--hero-accent) / 0.3)' }}></div>
+                          <Play className="relative h-8 w-8 z-10" style={{ 
+                            color: 'hsl(var(--hero-accent))',
+                            filter: `drop-shadow(0 0 8px hsl(var(--hero-accent) / 0.8)) drop-shadow(3px 3px 6px rgba(0,0,0,0.9)) drop-shadow(0 0 16px hsl(var(--hero-accent) / 0.5))`,
+                            textShadow: `0 0 12px hsl(var(--hero-accent) / 0.9)`
                           }} />
-                          <div className="absolute inset-0 bg-gradient-to-br from-white/60 to-transparent opacity-50 pointer-events-none rounded-full"></div>
+                          <div className="absolute inset-0 rounded-full pointer-events-none opacity-50" style={{ background: `linear-gradient(to bottom right, hsl(var(--hero-accent) / 0.6), transparent)` }}></div>
                         </div>
                         
                         {/* Dollar sign to the right of triangle */}
@@ -167,10 +177,22 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                     to="/create" 
                     className={`px-2 md:px-3 lg:px-4 py-2 rounded-lg font-semibold text-white border-2 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl drop-shadow-lg text-center text-sm lg:text-base ${
                       isActive('/create') 
-                        ? 'bg-red-600 border-red-500 shadow-red-400/30' 
-                        : 'bg-slate-600 border-slate-500 hover:bg-slate-700 hover:border-slate-400'
+                        ? 'border-2' 
+                        : 'border-2'
                     }`}
-                    style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}
+                    style={isActive('/create') 
+                      ? { 
+                          backgroundColor: 'hsl(var(--nav-button-active))',
+                          borderColor: 'hsl(var(--nav-button-active))',
+                          boxShadow: '0 0 20px hsl(var(--nav-button-active) / 0.3)',
+                          textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
+                        }
+                      : { 
+                          backgroundColor: 'hsl(var(--nav-button-bg))',
+                          borderColor: 'hsl(var(--nav-button-bg))',
+                          textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
+                        }
+                    }
                   >
                     Create
                   </Link>
@@ -180,10 +202,22 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                     to="/channels" 
                     className={`px-2 md:px-3 lg:px-4 py-2 rounded-lg font-semibold text-white border-2 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl drop-shadow-lg text-center text-sm lg:text-base ${
                       isActive('/channels') 
-                        ? 'bg-red-600 border-red-500 shadow-red-400/30' 
-                        : 'bg-slate-600 border-slate-500 hover:bg-slate-700 hover:border-slate-400'
+                        ? 'border-2' 
+                        : 'border-2'
                     }`}
-                    style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}
+                    style={isActive('/channels') 
+                      ? { 
+                          backgroundColor: 'hsl(var(--nav-button-active))',
+                          borderColor: 'hsl(var(--nav-button-active))',
+                          boxShadow: '0 0 20px hsl(var(--nav-button-active) / 0.3)',
+                          textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
+                        }
+                      : { 
+                          backgroundColor: 'hsl(var(--nav-button-bg))',
+                          borderColor: 'hsl(var(--nav-button-bg))',
+                          textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
+                        }
+                    }
                   >
                     Channels
                   </Link>
@@ -193,10 +227,22 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                     to="/events" 
                     className={`px-2 md:px-3 lg:px-4 py-2 rounded-lg font-semibold text-white border-2 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl drop-shadow-lg text-center text-sm lg:text-base ${
                       isActive('/events') 
-                        ? 'bg-red-600 border-red-500 shadow-red-400/30' 
-                        : 'bg-slate-600 border-slate-500 hover:bg-slate-700 hover:border-slate-400'
+                        ? 'border-2' 
+                        : 'border-2'
                     }`}
-                    style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}
+                    style={isActive('/events') 
+                      ? { 
+                          backgroundColor: 'hsl(var(--nav-button-active))',
+                          borderColor: 'hsl(var(--nav-button-active))',
+                          boxShadow: '0 0 20px hsl(var(--nav-button-active) / 0.3)',
+                          textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
+                        }
+                      : { 
+                          backgroundColor: 'hsl(var(--nav-button-bg))',
+                          borderColor: 'hsl(var(--nav-button-bg))',
+                          textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
+                        }
+                    }
                   >
                     Events
                   </Link>
@@ -206,10 +252,22 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                     to="/qa" 
                     className={`px-2 md:px-3 lg:px-4 py-2 rounded-lg font-semibold text-white border-2 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl drop-shadow-lg text-center text-sm lg:text-base ${
                       isActive('/qa') 
-                        ? 'bg-red-600 border-red-500 shadow-red-400/30' 
-                        : 'bg-slate-600 border-slate-500 hover:bg-slate-700 hover:border-slate-400'
+                        ? 'border-2' 
+                        : 'border-2'
                     }`}
-                    style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}
+                    style={isActive('/qa') 
+                      ? { 
+                          backgroundColor: 'hsl(var(--nav-button-active))',
+                          borderColor: 'hsl(var(--nav-button-active))',
+                          boxShadow: '0 0 20px hsl(var(--nav-button-active) / 0.3)',
+                          textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
+                        }
+                      : { 
+                          backgroundColor: 'hsl(var(--nav-button-bg))',
+                          borderColor: 'hsl(var(--nav-button-bg))',
+                          textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
+                        }
+                    }
                   >
                     Q&A
                   </Link>
