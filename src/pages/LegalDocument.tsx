@@ -120,17 +120,21 @@ const LegalDocumentPage: React.FC = () => {
               console.log('Attempting window.close()...');
               window.close();
             } catch (e) {
-              console.log('window.close() failed, showing success message...');
-              // Show success message instead of navigating
-              document.body.innerHTML = `
-                <div style="padding: 20px; text-align: center; font-family: Arial, sans-serif; background: #f0f9ff;">
-                  <h2 style="color: green;">✓ Legal Document Signed Successfully!</h2>
-                  <p style="font-size: 18px; margin: 20px 0;">Agreement completed! You can now close this window.</p>
-                  <p style="font-size: 14px; color: #666; margin-top: 20px;">Please close this window/tab to continue with your signup.</p>
-                  <button onclick="window.close();" style="padding: 15px 30px; font-size: 16px; background: #007cba; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 10px;">Close Window</button>
-                </div>
-              `;
+              console.log('window.close() failed, trying navigation fallbacks...');
             }
+            
+            // If window.close() didn't work, try navigation methods
+            setTimeout(() => {
+              try {
+                // Try to go back in history first
+                console.log('Trying window.history.back()...');
+                window.history.back();
+              } catch (e) {
+                console.log('history.back() failed, navigating to signup...');
+                // Final fallback - navigate to signup form
+                window.location.href = window.location.origin + '/login?tab=signup';
+              }
+            }, 500);
           }, 1000);
           
         } catch (error) {
@@ -192,30 +196,36 @@ const LegalDocumentPage: React.FC = () => {
         try {
           window.close();
         } catch (e) {
-          console.log('window.close() failed, showing success message...');
-          // Show success message instead of trying to navigate
-          document.body.innerHTML = `
-            <div style="padding: 20px; text-align: center; font-family: Arial, sans-serif; background: #f0f9ff;">
-              <h2 style="color: green;">✓ Document Signed Successfully!</h2>
-              <p style="font-size: 18px; margin: 20px 0;">You can now close this window to return to the signup form.</p>
-              <button onclick="window.close();" style="padding: 15px 30px; font-size: 16px; background: #007cba; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 10px;">Close Window</button>
-              <br>
-              <p style="font-size: 14px; color: #666; margin-top: 20px;">If the button doesn't work, please manually close this window/tab.</p>
-            </div>
-          `;
+          console.log('window.close() failed, trying navigation...');
         }
+        
+        // If window.close() didn't work, try navigation methods
+        setTimeout(() => {
+          try {
+            // Try to go back in history first
+            window.history.back();
+          } catch (e) {
+            // Final fallback - navigate to signup form
+            window.location.href = window.location.origin + '/login?tab=signup';
+          }
+        }, 300);
       }, 300);
       
     } catch (error) {
       console.error('Error in handleCancel:', error);
-      // Show success state and focus on window closure
-      document.body.innerHTML = `
-        <div style="padding: 20px; text-align: center; font-family: Arial, sans-serif; background: #f0f9ff;">
-          <h2 style="color: green;">✓ Document Completed!</h2>
-          <p>Please close this window to return to the signup form.</p>
-          <button onclick="window.close();" style="padding: 15px 30px; font-size: 16px; background: #007cba; color: white; border: none; border-radius: 8px; cursor: pointer;">Close Window</button>
-        </div>
-      `;
+      // Show success state with navigation fallback
+      try {
+        window.close();
+      } catch (e) {
+        // If close doesn't work, try navigation
+        setTimeout(() => {
+          try {
+            window.history.back();
+          } catch (e2) {
+            window.location.href = window.location.origin + '/login?tab=signup';
+          }
+        }, 500);
+      }
     }
   };
 
