@@ -460,11 +460,16 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
           setError(result.error);
         }
       } else {
-        if (onSuccess) {
-          onSuccess();
-        } else {
-          onClose();
-        }
+        // Account created successfully - navigate to profile page
+        setTimeout(() => {
+          if (onSuccess) {
+            onSuccess();
+          } else {
+            onClose();
+          }
+          // Navigate to the user's profile page
+          window.location.href = '/profile';
+        }, 1000); // Small delay to show the success toast
       }
     } catch (error) {
       setError((error as Error).message);
