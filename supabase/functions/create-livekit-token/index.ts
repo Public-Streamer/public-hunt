@@ -249,11 +249,14 @@ serve(async (req) => {
       "role:",
       actualRole,
       "event:",
-      eventId
+      eventId,
+      "room:",
+      event.livekit_room_name
     );
-    // Create LiveKit access token
+    
+    // Create LiveKit access token with unique identity
     const at = new AccessToken(LIVEKIT_API_KEY, LIVEKIT_API_SECRET, {
-      identity: `${user.id}-${eventId}`,
+      identity: `${user.id}-${eventId}`, // Ensures unique identity per user per event
       name: user.email || `User ${user.id}`,
     });
 
@@ -279,6 +282,13 @@ serve(async (req) => {
       serverUrl: LIVEKIT_WS_URL,
       expiresAt: expiresAt.toISOString(),
     };
+
+    console.log(`✅ Token created successfully for user ${user.id} in event ${eventId}:`, {
+      roomName: response.roomName,
+      identity: `${user.id}-${eventId}`,
+      role: actualRole,
+      permissions: tokenPermissions
+    });
 
     return new Response(JSON.stringify(response), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

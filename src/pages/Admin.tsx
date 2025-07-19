@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { User, Settings, DollarSign, Users, CreditCard, Building2, CheckCircle, ExternalLink } from 'lucide-react';
+import { User, Settings, DollarSign, Users, CreditCard, Building2, CheckCircle, ExternalLink, Database } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import LiveKitRoomManager from '@/components/LiveKitRoomManager';
 
 
 const Admin: React.FC = () => {
@@ -13,6 +14,7 @@ const Admin: React.FC = () => {
   const [paymentSetupComplete, setPaymentSetupComplete] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [testEventId, setTestEventId] = useState('');
   const [bankingInfo, setBankingInfo] = useState({
     bankName: '',
     accountHolderName: '',
@@ -240,6 +242,45 @@ const Admin: React.FC = () => {
               <p>Event Creators: 3</p>
             </div>
             <Button className="mt-4">Manage Permissions</Button>
+          </CardContent>
+        </Card>
+
+        {/* LiveKit Room Manager - Debug Tool */}
+        <Card className="md:col-span-2 lg:col-span-3">
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Database className="h-5 w-5 mr-2" />
+              LiveKit Room Manager (Debug Tool)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center space-x-4 mb-4">
+              <Label htmlFor="testEventId">Test Event ID:</Label>
+              <Input
+                id="testEventId"
+                value={testEventId}
+                onChange={(e) => setTestEventId(e.target.value)}
+                placeholder="Enter event ID to test..."
+                className="max-w-md"
+              />
+            </div>
+            
+            {testEventId && (
+              <LiveKitRoomManager
+                eventId={testEventId}
+                userRole="host"
+                onRoomStatusChange={(status) => console.log('Room status:', status)}
+              />
+            )}
+            
+            {!testEventId && (
+              <Alert>
+                <AlertDescription>
+                  Enter an Event ID above to test LiveKit room management for that specific event.
+                  This tool helps debug room creation, status checking, and cleanup operations.
+                </AlertDescription>
+              </Alert>
+            )}
           </CardContent>
         </Card>
       </div>

@@ -10,7 +10,7 @@ const corsHeaders = {
 };
 
 interface ManageRoomRequest {
-  action: "create" | "close" | "update" | "get_info";
+  action: "create" | "close" | "update" | "get_info" | "cleanup";
   eventId: string;
   roomConfig?: {
     maxParticipants?: number;
@@ -164,17 +164,35 @@ serve(async (req) => {
           };
 
           const room = await roomClient.createRoom(roomOptions);
+          
+          console.log(`✅ LiveKit room created successfully:`, {
+            requestedName: event.livekit_room_name,
+            actualName: room.name,
+            sid: room.sid,
+            maxParticipants: room.maxParticipants
+          });
 
-          // Update database with room info
+          // Verify room name consistency
+          if (room.name !== event.livekit_room_name) {
+            console.warn(`⚠️ Room name mismatch! Requested: ${event.livekit_room_name}, Actual: ${room.name}`);
+          }
+
+          // Update database with ACTUAL room info from LiveKit
           await supabase.from("livekit_rooms").upsert({
             event_id: eventId,
-            room_name: event.livekit_room_name,
-            livekit_room_sid: room.sid,
+            room_name: room.name, // Use actual room name from LiveKit
+            livekit_room_sid: room.sid, // Use actual SID from LiveKit
             is_active: true,
-            max_participants: roomOptions.maxParticipants,
+            max_participants: room.maxParticipants, // Use actual value
             recording_enabled: roomConfig?.enableRecording || false,
-            room_settings: roomOptions,
+            room_settings: {
+              ...roomOptions,
+              actualRoomName: room.name,
+              actualSid: room.sid
+            },
           });
+
+          console.log(`✅ Database updated with room details for event ${eventId}`);
 
           // Mark event as live
           await supabase
@@ -261,6 +279,56 @@ serve(async (req) => {
           }
         } catch (error) {
           console.error("Error getting room info:", error);
+          response = {
+            success: false,
+            error: error.message,
+          };
+        }
+        break;
+
+      case "cleanup":
+        try {
+          console.log(`🧹 Starting cleanup of inactive rooms...`);
+          
+          // Get all inactive rooms from database
+          const { data: inactiveRooms, error: roomError } = await supabase
+            .from('livekit_rooms')
+            .select('*')
+            .eq('is_active', false);
+
+          if (roomError) throw roomError;
+
+          if (!inactiveRooms || inactiveRooms.length === 0) {
+            console.log(`✅ No inactive rooms to clean up`);
+            response = { success: true, message: "No rooms to clean up" };
+            break;
+          }
+
+          console.log(`🧹 Found ${inactiveRooms.length} inactive rooms to clean up`);
+          let cleanedCount = 0;
+          
+          // Delete each room from LiveKit server
+          for (const room of inactiveRooms) {
+            try {
+              await roomClient.deleteRoom(room.room_name);
+              cleanedCount++;
+              console.log(`✅ Cleaned up room: ${room.room_name} (SID: ${room.livekit_room_sid})`);
+            } catch (roomDelError) {
+              console.warn(`⚠️ Failed to delete room ${room.room_name}:`, roomDelError.message);
+              // Continue with other rooms even if one fails
+            }
+          }
+          
+          response = { 
+            success: true, 
+            message: `Cleaned up ${cleanedCount}/${inactiveRooms.length} rooms`,
+            cleaned: cleanedCount,
+            total: inactiveRooms.length
+          };
+          
+          console.log(`✅ Cleanup completed: ${cleanedCount}/${inactiveRooms.length} rooms cleaned`);
+        } catch (error) {
+          console.error("❌ Error during cleanup:", error);
           response = {
             success: false,
             error: error.message,

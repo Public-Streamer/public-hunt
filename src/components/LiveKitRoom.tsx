@@ -31,13 +31,26 @@ const LiveKitRoom: React.FC<LiveKitRoomProps> = ({
     participants,
     error,
     connectToRoom,
-    disconnectFromRoom
+    disconnectFromRoom,
+    findExistingRoom
   } = useLiveKit({ eventId, userRole, autoConnect });
 
   const handleDisconnect = async () => {
     await disconnectFromRoom();
     onDisconnect?.();
   };
+
+  // Add effect to check for existing room when component mounts
+  useEffect(() => {
+    const checkExistingRoom = async () => {
+      if (userRole === 'viewer' || userRole === 'streamer') {
+        const existingRoom = await findExistingRoom(eventId);
+        console.log('LiveKitRoom - checking for existing room:', { eventId, userRole, existingRoom });
+      }
+    };
+    
+    checkExistingRoom();
+  }, [eventId, userRole, findExistingRoom]);
 
   if (error) {
     return (
@@ -76,7 +89,9 @@ const LiveKitRoom: React.FC<LiveKitRoomProps> = ({
               <p className="text-gray-600 mb-4">
                 {userRole === 'viewer' 
                   ? 'Join the live stream to watch the event' 
-                  : 'Start streaming to share your view with viewers'
+                  : userRole === 'host'
+                  ? 'Start streaming to share your view with viewers'
+                  : 'Wait for the host to start the event or check if the stream is active'
                 }
               </p>
             </div>
@@ -85,7 +100,12 @@ const LiveKitRoom: React.FC<LiveKitRoomProps> = ({
               className="w-full"
               size="lg"
             >
-              {userRole === 'viewer' ? 'Join Stream' : 'Start Streaming'}
+              {userRole === 'viewer' 
+                ? 'Join Stream' 
+                : userRole === 'host'
+                ? 'Start Streaming'
+                : 'Join as Streamer'
+              }
             </Button>
           </div>
         </CardContent>
