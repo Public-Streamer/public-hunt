@@ -131,13 +131,14 @@ const Profile: React.FC = () => {
       </div>
       
       <Tabs defaultValue="timeline" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-9">
+        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-10">
           <TabsTrigger value="timeline">Timeline</TabsTrigger>
           <TabsTrigger value="about">About</TabsTrigger>
           <TabsTrigger value="friends">Friends</TabsTrigger>
           <TabsTrigger value="media">Media</TabsTrigger>
           <TabsTrigger value="events">Events</TabsTrigger>
           <TabsTrigger value="channels">Channels</TabsTrigger>
+          {isOwnProfile && <TabsTrigger value="my-ads">My Ads</TabsTrigger>}
           {isOwnProfile && <TabsTrigger value="messages">Messages</TabsTrigger>}
           {isOwnProfile && <TabsTrigger value="notifications">Notifications</TabsTrigger>}
           {isOwnProfile && <TabsTrigger value="admin">Admin</TabsTrigger>}
@@ -190,6 +191,45 @@ const Profile: React.FC = () => {
         {isOwnProfile && (
           <TabsContent value="messages" className="mt-6">
             <Messages userId={profile.id} />
+          </TabsContent>
+        )}
+        
+        {isOwnProfile && (
+          <TabsContent value="my-ads" className="mt-6">
+            <div className="bg-card rounded-lg shadow p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-2xl font-bold">My Ad Campaigns</h3>
+                <button 
+                  onClick={() => window.location.href = '/my-ads'}
+                  className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+                >
+                  View All Ads
+                </button>
+              </div>
+              <p className="text-muted-foreground mb-4">Manage your advertising campaigns and view performance metrics.</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-semibold mb-2">Create New Ad</h4>
+                  <p className="text-sm text-muted-foreground mb-3">Start a new advertising campaign</p>
+                  <button 
+                    onClick={() => window.location.href = '/create?tab=ad'}
+                    className="text-primary hover:underline text-sm"
+                  >
+                    Create Ad Campaign →
+                  </button>
+                </div>
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-semibold mb-2">Campaign Analytics</h4>
+                  <p className="text-sm text-muted-foreground mb-3">View detailed performance metrics</p>
+                  <button 
+                    onClick={() => window.location.href = '/my-ads'}
+                    className="text-primary hover:underline text-sm"
+                  >
+                    View Analytics →
+                  </button>
+                </div>
+              </div>
+            </div>
           </TabsContent>
         )}
         

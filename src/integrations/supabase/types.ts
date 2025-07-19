@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      ads: {
+        Row: {
+          ad_type: string | null
+          budget: number
+          created_at: string
+          description: string | null
+          end_date: string | null
+          id: string
+          media_urls: string[] | null
+          start_date: string | null
+          status: string | null
+          stripe_account_id: string | null
+          target_channels: string[] | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ad_type?: string | null
+          budget: number
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          media_urls?: string[] | null
+          start_date?: string | null
+          status?: string | null
+          stripe_account_id?: string | null
+          target_channels?: string[] | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ad_type?: string | null
+          budget?: number
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          media_urls?: string[] | null
+          start_date?: string | null
+          status?: string | null
+          stripe_account_id?: string | null
+          target_channels?: string[] | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       blog_answers: {
         Row: {
           author: string

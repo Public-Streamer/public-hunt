@@ -20,6 +20,7 @@ import Admin from "./pages/Admin";
 import WithdrawFunds from "./pages/WithdrawFunds";
 import QA from "./pages/QA";
 import PastEvents from "./pages/PastEvents";
+import MyAds from "./pages/MyAds";
 import NotFound from "./pages/NotFound";
 import LegalDocumentPage from "./pages/LegalDocument";
 
@@ -47,6 +48,7 @@ const App = () => (
                 <Route path="/company/:companyId" element={<CompanyProfile />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/past-events" element={<PastEvents />} />
+                <Route path="/my-ads" element={<MyAds />} />
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/withdraw" element={<WithdrawFunds />} />
                 <Route path="/qa" element={<QA />} />

@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TooltipWrapper from "@/components/ui/tooltip-wrapper";
 import CreateChannelForm from "@/components/CreateChannelForm";
 import CreateEventForm from "@/components/CreateEventForm";
+import CreateAdForm from "@/components/CreateAdForm";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 
@@ -17,6 +18,8 @@ const Create: React.FC = () => {
     const tab = searchParams.get('tab');
     if (tab === 'event') {
       setActiveTab('create-event');
+    } else if (tab === 'ad') {
+      setActiveTab('create-ad');
     }
   }, [searchParams]);
   const [hasChannel, setHasChannel] = useState(false);
@@ -47,6 +50,18 @@ const Create: React.FC = () => {
 
   const [channelMedia, setChannelMedia] = useState([]);
   const [eventMedia, setEventMedia] = useState([]);
+  
+  const [adFormData, setAdFormData] = useState({
+    title: "",
+    description: "",
+    budget: 0,
+    adType: "",
+    startDate: "",
+    endDate: "",
+    targetChannels: [],
+  });
+
+  const [adMedia, setAdMedia] = useState([]);
 
   const handleChannelInputChange = (field: string, value: string) => {
     setChannelFormData((prev) => ({ ...prev, [field]: value }));
@@ -54,6 +69,10 @@ const Create: React.FC = () => {
 
   const handleEventInputChange = (field: string, value: string | number) => {
     setEventFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleAdInputChange = (field: string, value: string | number | string[]) => {
+    setAdFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const isChannelFormValid = () => {
@@ -82,6 +101,13 @@ const Create: React.FC = () => {
     return requiredFields.every(
       (field) => eventFormData[field as keyof typeof eventFormData] !== ""
     );
+  };
+
+  const isAdFormValid = () => {
+    const requiredFields = ["title", "budget", "adType"];
+    return requiredFields.every(
+      (field) => adFormData[field as keyof typeof adFormData] !== "" && adFormData[field as keyof typeof adFormData] !== 0
+    ) && adFormData.targetChannels.length > 0;
   };
 
   // Allow event creation - remove restrictions
@@ -234,6 +260,87 @@ const Create: React.FC = () => {
     }
   };
 
+  const handleAdSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isAdFormValid()) {
+      toast({
+        title: "Incomplete Form",
+        description: "Please fill in all required fields and select at least one target channel.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // Get current user
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError || !userData.user) {
+        toast({
+          title: "Authentication Required",
+          description: "You must be logged in to create ads.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Prepare media URLs
+      const mediaUrls: string[] = [];
+      if (adMedia && adMedia.length > 0) {
+        adMedia.forEach((media: any) => {
+          if (media.url) {
+            mediaUrls.push(media.url);
+          }
+        });
+      }
+
+      // Create ad in database
+      const { data: adData, error: adError } = await supabase
+        .from('ads')
+        .insert({
+          title: adFormData.title,
+          description: adFormData.description,
+          budget: adFormData.budget,
+          ad_type: adFormData.adType,
+          start_date: adFormData.startDate || null,
+          end_date: adFormData.endDate || null,
+          target_channels: adFormData.targetChannels,
+          media_urls: mediaUrls,
+          user_id: userData.user.id,
+          status: 'draft'
+        })
+        .select()
+        .single();
+
+      if (adError) {
+        console.error('Error creating ad:', adError);
+        toast({
+          title: "Error",
+          description: "Failed to create ad campaign. Please try again.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      toast({
+        title: "Ad Campaign Created Successfully!",
+        description: `Your ad campaign "${adFormData.title}" has been created as a draft.`,
+        variant: "default"
+      });
+
+      // Navigate to the My Ads page
+      setTimeout(() => {
+        navigate('/my-ads');
+      }, 1500);
+    } catch (error) {
+      console.error('Error creating ad:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const getEventTabTooltip = () => {
     return "Create and manage live streaming events for your channel";
   };
@@ -248,7 +355,7 @@ const Create: React.FC = () => {
         </TooltipWrapper>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TooltipWrapper content={getEventTabTooltip()}>
               <TabsTrigger
                 value="create-event"
@@ -277,6 +384,20 @@ const Create: React.FC = () => {
                 </div>
               </TabsTrigger>
             </TooltipWrapper>
+            <TooltipWrapper content="Create and manage commercial advertisements with targeted channel placement and budget control">
+              <TabsTrigger
+                value="create-ad"
+                className="text-white bg-gradient-to-r from-green-600 to-teal-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-700 data-[state=active]:to-teal-700 hover:from-green-700 hover:to-teal-700 transition-all duration-200 shadow-lg transform hover:scale-105 flex items-center justify-center py-3 px-2 min-h-[3.5rem]"
+              >
+                <div className="flex items-center justify-center gap-2 text-xl lg:text-2xl xl:text-3xl font-bold sm:flex-col sm:gap-0 sm:text-base md:flex-row md:gap-2 md:text-lg lg:flex-row">
+                  <span className="flex items-center gap-1">
+                    <span>📺</span>
+                    <span className="hidden sm:inline md:inline lg:inline">Create</span>
+                  </span>
+                  <span>Ad</span>
+                </div>
+              </TabsTrigger>
+            </TooltipWrapper>
           </TabsList>
 
           <TabsContent value="create-channel">
@@ -297,6 +418,16 @@ const Create: React.FC = () => {
               onMediaUpload={setEventMedia}
               isValid={isEventFormValid()}
               canCreateEvent={canCreateEvent}
+            />
+          </TabsContent>
+
+          <TabsContent value="create-ad">
+            <CreateAdForm
+              formData={adFormData}
+              onInputChange={handleAdInputChange}
+              onSubmit={handleAdSubmit}
+              onMediaUpload={setAdMedia}
+              isValid={isAdFormValid()}
             />
           </TabsContent>
         </Tabs>
