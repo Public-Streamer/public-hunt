@@ -63,6 +63,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
   });
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [step, setStep] = useState(1);
+  const totalSteps = 3;
   const [loading, setLoading] = useState(false);
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -121,7 +122,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
   const handleStep1Submit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate company name if account type is company
+    // Validate account type and basic info
     if (signupData.accountType === 'company' && !signupData.companyName.trim()) {
       setErrorDialogConfig({
         title: 'Company Name Required',
@@ -131,7 +132,6 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
       return;
     }
     
-    // Validate company account master if account type is company
     if (signupData.accountType === 'company' && !signupData.companyAccountMaster) {
       setErrorDialogConfig({
         title: 'Company Account Master Required',
@@ -140,6 +140,22 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
       setShowErrorDialog(true);
       return;
     }
+    
+    // Validate email and password
+    if (!signupData.email || !signupData.password) {
+      setErrorDialogConfig({
+        title: 'Required Fields',
+        message: 'Please enter your email and password.'
+      });
+      setShowErrorDialog(true);
+      return;
+    }
+    
+    setStep(2);
+  };
+
+  const handleStep2Submit = (e: React.FormEvent) => {
+    e.preventDefault();
     
     // Only validate personal info fields if individual account or company without master selected
     if (signupData.accountType === 'individual' || 
@@ -186,7 +202,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
       }
     }
     
-    setStep(2);
+    setStep(3);
   };
 
 
@@ -249,11 +265,41 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
   };
 
   const formContent = (
-    <>
+    <div className="w-full">
+      {/* Progress indicator */}
+      <div className="flex items-center justify-center mb-6">
+        {[1, 2, 3].map((pageNum) => (
+          <div key={pageNum} className="flex items-center">
+            <div
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                step >= pageNum
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-muted-foreground'
+              }`}
+            >
+              {pageNum}
+            </div>
+            {pageNum < 3 && (
+              <div
+                className={`w-12 h-0.5 mx-2 ${
+                  step > pageNum ? 'bg-primary' : 'bg-muted'
+                }`}
+              />
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Page 1: Account Type & Basic Info */}
       {step === 1 && (
         <form onSubmit={handleStep1Submit} className="space-y-4">
+          <div className="text-center mb-4">
+            <h3 className="text-lg font-semibold">Account Setup</h3>
+            <p className="text-sm text-muted-foreground">Choose your account type and enter basic information</p>
+          </div>
+
           <div className="space-y-3">
-            <Label>Will this account be created for an individual or a company?</Label>
+            <Label>Account Type</Label>
             <RadioGroup
               value={signupData.accountType}
               onValueChange={(value: 'individual' | 'company') => setSignupData(prev => ({ ...prev, accountType: value }))}
@@ -272,7 +318,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
           {signupData.accountType === 'company' && (
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="companyName">Company</Label>
+                <Label htmlFor="companyName">Company Name</Label>
                 <Input
                   id="companyName"
                   value={signupData.companyName}
@@ -282,7 +328,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
               </div>
               
               <div className="space-y-2">
-                <Label>Select Company Account Master</Label>
+                <Label>Company Account Master</Label>
                 <UserSearchBox
                   onUserSelect={(user) => {
                     setSignupData(prev => ({ 
@@ -291,55 +337,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                     }));
                   }}
                   selectedUser={signupData.companyAccountMaster}
-                  placeholder="Search for existing profile to designate as Company Account Master..."
-                />
-              </div>
-            </div>
-          )}
-          
-          <div className="flex flex-col items-center space-y-2">
-            <div className="relative">
-              <Avatar className="w-20 h-20">
-                <AvatarImage src={photoPreview || undefined} />
-                <AvatarFallback>
-                  <Camera className="w-8 h-8 text-gray-400" />
-                </AvatarFallback>
-              </Avatar>
-              <label className="absolute bottom-0 right-0 bg-purple-600 text-white rounded-full p-1 cursor-pointer hover:bg-purple-700">
-                <Upload className="w-4 h-4" />
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handlePhotoUpload}
-                  className="hidden"
-                />
-              </label>
-            </div>
-            <Label className="text-sm text-gray-600">
-              {signupData.accountType === 'company' ? 'Company Profile Photo' : 'Profile Photo'}
-            </Label>
-          </div>
-          
-          {/* Only show name fields for individual accounts or company accounts without master selected */}
-          {(signupData.accountType === 'individual' || 
-            (signupData.accountType === 'company' && !signupData.companyAccountMaster)) && (
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">First Name</Label>
-                <Input
-                  id="firstName"
-                  value={signupData.firstName}
-                  onChange={(e) => setSignupData(prev => ({ ...prev, firstName: e.target.value }))}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input
-                  id="lastName"
-                  value={signupData.lastName}
-                  onChange={(e) => setSignupData(prev => ({ ...prev, lastName: e.target.value }))}
-                  required
+                  placeholder="Search for existing profile..."
                 />
               </div>
             </div>
@@ -366,11 +364,75 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
               required
             />
           </div>
-            
-          {/* Only show confirm password and birth date for individual accounts or company accounts without master selected */}
+          
+          <div className="flex space-x-2 pt-4">
+            <Button type="button" variant="outline" onClick={onClose} className="flex-1">
+              Cancel
+            </Button>
+            <Button type="submit" className="flex-1">
+              Next
+            </Button>
+          </div>
+        </form>
+      )}
+
+      {/* Page 2: Personal Details */}
+      {step === 2 && (
+        <form onSubmit={handleStep2Submit} className="space-y-4">
+          <div className="text-center mb-4">
+            <h3 className="text-lg font-semibold">Personal Details</h3>
+            <p className="text-sm text-muted-foreground">Complete your profile information</p>
+          </div>
+
+          {/* Profile photo section */}
+          <div className="flex flex-col items-center space-y-2 mb-4">
+            <div className="relative">
+              <Avatar className="w-20 h-20">
+                <AvatarImage src={photoPreview || undefined} />
+                <AvatarFallback>
+                  <Camera className="w-8 h-8 text-gray-400" />
+                </AvatarFallback>
+              </Avatar>
+              <label className="absolute bottom-0 right-0 bg-primary text-primary-foreground rounded-full p-1 cursor-pointer hover:bg-primary/90">
+                <Upload className="w-4 h-4" />
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoUpload}
+                  className="hidden"
+                />
+              </label>
+            </div>
+            <Label className="text-sm text-muted-foreground">
+              {signupData.accountType === 'company' ? 'Company Logo' : 'Profile Photo'}
+            </Label>
+          </div>
+
+          {/* Only show name fields for individual accounts or company accounts without master selected */}
           {(signupData.accountType === 'individual' || 
             (signupData.accountType === 'company' && !signupData.companyAccountMaster)) && (
             <>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName">First Name</Label>
+                  <Input
+                    id="firstName"
+                    value={signupData.firstName}
+                    onChange={(e) => setSignupData(prev => ({ ...prev, firstName: e.target.value }))}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="lastName">Last Name</Label>
+                  <Input
+                    id="lastName"
+                    value={signupData.lastName}
+                    onChange={(e) => setSignupData(prev => ({ ...prev, lastName: e.target.value }))}
+                    required
+                  />
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirm Password</Label>
                 <Input
@@ -395,286 +457,142 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
             </>
           )}
           
-          <div className="space-y-2">
-            <TooltipWrapper content="Continue to complete your profile">
-              <Button type="submit" className="w-full">Continue</Button>
-            </TooltipWrapper>
-            <TooltipWrapper content="Cancel signup and close form">
-              <Button type="button" variant="outline" onClick={onClose} className="w-full">
-                Cancel
-              </Button>
-            </TooltipWrapper>
+          <div className="flex space-x-2 pt-4">
+            <Button type="button" variant="outline" onClick={() => setStep(1)} className="flex-1">
+              Back
+            </Button>
+            <Button type="submit" className="flex-1">
+              Next
+            </Button>
           </div>
         </form>
       )}
 
-      {step === 2 && (
+      {/* Page 3: Final Details & Legal */}
+      {step === 3 && (
         <form onSubmit={handleFinalSubmit} className="space-y-4">
           <div className="text-center mb-4">
-            <h3 className="text-lg font-semibold mb-2">Complete Your Profile</h3>
+            <h3 className="text-lg font-semibold">Final Details</h3>
+            <p className="text-sm text-muted-foreground">Complete your registration</p>
           </div>
 
-          <div className="space-y-4">
-            {signupData.accountType === 'company' && (
-              <div className="space-y-4 mb-4 p-4 border rounded-lg bg-muted/50">
-                <h4 className="font-medium text-sm">Company Account Master Verification</h4>
-                <p className="text-xs text-muted-foreground">
-                  Please re-enter your email and password to verify you are the Company Account Master
-                </p>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="emailVerification">Verify Email</Label>
-                    <Input
-                      id="emailVerification"
-                      type="email"
-                      value={emailVerification}
-                      onChange={(e) => setEmailVerification(e.target.value)}
-                      placeholder="Re-enter your email"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="passwordVerification">Verify Password</Label>
-                    <Input
-                      id="passwordVerification"
-                      type="password"
-                      value={passwordVerification}
-                      onChange={(e) => setPasswordVerification(e.target.value)}
-                      placeholder="Re-enter your password"
-                    />
-                  </div>
+          {signupData.accountType === 'company' && (
+            <div className="space-y-4 mb-4 p-4 border rounded-lg bg-muted/50">
+              <h4 className="font-medium text-sm">Verify Account Master</h4>
+              <div className="grid grid-cols-1 gap-3">
+                <div>
+                  <Label htmlFor="emailVerification">Verify Email</Label>
+                  <Input
+                    id="emailVerification"
+                    type="email"
+                    value={emailVerification}
+                    onChange={(e) => setEmailVerification(e.target.value)}
+                    placeholder="Re-enter your email"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="passwordVerification">Verify Password</Label>
+                  <Input
+                    id="passwordVerification"
+                    type="password"
+                    value={passwordVerification}
+                    onChange={(e) => setPasswordVerification(e.target.value)}
+                    placeholder="Re-enter your password"
+                  />
                 </div>
               </div>
-            )}
-
-            <div className="space-y-2">
-              <Label htmlFor="phone">
-                {signupData.accountType === 'company' ? 'Company Phone Number' : 'Phone Number'}
-              </Label>
-              <Input
-                id="phone"
-                type="tel"
-                value={signupData.phone}
-                onChange={handlePhoneChange}
-                placeholder="XXX-XXX-XXXX"
-                required
-              />
             </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="location">
-                {signupData.accountType === 'company' ? 'Company Location' : 'Location'}
-              </Label>
-              <Input
-                id="location"
-                value={signupData.location}
-                onChange={(e) => setSignupData(prev => ({ ...prev, location: e.target.value }))}
-                placeholder="City, State/Country"
-                required
-              />
-          </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="bio">
-                {signupData.accountType === 'company' ? 'Company Story' : 'Bio'}
-              </Label>
-              <Textarea
-                id="bio"
-                value={signupData.bio}
-                onChange={(e) => setSignupData(prev => ({ ...prev, bio: e.target.value }))}
-                placeholder={signupData.accountType === 'company' ? 'Tell the world about your company...' : 'Tell us about yourself...'}
-                rows={3}
-              />
-            </div>
-          </div>
+          )}
 
-          <div className="space-y-4 border-t pt-4">
-            <div className="space-y-3">
-              {legalDocumentSigned && (
-                <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <p className="text-sm text-green-800 font-medium">
-                    ✓ Legal Protection Agreement Signed
-                  </p>
-                  <p className="text-xs text-green-600">
-                    Signed by: {signatureData?.signature} on {signatureData?.date}
-                  </p>
-                </div>
-              )}
-              
-              {!legalDocumentSigned && (
-                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <p className="text-sm text-yellow-800 font-medium">
-                    ⚠️ Legal Protection Agreement Required
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      // Open legal document in new window for signing
-                      const legalWindow = window.open('', '_blank', 'width=800,height=600,scrollbars=yes');
-                      if (legalWindow) {
-                        legalWindow.document.write(`
-                          <html>
-                            <head>
-                              <title>Legal Protection Agreement</title>
-                              <style>
-                                body { font-family: Arial, sans-serif; padding: 20px; line-height: 1.6; }
-                                .header { text-align: center; margin-bottom: 30px; }
-                                .signature-section { margin-top: 40px; padding: 20px; border: 2px solid #ddd; background: #f9f9f9; }
-                                input[type="text"] { border: 1px solid #ccc; padding: 8px; margin: 5px; }
-                                button { background: #4F46E5; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
-                                button:hover { background: #3730A3; }
-                                .terms { margin: 20px 0; }
-                              </style>
-                            </head>
-                            <body>
-                              <div class="header">
-                                <h1>Legal Protection Agreement</h1>
-                                <p><strong>Effective Date:</strong> ${new Date().toLocaleDateString()}</p>
-                              </div>
-                              
-                              <div class="terms">
-                                <h2>1. Risk Acknowledgment</h2>
-                                <p>By using this platform, you acknowledge that live streaming events carry inherent risks including but not limited to technical failures, content disputes, and potential exposure to inappropriate content.</p>
-                                
-                                <h2>2. Liability Limitations</h2>
-                                <p>The platform and its operators shall not be held liable for any damages, losses, or injuries resulting from your use of the service, participation in events, or interactions with other users.</p>
-                                
-                                <h2>3. User Compliance</h2>
-                                <p>You agree to comply with all applicable laws, platform terms of service, and community guidelines. You are responsible for your actions and content on the platform.</p>
-                                
-                                <h2>4. Age Verification</h2>
-                                <p>You confirm that you are at least 18 years of age and have the legal capacity to enter into this agreement.</p>
-                                
-                                <h2>5. Content Rights</h2>
-                                <p>You retain ownership of your content but grant the platform necessary rights to host, distribute, and display your content as part of the service.</p>
-                              </div>
-                              
-                              <div class="signature-section">
-                                <h3>Electronic Signature</h3>
-                                <p>By signing below, you acknowledge that you have read, understood, and agree to all terms in this Legal Protection Agreement.</p>
-                                
-                                <form onsubmit="submitSignature(event)">
-                                  <p>
-                                    <label>Full Name: </label>
-                                    <input type="text" id="fullName" required style="width: 300px;" />
-                                  </p>
-                                  <p>
-                                    <label>Electronic Signature: </label>
-                                    <input type="text" id="signature" placeholder="Type your full name" required style="width: 300px;" />
-                                  </p>
-                                  <p>
-                                    <label>Date: </label>
-                                    <input type="text" id="signDate" value="${new Date().toLocaleDateString()}" readonly />
-                                  </p>
-                                  <p style="margin-top: 20px;">
-                                    <button type="submit">Sign Agreement</button>
-                                    <button type="button" onclick="window.close()" style="background: #6B7280; margin-left: 10px;">Cancel</button>
-                                  </p>
-                                </form>
-                              </div>
-                              
-                              <script>
-                                function submitSignature(event) {
-                                  event.preventDefault();
-                                  const fullName = document.getElementById('fullName').value;
-                                  const signature = document.getElementById('signature').value;
-                                  const signDate = document.getElementById('signDate').value;
-                                  
-                                  if (fullName && signature) {
-                                    window.opener.postMessage({
-                                      type: 'LEGAL_AGREEMENT_SIGNED',
-                                      data: { fullName, signature, signDate }
-                                    }, '*');
-                                    alert('Agreement signed successfully! You can now close this window.');
-                                    window.close();
-                                  }
-                                }
-                              </script>
-                            </body>
-                          </html>
-                        `);
-                        legalWindow.document.close();
-                      }
-                    }}
-                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors mt-2"
-                  >
-                    📄 Open Legal Agreement to Sign
-                  </button>
-                </div>
-              )}
-
-              <div className="flex items-start space-x-2">
-                <Checkbox
-                  id="confirmAge"
-                  checked={signupData.confirmAge}
-                  onCheckedChange={(checked) => setSignupData(prev => ({ ...prev, confirmAge: checked as boolean }))}
-                />
-                <Label htmlFor="confirmAge" className="text-sm leading-relaxed">
-                  I confirm that I am at least 18 years old.
-                </Label>
-              </div>
-              
-              <div className="flex items-start space-x-2">
-                <Checkbox
-                  id="agreeToTerms"
-                  checked={signupData.agreeToTerms}
-                  onCheckedChange={(checked) => setSignupData(prev => ({ ...prev, agreeToTerms: checked as boolean }))}
-                />
-                <Label htmlFor="agreeToTerms" className="text-sm leading-relaxed">
-                  I agree to the Terms of Service and Privacy Policy.
-                </Label>
-              </div>
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="phone">Phone Number</Label>
+            <Input
+              id="phone"
+              type="tel"
+              value={signupData.phone}
+              onChange={handlePhoneChange}
+              placeholder="XXX-XXX-XXXX"
+              required
+            />
           </div>
           
           <div className="space-y-2">
-            <div className="relative group">
-              <Button 
-                type="submit" 
-                className="w-full" 
-                disabled={!signupData.agreeToTerms || !signupData.confirmAge || !legalDocumentSigned || loading}
-                onMouseEnter={() => console.log("Button hovered, disabled state:", !signupData.agreeToTerms || !signupData.confirmAge || !legalDocumentSigned || loading)}
-              >
-                {loading ? 'Creating Account...' : 'Create Account'}
-              </Button>
-              
-              {/* Always visible tooltip when button is disabled */}
-              {(!signupData.agreeToTerms || !signupData.confirmAge || !legalDocumentSigned) && (
-                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-red-600 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-20 whitespace-nowrap">
-                  <div className="text-center">
-                    {!legalDocumentSigned && "⚠️ Sign Legal Agreement"}
-                    {!signupData.agreeToTerms && (!legalDocumentSigned ? " • " : "") + "⚠️ Accept Terms"}
-                    {!signupData.confirmAge && ((!signupData.agreeToTerms || !legalDocumentSigned) ? " • " : "") + "⚠️ Confirm Age 18+"}
-                  </div>
-                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-red-600"></div>
-                </div>
-              )}
-              
-              {/* Click handler for disabled button to show alert */}
-              {(!signupData.agreeToTerms || !signupData.confirmAge || !legalDocumentSigned) && (
-                <div 
-                  className="absolute inset-0 cursor-not-allowed z-10"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    let message = "Please complete the following:\n";
-                    if (!legalDocumentSigned) message += "• Sign the Legal Protection Agreement\n";
-                    if (!signupData.agreeToTerms) message += "• Agree to Terms of Service\n";
-                    if (!signupData.confirmAge) message += "• Confirm you are 18+ years old\n";
-                    alert(message);
-                  }}
-                />
-              )}
+            <Label htmlFor="location">Location</Label>
+            <Input
+              id="location"
+              value={signupData.location}
+              onChange={(e) => setSignupData(prev => ({ ...prev, location: e.target.value }))}
+              placeholder="City, State"
+              required
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="bio">Bio (Optional)</Label>
+            <Textarea
+              id="bio"
+              value={signupData.bio}
+              onChange={(e) => setSignupData(prev => ({ ...prev, bio: e.target.value }))}
+              placeholder="Tell us about yourself..."
+              className="min-h-[60px]"
+            />
+          </div>
+          
+          <div className="space-y-3 pt-2">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="agreeToTerms"
+                checked={signupData.agreeToTerms}
+                onCheckedChange={(checked) => setSignupData(prev => ({ ...prev, agreeToTerms: checked as boolean }))}
+              />
+              <Label htmlFor="agreeToTerms" className="text-sm">
+                I agree to the Terms of Service and Privacy Policy
+              </Label>
             </div>
-            <Button type="button" variant="outline" onClick={() => setStep(1)} className="w-full">
+            
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="confirmAge"
+                checked={signupData.confirmAge}
+                onCheckedChange={(checked) => setSignupData(prev => ({ ...prev, confirmAge: checked as boolean }))}
+              />
+              <Label htmlFor="confirmAge" className="text-sm">
+                I confirm that I am 18 years of age or older
+              </Label>
+            </div>
+            
+            <div className="text-center">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  const popup = window.open('/legal', '_blank', 'width=800,height=600');
+                  if (!popup) {
+                    alert('Please allow popups to view the legal document');
+                  }
+                }}
+                className="text-sm"
+              >
+                {legalDocumentSigned ? '✓ Legal Document Signed' : 'Sign Legal Document'}
+              </Button>
+            </div>
+          </div>
+          
+          <div className="flex space-x-2 pt-4">
+            <Button type="button" variant="outline" onClick={() => setStep(2)} className="flex-1">
               Back
             </Button>
-            <Button type="button" variant="outline" onClick={onClose} className="w-full">
-              Cancel
+            <Button 
+              type="submit" 
+              disabled={loading || !signupData.agreeToTerms || !signupData.confirmAge || !legalDocumentSigned}
+              className="flex-1"
+            >
+              {loading ? 'Creating Account...' : 'Create Account'}
             </Button>
           </div>
         </form>
       )}
-    </>
+    </div>
   );
 
   if (inline) {
@@ -688,9 +606,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
   return (
     <>
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-hidden">
-        <div className="w-full max-w-md bg-card rounded-lg border shadow-lg max-h-[90vh] flex flex-col">
-          <div className="p-6 pb-4 flex-shrink-0">
-            <h2 className="text-xl font-semibold text-center mb-4">Create Your Public Streamer Account</h2>
+        <div className="w-full max-w-md bg-card rounded-lg border shadow-lg">
+          <div className="p-6">
+            <h2 className="text-xl font-semibold text-center mb-6">Create Your Public Streamer Account</h2>
             {error && (
               <Alert variant="destructive" className="mb-4">
                 <AlertDescription>{error}</AlertDescription>
@@ -705,12 +623,8 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                 )}
               </Alert>
             )}
+            {formContent}
           </div>
-          <ScrollArea className="flex-1 px-6 pb-6">
-            <div className="space-y-4">
-              {formContent}
-            </div>
-          </ScrollArea>
         </div>
       </div>
       {showResetPassword && (
