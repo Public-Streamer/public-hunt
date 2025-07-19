@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Video, Users, DollarSign, Smartphone } from 'lucide-react';
@@ -12,6 +12,41 @@ interface HeroProps {
 const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
   const navigate = useNavigate();
   const { user } = useAppContext();
+
+  const slogans = [
+    { text: "GO LIVE NOW, GET PAID NOW!", gradient: "from-red-500 via-orange-500 to-red-600", theme: "lightning" },
+    { text: "Go live, get paid", gradient: "from-purple-500 via-pink-500 to-red-500", theme: "pulse" },
+    { text: "Stream smart, earn more", gradient: "from-blue-500 via-cyan-500 to-green-500", theme: "smart" },
+    { text: "Broadcast, get paid", gradient: "from-orange-500 via-red-500 to-pink-500", theme: "broadcast" },
+    { text: "Stream pro, earn pro", gradient: "from-indigo-500 via-purple-500 to-pink-500", theme: "pro" },
+    { text: "Turn phones into paychecks", gradient: "from-green-500 via-emerald-500 to-teal-500", theme: "transform" },
+    { text: "Every phone, every stream, every dollar", gradient: "from-yellow-500 via-orange-500 to-red-500", theme: "universal" },
+    { text: "Professional streaming, personal profits", gradient: "from-slate-500 via-purple-500 to-pink-500", theme: "professional" },
+    { text: "Stream anywhere, earn everywhere", gradient: "from-cyan-500 via-blue-500 to-purple-500", theme: "global" },
+    { text: "Your audience, your income", gradient: "from-pink-500 via-rose-500 to-red-500", theme: "personal" },
+    { text: "Monetize the moment", gradient: "from-amber-500 via-orange-500 to-red-500", theme: "moment" },
+    { text: "Your stream, your hustle", gradient: "from-violet-500 via-purple-500 to-pink-500", theme: "hustle" },
+    { text: "From stream to income—start now", gradient: "from-emerald-500 via-green-500 to-lime-500", theme: "journey" },
+    { text: "Built for streamers. Powered by fans.", gradient: "from-blue-500 via-indigo-500 to-purple-500", theme: "community" },
+    { text: "Where creators cash in", gradient: "from-teal-500 via-cyan-500 to-blue-500", theme: "creators" },
+    { text: "Go live. Go global. Get paid.", gradient: "from-red-500 via-pink-500 to-purple-500", theme: "global-action" },
+    { text: "Stream freely. Earn endlessly.", gradient: "from-green-500 via-teal-500 to-cyan-500", theme: "freedom" }
+  ];
+
+  const [currentSloganIndex, setCurrentSloganIndex] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIsTransitioning(true);
+      setTimeout(() => {
+        setCurrentSloganIndex((prev) => (prev + 1) % slogans.length);
+        setIsTransitioning(false);
+      }, 300);
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [slogans.length]);
 
   const handleGetStarted = () => {
     // If user is not logged in, take them to login page
@@ -31,13 +66,24 @@ const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
             Monetize Your <span className="text-purple-600 dark:text-purple-400">Live Streams</span>
           </h1>
           <div className="relative mb-6">
-            <div className="flex items-center justify-center gap-4 text-2xl sm:text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-orange-500 to-red-600 tracking-wider animate-lightning font-orbitron drop-shadow-lg">
-              <span className="text-4xl sm:text-5xl md:text-6xl text-yellow-300">⚡</span>
-              <div className="text-center">
-                <div className="block sm:inline">GO LIVE NOW,</div>
-                <div className="block sm:inline sm:ml-2">GET PAID NOW!</div>
+            <div className={`flex items-center justify-center gap-4 text-2xl sm:text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r ${slogans[currentSloganIndex].gradient} tracking-wider animate-lightning font-orbitron drop-shadow-lg transition-all duration-300 ${isTransitioning ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
+              <span className="text-4xl sm:text-5xl md:text-6xl text-yellow-300 animate-pulse">⚡</span>
+              <div className="text-center relative">
+                <div className={`transition-all duration-500 ${slogans[currentSloganIndex].theme === 'lightning' ? 'animate-pulse' : slogans[currentSloganIndex].theme === 'smart' ? 'animate-bounce' : slogans[currentSloganIndex].theme === 'global' ? 'animate-spin' : 'animate-pulse'}`}>
+                  {slogans[currentSloganIndex].text}
+                </div>
+                {/* Theme-based micro-animations */}
+                {slogans[currentSloganIndex].theme === 'transform' && (
+                  <div className="absolute -top-2 -right-2 text-xs animate-ping">📱→💰</div>
+                )}
+                {slogans[currentSloganIndex].theme === 'global' && (
+                  <div className="absolute -top-2 -right-2 text-xs animate-spin">🌍</div>
+                )}
+                {slogans[currentSloganIndex].theme === 'community' && (
+                  <div className="absolute -top-2 -right-2 text-xs animate-pulse">👥</div>
+                )}
               </div>
-              <span className="text-4xl sm:text-5xl md:text-6xl text-green-300">💲</span>
+              <span className="text-4xl sm:text-5xl md:text-6xl text-green-300 animate-bounce">💲</span>
             </div>
             {/* Dollar sign sparkles - centered around the GO LIVE NOW text */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ left: '-50px', right: '-50px', top: '-10px', bottom: '30px', width: 'calc(100% + 100px)', height: '60px' }}>
