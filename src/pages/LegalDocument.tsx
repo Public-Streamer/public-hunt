@@ -20,7 +20,20 @@ const LegalDocumentPage: React.FC = () => {
   const [documentSigned, setDocumentSigned] = useState(false);
 
   const currentDate = new Date().toLocaleDateString();
-  const canSubmit = signature.trim() && acknowledgedRisks && acknowledgedLiability && acknowledgedCompliance;
+  
+  // Get user's full name from URL parameter or user metadata
+  const urlParams = new URLSearchParams(window.location.search);
+  const nameFromUrl = urlParams.get('name');
+  const userFullName = nameFromUrl || 
+    (user?.user_metadata?.firstName && user?.user_metadata?.lastName
+      ? `${user.user_metadata.firstName} ${user.user_metadata.lastName}`
+      : null);
+  
+  const isValidSignature = userFullName 
+    ? signature.trim().toLowerCase() === userFullName.toLowerCase()
+    : signature.trim().length >= 8; // Require at least 8 characters if no user name
+  
+  const canSubmit = isValidSignature && acknowledgedRisks && acknowledgedLiability && acknowledgedCompliance;
 
   // Add mobile detection and force touch event handling
   useEffect(() => {
@@ -194,6 +207,8 @@ const LegalDocumentPage: React.FC = () => {
 
   const getValidationMessage = () => {
     if (!signature.trim()) return 'Please enter your full legal name as your electronic signature';
+    if (signature.trim() && !isValidSignature && userFullName) return `Signature must match exactly: ${userFullName}`;
+    if (signature.trim() && !isValidSignature && !userFullName) return 'Please enter your full legal name (minimum 8 characters)';
     if (!acknowledgedRisks) return 'Please acknowledge that you understand the risks of live streaming';
     if (!acknowledgedLiability) return 'Please agree to release Public Streamer from liability and provide indemnification';
     if (!acknowledgedCompliance) return 'Please agree to comply with all applicable laws and platform terms';
@@ -407,9 +422,21 @@ const LegalDocumentPage: React.FC = () => {
                 type="text"
                 value={signature}
                 onChange={(e) => setSignature(e.target.value)}
-                placeholder="Your full legal name"
-                className="w-full min-h-[48px]"
+                placeholder={userFullName ? `Type: ${userFullName}` : "Your full legal name"}
+                className={`w-full min-h-[48px] ${
+                  signature.trim() && !isValidSignature ? 'border-red-500 bg-red-50' : ''
+                }`}
               />
+              {signature.trim() && !isValidSignature && userFullName && (
+                <p className="text-red-500 text-sm mt-1">
+                  Signature must match exactly: {userFullName}
+                </p>
+              )}
+              {signature.trim() && !isValidSignature && !userFullName && (
+                <p className="text-red-500 text-sm mt-1">
+                  Please enter your full legal name (minimum 8 characters)
+                </p>
+              )}
             </div>
             <div>
               <Label className="text-sm font-medium block mb-1">Date</Label>

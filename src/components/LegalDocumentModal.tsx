@@ -13,13 +13,15 @@ interface LegalDocumentModalProps {
   onClose: () => void;
   onAccept: (signature: string, date: string) => void;
   userEmail: string;
+  userFullName?: string;
 }
 
 export const LegalDocumentModal: React.FC<LegalDocumentModalProps> = ({
   isOpen,
   onClose,
   onAccept,
-  userEmail
+  userEmail,
+  userFullName
 }) => {
   const [signature, setSignature] = useState('');
   const [acknowledgedRisks, setAcknowledgedRisks] = useState(false);
@@ -27,7 +29,13 @@ export const LegalDocumentModal: React.FC<LegalDocumentModalProps> = ({
   const [acknowledgedCompliance, setAcknowledgedCompliance] = useState(false);
 
   const currentDate = new Date().toLocaleDateString();
-  const canSubmit = signature.trim() && acknowledgedRisks && acknowledgedLiability && acknowledgedCompliance;
+  
+  // Validate signature matches user's full name
+  const isValidSignature = userFullName 
+    ? signature.trim().toLowerCase() === userFullName.toLowerCase()
+    : signature.trim().length >= 3; // Fallback: at least 3 characters if no user name provided
+  
+  const canSubmit = isValidSignature && acknowledgedRisks && acknowledgedLiability && acknowledgedCompliance;
 
   const handleAccept = async () => {
     if (canSubmit) {
@@ -209,9 +217,16 @@ export const LegalDocumentModal: React.FC<LegalDocumentModalProps> = ({
                 type="text"
                 value={signature}
                 onChange={(e) => setSignature(e.target.value)}
-                placeholder="Type your full legal name"
-                className="w-full p-2 border rounded"
+                placeholder={userFullName ? `Type: ${userFullName}` : "Type your full legal name"}
+                className={`w-full p-2 border rounded ${
+                  signature.trim() && !isValidSignature ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                }`}
               />
+              {signature.trim() && !isValidSignature && userFullName && (
+                <p className="text-red-500 text-xs mt-1">
+                  Signature must match exactly: {userFullName}
+                </p>
+              )}
             </div>
             <div>
               <label className="text-sm font-medium block mb-1">Date</label>
@@ -239,7 +254,7 @@ export const LegalDocumentModal: React.FC<LegalDocumentModalProps> = ({
               disabled={!canSubmit}
               className={`px-4 py-2 rounded text-white ${
                 canSubmit 
-                  ? 'bg-red-600 hover:bg-red-700' 
+                  ? 'bg-green-600 hover:bg-green-700' 
                   : 'bg-gray-400 cursor-not-allowed'
               }`}
             >

@@ -942,11 +942,19 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                        // Save form data and current step for mobile legal document flow
                        sessionStorage.setItem('signupFormData', JSON.stringify(signupData));
                        sessionStorage.setItem('signupStep', step.toString());
-                       window.location.href = '/legal?mobile=true&return=signup&tab=signup';
+                       const userFullName = signupData.companyAccountMaster 
+                         ? `${signupData.companyAccountMaster.first_name} ${signupData.companyAccountMaster.last_name}`
+                         : `${signupData.firstName} ${signupData.lastName}`;
+                       const encodedName = encodeURIComponent(userFullName);
+                       window.location.href = `/legal?mobile=true&return=signup&tab=signup&name=${encodedName}`;
                     } else {
-                      // Desktop: use popup as before
-                      const popupFeatures = 'width=800,height=600,scrollbars=yes,resizable=yes';
-                      const popup = window.open('/legal', '_blank', popupFeatures);
+                       // Desktop: use popup as before
+                       const popupFeatures = 'width=800,height=600,scrollbars=yes,resizable=yes';
+                       const userFullName = signupData.companyAccountMaster 
+                         ? `${signupData.companyAccountMaster.first_name} ${signupData.companyAccountMaster.last_name}`
+                         : `${signupData.firstName} ${signupData.lastName}`;
+                       const encodedName = encodeURIComponent(userFullName);
+                       const popup = window.open(`/legal?name=${encodedName}`, '_blank', popupFeatures);
                       if (!popup) {
                         alert('Please allow popups to view the legal document');
                       } else {
