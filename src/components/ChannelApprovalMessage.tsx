@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, X, AlertCircle, Calendar, User } from 'lucide-react';
+import { Check, X, Trash2, AlertCircle, Calendar, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
 
@@ -16,6 +16,7 @@ interface ChannelApprovalMessageProps {
   requestedAt: string;
   status: 'pending' | 'approved' | 'rejected';
   onStatusChange?: (newStatus: 'approved' | 'rejected') => void;
+  onDelete?: () => void;
 }
 
 const ChannelApprovalMessage: React.FC<ChannelApprovalMessageProps> = ({
@@ -27,7 +28,8 @@ const ChannelApprovalMessage: React.FC<ChannelApprovalMessageProps> = ({
   requestedByName,
   requestedAt,
   status,
-  onStatusChange
+  onStatusChange,
+  onDelete
 }) => {
   const [processing, setProcessing] = useState(false);
   const { toast } = useToast();
@@ -100,6 +102,35 @@ const ChannelApprovalMessage: React.FC<ChannelApprovalMessageProps> = ({
     }
   };
 
+  const handleDelete = async () => {
+    setProcessing(true);
+    try {
+      const { error } = await supabase
+        .from('event_channel_requests')
+        .delete()
+        .eq('id', requestId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Request Deleted",
+        description: `Channel assignment request for "${eventName}" has been deleted.`,
+        variant: "default"
+      });
+
+      onDelete?.();
+    } catch (error) {
+      console.error('Error deleting request:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete request.",
+        variant: "destructive"
+      });
+    } finally {
+      setProcessing(false);
+    }
+  };
+
   const getStatusColor = () => {
     switch (status) {
       case 'approved':
@@ -159,25 +190,37 @@ const ChannelApprovalMessage: React.FC<ChannelApprovalMessageProps> = ({
         </div>
 
         {status === 'pending' && (
-          <div className="flex space-x-2 pt-2">
+          <div className="space-y-2 pt-2">
+            <div className="flex space-x-2">
+              <Button
+                onClick={() => handleApproval(true)}
+                disabled={processing}
+                className="flex-1 bg-green-600 hover:bg-green-700"
+                size="sm"
+              >
+                <Check className="h-4 w-4 mr-1" />
+                Approve
+              </Button>
+              <Button
+                onClick={() => handleApproval(false)}
+                disabled={processing}
+                variant="destructive"
+                className="flex-1"
+                size="sm"
+              >
+                <X className="h-4 w-4 mr-1" />
+                Reject
+              </Button>
+            </div>
             <Button
-              onClick={() => handleApproval(true)}
+              onClick={handleDelete}
               disabled={processing}
-              className="flex-1 bg-green-600 hover:bg-green-700"
+              variant="outline"
+              className="w-full border-red-200 text-red-600 hover:bg-red-50"
               size="sm"
             >
-              <Check className="h-4 w-4 mr-1" />
-              Approve
-            </Button>
-            <Button
-              onClick={() => handleApproval(false)}
-              disabled={processing}
-              variant="destructive"
-              className="flex-1"
-              size="sm"
-            >
-              <X className="h-4 w-4 mr-1" />
-              Reject
+              <Trash2 className="h-4 w-4 mr-1" />
+              Delete Request
             </Button>
           </div>
         )}
