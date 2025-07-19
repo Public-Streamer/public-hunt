@@ -427,6 +427,16 @@ const LegalDocumentPage: React.FC = () => {
               <Label htmlFor="signature" className="text-sm font-medium block mb-1">
                 Electronic Signature (Type your full legal name)
               </Label>
+              {userFullName && (
+                <div className="bg-blue-50 border border-blue-200 rounded p-2 mb-2">
+                  <p className="text-xs text-blue-700 font-medium">
+                    Please type exactly as shown:
+                  </p>
+                  <p className="text-sm font-bold text-blue-800">
+                    {userFullName}
+                  </p>
+                </div>
+              )}
               <Input
                 id="signature"
                 type="text"

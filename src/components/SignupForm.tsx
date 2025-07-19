@@ -954,16 +954,18 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
           </div>
           
           <div className="space-y-1">
-             <Label htmlFor="bio" className="text-sm">
-               {signupData.accountType === 'company' ? 'Company Story (Optional)' : 'Bio (Optional)'}
-             </Label>
-             <Textarea
-               id="bio"
-               value={signupData.bio}
-               onChange={(e) => setSignupData(prev => ({ ...prev, bio: e.target.value }))}
-               placeholder={signupData.accountType === 'company' ? 'Tell us about your company' : 'Tell us about yourself...'}
-               className="min-h-[40px] text-sm"
-             />
+            <Label htmlFor="bio" className="text-sm">
+                {signupData.accountType === 'business/organization' ? 'Company/Organization Story (Optional)' : 
+                 signupData.accountType === 'group/team' ? 'Group / Team Story (Optional)' : 'Bio (Optional)'}
+              </Label>
+              <Textarea
+                id="bio"
+                value={signupData.bio}
+                onChange={(e) => setSignupData(prev => ({ ...prev, bio: e.target.value }))}
+                placeholder={signupData.accountType === 'business/organization' ? 'Tell us about your company/organization' : 
+                           signupData.accountType === 'group/team' ? 'Tell us about your group/team' : 'Tell us about yourself...'}
+                className="min-h-[40px] text-sm"
+              />
           </div>
           
           <div className="space-y-2 pt-2">
