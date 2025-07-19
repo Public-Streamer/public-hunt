@@ -161,16 +161,17 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
               
               {/* Right: Login/Profile */}
               <div className="flex items-center space-x-1">
-                {isAuthenticated && user && userProfile ? (
+                {isAuthenticated && user ? (
                   <>
-                    <Link to="/profile" className="flex items-center hover:bg-white/20 rounded-lg transition-colors space-x-1 p-1">
-                      <Avatar className="h-7 w-7">
-                        <AvatarImage src={userProfile.profilePhoto} />
-                        <AvatarFallback className="bg-white text-purple-600 text-sm">
-                          {userProfile.firstName[0]}{userProfile.lastName[0]}
-                        </AvatarFallback>
-                      </Avatar>
-                    </Link>
+                     <Link to="/profile" className="flex items-center hover:bg-white/20 rounded-lg transition-colors space-x-1 p-1">
+                       <Avatar className="h-7 w-7">
+                         <AvatarImage src={userProfile?.profilePhoto} />
+                         <AvatarFallback className="bg-white text-purple-600 text-sm">
+                           {userProfile?.firstName?.[0] || user.email?.[0]?.toUpperCase() || 'U'}
+                           {userProfile?.lastName?.[0] || ''}
+                         </AvatarFallback>
+                       </Avatar>
+                     </Link>
                     <TooltipWrapper content="Sign out of your account">
                       <Button onClick={logout} variant="ghost" size="sm" className="text-white hover:bg-white/20 bg-black/20 backdrop-blur-sm border border-white/30">
                         <LogOut className="h-4 w-4" />
@@ -290,17 +291,18 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
               </nav>
               
               <div className="flex items-center space-x-2 lg:space-x-3 ml-2 lg:ml-8 flex-shrink-0">
-                {isAuthenticated && user && userProfile ? (
+                {isAuthenticated && user ? (
                   <>
-                    <Link to="/profile" className="flex items-center hover:bg-white/20 rounded-lg transition-colors space-x-2 p-2">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={userProfile.profilePhoto} />
-                        <AvatarFallback className="bg-white text-purple-600 text-sm">
-                          {userProfile.firstName[0]}{userProfile.lastName[0]}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="hidden sm:inline text-sm">{userProfile.firstName}</span>
-                    </Link>
+                     <Link to="/profile" className="flex items-center hover:bg-white/20 rounded-lg transition-colors space-x-2 p-2">
+                       <Avatar className="h-8 w-8">
+                         <AvatarImage src={userProfile?.profilePhoto} />
+                         <AvatarFallback className="bg-white text-purple-600 text-sm">
+                           {userProfile?.firstName?.[0] || user.email?.[0]?.toUpperCase() || 'U'}
+                           {userProfile?.lastName?.[0] || ''}
+                         </AvatarFallback>
+                       </Avatar>
+                       <span className="hidden sm:inline text-sm">{userProfile?.firstName || user.email?.split('@')[0]}</span>
+                     </Link>
                     <TooltipWrapper content="Sign out of your account">
                       <Button onClick={logout} variant="ghost" size="sm" className="text-white hover:bg-white/20 bg-black/20 backdrop-blur-sm border border-white/30">
                         <LogOut className="h-4 w-4" />

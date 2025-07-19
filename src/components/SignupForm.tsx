@@ -518,9 +518,13 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
           description: 'Your account has been created successfully.',
         });
         
-        // Close the form and redirect to profile
+        // Close the form first
         onClose();
-        navigate('/profile');
+        
+        // Add a small delay to ensure the form closes, then navigate
+        setTimeout(() => {
+          navigate('/profile');
+        }, 100);
       }
     } catch (error) {
       setErrorDialogConfig({
