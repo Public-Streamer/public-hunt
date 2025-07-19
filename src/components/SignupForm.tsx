@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Upload, Camera, Info } from 'lucide-react';
 import TooltipWrapper from '@/components/ui/tooltip-wrapper';
+import LiveStreamLogo from '@/components/ui/live-stream-logo';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -626,7 +627,12 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 overflow-hidden">
         <div className="w-full max-w-sm bg-card rounded-lg border shadow-lg">
           <div className="p-4">
-            <h2 className="text-lg font-semibold text-center mb-4">Create Your Public Streamer Account</h2>
+            <div className="flex items-center justify-center mb-4">
+              <LiveStreamLogo size="md" className="mr-3" />
+              <h2 className="text-lg font-semibold text-center">
+                Create Your <span className="font-orbitron font-black bg-gradient-to-r from-primary via-blue-500 to-purple-600 bg-clip-text text-transparent">Public Streamer</span> Account
+              </h2>
+            </div>
             {error && (
               <Alert variant="destructive" className="mb-3">
                 <AlertDescription className="text-xs">{error}</AlertDescription>
