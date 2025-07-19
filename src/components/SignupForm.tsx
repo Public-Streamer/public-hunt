@@ -267,11 +267,11 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
   const formContent = (
     <div className="w-full">
       {/* Progress indicator */}
-      <div className="flex items-center justify-center mb-6">
+      <div className="flex items-center justify-center mb-4">
         {[1, 2, 3].map((pageNum) => (
           <div key={pageNum} className="flex items-center">
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+              className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
                 step >= pageNum
                   ? 'bg-primary text-primary-foreground'
                   : 'bg-muted text-muted-foreground'
@@ -281,7 +281,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
             </div>
             {pageNum < 3 && (
               <div
-                className={`w-12 h-0.5 mx-2 ${
+                className={`w-8 h-0.5 mx-1 ${
                   step > pageNum ? 'bg-primary' : 'bg-muted'
                 }`}
               />
@@ -292,43 +292,44 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
 
       {/* Page 1: Account Type & Basic Info */}
       {step === 1 && (
-        <form onSubmit={handleStep1Submit} className="space-y-4">
-          <div className="text-center mb-4">
-            <h3 className="text-lg font-semibold">Account Setup</h3>
-            <p className="text-sm text-muted-foreground">Choose your account type and enter basic information</p>
+        <form onSubmit={handleStep1Submit} className="space-y-3">
+          <div className="text-center mb-3">
+            <h3 className="text-base font-semibold">Account Setup</h3>
+            <p className="text-xs text-muted-foreground">Choose your account type and enter basic information</p>
           </div>
 
-          <div className="space-y-3">
-            <Label>Account Type</Label>
+          <div className="space-y-2">
+            <Label className="text-sm">Account Type</Label>
             <RadioGroup
               value={signupData.accountType}
               onValueChange={(value: 'individual' | 'company') => setSignupData(prev => ({ ...prev, accountType: value }))}
             >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="individual" id="individual" />
-                <Label htmlFor="individual">Individual</Label>
+                <Label htmlFor="individual" className="text-sm">Individual</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="company" id="company" />
-                <Label htmlFor="company">Company</Label>
+                <Label htmlFor="company" className="text-sm">Company</Label>
               </div>
             </RadioGroup>
           </div>
           
           {signupData.accountType === 'company' && (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="companyName">Company Name</Label>
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <Label htmlFor="companyName" className="text-sm">Company Name</Label>
                 <Input
                   id="companyName"
                   value={signupData.companyName}
                   onChange={(e) => setSignupData(prev => ({ ...prev, companyName: e.target.value }))}
                   required
+                  className="h-8 text-sm"
                 />
               </div>
               
-              <div className="space-y-2">
-                <Label>Company Account Master</Label>
+              <div className="space-y-1">
+                <Label className="text-sm">Company Account Master</Label>
                 <UserSearchBox
                   onUserSelect={(user) => {
                     setSignupData(prev => ({ 
@@ -343,33 +344,35 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
             </div>
           )}
           
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+          <div className="space-y-1">
+            <Label htmlFor="email" className="text-sm">Email</Label>
             <Input
               id="email"
               type="email"
               value={signupData.email}
               onChange={(e) => setSignupData(prev => ({ ...prev, email: e.target.value }))}
               required
+              className="h-8 text-sm"
             />
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+          <div className="space-y-1">
+            <Label htmlFor="password" className="text-sm">Password</Label>
             <Input
               id="password"
               type="password"
               value={signupData.password}
               onChange={(e) => setSignupData(prev => ({ ...prev, password: e.target.value }))}
               required
+              className="h-8 text-sm"
             />
           </div>
           
-          <div className="flex space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={onClose} className="flex-1">
+          <div className="flex space-x-2 pt-3">
+            <Button type="button" variant="outline" onClick={onClose} className="flex-1 h-8 text-sm">
               Cancel
             </Button>
-            <Button type="submit" className="flex-1">
+            <Button type="submit" className="flex-1 h-8 text-sm">
               Next
             </Button>
           </div>
@@ -378,23 +381,23 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
 
       {/* Page 2: Personal Details */}
       {step === 2 && (
-        <form onSubmit={handleStep2Submit} className="space-y-4">
-          <div className="text-center mb-4">
-            <h3 className="text-lg font-semibold">Personal Details</h3>
-            <p className="text-sm text-muted-foreground">Complete your profile information</p>
+        <form onSubmit={handleStep2Submit} className="space-y-3">
+          <div className="text-center mb-3">
+            <h3 className="text-base font-semibold">Personal Details</h3>
+            <p className="text-xs text-muted-foreground">Complete your profile information</p>
           </div>
 
           {/* Profile photo section */}
-          <div className="flex flex-col items-center space-y-2 mb-4">
+          <div className="flex flex-col items-center space-y-2 mb-3">
             <div className="relative">
-              <Avatar className="w-20 h-20">
+              <Avatar className="w-16 h-16">
                 <AvatarImage src={photoPreview || undefined} />
                 <AvatarFallback>
-                  <Camera className="w-8 h-8 text-gray-400" />
+                  <Camera className="w-6 h-6 text-gray-400" />
                 </AvatarFallback>
               </Avatar>
               <label className="absolute bottom-0 right-0 bg-primary text-primary-foreground rounded-full p-1 cursor-pointer hover:bg-primary/90">
-                <Upload className="w-4 h-4" />
+                <Upload className="w-3 h-3" />
                 <input
                   type="file"
                   accept="image/*"
@@ -403,7 +406,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                 />
               </label>
             </div>
-            <Label className="text-sm text-muted-foreground">
+            <Label className="text-xs text-muted-foreground">
               {signupData.accountType === 'company' ? 'Company Logo' : 'Profile Photo'}
             </Label>
           </div>
@@ -413,55 +416,59 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
             (signupData.accountType === 'company' && !signupData.companyAccountMaster)) && (
             <>
               <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
+                <div className="space-y-1">
+                  <Label htmlFor="firstName" className="text-sm">First Name</Label>
                   <Input
                     id="firstName"
                     value={signupData.firstName}
                     onChange={(e) => setSignupData(prev => ({ ...prev, firstName: e.target.value }))}
                     required
+                    className="h-8 text-sm"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
+                <div className="space-y-1">
+                  <Label htmlFor="lastName" className="text-sm">Last Name</Label>
                   <Input
                     id="lastName"
                     value={signupData.lastName}
                     onChange={(e) => setSignupData(prev => ({ ...prev, lastName: e.target.value }))}
                     required
+                    className="h-8 text-sm"
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <div className="space-y-1">
+                <Label htmlFor="confirmPassword" className="text-sm">Confirm Password</Label>
                 <Input
                   id="confirmPassword"
                   type="password"
                   value={signupData.confirmPassword}
                   onChange={(e) => setSignupData(prev => ({ ...prev, confirmPassword: e.target.value }))}
                   required
+                  className="h-8 text-sm"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="birthDate">Birth Date (Must be 18+)</Label>
+              <div className="space-y-1">
+                <Label htmlFor="birthDate" className="text-sm">Birth Date (Must be 18+)</Label>
                 <Input
                   id="birthDate"
                   type="date"
                   value={signupData.birthDate}
                   onChange={(e) => setSignupData(prev => ({ ...prev, birthDate: e.target.value }))}
                   required
+                  className="h-8 text-sm"
                 />
               </div>
             </>
           )}
           
-          <div className="flex space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => setStep(1)} className="flex-1">
+          <div className="flex space-x-2 pt-3">
+            <Button type="button" variant="outline" onClick={() => setStep(1)} className="flex-1 h-8 text-sm">
               Back
             </Button>
-            <Button type="submit" className="flex-1">
+            <Button type="submit" className="flex-1 h-8 text-sm">
               Next
             </Button>
           </div>
@@ -470,42 +477,44 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
 
       {/* Page 3: Final Details & Legal */}
       {step === 3 && (
-        <form onSubmit={handleFinalSubmit} className="space-y-4">
-          <div className="text-center mb-4">
-            <h3 className="text-lg font-semibold">Final Details</h3>
-            <p className="text-sm text-muted-foreground">Complete your registration</p>
+        <form onSubmit={handleFinalSubmit} className="space-y-3">
+          <div className="text-center mb-3">
+            <h3 className="text-base font-semibold">Final Details</h3>
+            <p className="text-xs text-muted-foreground">Complete your registration</p>
           </div>
 
           {signupData.accountType === 'company' && (
-            <div className="space-y-4 mb-4 p-4 border rounded-lg bg-muted/50">
-              <h4 className="font-medium text-sm">Verify Account Master</h4>
-              <div className="grid grid-cols-1 gap-3">
+            <div className="space-y-3 mb-3 p-3 border rounded-lg bg-muted/50">
+              <h4 className="font-medium text-xs">Verify Account Master</h4>
+              <div className="grid grid-cols-1 gap-2">
                 <div>
-                  <Label htmlFor="emailVerification">Verify Email</Label>
+                  <Label htmlFor="emailVerification" className="text-sm">Verify Email</Label>
                   <Input
                     id="emailVerification"
                     type="email"
                     value={emailVerification}
                     onChange={(e) => setEmailVerification(e.target.value)}
                     placeholder="Re-enter your email"
+                    className="h-8 text-sm"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="passwordVerification">Verify Password</Label>
+                  <Label htmlFor="passwordVerification" className="text-sm">Verify Password</Label>
                   <Input
                     id="passwordVerification"
                     type="password"
                     value={passwordVerification}
                     onChange={(e) => setPasswordVerification(e.target.value)}
                     placeholder="Re-enter your password"
+                    className="h-8 text-sm"
                   />
                 </div>
               </div>
             </div>
           )}
 
-          <div className="space-y-2">
-            <Label htmlFor="phone">Phone Number</Label>
+          <div className="space-y-1">
+            <Label htmlFor="phone" className="text-sm">Phone Number</Label>
             <Input
               id="phone"
               type="tel"
@@ -513,39 +522,41 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
               onChange={handlePhoneChange}
               placeholder="XXX-XXX-XXXX"
               required
+              className="h-8 text-sm"
             />
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="location">Location</Label>
+          <div className="space-y-1">
+            <Label htmlFor="location" className="text-sm">Location</Label>
             <Input
               id="location"
               value={signupData.location}
               onChange={(e) => setSignupData(prev => ({ ...prev, location: e.target.value }))}
               placeholder="City, State"
               required
+              className="h-8 text-sm"
             />
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="bio">Bio (Optional)</Label>
+          <div className="space-y-1">
+            <Label htmlFor="bio" className="text-sm">Bio (Optional)</Label>
             <Textarea
               id="bio"
               value={signupData.bio}
               onChange={(e) => setSignupData(prev => ({ ...prev, bio: e.target.value }))}
               placeholder="Tell us about yourself..."
-              className="min-h-[60px]"
+              className="min-h-[40px] text-sm"
             />
           </div>
           
-          <div className="space-y-3 pt-2">
+          <div className="space-y-2 pt-2">
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="agreeToTerms"
                 checked={signupData.agreeToTerms}
                 onCheckedChange={(checked) => setSignupData(prev => ({ ...prev, agreeToTerms: checked as boolean }))}
               />
-              <Label htmlFor="agreeToTerms" className="text-sm">
+              <Label htmlFor="agreeToTerms" className="text-xs">
                 I agree to the Terms of Service and Privacy Policy
               </Label>
             </div>
@@ -556,7 +567,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                 checked={signupData.confirmAge}
                 onCheckedChange={(checked) => setSignupData(prev => ({ ...prev, confirmAge: checked as boolean }))}
               />
-              <Label htmlFor="confirmAge" className="text-sm">
+              <Label htmlFor="confirmAge" className="text-xs">
                 I confirm that I am 18 years of age or older
               </Label>
             </div>
@@ -571,23 +582,23 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                     alert('Please allow popups to view the legal document');
                   }
                 }}
-                className="text-sm"
+                className="text-xs h-8"
               >
                 {legalDocumentSigned ? '✓ Legal Document Signed' : 'Sign Legal Document'}
               </Button>
             </div>
           </div>
           
-          <div className="flex space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => setStep(2)} className="flex-1">
+          <div className="flex space-x-2 pt-3">
+            <Button type="button" variant="outline" onClick={() => setStep(2)} className="flex-1 h-8 text-sm">
               Back
             </Button>
             <Button 
               type="submit" 
               disabled={loading || !signupData.agreeToTerms || !signupData.confirmAge || !legalDocumentSigned}
-              className="flex-1"
+              className="flex-1 h-8 text-sm"
             >
-              {loading ? 'Creating Account...' : 'Create Account'}
+              {loading ? 'Creating...' : 'Create Account'}
             </Button>
           </div>
         </form>
@@ -605,17 +616,17 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-hidden">
-        <div className="w-full max-w-md bg-card rounded-lg border shadow-lg">
-          <div className="p-6">
-            <h2 className="text-xl font-semibold text-center mb-6">Create Your Public Streamer Account</h2>
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 overflow-hidden">
+        <div className="w-full max-w-sm bg-card rounded-lg border shadow-lg">
+          <div className="p-4">
+            <h2 className="text-lg font-semibold text-center mb-4">Create Your Public Streamer Account</h2>
             {error && (
-              <Alert variant="destructive" className="mb-4">
-                <AlertDescription>{error}</AlertDescription>
+              <Alert variant="destructive" className="mb-3">
+                <AlertDescription className="text-xs">{error}</AlertDescription>
                 {showResetPassword && (
                   <Button
                     variant="link"
-                    className="mt-2 p-0"
+                    className="mt-1 p-0 text-xs"
                     onClick={() => setShowResetPassword(true)}
                   >
                     Reset Password
