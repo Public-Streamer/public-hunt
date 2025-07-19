@@ -104,7 +104,7 @@ export const BirthdaySelector: React.FC<BirthdaySelectorProps> = ({ value, onCha
             <SelectTrigger className="h-12 text-sm font-medium bg-background border-2">
               <SelectValue placeholder="Select Month" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="max-h-[200px]">
               {months.map((m) => (
                 <SelectItem key={m.value} value={m.value}>
                   {m.label}
@@ -128,7 +128,7 @@ export const BirthdaySelector: React.FC<BirthdaySelectorProps> = ({ value, onCha
             <SelectTrigger className="h-12 text-sm font-medium bg-background border-2">
               <SelectValue placeholder="Select Day" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="max-h-[200px]">
               {days.map((d) => (
                 <SelectItem key={d} value={d.toString()}>
                   {d}
