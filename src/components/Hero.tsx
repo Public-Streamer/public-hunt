@@ -30,7 +30,10 @@ const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
     "From stream to income—start now",
     "Where creators cash in",
     "Go live. Go global. Get paid.",
-    "Stream freely. Earn endlessly."
+    "Stream freely. Earn endlessly.",
+    "Turn Your Passion Into Profit",
+    "Go live. Get paid. It's that simple",
+    "Make MONEY from STREAM to shining STREAM!"
   ];
 
   const [currentSloganIndex, setCurrentSloganIndex] = useState(0);
@@ -96,7 +99,7 @@ const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
           </div>
           <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
             Create pay-per-view livestream events with multiple camera angles. 
-            Turn any phone into a professional streaming camera—become a production company of one.
+            Turn cell phones into professional streaming cameras—become a production company of one.
           </p>
           <Button 
             onClick={handleGetStarted}
