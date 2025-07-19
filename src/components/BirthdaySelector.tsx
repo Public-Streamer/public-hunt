@@ -69,11 +69,12 @@ export const BirthdaySelector: React.FC<BirthdaySelectorProps> = ({ value, onCha
       <div className="grid grid-cols-3 gap-2">
         <div>
           <Label className="text-xs text-muted-foreground mb-1 block">Month</Label>
-          <Select value={month} onValueChange={(value) => handleChange('month', value)}>
+          <Select value={month} onValueChange={(value) => {
+            console.log('Month selected:', value);
+            handleChange('month', value);
+          }}>
             <SelectTrigger className="h-12 text-sm font-medium bg-background border-2">
-              <SelectValue placeholder="Select Month">
-                {month ? months.find(m => m.value === month)?.label : "Select Month"}
-              </SelectValue>
+              <SelectValue placeholder="Select Month" />
             </SelectTrigger>
             <SelectContent>
               {months.map((m) => (
@@ -83,20 +84,21 @@ export const BirthdaySelector: React.FC<BirthdaySelectorProps> = ({ value, onCha
               ))}
             </SelectContent>
           </Select>
-          {month && (
-            <div className="mt-1 p-2 bg-accent/20 rounded text-xs text-center font-medium">
-              Selected: {months.find(m => m.value === month)?.label}
-            </div>
-          )}
+          <div className="mt-2 p-3 bg-primary/10 border-2 border-primary/20 rounded-md text-center min-h-[40px] flex items-center justify-center">
+            <span className="text-sm font-bold text-primary">
+              {month ? months.find(m => m.value === month)?.label : 'No month selected'}
+            </span>
+          </div>
         </div>
         
         <div>
           <Label className="text-xs text-muted-foreground mb-1 block">Day</Label>
-          <Select value={day} onValueChange={(value) => handleChange('day', value)}>
+          <Select value={day} onValueChange={(value) => {
+            console.log('Day selected:', value);
+            handleChange('day', value);
+          }}>
             <SelectTrigger className="h-12 text-sm font-medium bg-background border-2">
-              <SelectValue placeholder="Select Day">
-                {day || "Select Day"}
-              </SelectValue>
+              <SelectValue placeholder="Select Day" />
             </SelectTrigger>
             <SelectContent>
               {days.map((d) => (
@@ -106,20 +108,21 @@ export const BirthdaySelector: React.FC<BirthdaySelectorProps> = ({ value, onCha
               ))}
             </SelectContent>
           </Select>
-          {day && (
-            <div className="mt-1 p-2 bg-accent/20 rounded text-xs text-center font-medium">
-              Selected: {day}
-            </div>
-          )}
+          <div className="mt-2 p-3 bg-primary/10 border-2 border-primary/20 rounded-md text-center min-h-[40px] flex items-center justify-center">
+            <span className="text-sm font-bold text-primary">
+              {day ? day : 'No day selected'}
+            </span>
+          </div>
         </div>
         
         <div>
           <Label className="text-xs text-muted-foreground mb-1 block">Year</Label>
-          <Select value={year} onValueChange={(value) => handleChange('year', value)}>
+          <Select value={year} onValueChange={(value) => {
+            console.log('Year selected:', value);
+            handleChange('year', value);
+          }}>
             <SelectTrigger className="h-12 text-sm font-medium bg-background border-2">
-              <SelectValue placeholder="Select Year">
-                {year || "Select Year"}
-              </SelectValue>
+              <SelectValue placeholder="Select Year" />
             </SelectTrigger>
             <SelectContent className="max-h-[200px]">
               {years.map((y) => (
@@ -129,11 +132,11 @@ export const BirthdaySelector: React.FC<BirthdaySelectorProps> = ({ value, onCha
               ))}
             </SelectContent>
           </Select>
-          {year && (
-            <div className="mt-1 p-2 bg-accent/20 rounded text-xs text-center font-medium">
-              Selected: {year}
-            </div>
-          )}
+          <div className="mt-2 p-3 bg-primary/10 border-2 border-primary/20 rounded-md text-center min-h-[40px] flex items-center justify-center">
+            <span className="text-sm font-bold text-primary">
+              {year ? year : 'No year selected'}
+            </span>
+          </div>
         </div>
       </div>
     </div>
