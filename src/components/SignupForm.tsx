@@ -667,7 +667,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
            )}
           
           <div className="space-y-1">
-            <Label htmlFor="email" className="text-sm">Email</Label>
+             <Label htmlFor="email" className="text-sm">
+               {signupData.accountType === 'company' ? 'Company Account Master Email' : 'Email'}
+             </Label>
             <Input
               id="email"
               type="email"
@@ -684,7 +686,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
           </div>
           
           <div className="space-y-1">
-            <Label htmlFor="password" className="text-sm">Password</Label>
+             <Label htmlFor="password" className="text-sm">
+               {signupData.accountType === 'company' ? 'Company Account Master Password' : 'Password'}
+             </Label>
             <Input
               id="password"
               type="password"
@@ -858,7 +862,12 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
 
           {signupData.accountType === 'company' && (
             <div className="space-y-3 mb-3 p-3 border rounded-lg bg-muted/50">
-              <h4 className="font-medium text-xs">Verify Account Master</h4>
+             <h4 className="font-medium text-xs">
+               Verify Company Account Master
+               {signupData.companyAccountMasterName && (
+                 <span className="text-muted-foreground font-normal"> - {signupData.companyAccountMasterName}</span>
+               )}
+             </h4>
                <div className="grid grid-cols-1 gap-2">
                 <div>
                   <Label htmlFor="emailVerification" className="text-sm">Verify Email</Label>
@@ -897,7 +906,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
           )}
 
           <div className="space-y-1">
-            <Label htmlFor="phone" className="text-sm">Phone Number</Label>
+             <Label htmlFor="phone" className="text-sm">
+               {signupData.accountType === 'company' ? 'Company Phone Number' : 'Phone Number'}
+             </Label>
             <Input
               id="phone"
               type="tel"
@@ -910,7 +921,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
           </div>
           
           <div className="space-y-1">
-            <Label htmlFor="location" className="text-sm">Location</Label>
+             <Label htmlFor="location" className="text-sm">
+               {signupData.accountType === 'company' ? 'Company Location' : 'Location'}
+             </Label>
             <Input
               id="location"
               value={signupData.location}
@@ -922,14 +935,16 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
           </div>
           
           <div className="space-y-1">
-            <Label htmlFor="bio" className="text-sm">Bio (Optional)</Label>
-            <Textarea
-              id="bio"
-              value={signupData.bio}
-              onChange={(e) => setSignupData(prev => ({ ...prev, bio: e.target.value }))}
-              placeholder="Tell us about yourself..."
-              className="min-h-[40px] text-sm"
-            />
+             <Label htmlFor="bio" className="text-sm">
+               {signupData.accountType === 'company' ? 'Company Story (Optional)' : 'Bio (Optional)'}
+             </Label>
+             <Textarea
+               id="bio"
+               value={signupData.bio}
+               onChange={(e) => setSignupData(prev => ({ ...prev, bio: e.target.value }))}
+               placeholder={signupData.accountType === 'company' ? 'Tell us about your company' : 'Tell us about yourself...'}
+               className="min-h-[40px] text-sm"
+             />
           </div>
           
           <div className="space-y-2 pt-2">
