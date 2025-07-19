@@ -22,7 +22,8 @@ export const BirthdaySelector: React.FC<BirthdaySelectorProps> = ({ value, onCha
     const [newYear, newMonth, newDay] = value ? value.split('-') : ['', '', ''];
     setSelectedYear(newYear);
     setSelectedMonth(newMonth);
-    setSelectedDay(newDay);
+    // Remove leading zero from day to match SelectItem values
+    setSelectedDay(newDay ? parseInt(newDay).toString() : '');
   }, [value]);
   
   // Generate year options (current year - 120 to current year - 13)
