@@ -96,11 +96,11 @@ const LegalDocumentPage: React.FC = () => {
           setTimeout(() => {
             console.log('Trying navigation fallbacks...');
             try {
-              // Navigate back to the signup form instead of home page
-              window.location.href = window.location.origin + '/login?tab=signup';
+              // Try to go back to the previous page (signup form in progress)
+              window.history.back();
             } catch (e) {
               try {
-                // Try to go back in history
+                // Fallback: try to go back in history
                 window.history.back();
               } catch (e2) {
                 console.log('All close attempts failed');
@@ -168,8 +168,8 @@ const LegalDocumentPage: React.FC = () => {
             // For mobile, also try to navigate the parent directly
             if (isMobile && target.name === 'parent') {
               try {
-                // Try to navigate parent back to signup form
-                target.ref.location.href = target.ref.location.origin + '/login?tab=signup';
+                // Try to navigate parent back using history
+                target.ref.history.back();
               } catch (navError) {
                 console.log('Parent navigation failed:', navError);
               }
@@ -196,8 +196,13 @@ const LegalDocumentPage: React.FC = () => {
         // Method 2: Try navigation approaches
         setTimeout(() => {
           try {
-            // Navigate directly to signup form instead of main app
-            window.location.href = window.location.origin + '/login?tab=signup';
+            // Try to go back to the previous page first
+            if (window.history.length > 1) {
+              window.history.back();
+            } else {
+              // Fallback to signup form
+              window.location.href = window.location.origin + '/login?tab=signup';
+            }
           } catch (e) {
             console.log('Navigation fallback failed:', e);
             // Show success message with manual close instruction (no blank page)
