@@ -82,37 +82,54 @@ const LegalDocumentPage: React.FC = () => {
         alert('Legal document signed successfully! This window will now close. If it doesn\'t close automatically, please close it manually.');
       }
       
-      // Try to close the window with mobile-optimized approach
+      // Try to close the window - focus on messaging parent window
       setTimeout(() => {
         try {
-          console.log('Attempting to close window...');
+          console.log('Attempting to close window and notify parent...');
           
-          // Method 1: Standard window.close()
-          if (window.close) {
-            window.close();
+          // Send completion message to parent window FIRST
+          const completionMessage = {
+            type: 'LEGAL_AGREEMENT_COMPLETED',
+            data: {
+              signature,
+              signDate: currentDate,
+              fullName: signature,
+              completed: true
+            }
+          };
+
+          // Send to all possible parent windows
+          if (window.parent && window.parent !== window) {
+            console.log('Sending completion message to parent window...');
+            window.parent.postMessage(completionMessage, '*');
           }
           
-          // Method 2: For mobile, navigate back to origin instead of blank page
+          if (window.opener && !window.opener.closed) {
+            console.log('Sending completion message to opener window...');
+            window.opener.postMessage(completionMessage, '*');
+          }
+
+          if (window.top && window.top !== window) {
+            console.log('Sending completion message to top window...');
+            window.top.postMessage(completionMessage, '*');
+          }
+
+          // Give time for message to be processed, then try to close
           setTimeout(() => {
-            console.log('Trying navigation fallbacks...');
             try {
-              // Try to go back to the previous page (signup form in progress)
-              window.history.back();
+              console.log('Attempting window.close()...');
+              window.close();
             } catch (e) {
-              try {
-                // Fallback: try to go back in history
-                window.history.back();
-              } catch (e2) {
-                console.log('All close attempts failed');
-                // Show instructions for manual close
-                document.body.innerHTML = `
-                  <div style="padding: 20px; text-align: center; font-family: Arial, sans-serif;">
-                    <h2 style="color: green;">✓ Legal Document Signed Successfully!</h2>
-                    <p>Please close this window/tab manually to return to the main application.</p>
-                    <button onclick="window.close()" style="padding: 10px 20px; font-size: 16px; background: #007cba; color: white; border: none; border-radius: 5px; cursor: pointer;">Close Window</button>
-                  </div>
-                `;
-              }
+              console.log('window.close() failed, showing success message...');
+              // Show success message instead of navigating
+              document.body.innerHTML = `
+                <div style="padding: 20px; text-align: center; font-family: Arial, sans-serif; background: #f0f9ff;">
+                  <h2 style="color: green;">✓ Legal Document Signed Successfully!</h2>
+                  <p style="font-size: 18px; margin: 20px 0;">Agreement completed! You can now close this window.</p>
+                  <p style="font-size: 14px; color: #666; margin-top: 20px;">Please close this window/tab to continue with your signup.</p>
+                  <button onclick="window.close();" style="padding: 15px 30px; font-size: 16px; background: #007cba; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 10px;">Close Window</button>
+                </div>
+              `;
             }
           }, 1000);
           
@@ -164,82 +181,39 @@ const LegalDocumentPage: React.FC = () => {
           if (target.ref && target.ref !== window && !target.ref.closed) {
             console.log(`Sending close message to ${target.name}...`);
             target.ref.postMessage(closeMessage, '*');
-            
-            // For mobile, also try to navigate the parent directly
-            if (isMobile && target.name === 'parent') {
-              try {
-                // Try to navigate parent back using history
-                target.ref.history.back();
-              } catch (navError) {
-                console.log('Parent navigation failed:', navError);
-              }
-            }
           }
         } catch (msgError) {
           console.log(`Message to ${target.name} failed:`, msgError);
         }
       });
 
-      // Mobile-specific close attempts
-      if (isMobile) {
-        console.log('Mobile detected - using enhanced close methods...');
-        
-        // Method 1: Try immediate close
-        setTimeout(() => {
-          try {
-            window.close();
-          } catch (e) {
-            console.log('window.close() failed:', e);
-          }
-        }, 100);
-        
-        // Method 2: Try navigation approaches
-        setTimeout(() => {
-          try {
-            // Try to go back to the previous page first
-            if (window.history.length > 1) {
-              window.history.back();
-            } else {
-              // Fallback to signup form
-              window.location.href = window.location.origin + '/login?tab=signup';
-            }
-          } catch (e) {
-            console.log('Navigation fallback failed:', e);
-            // Show success message with manual close instruction (no blank page)
-            document.body.innerHTML = `
-              <div style="padding: 20px; text-align: center; font-family: Arial, sans-serif; background: #f0f9ff;">
-                <h2 style="color: green;">✓ Document Signed Successfully!</h2>
-                <p style="font-size: 18px; margin: 20px 0;">You can now close this window and return to the signup form.</p>
-                <button onclick="window.location.href='${window.location.origin}/login?tab=signup';" style="padding: 15px 30px; font-size: 16px; background: #007cba; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 10px;">Return to Signup</button>
-                <br>
-                <button onclick="window.close();" style="padding: 15px 30px; font-size: 16px; background: #6b7280; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 10px;">Close Window</button>
-                <br>
-                <p style="font-size: 14px; color: #666; margin-top: 20px;">If the buttons don't work, please manually close this window/tab.</p>
-              </div>
-            `;
-          }
-        }, 300);
-        
-      } else {
-        // Desktop close methods
-        setTimeout(() => {
-          try {
-            window.close();
-          } catch (e) {
-            // Navigate to signup form instead of blank page
-            window.location.href = window.location.origin + '/login?tab=signup';
-          }
-        }, 200);
-      }
+      // Focus on closing the window rather than navigation
+      setTimeout(() => {
+        try {
+          window.close();
+        } catch (e) {
+          console.log('window.close() failed, showing success message...');
+          // Show success message instead of trying to navigate
+          document.body.innerHTML = `
+            <div style="padding: 20px; text-align: center; font-family: Arial, sans-serif; background: #f0f9ff;">
+              <h2 style="color: green;">✓ Document Signed Successfully!</h2>
+              <p style="font-size: 18px; margin: 20px 0;">You can now close this window to return to the signup form.</p>
+              <button onclick="window.close();" style="padding: 15px 30px; font-size: 16px; background: #007cba; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 10px;">Close Window</button>
+              <br>
+              <p style="font-size: 14px; color: #666; margin-top: 20px;">If the button doesn't work, please manually close this window/tab.</p>
+            </div>
+          `;
+        }
+      }, 300);
       
     } catch (error) {
       console.error('Error in handleCancel:', error);
-      // Show success state regardless of close issues
+      // Show success state and focus on window closure
       document.body.innerHTML = `
         <div style="padding: 20px; text-align: center; font-family: Arial, sans-serif; background: #f0f9ff;">
           <h2 style="color: green;">✓ Document Completed!</h2>
           <p>Please close this window to return to the signup form.</p>
-          <button onclick="window.location.href='${window.location.origin}/login?tab=signup';" style="padding: 15px 30px; font-size: 16px; background: #007cba; color: white; border: none; border-radius: 8px; cursor: pointer;">Return to Signup</button>
+          <button onclick="window.close();" style="padding: 15px 30px; font-size: 16px; background: #007cba; color: white; border: none; border-radius: 8px; cursor: pointer;">Close Window</button>
         </div>
       `;
     }
