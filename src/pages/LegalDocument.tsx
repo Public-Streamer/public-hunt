@@ -114,25 +114,27 @@ const LegalDocumentPage: React.FC = () => {
             window.top.postMessage(completionMessage, '*');
           }
 
-          // Give time for message to be processed, then try to close
-          setTimeout(() => {
-            try {
-              console.log('Attempting window.close()...');
-              window.close();
-            } catch (e) {
-              console.log('window.close() failed, checking mobile redirect...');
-              
-              // For mobile, check if we need to redirect back to signup
-              const urlParams = new URLSearchParams(window.location.search);
-              const isMobile = urlParams.get('mobile') === 'true';
-              const returnTo = urlParams.get('return');
-              
-              if (isMobile && returnTo === 'signup') {
-                console.log('Mobile detected, redirecting back to signup form...');
-                window.location.href = '/login?tab=signup';
-              }
-            }
-          }, 1000);
+      // Give time for message to be processed, then handle closing
+      setTimeout(() => {
+        // Check if this is mobile navigation first
+        const urlParams = new URLSearchParams(window.location.search);
+        const isMobileParam = urlParams.get('mobile') === 'true';
+        const returnTo = urlParams.get('return');
+        
+        if (isMobileParam && returnTo === 'signup') {
+          console.log('Mobile detected, redirecting back to signup form immediately...');
+          window.location.href = '/login?tab=signup';
+          return;
+        }
+        
+        // For popup windows, try to close
+        try {
+          console.log('Attempting window.close()...');
+          window.close();
+        } catch (e) {
+          console.log('window.close() failed:', e);
+        }
+      }, 500);
           
         } catch (error) {
           console.log('Close attempt failed:', error);
@@ -188,24 +190,25 @@ const LegalDocumentPage: React.FC = () => {
         }
       });
 
-      // Focus on closing the window rather than navigation
+      // Check if this is mobile navigation first
+      const urlParams = new URLSearchParams(window.location.search);
+      const isMobileParam = urlParams.get('mobile') === 'true';
+      const returnTo = urlParams.get('return');
+      
+      if (isMobileParam && returnTo === 'signup') {
+        console.log('Mobile detected, redirecting back to signup form immediately...');
+        window.location.href = '/login?tab=signup';
+        return;
+      }
+      
+      // For popup windows, try to close with a shorter delay
       setTimeout(() => {
         try {
           window.close();
         } catch (e) {
-          console.log('window.close() failed, checking mobile redirect...');
-          
-          // For mobile, check if we need to redirect back to signup
-          const urlParams = new URLSearchParams(window.location.search);
-          const isMobile = urlParams.get('mobile') === 'true';
-          const returnTo = urlParams.get('return');
-          
-          if (isMobile && returnTo === 'signup') {
-            console.log('Mobile detected, redirecting back to signup form...');
-            window.location.href = '/login?tab=signup';
-          }
+          console.log('window.close() failed:', e);
         }
-      }, 300);
+      }, 100);
       
     } catch (error) {
       console.error('Error in handleCancel:', error);
