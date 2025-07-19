@@ -78,6 +78,11 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
     title: string;
     message: string;
   }>({ title: '', message: '' });
+  
+  // Validation error states for real-time feedback
+  const [validationErrors, setValidationErrors] = useState<{
+    [key: string]: string;
+  }>({});
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -118,6 +123,67 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
       age--;
     }
     return age;
+  };
+
+  // Validation helper functions
+  const getStep1ValidationError = () => {
+    if (signupData.accountType === 'company' && !signupData.companyName.trim()) {
+      return 'Please enter a company name';
+    }
+    if (signupData.accountType === 'company' && !signupData.companyAccountMaster) {
+      return 'Please select a Company Account Master';
+    }
+    if (!signupData.email) {
+      return 'Please enter your email';
+    }
+    if (!signupData.password) {
+      return 'Please enter your password';
+    }
+    return null;
+  };
+
+  const getStep2ValidationError = () => {
+    if (signupData.accountType === 'individual' || 
+        (signupData.accountType === 'company' && !signupData.companyAccountMaster)) {
+      if (signupData.password !== signupData.confirmPassword) {
+        return 'Passwords do not match';
+      }
+      if (!signupData.firstName) {
+        return 'Please enter your first name';
+      }
+      if (!signupData.lastName) {
+        return 'Please enter your last name';
+      }
+      if (!signupData.birthDate) {
+        return 'Please enter your birth date';
+      }
+      const age = calculateAge(signupData.birthDate);
+      if (age < 18) {
+        return 'You must be 18 years or older to join';
+      }
+    }
+    return null;
+  };
+
+  const getStep3ValidationError = () => {
+    if (signupData.accountType === 'company') {
+      if (emailVerification !== signupData.email) {
+        return 'Email verification does not match';
+      }
+      if (passwordVerification !== signupData.password) {
+        return 'Password verification does not match';
+      }
+    }
+    if (!signupData.agreeToTerms) {
+      return 'Please agree to the Terms of Service';
+    }
+    if (!signupData.confirmAge) {
+      return 'Please confirm you are 18 or older';
+    }
+    if (!legalDocumentSigned) {
+      return 'Please sign the legal document';
+    }
+    return null;
   };
 
   const handleStep1Submit = (e: React.FormEvent) => {
@@ -373,9 +439,18 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
             <Button type="button" variant="outline" onClick={onClose} className="flex-1 h-8 text-sm">
               Cancel
             </Button>
-            <Button type="submit" className="flex-1 h-8 text-sm">
-              Next
-            </Button>
+            <TooltipWrapper 
+              content={getStep1ValidationError() || "Continue to personal details"}
+              disabled={!getStep1ValidationError()}
+            >
+              <Button 
+                type="submit" 
+                className="flex-1 h-8 text-sm"
+                disabled={!!getStep1ValidationError()}
+              >
+                Next
+              </Button>
+            </TooltipWrapper>
           </div>
         </form>
       )}
@@ -476,9 +551,18 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
             <Button type="button" variant="outline" onClick={() => setStep(1)} className="flex-1 h-8 text-sm">
               Back
             </Button>
-            <Button type="submit" className="flex-1 h-8 text-sm">
-              Next
-            </Button>
+            <TooltipWrapper 
+              content={getStep2ValidationError() || "Continue to final details"}
+              disabled={!getStep2ValidationError()}
+            >
+              <Button 
+                type="submit" 
+                className="flex-1 h-8 text-sm"
+                disabled={!!getStep2ValidationError()}
+              >
+                Next
+              </Button>
+            </TooltipWrapper>
           </div>
         </form>
       )}
@@ -601,13 +685,18 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
             <Button type="button" variant="outline" onClick={() => setStep(2)} className="flex-1 h-8 text-sm">
               Back
             </Button>
-            <Button 
-              type="submit" 
-              disabled={loading || !signupData.agreeToTerms || !signupData.confirmAge || !legalDocumentSigned}
-              className="flex-1 h-8 text-sm"
+            <TooltipWrapper 
+              content={getStep3ValidationError() || "Complete your account registration"}
+              disabled={!getStep3ValidationError()}
             >
-              {loading ? 'Creating...' : 'Create Account'}
-            </Button>
+              <Button 
+                type="submit" 
+                disabled={loading || !!getStep3ValidationError()}
+                className="flex-1 h-8 text-sm"
+              >
+                {loading ? 'Creating...' : 'Create Account'}
+              </Button>
+            </TooltipWrapper>
           </div>
         </form>
       )}
