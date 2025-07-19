@@ -74,6 +74,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
     companyName: '',
     companyAccountMaster: null as any,
     companyAccountMasterName: '',
+    companyExecutorAcknowledged: false,
     firstName: '',
     lastName: '',
     email: '',
@@ -171,6 +172,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
       if (step >= 1) {
         if (signupData.accountType === 'company' && !signupData.companyName.trim()) {
           errors.companyName = 'Company name is required';
+        }
+        if (signupData.accountType === 'company' && !signupData.companyExecutorAcknowledged) {
+          errors.companyExecutorAcknowledged = 'Must acknowledge Company Account Master executor authority';
         }
         if (signupData.accountType === 'company' && !signupData.companyAccountMaster) {
           errors.companyAccountMaster = 'Company Account Master is required';
@@ -285,6 +289,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
     if (signupData.accountType === 'company' && !signupData.companyName.trim()) {
       return 'Please enter a company name';
     }
+    if (signupData.accountType === 'company' && !signupData.companyExecutorAcknowledged) {
+      return 'Please acknowledge that the Company Account Master has executor authority';
+    }
     if (signupData.accountType === 'company' && !signupData.companyAccountMaster) {
       return 'Please select a Company Account Master';
     }
@@ -362,15 +369,24 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
       setShowErrorDialog(true);
       return;
     }
-    
-    if (signupData.accountType === 'company' && !signupData.companyAccountMaster) {
-      setErrorDialogConfig({
-        title: 'Company Account Master Required',
-        message: 'Please select a Company Account Master.'
-      });
-      setShowErrorDialog(true);
-      return;
-    }
+     
+     if (signupData.accountType === 'company' && !signupData.companyExecutorAcknowledged) {
+       setErrorDialogConfig({
+         title: 'Executor Authority Acknowledgment Required',
+         message: 'Please acknowledge that the Company Account Master has executor authority for the company.'
+       });
+       setShowErrorDialog(true);
+       return;
+     }
+     
+     if (signupData.accountType === 'company' && !signupData.companyAccountMaster) {
+       setErrorDialogConfig({
+         title: 'Company Account Master Required',
+         message: 'Please select a Company Account Master.'
+       });
+       setShowErrorDialog(true);
+       return;
+     }
     
     // Validate email and password
     if (!signupData.email || !signupData.password) {
@@ -586,24 +602,54 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
             </RadioGroup>
           </div>
           
-          {signupData.accountType === 'company' && (
-            <div className="space-y-3">
-              <div className="space-y-1">
-                <Label htmlFor="companyName" className="text-sm">Company Name</Label>
-                <TooltipWrapper 
-                  content={validationErrors.companyName || "Enter your company name"}
-                  disabled={!validationErrors.companyName}
-                >
-                  <Input
-                    id="companyName"
-                    value={signupData.companyName}
-                    onChange={(e) => setSignupData(prev => ({ ...prev, companyName: e.target.value }))}
-                    required
-                    className={`h-8 text-sm ${getFieldErrorClass('companyName')}`}
-                  />
-                </TooltipWrapper>
-              </div>
-              
+           {signupData.accountType === 'company' && (
+             <div className="space-y-3">
+               <div className="space-y-1">
+                 <Label htmlFor="companyName" className="text-sm">Company Name</Label>
+                 <TooltipWrapper 
+                   content={validationErrors.companyName || "Enter your company name"}
+                   disabled={!validationErrors.companyName}
+                 >
+                   <Input
+                     id="companyName"
+                     value={signupData.companyName}
+                     onChange={(e) => setSignupData(prev => ({ ...prev, companyName: e.target.value }))}
+                     required
+                     className={`h-8 text-sm ${getFieldErrorClass('companyName')}`}
+                   />
+                 </TooltipWrapper>
+               </div>
+               
+               <div className="space-y-1">
+                 <Label htmlFor="companyAccountMasterName" className="text-sm">Name of Company Account Master</Label>
+                 <Input
+                   id="companyAccountMasterName"
+                   value={signupData.companyAccountMasterName}
+                   onChange={(e) => setSignupData(prev => ({ ...prev, companyAccountMasterName: e.target.value }))}
+                   placeholder="Enter the full name of the company account master"
+                   className="h-8 text-sm"
+                 />
+               </div>
+
+               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                 <div className="flex items-start space-x-2">
+                   <Checkbox
+                     id="companyExecutorAcknowledged"
+                     checked={signupData.companyExecutorAcknowledged}
+                     onCheckedChange={(checked) => setSignupData(prev => ({ ...prev, companyExecutorAcknowledged: checked as boolean }))}
+                     className="mt-0.5"
+                   />
+                   <div className="flex-1">
+                     <Label htmlFor="companyExecutorAcknowledged" className="text-sm font-medium text-yellow-800 cursor-pointer">
+                       I acknowledge that the Company Account Master has executor authority for the company
+                     </Label>
+                     <p className="text-xs text-yellow-700 mt-1">
+                       The Company Account Master will have full control and authority to act on behalf of the company account, including but not limited to managing content, financial transactions, and legal agreements.
+                     </p>
+                   </div>
+                 </div>
+               </div>
+               
                <div className="space-y-1">
                  <Label className="text-sm">Company Account Master</Label>
                  <UserSearchBox
@@ -617,19 +663,8 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                    placeholder="Search for existing profile..."
                  />
                </div>
-               
-               <div className="space-y-1">
-                 <Label htmlFor="companyAccountMasterName" className="text-sm">Name of company account master/executor</Label>
-                 <Input
-                   id="companyAccountMasterName"
-                   value={signupData.companyAccountMasterName}
-                   onChange={(e) => setSignupData(prev => ({ ...prev, companyAccountMasterName: e.target.value }))}
-                   placeholder="Enter the full name of the company account master"
-                   className="h-8 text-sm"
-                 />
-               </div>
-            </div>
-          )}
+             </div>
+           )}
           
           <div className="space-y-1">
             <Label htmlFor="email" className="text-sm">Email</Label>
