@@ -186,22 +186,18 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose }) => {
                   Cancel
                 </Button>
               </TooltipWrapper>
-            </div>
-            
-            {/* Centered signup link with proper spacing and positioning */}
-            <div className="pt-2 sm:pt-4 w-full">
-              <div className="flex justify-center items-center w-full">
-                <TooltipWrapper content="Create a new account">
-                  <Button 
-                    type="button" 
-                    variant="link" 
-                    onClick={() => setShowSignup(true)}
-                    className="text-sm px-0 mx-auto"
-                  >
-                    Don't have an account? Sign up
-                  </Button>
-                </TooltipWrapper>
-              </div>
+              
+              {/* Moved signup button closer to Cancel and made it more button-like */}
+              <TooltipWrapper content="Create a new account">
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  onClick={() => setShowSignup(true)}
+                  className="w-full h-10 sm:h-11 text-base font-medium border border-primary/20 hover:border-primary hover:bg-primary/5 transition-all duration-200"
+                >
+                  Don't have an account? Sign up
+                </Button>
+              </TooltipWrapper>
             </div>
           </form>
         </CardContent>
