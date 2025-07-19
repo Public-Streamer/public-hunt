@@ -461,6 +461,13 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
     setLoading(true);
     setError(null);
     try {
+      console.log('Calling signUp with data:', {
+        email: signupData.email,
+        accountType: signupData.accountType,
+        firstName: signupData.firstName,
+        lastName: signupData.lastName
+      });
+      
       const result = await signUp(signupData.email, signupData.password, {
         accountType: signupData.accountType,
         companyName: signupData.companyName,
@@ -474,15 +481,19 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
         profilePhoto: photoPreview || undefined
       });
       
+      console.log('SignUp result:', result);
+      
       if (result.error) {
+        console.log('SignUp error:', result.error);
         if (result.error.toLowerCase().includes('email already exists') || 
             result.error.toLowerCase().includes('user already registered')) {
           setError('An account with this email already exists.');
           setShowResetPassword(true);
         } else {
-          setError(result.error);
+          setError(`Signup failed: ${result.error}`);
         }
       } else {
+        console.log('Signup successful, redirecting to profile...');
         // Account created successfully - navigate to profile page
         setTimeout(() => {
           if (onSuccess) {
@@ -495,7 +506,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
         }, 1000); // Small delay to show the success toast
       }
     } catch (error) {
-      setError((error as Error).message);
+      console.log('SignUp exception:', error);
+      alert(`DEBUG: Account creation failed with error: ${(error as Error).message}`);
+      setError(`Account creation failed: ${(error as Error).message}`);
     } finally {
       setLoading(false);
     }
