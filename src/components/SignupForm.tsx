@@ -31,6 +31,7 @@ interface SignupFormProps {
 const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = false }) => {
   const { signUp } = useAppContext();
   const navigate = useNavigate();
+  const { toast } = useToast();
   
 
   // Listen for messages from popup window
@@ -418,58 +419,22 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
 
   const handleFinalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setDebugStatus('🔍 Form submitted, starting validation...');
     
-    console.log('handleFinalSubmit called', { 
-      signupData, 
-      emailVerification, 
-      passwordVerification, 
-      legalDocumentSigned 
-    });
-    
-    // For company accounts, verify email and password match
-    if (signupData.accountType === 'company') {
-      console.log('Company account validation');
-      if (emailVerification !== signupData.email) {
-        console.log('Email verification failed');
-        setError("Email verification does not match your account email");
-        return;
-      }
-      if (passwordVerification !== signupData.password) {
-        console.log('Password verification failed');
-        setError("Password verification does not match your account password");
-        return;
-      }
-    }
-    
-    console.log('Checking final validations:', {
-      agreeToTerms: signupData.agreeToTerms,
-      confirmAge: signupData.confirmAge,
-      legalDocumentSigned
-    });
-    
-    if (!signupData.agreeToTerms || !signupData.confirmAge || !legalDocumentSigned) {
-      console.log('Final validation failed');
-      let missingItems = [];
-      if (!signupData.agreeToTerms) missingItems.push('Terms of Service agreement');
-      if (!signupData.confirmAge) missingItems.push('Age confirmation (18+)');
-      if (!legalDocumentSigned) missingItems.push('Legal document signature');
-      
-      setError(`Missing required items: ${missingItems.join(', ')}`);
+    // Validate final step requirements
+    const step3Error = getStep3ValidationError();
+    if (step3Error) {
+      setErrorDialogConfig({
+        title: 'Missing Requirements',
+        message: step3Error
+      });
+      setShowErrorDialog(true);
       return;
     }
     
-    console.log('Starting signup process');
     setLoading(true);
     setError(null);
+    
     try {
-      console.log('Calling signUp with data:', {
-        email: signupData.email,
-        accountType: signupData.accountType,
-        firstName: signupData.firstName,
-        lastName: signupData.lastName
-      });
-      
       const result = await signUp(signupData.email, signupData.password, {
         accountType: signupData.accountType,
         companyName: signupData.companyName,
@@ -483,33 +448,39 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
         profilePhoto: photoPreview || undefined
       });
       
-      console.log('SignUp result:', result);
-      
       if (result.error) {
-        console.log('SignUp error:', result.error);
         if (result.error.toLowerCase().includes('email already exists') || 
             result.error.toLowerCase().includes('user already registered')) {
-          setError('An account with this email already exists.');
+          setErrorDialogConfig({
+            title: 'Account Already Exists',
+            message: 'An account with this email already exists. Would you like to sign in instead?'
+          });
+          setShowErrorDialog(true);
           setShowResetPassword(true);
         } else {
-          setError(`Signup failed: ${result.error}`);
+          setErrorDialogConfig({
+            title: 'Signup Failed',
+            message: `Account creation failed: ${result.error}`
+          });
+          setShowErrorDialog(true);
         }
       } else {
-        console.log('Signup successful, redirecting to profile...');
-        // Account created successfully - navigate to profile page
-        setTimeout(() => {
-          if (onSuccess) {
-            onSuccess();
-          } else {
-            onClose();
-          }
-          // Navigate to the user's profile page
-          window.location.href = '/profile';
-        }, 1000); // Small delay to show the success toast
+        // Account created successfully
+        toast({
+          title: 'Welcome!',
+          description: 'Your account has been created successfully.',
+        });
+        
+        // Close the form and redirect to profile
+        onClose();
+        navigate('/profile');
       }
     } catch (error) {
-      console.log('SignUp exception:', error);
-      setError(`DEBUG - Account creation failed: ${(error as Error).message}. Please try again or contact support.`);
+      setErrorDialogConfig({
+        title: 'Unexpected Error',
+        message: `Account creation failed: ${(error as Error).message}. Please try again.`
+      });
+      setShowErrorDialog(true);
     } finally {
       setLoading(false);
     }
