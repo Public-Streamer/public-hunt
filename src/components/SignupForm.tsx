@@ -249,9 +249,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
   };
 
   const formContent = (
-    <div className="w-full h-full flex flex-col overflow-hidden">
+    <>
       {step === 1 && (
-        <form onSubmit={handleStep1Submit} className="space-y-4 w-full max-w-sm mx-auto px-6 py-4 flex-1 flex flex-col justify-center min-h-0">
+        <form onSubmit={handleStep1Submit} className="space-y-4 w-full">
           <div className="w-full flex flex-col items-center space-y-3 mb-4">
             <Label className="text-center text-base font-medium text-gray-700">
               Will this account be created for an individual or a company?
@@ -728,7 +728,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
           </div>
         </form>
       )}
-    </div>
+    </>
   );
 
   if (inline) {
@@ -741,12 +741,13 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-hidden">
-        <div className="w-full max-w-sm max-h-[95vh] bg-white rounded-lg shadow-xl flex flex-col overflow-hidden">
-          <div className="p-4 pb-2 text-center border-b shrink-0">
-            <h2 className="text-lg font-semibold">Create Your Public Streamer Account</h2>
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="w-full max-w-md h-auto max-h-[90vh] bg-white rounded-lg shadow-xl flex flex-col">
+          <div className="px-6 py-4 text-center border-b shrink-0">
+            <h2 className="text-xl font-semibold text-gray-800">Create Account</h2>
+            <p className="text-sm text-gray-600 mt-1">Join Public Streamer today</p>
             {error && (
-              <Alert variant="destructive" className="mt-2">
+              <Alert variant="destructive" className="mt-3">
                 <AlertDescription className="text-sm">{error}</AlertDescription>
                 {showResetPassword && (
                   <Button
@@ -760,7 +761,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
               </Alert>
             )}
           </div>
-          <div className="flex-1 overflow-y-auto overflow-x-hidden">
+          <div className="flex-1 overflow-y-auto px-6 py-4">
             {formContent}
           </div>
         </div>
