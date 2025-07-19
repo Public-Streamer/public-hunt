@@ -251,202 +251,238 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
   const formContent = (
     <>
       {step === 1 && (
-        <form onSubmit={handleStep1Submit} className="space-y-4 w-full">
-          <div className="w-full flex flex-col items-center space-y-3 mb-4">
-            <Label className="text-center text-base font-medium text-gray-700">
-              Will this account be created for an individual or a company?
-            </Label>
-            <div className="w-full flex justify-center">
+        <div className="w-full">
+          <form onSubmit={handleStep1Submit} className="space-y-6">
+            {/* Account Type Selection */}
+            <div className="space-y-4">
+              <div className="text-center">
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Account Type</h3>
+                <p className="text-sm text-gray-600">Choose whether this account is for an individual or company</p>
+              </div>
               <RadioGroup
                 value={signupData.accountType}
                 onValueChange={(value: 'individual' | 'company') => setSignupData(prev => ({ ...prev, accountType: value }))}
-                className="flex flex-row gap-8"
+                className="flex justify-center gap-8"
               >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="individual" id="individual" />
-                  <Label htmlFor="individual" className="text-sm font-medium">Individual</Label>
+                <div className="flex items-center space-x-3">
+                  <RadioGroupItem value="individual" id="individual" className="text-blue-600" />
+                  <Label htmlFor="individual" className="text-base font-medium cursor-pointer">Individual</Label>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="company" id="company" />
-                  <Label htmlFor="company" className="text-sm font-medium">Company</Label>
+                <div className="flex items-center space-x-3">
+                  <RadioGroupItem value="company" id="company" className="text-blue-600" />
+                  <Label htmlFor="company" className="text-base font-medium cursor-pointer">Company</Label>
                 </div>
               </RadioGroup>
             </div>
-          </div>
-          
-          {signupData.accountType === 'company' && (
-            <div className="w-full space-y-4 mb-4">
-              <div className="w-full space-y-2">
-                <Label htmlFor="companyName" className="text-sm font-medium text-gray-700 block">
-                  Company Name
-                </Label>
-                <Input
-                  id="companyName"
-                  value={signupData.companyName}
-                  onChange={(e) => setSignupData(prev => ({ ...prev, companyName: e.target.value }))}
-                  className="w-full h-12 text-base"
-                  placeholder="Enter company name"
-                  required
-                />
-              </div>
-              
-              <div className="w-full space-y-2">
-                <Label className="text-sm font-medium text-gray-700 block">
-                  Select Company Account Master
-                </Label>
-                <UserSearchBox
-                  onUserSelect={(user) => {
-                    setSignupData(prev => ({ 
-                      ...prev, 
-                      companyAccountMaster: user
-                    }));
-                  }}
-                  selectedUser={signupData.companyAccountMaster}
-                  placeholder="Search for existing profile to designate as Company Account Master..."
-                />
-              </div>
-            </div>
-          )}
-          
-          <div className="flex flex-col items-center space-y-3 mb-4">
-            <div className="relative">
-              <Avatar className="w-20 h-20 border-2 border-gray-200">
-                <AvatarImage src={photoPreview || undefined} />
-                <AvatarFallback className="bg-gray-100">
-                  <Camera className="w-8 h-8 text-gray-400" />
-                </AvatarFallback>
-              </Avatar>
-              <label className="absolute bottom-0 right-0 bg-blue-600 text-white rounded-full p-2 cursor-pointer hover:bg-blue-700 transition-colors shadow-lg">
-                <Upload className="w-4 h-4" />
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handlePhotoUpload}
-                  className="hidden"
-                />
-              </label>
-            </div>
-            <Label className="text-sm font-medium text-gray-600 text-center">
-              {signupData.accountType === 'company' ? 'Company Profile Photo' : 'Profile Photo (Optional)'}
-            </Label>
-          </div>
-          
-          {/* Only show name fields for individual accounts or company accounts without master selected */}
-          {(signupData.accountType === 'individual' || 
-            (signupData.accountType === 'company' && !signupData.companyAccountMaster)) && (
-            <div className="w-full space-y-4 mb-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName" className="text-sm font-medium text-gray-700 block">
-                    First Name
-                  </Label>
-                  <Input
-                    id="firstName"
-                    value={signupData.firstName}
-                    onChange={(e) => setSignupData(prev => ({ ...prev, firstName: e.target.value }))}
-                    className="w-full h-12 text-base"
-                    placeholder="John"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName" className="text-sm font-medium text-gray-700 block">
-                    Last Name
-                  </Label>
-                  <Input
-                    id="lastName"
-                    value={signupData.lastName}
-                    onChange={(e) => setSignupData(prev => ({ ...prev, lastName: e.target.value }))}
-                    className="w-full h-12 text-base"
-                    placeholder="Doe"
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-          
-          <div className="w-full space-y-4 mb-4">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium text-gray-700 block">
-                Email Address
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                value={signupData.email}
-                onChange={(e) => setSignupData(prev => ({ ...prev, email: e.target.value }))}
-                className="w-full h-12 text-base"
-                placeholder="john@example.com"
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium text-gray-700 block">
-                Password
-              </Label>
-              <Input
-                id="password"
-                type="password"
-                value={signupData.password}
-                onChange={(e) => setSignupData(prev => ({ ...prev, password: e.target.value }))}
-                className="w-full h-12 text-base"
-                placeholder="Enter a secure password"
-                required
-              />
-            </div>
-          </div>
-            
-          {/* Only show confirm password and birth date for individual accounts or company accounts without master selected */}
-          {(signupData.accountType === 'individual' || 
-            (signupData.accountType === 'company' && !signupData.companyAccountMaster)) && (
-            <div className="w-full space-y-4 mb-4">
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700 block">
-                  Confirm Password
-                </Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  value={signupData.confirmPassword}
-                  onChange={(e) => setSignupData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                  className="w-full h-12 text-base"
-                  placeholder="Re-enter your password"
-                  required
-                />
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="birthDate" className="text-sm font-medium text-gray-700 block">
-                  Birth Date <span className="text-red-500">*</span>
-                  <span className="text-xs text-gray-500 block">Must be 18 years or older</span>
-                </Label>
-                <Input
-                  id="birthDate"
-                  type="date"
-                  value={signupData.birthDate}
-                  onChange={(e) => setSignupData(prev => ({ ...prev, birthDate: e.target.value }))}
-                  className="w-full h-12 text-base"
-                  required
-                />
+            {/* Company-specific fields */}
+            {signupData.accountType === 'company' && (
+              <div className="space-y-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <h4 className="text-base font-medium text-blue-900">Company Information</h4>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="companyName" className="text-sm font-medium text-gray-700">
+                    Company Name <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="companyName"
+                    value={signupData.companyName}
+                    onChange={(e) => setSignupData(prev => ({ ...prev, companyName: e.target.value }))}
+                    className="h-12 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    placeholder="Enter your company name"
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">
+                    Company Account Master <span className="text-red-500">*</span>
+                  </Label>
+                  <p className="text-xs text-gray-600 mb-2">Select an existing user to be the Company Account Master</p>
+                  <UserSearchBox
+                    onUserSelect={(user) => {
+                      setSignupData(prev => ({ 
+                        ...prev, 
+                        companyAccountMaster: user
+                      }));
+                    }}
+                    selectedUser={signupData.companyAccountMaster}
+                    placeholder="Search for existing profile..."
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Profile Photo */}
+            <div className="flex flex-col items-center space-y-3">
+              <h4 className="text-base font-medium text-gray-900">Profile Photo</h4>
+              <div className="relative group">
+                <Avatar className="w-24 h-24 border-4 border-gray-200 group-hover:border-blue-300 transition-colors">
+                  <AvatarImage src={photoPreview || undefined} className="object-cover" />
+                  <AvatarFallback className="bg-gray-100 text-gray-400">
+                    <Camera className="w-8 h-8" />
+                  </AvatarFallback>
+                </Avatar>
+                <label className="absolute -bottom-2 -right-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-3 cursor-pointer shadow-lg transition-colors">
+                  <Upload className="w-4 h-4" />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePhotoUpload}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+              <p className="text-sm text-gray-600 text-center">Optional - Add a profile photo</p>
+            </div>
+
+            {/* Personal Information - Only for individual or company without master */}
+            {(signupData.accountType === 'individual' || 
+              (signupData.accountType === 'company' && !signupData.companyAccountMaster)) && (
+              <div className="space-y-6">
+                <div className="border-t pt-6">
+                  <h4 className="text-base font-medium text-gray-900 mb-4">Personal Information</h4>
+                  
+                  {/* Name Fields */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="firstName" className="text-sm font-medium text-gray-700">
+                        First Name <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="firstName"
+                        value={signupData.firstName}
+                        onChange={(e) => setSignupData(prev => ({ ...prev, firstName: e.target.value }))}
+                        className="h-12 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                        placeholder="John"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">
+                        Last Name <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="lastName"
+                        value={signupData.lastName}
+                        onChange={(e) => setSignupData(prev => ({ ...prev, lastName: e.target.value }))}
+                        className="h-12 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                        placeholder="Doe"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Birth Date */}
+                  <div className="space-y-2 mb-6">
+                    <Label htmlFor="birthDate" className="text-sm font-medium text-gray-700">
+                      Birth Date <span className="text-red-500">*</span>
+                    </Label>
+                    <p className="text-xs text-gray-600 mb-2">You must be 18 years or older to create an account</p>
+                    <Input
+                      id="birthDate"
+                      type="date"
+                      value={signupData.birthDate}
+                      onChange={(e) => setSignupData(prev => ({ ...prev, birthDate: e.target.value }))}
+                      className="h-12 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Account Credentials */}
+            <div className="space-y-6">
+              <div className="border-t pt-6">
+                <h4 className="text-base font-medium text-gray-900 mb-4">Account Credentials</h4>
+                
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                      Email Address <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={signupData.email}
+                      onChange={(e) => setSignupData(prev => ({ ...prev, email: e.target.value }))}
+                      className="h-12 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      placeholder="john@example.com"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                      Password <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={signupData.password}
+                      onChange={(e) => setSignupData(prev => ({ ...prev, password: e.target.value }))}
+                      className="h-12 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      placeholder="Create a secure password"
+                      required
+                    />
+                  </div>
+
+                  {/* Confirm Password - Only for individual or company without master */}
+                  {(signupData.accountType === 'individual' || 
+                    (signupData.accountType === 'company' && !signupData.companyAccountMaster)) && (
+                    <div className="space-y-2">
+                      <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
+                        Confirm Password <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="confirmPassword"
+                        type="password"
+                        value={signupData.confirmPassword}
+                        onChange={(e) => setSignupData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                        className="h-12 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                        placeholder="Re-enter your password"
+                        required
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          )}
-          
-          <div className="w-full flex flex-col space-y-3 pt-4">
-            <TooltipWrapper content="Continue to complete your profile">
-              <Button type="submit" className="w-full h-12 text-base font-medium bg-blue-600 hover:bg-blue-700 transition-colors">
+
+            {/* Action Buttons */}
+            <div className="pt-6 space-y-3">
+              <Button 
+                type="submit" 
+                className="w-full h-12 text-base font-medium bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 transition-all duration-200"
+              >
                 Continue
               </Button>
-            </TooltipWrapper>
-            <TooltipWrapper content="Cancel signup and close form">
-              <Button type="button" variant="outline" onClick={onClose} className="w-full h-12 text-base font-medium border-gray-300 hover:bg-gray-50 transition-colors">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={onClose} 
+                className="w-full h-12 text-base font-medium border-gray-300 hover:bg-gray-50 focus:ring-4 focus:ring-gray-200 transition-all duration-200"
+              >
                 Cancel
               </Button>
-            </TooltipWrapper>
-          </div>
-        </form>
+            </div>
+
+            {/* Login Link */}
+            <div className="pt-4 text-center border-t">
+              <p className="text-sm text-gray-600">
+                Already have an account?{' '}
+                <button
+                  type="button"
+                  onClick={() => {/* Add login navigation logic */}}
+                  className="text-blue-600 hover:text-blue-700 font-medium hover:underline transition-colors"
+                >
+                  Sign in
+                </button>
+              </p>
+            </div>
+          </form>
+        </div>
       )}
 
       {step === 2 && (
@@ -742,17 +778,19 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
   return (
     <>
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-        <div className="w-full max-w-md h-auto max-h-[90vh] bg-white rounded-lg shadow-xl flex flex-col">
-          <div className="px-6 py-4 text-center border-b shrink-0">
-            <h2 className="text-xl font-semibold text-gray-800">Create Account</h2>
-            <p className="text-sm text-gray-600 mt-1">Join Public Streamer today</p>
+        <div className="w-full max-w-lg mx-auto bg-white rounded-lg shadow-xl flex flex-col max-h-[95vh]">
+          {/* Clean Header */}
+          <div className="px-6 py-5 text-center border-b border-gray-200 shrink-0">
+            <h2 className="text-2xl font-bold text-gray-900">Create Account</h2>
+            <p className="text-gray-600 mt-1">Join Public Streamer today</p>
+            
             {error && (
-              <Alert variant="destructive" className="mt-3">
+              <Alert variant="destructive" className="mt-4">
                 <AlertDescription className="text-sm">{error}</AlertDescription>
                 {showResetPassword && (
                   <Button
                     variant="link"
-                    className="mt-1 p-0 text-sm"
+                    className="mt-2 p-0 text-sm underline"
                     onClick={() => setShowResetPassword(true)}
                   >
                     Reset Password
@@ -761,7 +799,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
               </Alert>
             )}
           </div>
-          <div className="flex-1 overflow-y-auto px-6 py-4">
+          
+          {/* Scrollable Content */}
+          <div className="flex-1 overflow-y-auto p-6">
             {formContent}
           </div>
         </div>
