@@ -90,7 +90,7 @@ export const BirthdaySelector: React.FC<BirthdaySelectorProps> = ({ value, onCha
             console.log('Month selected:', value);
             handleChange('month', value);
           }}>
-            <SelectTrigger className="h-12 text-lg font-semibold bg-background border-2 shadow-sm">
+            <SelectTrigger className="h-12 text-lg font-semibold bg-background border-2 shadow-sm text-center">
               <SelectValue placeholder="Select Month" />
             </SelectTrigger>
             <SelectContent className="max-h-[200px]">
@@ -114,7 +114,7 @@ export const BirthdaySelector: React.FC<BirthdaySelectorProps> = ({ value, onCha
             console.log('Day selected:', value);
             handleChange('day', value);
           }}>
-            <SelectTrigger className="h-12 text-lg font-semibold bg-background border-2 shadow-sm">
+            <SelectTrigger className="h-12 text-lg font-semibold bg-background border-2 shadow-sm text-center">
               <SelectValue placeholder="Select Day" />
             </SelectTrigger>
             <SelectContent className="max-h-[200px]">
@@ -138,7 +138,7 @@ export const BirthdaySelector: React.FC<BirthdaySelectorProps> = ({ value, onCha
             console.log('Year selected:', value);
             handleChange('year', value);
           }}>
-            <SelectTrigger className="h-12 text-lg font-semibold bg-background border-2 shadow-sm">
+            <SelectTrigger className="h-12 text-lg font-semibold bg-background border-2 shadow-sm text-center">
               <SelectValue placeholder="Select Year" />
             </SelectTrigger>
             <SelectContent className="max-h-[200px]">
