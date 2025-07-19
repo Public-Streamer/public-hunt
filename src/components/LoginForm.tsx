@@ -193,7 +193,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose }) => {
                   type="button" 
                   variant="ghost" 
                   onClick={() => setShowSignup(true)}
-                  className="text-base font-medium h-auto px-4 py-2 bg-muted/30 hover:bg-muted/50 text-foreground hover:text-foreground shadow-sm border-0 rounded-md transition-all duration-200"
+                  className="text-base font-medium h-auto px-4 py-2 bg-muted/20 hover:bg-muted/40 text-foreground hover:text-foreground shadow-sm border border-muted/30 hover:border-muted/50 rounded-md transition-all duration-200"
                 >
                   Don't have an account? Sign up
                 </Button>
