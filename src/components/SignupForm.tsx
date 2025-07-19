@@ -448,7 +448,12 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
     
     if (!signupData.agreeToTerms || !signupData.confirmAge || !legalDocumentSigned) {
       console.log('Final validation failed');
-      setError('Please complete the legal agreement and accept all terms.');
+      let missingItems = [];
+      if (!signupData.agreeToTerms) missingItems.push('Terms of Service agreement');
+      if (!signupData.confirmAge) missingItems.push('Age confirmation (18+)');
+      if (!legalDocumentSigned) missingItems.push('Legal document signature');
+      
+      setError(`Missing required items: ${missingItems.join(', ')}`);
       return;
     }
     
