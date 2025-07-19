@@ -309,36 +309,24 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
   };
 
   const getStep3ValidationError = () => {
-    const errors = [];
-    
     if (signupData.accountType === 'company') {
       if (emailVerification !== signupData.email) {
-        errors.push('Email verification does not match');
+        return 'Email verification does not match';
       }
       if (passwordVerification !== signupData.password) {
-        errors.push('Password verification does not match');
+        return 'Password verification does not match';
       }
     }
     if (!signupData.agreeToTerms) {
-      errors.push('Please agree to the Terms of Service');
+      return 'Please agree to the Terms of Service';
     }
     if (!signupData.confirmAge) {
-      errors.push('Please confirm you are 18 or older');
+      return 'Please confirm you are 18 or older';
     }
     if (!legalDocumentSigned) {
-      errors.push('Please sign the legal document');
+      return 'Please sign the legal document';
     }
-    
-    const errorMsg = errors.length > 0 ? errors.join(', ') : null;
-    
-    // Update debug status to show validation state
-    if (errors.length > 0) {
-      setDebugStatus(`🚫 Validation failed: ${errorMsg}`);
-    } else {
-      setDebugStatus('✅ All validations passed - ready to submit');
-    }
-    
-    return errorMsg;
+    return null;
   };
 
   const handleStep1Submit = (e: React.FormEvent) => {
