@@ -362,115 +362,111 @@ const LegalDocumentPage: React.FC = () => {
             </div>
           )}
 
-          <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-3 pt-6">
-            <button 
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Cancel button clicked via onClick');
-                handleCancel();
-              }}
-              onTouchEnd={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Cancel button touched via onTouchEnd');
-                setTimeout(() => handleCancel(), 100);
-              }}
-              className="w-full sm:w-auto px-8 py-4 min-h-[56px] text-lg font-medium border-2 border-gray-300 rounded-lg bg-white hover:bg-gray-50 active:bg-gray-100 transition-colors duration-200 cursor-pointer"
-              style={{ 
-                WebkitTapHighlightColor: 'rgba(0,0,0,0.2)',
-                touchAction: 'manipulation',
-                WebkitTouchCallout: 'none',
-                WebkitUserSelect: 'none',
-                userSelect: 'none'
-              }}
-            >
-              Cancel
-            </button>
-            <button 
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Accept button clicked via onClick', { canSubmit });
-                if (canSubmit) {
-                  handleAccept();
-                } else {
-                  alert(getValidationMessage());
-                }
-              }}
-              onTouchEnd={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Accept button touched via onTouchEnd', { canSubmit });
-                if (canSubmit) {
-                  setTimeout(() => handleAccept(), 100);
-                } else {
-                  setTimeout(() => alert(getValidationMessage()), 100);
-                }
-              }}
-              disabled={!canSubmit}
-              className={`w-full sm:w-auto px-8 py-4 min-h-[56px] text-lg font-medium rounded-lg transition-colors duration-200 cursor-pointer ${
-                canSubmit 
-                  ? 'bg-green-600 hover:bg-green-700 active:bg-green-800 text-white border-2 border-green-600' 
-                  : 'bg-gray-400 cursor-not-allowed text-white border-2 border-gray-400'
-              }`}
-              style={{ 
-                WebkitTapHighlightColor: canSubmit ? 'rgba(0,255,0,0.2)' : 'rgba(0,0,0,0.1)',
-                touchAction: 'manipulation',
-                WebkitTouchCallout: 'none',
-                WebkitUserSelect: 'none',
-                userSelect: 'none'
-              }}
-            >
-              {canSubmit ? (
-                <div className="flex items-center justify-center gap-2">
-                  <CheckCircle className="h-5 w-5" />
-                  Accept and Sign
-                </div>
-              ) : (
-                'Accept and Sign'
-              )}
-            </button>
-          </div>
-
-          {/* Close Window Button - only enabled after document is signed */}
-          <div className="flex justify-center pt-4">
-            <button 
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Close Window button clicked via onClick');
-                if (documentSigned) {
+          {/* Professional centered button layout */}
+          <div className="flex flex-col items-center space-y-4 pt-8">
+            {/* Main action buttons - side by side and centered */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <button 
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('Cancel button clicked via onClick');
                   handleCancel();
-                }
-              }}
-              onTouchEnd={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Close Window button touched via onTouchEnd');
-                if (documentSigned) {
+                }}
+                onTouchEnd={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('Cancel button touched via onTouchEnd');
                   setTimeout(() => handleCancel(), 100);
-                }
-              }}
-              disabled={!documentSigned}
-              className={`px-8 py-3 min-h-[48px] text-base font-medium rounded-lg transition-colors duration-200 cursor-pointer ${
-                documentSigned 
-                  ? 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white border-2 border-blue-600' 
-                  : 'bg-gray-300 cursor-not-allowed text-gray-500 border-2 border-gray-300'
-              }`}
-              style={{ 
-                WebkitTapHighlightColor: documentSigned ? 'rgba(0,0,255,0.2)' : 'rgba(0,0,0,0.1)',
-                touchAction: 'manipulation',
-                WebkitTouchCallout: 'none',
-                WebkitUserSelect: 'none',
-                userSelect: 'none'
-              }}
-            >
-              Close Window
-            </button>
+                }}
+                className="w-48 px-6 py-3 min-h-[48px] text-base font-medium border-2 border-gray-400 rounded-lg bg-white hover:bg-gray-50 active:bg-gray-100 text-gray-700 transition-colors duration-200 cursor-pointer shadow-md"
+                style={{ 
+                  WebkitTapHighlightColor: 'rgba(0,0,0,0.1)',
+                  touchAction: 'manipulation',
+                  WebkitTouchCallout: 'none',
+                  WebkitUserSelect: 'none',
+                  userSelect: 'none'
+                }}
+              >
+                Cancel
+              </button>
+              
+              <button 
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('Accept button clicked via onClick', { canSubmit });
+                  if (canSubmit) {
+                    handleAccept();
+                  } else {
+                    alert(getValidationMessage());
+                  }
+                }}
+                onTouchEnd={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('Accept button touched via onTouchEnd', { canSubmit });
+                  if (canSubmit) {
+                    setTimeout(() => handleAccept(), 100);
+                  } else {
+                    setTimeout(() => alert(getValidationMessage()), 100);
+                  }
+                }}
+                disabled={!canSubmit}
+                className={`w-48 px-6 py-3 min-h-[48px] text-base font-medium rounded-lg transition-colors duration-200 cursor-pointer shadow-md ${
+                  canSubmit 
+                    ? 'bg-green-600 hover:bg-green-700 active:bg-green-800 text-white border-2 border-green-600' 
+                    : 'bg-gray-300 cursor-not-allowed text-gray-500 border-2 border-gray-300'
+                }`}
+                style={{ 
+                  WebkitTapHighlightColor: canSubmit ? 'rgba(0,255,0,0.2)' : 'rgba(0,0,0,0.1)',
+                  touchAction: 'manipulation',
+                  WebkitTouchCallout: 'none',
+                  WebkitUserSelect: 'none',
+                  userSelect: 'none'
+                }}
+              >
+                {canSubmit ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <CheckCircle className="h-4 w-4" />
+                    Accept and Sign
+                  </div>
+                ) : (
+                  'Accept and Sign'
+                )}
+              </button>
+            </div>
+
+            {/* Close Window Button - only visible after document is signed */}
+            {documentSigned && (
+              <button 
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('Close Window button clicked via onClick');
+                  handleCancel();
+                }}
+                onTouchEnd={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('Close Window button touched via onTouchEnd');
+                  setTimeout(() => handleCancel(), 100);
+                }}
+                className="w-48 px-6 py-3 min-h-[48px] text-base font-medium rounded-lg bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white border-2 border-blue-600 shadow-md transition-colors duration-200 cursor-pointer"
+                style={{ 
+                  WebkitTapHighlightColor: 'rgba(0,123,255,0.2)',
+                  touchAction: 'manipulation',
+                  WebkitTouchCallout: 'none',
+                  WebkitUserSelect: 'none',
+                  userSelect: 'none'
+                }}
+              >
+                Close Window
+              </button>
+            )}
           </div>
         </div>
       </div>
