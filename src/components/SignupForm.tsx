@@ -970,7 +970,19 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
             >
               <Button 
                 type="submit" 
-                disabled={loading || !!getStep3ValidationError()}
+                disabled={loading}
+                onClick={() => {
+                  // Force debug status update to see what's happening
+                  const validationError = getStep3ValidationError();
+                  setDebugStatus(`🔍 Button clicked! Validation: ${validationError || 'PASSED'}`);
+                  
+                  if (validationError) {
+                    setDebugStatus(`🚫 Submit blocked by validation: ${validationError}`);
+                    setError(`Please complete: ${validationError}`);
+                  } else {
+                    setDebugStatus(`✅ Validation passed, proceeding with submission...`);
+                  }
+                }}
                 className="flex-1 h-8 text-sm"
               >
                 {loading ? 'Creating...' : 'Create Account'}
