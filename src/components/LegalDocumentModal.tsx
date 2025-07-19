@@ -39,8 +39,8 @@ export const LegalDocumentModal: React.FC<LegalDocumentModalProps> = ({
   if (!isOpen) return null;
   
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl max-h-[90vh] w-full overflow-hidden">
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-hidden touch-none">
+      <div className="bg-white rounded-lg shadow-xl max-w-4xl max-h-[90vh] w-full overflow-hidden relative touch-none" style={{ maxWidth: '95vw' }}>
         <div className="p-6 border-b">
           <div className="flex items-center gap-2 text-red-600">
             <AlertTriangle className="h-5 w-5" />
