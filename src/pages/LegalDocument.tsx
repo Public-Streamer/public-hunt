@@ -82,7 +82,7 @@ const LegalDocumentPage: React.FC = () => {
         alert('Legal document signed successfully! This window will now close. If it doesn\'t close automatically, please close it manually.');
       }
       
-      // Try to close the window with multiple fallbacks
+      // Try to close the window with mobile-optimized approach
       setTimeout(() => {
         try {
           console.log('Attempting to close window...');
@@ -92,15 +92,15 @@ const LegalDocumentPage: React.FC = () => {
             window.close();
           }
           
-          // Method 2: If that doesn't work, try navigation approaches
+          // Method 2: For mobile, navigate back to origin instead of blank page
           setTimeout(() => {
             console.log('Trying navigation fallbacks...');
             try {
-              // Try to navigate to blank page
-              window.location.replace('about:blank');
+              // Navigate back to the main app instead of blank page
+              window.location.href = window.location.origin + '/';
             } catch (e) {
               try {
-                // Try to go back
+                // Try to go back in history
                 window.history.back();
               } catch (e2) {
                 console.log('All close attempts failed');
@@ -196,31 +196,22 @@ const LegalDocumentPage: React.FC = () => {
         // Method 2: Try navigation approaches
         setTimeout(() => {
           try {
-            // Try to go back in history first
-            if (window.history.length > 1) {
-              window.history.back();
-            } else {
-              // Navigate to origin
-              window.location.href = window.location.origin + '/';
-            }
+            // Navigate directly to main app instead of going back
+            window.location.href = window.location.origin + '/';
           } catch (e) {
             console.log('Navigation fallback failed:', e);
-            // Final fallback - replace with blank
-            try {
-              window.location.replace('about:blank');
-            } catch (e2) {
-              console.log('All close methods failed');
-              // Show success message with manual close instruction
-              document.body.innerHTML = `
-                <div style="padding: 20px; text-align: center; font-family: Arial, sans-serif; background: #f0f9ff;">
-                  <h2 style="color: green;">✓ Document Signed Successfully!</h2>
-                  <p style="font-size: 18px; margin: 20px 0;">You can now close this window and return to the signup form.</p>
-                  <button onclick="window.close(); window.history.back();" style="padding: 15px 30px; font-size: 16px; background: #007cba; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 10px;">Close & Return</button>
-                  <br>
-                  <p style="font-size: 14px; color: #666; margin-top: 20px;">If the button doesn't work, please manually close this window/tab.</p>
-                </div>
-              `;
-            }
+            // Show success message with manual close instruction (no blank page)
+            document.body.innerHTML = `
+              <div style="padding: 20px; text-align: center; font-family: Arial, sans-serif; background: #f0f9ff;">
+                <h2 style="color: green;">✓ Document Signed Successfully!</h2>
+                <p style="font-size: 18px; margin: 20px 0;">You can now close this window and return to the signup form.</p>
+                <button onclick="window.location.href='${window.location.origin}/';" style="padding: 15px 30px; font-size: 16px; background: #007cba; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 10px;">Return to App</button>
+                <br>
+                <button onclick="window.close();" style="padding: 15px 30px; font-size: 16px; background: #6b7280; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 10px;">Close Window</button>
+                <br>
+                <p style="font-size: 14px; color: #666; margin-top: 20px;">If the buttons don't work, please manually close this window/tab.</p>
+              </div>
+            `;
           }
         }, 300);
         
@@ -230,7 +221,8 @@ const LegalDocumentPage: React.FC = () => {
           try {
             window.close();
           } catch (e) {
-            window.location.replace('about:blank');
+            // Navigate to main app instead of blank page
+            window.location.href = window.location.origin + '/';
           }
         }, 200);
       }
