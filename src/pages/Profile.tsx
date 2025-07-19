@@ -16,6 +16,7 @@ import ProfileTimeline from '@/components/ProfileTimeline';
 import ProfileMediaUpload from '@/components/ProfileMediaUpload';
 import Messages from '@/components/Messages';
 import Notifications from '@/components/Notifications';
+import BottomSlidePanel from '@/components/BottomSlidePanel';
 
 interface UserProfile {
   id: string;
@@ -217,6 +218,9 @@ const Profile: React.FC = () => {
           </TabsContent>
         )}
       </Tabs>
+      
+      {/* Bottom Slide Panel for Mobile */}
+      <BottomSlidePanel />
     </div>
   );
 };
