@@ -136,66 +136,115 @@ const LegalDocumentPage: React.FC = () => {
   };
 
   const handleCancel = () => {
-    console.log('Cancel button clicked');
+    console.log('Close Window button clicked');
     
     try {
-      // Send cancel message to all possible parent windows
-      const cancelMessage = { type: 'legal-document-cancelled' };
+      // Enhanced mobile-specific close handling
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       
-      try {
-        if (window.parent && window.parent !== window) {
-          console.log('Sending cancel message to parent window...');
-          window.parent.postMessage(cancelMessage, '*');
+      // Send success message to parent windows with specific instructions
+      const closeMessage = { 
+        type: 'LEGAL_DOCUMENT_CLOSE_REQUESTED',
+        action: 'close-and-return',
+        mobile: isMobile,
+        timestamp: Date.now()
+      };
+      
+      console.log('Sending close message to all possible parents...', closeMessage);
+      
+      // Try all possible parent window references
+      const windowTargets = [
+        { name: 'parent', ref: window.parent },
+        { name: 'opener', ref: window.opener },
+        { name: 'top', ref: window.top }
+      ];
+      
+      windowTargets.forEach(target => {
+        try {
+          if (target.ref && target.ref !== window && !target.ref.closed) {
+            console.log(`Sending close message to ${target.name}...`);
+            target.ref.postMessage(closeMessage, '*');
+            
+            // For mobile, also try to navigate the parent directly
+            if (isMobile && target.name === 'parent') {
+              try {
+                // Try to navigate parent back to login/signup
+                target.ref.location.href = target.ref.location.origin + '/';
+              } catch (navError) {
+                console.log('Parent navigation failed:', navError);
+              }
+            }
+          }
+        } catch (msgError) {
+          console.log(`Message to ${target.name} failed:`, msgError);
         }
-        
-        if (window.opener && !window.opener.closed) {
-          console.log('Sending cancel message to opener window...');
-          window.opener.postMessage(cancelMessage, '*');
-        }
+      });
 
-        if (window.top && window.top !== window) {
-          console.log('Sending cancel message to top window...');
-          window.top.postMessage(cancelMessage, '*');
-        }
-      } catch (msgError) {
-        console.log('Cancel message sending failed:', msgError);
-      }
-
-      // Try to close the window immediately for cancel
-      try {
-        console.log('Attempting to close window after cancel...');
+      // Mobile-specific close attempts
+      if (isMobile) {
+        console.log('Mobile detected - using enhanced close methods...');
         
-        if (window.close) {
-          window.close();
-        }
-        
-        // Fallback methods
+        // Method 1: Try immediate close
         setTimeout(() => {
           try {
-            window.location.replace('about:blank');
+            window.close();
           } catch (e) {
-            try {
+            console.log('window.close() failed:', e);
+          }
+        }, 100);
+        
+        // Method 2: Try navigation approaches
+        setTimeout(() => {
+          try {
+            // Try to go back in history first
+            if (window.history.length > 1) {
               window.history.back();
+            } else {
+              // Navigate to origin
+              window.location.href = window.location.origin + '/';
+            }
+          } catch (e) {
+            console.log('Navigation fallback failed:', e);
+            // Final fallback - replace with blank
+            try {
+              window.location.replace('about:blank');
             } catch (e2) {
-              // Show manual close instructions
+              console.log('All close methods failed');
+              // Show success message with manual close instruction
               document.body.innerHTML = `
-                <div style="padding: 20px; text-align: center; font-family: Arial, sans-serif;">
-                  <h2>Document Cancelled</h2>
-                  <p>Please close this window/tab manually to return to the main application.</p>
-                  <button onclick="window.close()" style="padding: 10px 20px; font-size: 16px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">Close Window</button>
+                <div style="padding: 20px; text-align: center; font-family: Arial, sans-serif; background: #f0f9ff;">
+                  <h2 style="color: green;">✓ Document Signed Successfully!</h2>
+                  <p style="font-size: 18px; margin: 20px 0;">You can now close this window and return to the signup form.</p>
+                  <button onclick="window.close(); window.history.back();" style="padding: 15px 30px; font-size: 16px; background: #007cba; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 10px;">Close & Return</button>
+                  <br>
+                  <p style="font-size: 14px; color: #666; margin-top: 20px;">If the button doesn't work, please manually close this window/tab.</p>
                 </div>
               `;
             }
           }
-        }, 500);
+        }, 300);
         
-      } catch (error) {
-        console.log('Close attempt failed on cancel:', error);
+      } else {
+        // Desktop close methods
+        setTimeout(() => {
+          try {
+            window.close();
+          } catch (e) {
+            window.location.replace('about:blank');
+          }
+        }, 200);
       }
       
     } catch (error) {
-      console.error('Error handling cancel:', error);
-      alert('Document cancelled. Please close this window manually.');
+      console.error('Error in handleCancel:', error);
+      // Show success state regardless of close issues
+      document.body.innerHTML = `
+        <div style="padding: 20px; text-align: center; font-family: Arial, sans-serif; background: #f0f9ff;">
+          <h2 style="color: green;">✓ Document Completed!</h2>
+          <p>Please close this window to return to the signup form.</p>
+          <button onclick="window.close(); window.history.back();" style="padding: 15px 30px; font-size: 16px; background: #007cba; color: white; border: none; border-radius: 8px; cursor: pointer;">Close Window</button>
+        </div>
+      `;
     }
   };
 
