@@ -39,20 +39,20 @@ serve(async (req) => {
     const LIVEKIT_WS_URL = Deno.env.get("LIVEKIT_WS_URL");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-    
+
     console.log("Environment check:", {
       hasLiveKitKey: !!LIVEKIT_API_KEY,
       hasLiveKitSecret: !!LIVEKIT_API_SECRET,
       hasLiveKitUrl: !!LIVEKIT_WS_URL,
       hasSupabaseUrl: !!SUPABASE_URL,
-      hasServiceRoleKey: !!SUPABASE_SERVICE_ROLE_KEY
+      hasServiceRoleKey: !!SUPABASE_SERVICE_ROLE_KEY,
     });
 
     if (!LIVEKIT_API_KEY || !LIVEKIT_API_SECRET || !LIVEKIT_WS_URL) {
       console.error("Missing LiveKit credentials");
       throw new Error("LiveKit credentials not configured");
     }
-    
+
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
       console.error("Missing Supabase credentials");
       throw new Error("Supabase credentials not configured");
@@ -61,7 +61,7 @@ serve(async (req) => {
     // Authenticate user
     const authHeader = req.headers.get("Authorization");
     console.log("Auth header received:", !!authHeader);
-    
+
     if (!authHeader) {
       console.error("No authorization header provided");
       return new Response("Unauthorized - No auth header", {
@@ -72,10 +72,10 @@ serve(async (req) => {
 
     // Create Supabase client with service role for admin operations
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!, {
-      global: { 
-        headers: { 
-          Authorization: authHeader 
-        } 
+      global: {
+        headers: {
+          Authorization: authHeader,
+        },
       },
     });
 
@@ -84,7 +84,7 @@ serve(async (req) => {
       data: { user },
       error: userError,
     } = await supabase.auth.getUser();
-    
+
     if (userError) {
       console.error("User verification error:", userError);
       return new Response("Unauthorized - Invalid token", {
@@ -92,7 +92,7 @@ serve(async (req) => {
         headers: corsHeaders,
       });
     }
-    
+
     if (!user) {
       console.error("No user found with provided token");
       return new Response("Unauthorized - User not found", {
@@ -100,7 +100,7 @@ serve(async (req) => {
         headers: corsHeaders,
       });
     }
-    
+
     console.log("User authenticated:", { userId: user.id, email: user.email });
 
     // Parse request body
@@ -131,11 +131,15 @@ serve(async (req) => {
       });
     }
 
-    console.log("Event details:", { eventId, createdBy: event.created_by, userId: user.id });
+    console.log("Event details:", {
+      eventId,
+      createdBy: event.created_by,
+      userId: user.id,
+    });
 
     // Determine user's actual role in the event (same logic as StagePage)
     let actualRole = userRole; // fallback to provided role
-    
+
     // Check if user is host (event creator)
     if (event.created_by === user.id) {
       actualRole = "host";
@@ -160,14 +164,23 @@ serve(async (req) => {
 
     // Validate that the passed userRole matches the determined role (security check)
     if (userRole !== "viewer" && userRole !== actualRole) {
-      console.warn(`Role mismatch: passed=${userRole}, actual=${actualRole}. Using actual role.`);
+      console.warn(
+        `Role mismatch: passed=${userRole}, actual=${actualRole}. Using actual role.`
+      );
     }
 
-    console.log("Final role determination:", { passedRole: userRole, actualRole });
+    console.log("Final role determination:", {
+      passedRole: userRole,
+      actualRole,
+    });
 
     // Check if user has ticket for paid events (only for viewers)
     let hasTicket = true;
-    if (event.ticket_price && event.ticket_price > 0 && actualRole === "viewer") {
+    if (
+      event.ticket_price &&
+      event.ticket_price > 0 &&
+      actualRole === "viewer"
+    ) {
       const { data: ticket } = await supabase
         .from("tickets")
         .select("id")
@@ -177,7 +190,10 @@ serve(async (req) => {
         .single();
 
       hasTicket = !!ticket;
-      console.log("Ticket check for viewer:", { hasTicket, ticketPrice: event.ticket_price });
+      console.log("Ticket check for viewer:", {
+        hasTicket,
+        ticketPrice: event.ticket_price,
+      });
     }
 
     // Generate permissions based on role
@@ -227,10 +243,17 @@ serve(async (req) => {
       });
     }
 
-    console.log("Creating LiveKit token for user:", user.id, "role:", actualRole, "event:", eventId);
+    console.log(
+      "Creating LiveKit token for user:",
+      user.id,
+      "role:",
+      actualRole,
+      "event:",
+      eventId
+    );
     // Create LiveKit access token
     const at = new AccessToken(LIVEKIT_API_KEY, LIVEKIT_API_SECRET, {
-      identity: user.id,
+      identity: `${user.id}-${eventId}`,
       name: user.email || `User ${user.id}`,
     });
 
