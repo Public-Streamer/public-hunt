@@ -117,8 +117,13 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
 
   // Real-time validation effect - optimized to prevent focus issues
   useEffect(() => {
-    // Debounce validation to prevent excessive re-renders during typing
+    // Only validate on blur or form submission, not during typing
     const timeoutId = setTimeout(() => {
+      // Skip validation if any input is currently focused to prevent cursor jumping
+      if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') {
+        return;
+      }
+
       const errors: { [key: string]: string } = {};
 
       // Step 1 validations
@@ -179,7 +184,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
       }
 
       setValidationErrors(errors);
-    }, 300); // 300ms debounce to prevent focus issues
+    }, 1000); // Increased debounce time to 1 second
 
     return () => clearTimeout(timeoutId);
   }, [signupData, emailVerification, passwordVerification, legalDocumentSigned, step]);
