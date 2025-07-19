@@ -119,17 +119,19 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose }) => {
           <CardContent className="h-[75vh] p-0 auth-template">
             <ScrollArea className="h-full w-full px-6 pb-6 auth-template">
               <SignupForm onClose={onClose} onSuccess={handleSignupSuccess} inline />
-              <div className="mt-4 text-center">
-                <TooltipWrapper content="Go back to login form">
-                  <Button 
-                    type="button" 
-                    variant="link" 
-                    onClick={() => setShowSignup(false)}
-                    className="text-sm"
-                  >
-                    Already have an account? Sign in
-                  </Button>
-                </TooltipWrapper>
+              <div className="mt-4 w-full">
+                <div className="flex justify-center items-center w-full">
+                  <TooltipWrapper content="Go back to login form">
+                    <Button 
+                      type="button" 
+                      variant="link" 
+                      onClick={() => setShowSignup(false)}
+                      className="text-sm px-0 mx-auto"
+                    >
+                      Already have an account? Sign in
+                    </Button>
+                  </TooltipWrapper>
+                </div>
               </div>
             </ScrollArea>
           </CardContent>
@@ -170,29 +172,34 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose }) => {
             {error && (
               <div className="text-red-600 text-sm text-center">{error}</div>
             )}
-          <div className="space-y-2">
-            <TooltipWrapper content="Sign in to your account">
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Signing in...' : 'Login'}
-              </Button>
-            </TooltipWrapper>
-            <TooltipWrapper content="Close login form">
-              <Button type="button" variant="outline" onClick={onClose} className="w-full">
-                Cancel
-              </Button>
-            </TooltipWrapper>
-          </div>
-            <div className="text-center">
-              <TooltipWrapper content="Create a new account">
-                <Button 
-                  type="button" 
-                  variant="link" 
-                  onClick={() => setShowSignup(true)}
-                  className="text-sm"
-                >
-                  Don't have an account? Sign up
+            
+            <div className="space-y-2">
+              <TooltipWrapper content="Sign in to your account">
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? 'Signing in...' : 'Login'}
                 </Button>
               </TooltipWrapper>
+              <TooltipWrapper content="Close login form">
+                <Button type="button" variant="outline" onClick={onClose} className="w-full">
+                  Cancel
+                </Button>
+              </TooltipWrapper>
+            </div>
+            
+            {/* Centered signup link with proper spacing and positioning */}
+            <div className="pt-4 w-full">
+              <div className="flex justify-center items-center w-full">
+                <TooltipWrapper content="Create a new account">
+                  <Button 
+                    type="button" 
+                    variant="link" 
+                    onClick={() => setShowSignup(true)}
+                    className="text-sm px-0 mx-auto"
+                  >
+                    Don't have an account? Sign up
+                  </Button>
+                </TooltipWrapper>
+              </div>
             </div>
           </form>
         </CardContent>
