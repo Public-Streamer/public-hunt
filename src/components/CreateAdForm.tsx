@@ -10,6 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Upload, Play, Target, Calendar, CreditCard, Eye, Clock, DollarSign, CheckCircle, ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
+import { ChannelEventSelector } from './ChannelEventSelector';
 
 interface CampaignData {
   media: File | null;
@@ -24,6 +25,8 @@ interface CampaignData {
   endDate: string;
   ageRange: [number, number];
   interests: string[];
+  targetChannels: string[];
+  targetEvents: string[];
 }
 
 interface CreateAdFormProps {
@@ -346,33 +349,52 @@ const AdvertisingCampaignForm: React.FC<CreateAdFormProps> = ({
                     />
                   </div>
 
-                  <div className="space-y-3">
-                    <Label>Interests</Label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {interests.map((interest) => (
-                        <div key={interest} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={interest}
-                            checked={campaignData.interests.includes(interest)}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                setCampaignData({
-                                  ...campaignData,
-                                  interests: [...campaignData.interests, interest]
-                                });
-                              } else {
-                                setCampaignData({
-                                  ...campaignData,
-                                  interests: campaignData.interests.filter((i: string) => i !== interest)
-                                });
-                              }
-                            }}
-                          />
-                          <Label htmlFor={interest} className="text-sm">{interest}</Label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                   <div className="space-y-3">
+                     <Label>Interests</Label>
+                     <div className="grid grid-cols-2 gap-2">
+                       {interests.map((interest) => (
+                         <div key={interest} className="flex items-center space-x-2">
+                           <Checkbox
+                             id={interest}
+                             checked={campaignData.interests.includes(interest)}
+                             onCheckedChange={(checked) => {
+                               if (checked) {
+                                 setCampaignData({
+                                   ...campaignData,
+                                   interests: [...campaignData.interests, interest]
+                                 });
+                               } else {
+                                 setCampaignData({
+                                   ...campaignData,
+                                   interests: campaignData.interests.filter((i: string) => i !== interest)
+                                 });
+                               }
+                             }}
+                           />
+                           <Label htmlFor={interest} className="text-sm">{interest}</Label>
+                         </div>
+                       ))}
+                     </div>
+                   </div>
+
+                   <Separator />
+
+                   <div className="space-y-4">
+                     <div className="flex items-center gap-2">
+                       <Target className="h-4 w-4 text-blue-600" />
+                       <Label className="text-base font-medium">Specific Channel & Event Targeting</Label>
+                     </div>
+                     <p className="text-sm text-gray-600">
+                       Target specific channels or events for higher engagement with interested audiences.
+                     </p>
+                     
+                     <ChannelEventSelector 
+                       selectedChannels={campaignData.targetChannels}
+                       selectedEvents={campaignData.targetEvents}
+                       onChannelsChange={(channels) => setCampaignData({...campaignData, targetChannels: channels})}
+                       onEventsChange={(events) => setCampaignData({...campaignData, targetEvents: events})}
+                     />
+                   </div>
                 </>
               )}
             </CardContent>

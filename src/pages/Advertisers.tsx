@@ -22,7 +22,9 @@ const Advertisers = () => {
     startDate: '',
     endDate: '',
     ageRange: [18, 65] as [number, number],
-    interests: [] as string[]
+    interests: [] as string[],
+    targetChannels: [] as string[],
+    targetEvents: [] as string[]
   });
   const { toast } = useToast();
 
@@ -71,7 +73,9 @@ const Advertisers = () => {
         startDate: '',
         endDate: '',
         ageRange: [18, 65],
-        interests: []
+        interests: [],
+        targetChannels: [],
+        targetEvents: []
       });
     } catch (error) {
       toast({
