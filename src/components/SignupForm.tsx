@@ -34,6 +34,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
   const navigate = useNavigate();
   const { toast } = useToast();
   
+  const popupWindowRef = useRef<Window | null>(null);
 
   // Listen for messages from popup window
   useEffect(() => {
@@ -69,6 +70,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
   }, []);
+
   const [signupData, setSignupData] = useState({
     accountType: 'individual' as 'individual' | 'business/organization' | 'group/team',
     companyName: '',
@@ -91,88 +93,38 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
     confirmAge: false
   });
 
-  // Restore form data and step from sessionStorage if returning from mobile legal document
-  useEffect(() => {
-    const savedFormData = sessionStorage.getItem('signupFormData');
-    const savedStep = sessionStorage.getItem('signupStep');
-    const legalCompleted = sessionStorage.getItem('legalDocumentCompleted');
-    
-    if (savedFormData) {
-      try {
-        const parsedData = JSON.parse(savedFormData);
-        setSignupData(parsedData);
-        sessionStorage.removeItem('signupFormData'); // Clean up
-        console.log('Restored signup form data from sessionStorage:', parsedData);
-      } catch (error) {
-        console.error('Error restoring signup form data:', error);
-      }
-    }
-    
-    if (savedStep) {
-      const stepNumber = parseInt(savedStep, 10);
-      if (stepNumber >= 1 && stepNumber <= 3) {
-        setStep(stepNumber);
-        sessionStorage.removeItem('signupStep');
-        console.log('Restored signup step:', stepNumber);
-      }
-    }
-    
-    if (legalCompleted === 'true') {
-      setLegalDocumentSigned(true);
-      sessionStorage.removeItem('legalDocumentCompleted');
-      console.log('Restored legal document completion status');
-    }
-  }, []);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-  const [step, setStep] = useState(1);
-  const totalSteps = 3;
+  const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [showResetPassword, setShowResetPassword] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState('');
+  const [emailVerification, setEmailVerification] = useState('');
+  const [passwordVerification, setPasswordVerification] = useState('');
   const [legalDocumentSigned, setLegalDocumentSigned] = useState(false);
   const [signatureData, setSignatureData] = useState<{ signature: string; date: string } | null>(null);
-  const [debugStatus, setDebugStatus] = useState<string>('');
-  const [emailVerification, setEmailVerification] = useState("");
-  const [passwordVerification, setPasswordVerification] = useState("");
-  // Use state to control error dialog visibility
+  const [showLegalModal, setShowLegalModal] = useState(false);
+  const [debugStatus, setDebugStatus] = useState('');
   const [showErrorDialog, setShowErrorDialog] = useState(false);
-  const [errorDialogConfig, setErrorDialogConfig] = useState<{
-    title: string;
-    message: string;
-  }>({ title: '', message: '' });
-  
-  // Keep reference to popup window for mobile closing
-  const popupWindowRef = useRef<Window | null>(null);
-  
-  // Validation error states for real-time feedback
-  const [validationErrors, setValidationErrors] = useState<{
-    [key: string]: string;
-  }>({});
+  const [errorDialogConfig, setErrorDialogConfig] = useState({
+    title: '',
+    message: ''
+  });
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
-  // Helper function to check if a field has an error
-  const hasFieldError = (fieldName: string) => {
-    return validationErrors[fieldName] !== undefined;
+  const calculateAge = (birthDate: string): number => {
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    
+    return age;
   };
 
-  // Helper function to get field error class
-  const getFieldErrorClass = (fieldName: string) => {
-    if (hasFieldError(fieldName)) {
-      return 'border-red-500 bg-red-50 ring-red-500 focus:ring-red-500';
-    }
-    
-    // Check if field is complete and required
-    const isRequired = isFieldRequired(fieldName);
-    const isComplete = isFieldComplete(fieldName);
-    
-    if (isRequired && isComplete) {
-      return 'border-green-500 bg-green-50 ring-green-500 focus:ring-green-500';
-    }
-    
-    if (isRequired && !isComplete) {
-      return 'border-red-500 bg-red-50 ring-red-500 focus:ring-red-500';
-    }
-    
-    return '';
+  const isPasswordValid = (password: string): boolean => {
+    return password.length >= 8;
   };
 
   // Helper function to check if field is required
@@ -184,15 +136,15 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
     return requiredFields.includes(fieldName);
   };
 
-  // Helper function to check if field is complete
-  const isFieldComplete = (fieldName: string) => {
+  // Helper function to check if field is completed
+  const isFieldCompleted = (fieldName: string) => {
     switch (fieldName) {
       case 'email':
         return signupData.email.trim() !== '' && signupData.email.includes('@');
       case 'password':
-        return signupData.password.length >= 8;
+        return isPasswordValid(signupData.password);
       case 'confirmPassword':
-        return signupData.confirmPassword === signupData.password && signupData.confirmPassword !== '';
+        return isPasswordValid(signupData.confirmPassword) && signupData.password === signupData.confirmPassword;
       case 'firstName':
         return signupData.firstName.trim() !== '';
       case 'lastName':
@@ -214,174 +166,26 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
     }
   };
 
-  // Helper function to check if passwords match
-  const passwordsMatch = () => {
-    return signupData.password === signupData.confirmPassword && signupData.confirmPassword !== '';
-  };
-
-  // Helper function to get password field class with match validation
-  const getPasswordFieldClass = (fieldName: string) => {
-    const baseClass = getFieldErrorClass(fieldName);
+  // Get field styling classes
+  const getFieldErrorClass = (fieldName: string) => {
+    if (!isFieldRequired(fieldName)) return '';
     
-    if (fieldName === 'confirmPassword' && signupData.confirmPassword !== '') {
-      if (!passwordsMatch()) {
-        return 'border-red-500 bg-red-50 ring-red-500 focus:ring-red-500';
-      }
-    }
-    
-    if (fieldName === 'password' && signupData.confirmPassword !== '' && !passwordsMatch()) {
-      return 'border-red-500 bg-red-50 ring-red-500 focus:ring-red-500';
-    }
-    
-    return baseClass;
-  };
-
-  // Real-time validation effect - optimized to prevent focus issues
-  useEffect(() => {
-    // Only validate on blur or form submission, not during typing
-    const timeoutId = setTimeout(() => {
-      // Skip validation if any input is currently focused to prevent cursor jumping
-      if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') {
-        return;
-      }
-
-      const errors: { [key: string]: string } = {};
-
-      // Step 1 validations
-      if (step >= 1) {
-        if ((signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && !signupData.companyName.trim()) {
-          errors.companyName = signupData.accountType === 'business/organization' ? 'Business/Organization name is required' : 'Group/Team name is required';
-        }
-        if ((signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && !signupData.companyExecutorAcknowledged) {
-          errors.companyExecutorAcknowledged = 'Must acknowledge Account Master executor authority';
-        }
-        if ((signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && !signupData.companyAccountMaster) {
-          errors.companyAccountMaster = 'Account Master is required';
-        }
-        if ((signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && !signupData.companyExecutorFirstName.trim()) {
-          errors.companyExecutorFirstName = 'Executor first name is required';
-        }
-        if ((signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && !signupData.companyExecutorLastName.trim()) {
-          errors.companyExecutorLastName = 'Executor last name is required';
-        }
-        if (!signupData.email) {
-          errors.email = 'Email is required';
-        }
-        if (!signupData.password) {
-          errors.password = 'Password is required';
-        } else if (!isPasswordValid(signupData.password)) {
-          errors.password = 'Password must be at least 8 characters long';
-        }
-      }
-
-      // Step 2 validations
-      if (step >= 2 && (signupData.accountType === 'individual' || 
-          ((signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && !signupData.companyAccountMaster))) {
-        if (signupData.confirmPassword && !isPasswordValid(signupData.confirmPassword)) {
-          errors.confirmPassword = 'Confirm password must be at least 8 characters long';
-        } else if (signupData.password !== signupData.confirmPassword && signupData.confirmPassword) {
-          errors.confirmPassword = 'Passwords do not match';
-        }
-        if (!signupData.firstName) {
-          errors.firstName = 'First name is required';
-        }
-        if (!signupData.lastName) {
-          errors.lastName = 'Last name is required';
-        }
-        if (!signupData.birthDate) {
-          errors.birthDate = 'Birth date is required';
-        }
-        if (signupData.birthDate && calculateAge(signupData.birthDate) < 18) {
-          errors.birthDate = 'You must be at least 18 years old';
-        }
-      }
-
-      // Step 3 validations
-      if (step >= 3) {
-        if (signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') {
-          if (emailVerification && emailVerification !== signupData.email) {
-            errors.emailVerification = 'Email verification does not match';
-          }
-          if (passwordVerification && passwordVerification !== signupData.password) {
-            errors.passwordVerification = 'Password verification does not match';
-          }
-        }
-        if (!signupData.agreeToTerms) {
-          errors.agreeToTerms = 'You must agree to the Terms of Service';
-        }
-        if (!signupData.confirmAge) {
-          errors.confirmAge = 'You must confirm you are 18 or older';
-        }
-        if (!legalDocumentSigned) {
-          errors.legalDocument = 'Legal document must be signed';
-        }
-      }
-
-      setValidationErrors(errors);
-    }, 1000); // Increased debounce time to 1 second
-
-    return () => clearTimeout(timeoutId);
-  }, [signupData, emailVerification, passwordVerification, legalDocumentSigned, step]);
-
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSignupData(prev => ({ ...prev, profilePhoto: file }));
-      const reader = new FileReader();
-      reader.onload = (e) => setPhotoPreview(e.target?.result as string);
-      reader.readAsDataURL(file);
-    }
-  };
-  
-  // Format phone number with hyphens (xxx-xxx-xxxx)
-  const formatPhoneNumber = (value: string) => {
-    // Remove all non-digits
-    const digits = value.replace(/\D/g, '');
-    
-    // Format with hyphens
-    if (digits.length <= 3) {
-      return digits;
-    } else if (digits.length <= 6) {
-      return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+    const isEmpty = !isFieldCompleted(fieldName);
+    if (isEmpty) {
+      return 'border-red-500 bg-red-50';
     } else {
-      return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+      return 'border-green-500 bg-green-50';
     }
-  };
-  
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formattedPhone = formatPhoneNumber(e.target.value);
-    setSignupData(prev => ({ ...prev, phone: formattedPhone }));
   };
 
-  const calculateAge = (birthDate: string) => {
-    const today = new Date();
-    const birth = new Date(birthDate);
-    let age = today.getFullYear() - birth.getFullYear();
-    const monthDiff = today.getMonth() - birth.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-      age--;
-    }
-    return age;
-  };
-
-  // Password validation helper
-  const isPasswordValid = (password: string) => {
-    return password && password.length >= 8;
-  };
-
-  // Validation helper functions
-  const getStep1ValidationError = () => {
-    if ((signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && !signupData.companyName.trim()) {
-      return signupData.accountType === 'business/organization' ? 'Please enter a business/organization name' : 'Please enter a group/team name';
-    }
-    if ((signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && !signupData.companyExecutorAcknowledged) {
-      return 'Please acknowledge that the Account Master has executor authority';
-    }
-    if ((signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && !signupData.companyAccountMaster) {
-      return 'Please select an Account Master';
-    }
+  // Comprehensive form validation
+  const getFormValidationError = () => {
+    // Basic fields validation
     if (!signupData.email) {
-      return 'Please enter your email';
+      return 'Please enter your email address';
+    }
+    if (!signupData.email.includes('@')) {
+      return 'Please enter a valid email address';
     }
     if (!signupData.password) {
       return 'Please enter your password';
@@ -389,72 +193,53 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
     if (!isPasswordValid(signupData.password)) {
       return 'Password must be at least 8 characters long';
     }
-    return null;
-  };
-
-  const getStep2ValidationError = () => {
-    console.log('[Step2 Validation] Starting validation for account type:', signupData.accountType);
-    console.log('[Step2 Validation] Company Account Master:', signupData.companyAccountMaster);
-    
-    if (signupData.accountType === 'individual' || 
-        ((signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && !signupData.companyAccountMaster)) {
-      
-      console.log('[Step2 Validation] Validating personal info fields...');
-      console.log('[Step2 Validation] Password valid:', isPasswordValid(signupData.password));
-      console.log('[Step2 Validation] Confirm password valid:', isPasswordValid(signupData.confirmPassword));
-      console.log('[Step2 Validation] Passwords match:', signupData.password === signupData.confirmPassword);
-      console.log('[Step2 Validation] First name:', signupData.firstName);
-      console.log('[Step2 Validation] Last name:', signupData.lastName);
-      console.log('[Step2 Validation] Birth date:', signupData.birthDate);
-      console.log('[Step2 Validation] Phone:', signupData.phone);
-      
-      if (!isPasswordValid(signupData.password)) {
-        console.log('[Step2 Validation] FAILED: Password not valid');
-        return 'Password must be at least 8 characters long';
-      }
-      if (!isPasswordValid(signupData.confirmPassword)) {
-        console.log('[Step2 Validation] FAILED: Confirm password not valid');
-        return 'Confirm password must be at least 8 characters long';
-      }
-      if (signupData.password !== signupData.confirmPassword) {
-        console.log('[Step2 Validation] FAILED: Passwords do not match');
-        return 'Passwords do not match';
-      }
-      if (!signupData.firstName) {
-        console.log('[Step2 Validation] FAILED: First name missing');
-        return 'Please enter your first name';
-      }
-      if (!signupData.lastName) {
-        console.log('[Step2 Validation] FAILED: Last name missing');
-        return 'Please enter your last name';
-      }
-      if (!signupData.birthDate) {
-        console.log('[Step2 Validation] FAILED: Birth date missing');
-        return 'Please enter your birth date';
-      }
-      const age = calculateAge(signupData.birthDate);
-      console.log('[Step2 Validation] Calculated age:', age);
-      if (age < 18) {
-        console.log('[Step2 Validation] FAILED: Under 18');
-        return 'You must be 18 years or older to join';
-      }
-      if (!signupData.phone) {
-        console.log('[Step2 Validation] FAILED: Phone missing');
-        return 'Please enter your cell phone number';
-      }
-      const phoneDigits = signupData.phone.replace(/\D/g, '');
-      console.log('[Step2 Validation] Phone digits:', phoneDigits, 'Length:', phoneDigits.length);
-      if (phoneDigits.length !== 10) {
-        console.log('[Step2 Validation] FAILED: Phone not 10 digits');
-        return 'Please enter a valid 10-digit cell phone number';
-      }
+    if (!signupData.confirmPassword) {
+      return 'Please confirm your password';
     }
-    console.log('[Step2 Validation] All validations passed!');
-    return null;
-  };
+    if (!isPasswordValid(signupData.confirmPassword)) {
+      return 'Confirm password must be at least 8 characters long';
+    }
+    if (signupData.password !== signupData.confirmPassword) {
+      return 'Passwords do not match';
+    }
+    if (!signupData.firstName) {
+      return 'Please enter your first name';
+    }
+    if (!signupData.lastName) {
+      return 'Please enter your last name';
+    }
+    if (!signupData.birthDate) {
+      return 'Please enter your birth date';
+    }
+    const age = calculateAge(signupData.birthDate);
+    if (age < 18) {
+      return 'You must be 18 years or older to join';
+    }
+    if (!signupData.phone) {
+      return 'Please enter your cell phone number';
+    }
+    const phoneDigits = signupData.phone.replace(/\D/g, '');
+    if (phoneDigits.length !== 10) {
+      return 'Please enter a valid 10-digit cell phone number';
+    }
 
-  const getStep3ValidationError = () => {
+    // Company-specific validation
     if (signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') {
+      if (!signupData.companyName) {
+        return `Please enter your ${signupData.accountType === 'business/organization' ? 'business/organization' : 'group/team'} name`;
+      }
+      if (!signupData.companyExecutorFirstName) {
+        return 'Please enter the executor\'s first name';
+      }
+      if (!signupData.companyExecutorLastName) {
+        return 'Please enter the executor\'s last name';
+      }
+      if (!signupData.companyExecutorAcknowledged) {
+        return 'Please acknowledge that the Account Master has executor authority';
+      }
+      if (!signupData.companyAccountMaster) {
+        return 'Please select an Account Master';
+      }
       if (emailVerification !== signupData.email) {
         return 'Email verification does not match';
       }
@@ -462,6 +247,8 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
         return 'Password verification does not match';
       }
     }
+
+    // Final validation
     if (!signupData.agreeToTerms) {
       return 'Please agree to the Terms of Service';
     }
@@ -471,781 +258,497 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
     if (!legalDocumentSigned) {
       return 'Please sign the legal document';
     }
+
     return null;
   };
 
-  const handleStep1Submit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+    let formattedValue = '';
     
-    // Validate account type and basic info
-    if ((signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && !signupData.companyName.trim()) {
-      setErrorDialogConfig({
-        title: signupData.accountType === 'business/organization' ? 'Business/Organization Name Required' : 'Group/Team Name Required',
-        message: signupData.accountType === 'business/organization' ? 'Please enter a business/organization name.' : 'Please enter a group/team name.'
-      });
-      setShowErrorDialog(true);
-      return;
-    }
-     
-     if ((signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && !signupData.companyExecutorAcknowledged) {
-       setErrorDialogConfig({
-         title: 'Executor Authority Acknowledgment Required',
-         message: 'Please acknowledge that the Account Master has executor authority.'
-       });
-       setShowErrorDialog(true);
-       return;
-     }
-     
-     if ((signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && !signupData.companyAccountMaster) {
-       setErrorDialogConfig({
-         title: 'Account Master Required',
-         message: 'Please select an Account Master.'
-       });
-       setShowErrorDialog(true);
-       return;
-     }
-    
-    // Validate email and password
-    if (!signupData.email || !signupData.password) {
-      setErrorDialogConfig({
-        title: 'Required Fields',
-        message: 'Please enter your email and password.'
-      });
-      setShowErrorDialog(true);
-      return;
+    if (value.length >= 6) {
+      formattedValue = `${value.slice(0, 3)}-${value.slice(3, 6)}-${value.slice(6, 10)}`;
+    } else if (value.length >= 3) {
+      formattedValue = `${value.slice(0, 3)}-${value.slice(3)}`;
+    } else {
+      formattedValue = value;
     }
     
-    // Validate password strength
-    if (!isPasswordValid(signupData.password)) {
-      setErrorDialogConfig({
-        title: 'Password Requirements',
-        message: 'Password must be at least 8 characters long.'
-      });
-      setShowErrorDialog(true);
-      return;
-    }
-    
-    setStep(2);
+    setSignupData(prev => ({ ...prev, phone: formattedValue }));
   };
 
-  const handleStep2Submit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Only validate personal info fields if individual account or company without master selected
-    if (signupData.accountType === 'individual' || 
-        ((signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && !signupData.companyAccountMaster)) {
-      
-      // Validate password strength first
-      if (!isPasswordValid(signupData.password)) {
-        setErrorDialogConfig({
-          title: 'Password Requirements',
-          message: 'Password must be at least 8 characters long.'
-        });
-        setShowErrorDialog(true);
-        return;
-      }
-      
-      if (!isPasswordValid(signupData.confirmPassword)) {
-        setErrorDialogConfig({
-          title: 'Password Requirements',
-          message: 'Confirm password must be at least 8 characters long.'
-        });
-        setShowErrorDialog(true);
-        return;
-      }
-      
-      // Validate passwords match
-      if (signupData.password !== signupData.confirmPassword) {
-        setErrorDialogConfig({
-          title: 'Password Error',
-          message: 'Passwords do not match.'
-        });
-        setShowErrorDialog(true);
-        return;
-      }
-      
-      // Validate first and last name
-      if (!signupData.firstName || !signupData.lastName) {
-        setErrorDialogConfig({
-          title: 'Name Required',
-          message: 'Please enter your first and last name.'
-        });
-        setShowErrorDialog(true);
-        return;
-      }
-      
-      // Age validation - ensure users are 18+
-      if (!signupData.birthDate) {
-        setErrorDialogConfig({
-          title: 'Birth Date Required',
-          message: 'Please enter your birth date.'
-        });
-        setShowErrorDialog(true);
-        return;
-      }
-      
-      const age = calculateAge(signupData.birthDate);
-      if (age < 18) {
-        setErrorDialogConfig({
-          title: 'Age Restriction',
-          message: 'Members must be 18 years old to join.'
-        });
-        setShowErrorDialog(true);
-        return;
-      }
+  const handleProfilePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSignupData(prev => ({ ...prev, profilePhoto: file }));
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfilePhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
-    
-    setStep(3);
   };
 
+  const handleUserSelect = (user: any) => {
+    setSignupData(prev => ({
+      ...prev,
+      companyAccountMaster: user.id,
+      companyAccountMasterName: `${user.firstName} ${user.lastName}`
+    }));
+  };
 
-  const handleFinalSubmit = async (e: React.FormEvent) => {
+  const handleLegalDocumentSign = () => {
+    const userFullName = `${signupData.firstName} ${signupData.lastName}`;
+    const params = new URLSearchParams({
+      email: signupData.email,
+      fullName: userFullName
+    });
+    
+    const popupUrl = `/legal-document?${params.toString()}`;
+    
+    // Open legal document in popup
+    popupWindowRef.current = window.open(
+      popupUrl, 
+      'legal-document',
+      'width=800,height=900,scrollbars=yes,resizable=yes,location=no,menubar=no,toolbar=no'
+    );
+    
+    // Focus the popup if it was successfully opened
+    if (popupWindowRef.current) {
+      popupWindowRef.current.focus();
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate final step requirements
-    const step3Error = getStep3ValidationError();
-    if (step3Error) {
-      console.log('Step 3 validation error:', step3Error);
+    const validationError = getFormValidationError();
+    if (validationError) {
       setErrorDialogConfig({
-        title: 'Missing Requirements',
-        message: step3Error
+        title: 'Form Validation Error',
+        message: validationError
       });
       setShowErrorDialog(true);
       return;
     }
-    
-    console.log('Starting account creation for individual account...');
+
     setLoading(true);
-    setError(null);
+    setError('');
     
     try {
-      const result = await signUp(signupData.email, signupData.password, {
-        accountType: signupData.accountType as 'individual' | 'business/organization' | 'group/team',
-        companyName: signupData.companyName,
-        companyAccountMaster: signupData.companyAccountMaster,
-        firstName: signupData.firstName,
-        lastName: signupData.lastName,
+      // Format the signup data for submission
+      const formattedData = {
+        email: signupData.email.trim(),
+        password: signupData.password,
+        firstName: signupData.firstName.trim(),
+        lastName: signupData.lastName.trim(),
         phone: signupData.phone,
-        location: signupData.location,
-        bio: signupData.bio,
         birthDate: signupData.birthDate,
-        profilePhoto: photoPreview || undefined
-      });
+        location: signupData.location.trim(),
+        bio: signupData.bio.trim(),
+        accountType: signupData.accountType,
+        ...(signupData.accountType !== 'individual' && {
+          companyName: signupData.companyName.trim(),
+          companyExecutorFirstName: signupData.companyExecutorFirstName.trim(),
+          companyExecutorLastName: signupData.companyExecutorLastName.trim(),
+          companyAccountMaster: signupData.companyAccountMaster,
+        })
+      };
+
+      console.log('Attempting signup with data:', formattedData);
       
-      console.log('SignUp result:', result);
-      
-      if (result.error) {
-        console.log('SignUp error:', result.error);
-        if (result.error.toLowerCase().includes('email already exists') || 
-            result.error.toLowerCase().includes('user already registered')) {
-          setErrorDialogConfig({
-            title: 'Account Already Exists',
-            message: 'An account with this email already exists. Would you like to sign in instead?'
-          });
-          setShowErrorDialog(true);
-          setShowResetPassword(true);
-        } else {
-          setErrorDialogConfig({
-            title: 'Signup Failed',
-            message: `Account creation failed: ${result.error}`
-          });
-          setShowErrorDialog(true);
+      const result = await signUp(
+        formattedData.email,
+        formattedData.password,
+        {
+          firstName: formattedData.firstName,
+          lastName: formattedData.lastName,
+          phone: formattedData.phone,
+          location: formattedData.location,
+          bio: formattedData.bio,
+          birthDate: formattedData.birthDate,
+          ...(formattedData.accountType !== 'individual' && {
+            accountType: formattedData.accountType,
+            companyName: formattedData.companyName,
+            companyAccountMaster: formattedData.companyAccountMaster,
+          })
         }
-      } else {
-        // Account created successfully
-        console.log('Account created successfully, showing success toast...');
+      );
+      
+      if (result && !result.error) {
         toast({
-          title: 'Welcome!',
-          description: 'Your account has been created successfully.',
+          title: "Account created successfully!",
+          description: "Welcome to Public Streamer.",
         });
         
-        // Clear saved form data on success
-        sessionStorage.removeItem('signupFormData');
-        sessionStorage.removeItem('signupStep');
-        sessionStorage.removeItem('legalDocumentCompleted');
-        
-        // Close the form and redirect to profile
-        console.log('Closing form and navigating to profile...');
+        if (onSuccess) {
+          onSuccess();
+        } else {
+          navigate('/');
+        }
         onClose();
-        
-        // Small delay to ensure form closes before navigation
-        setTimeout(() => {
-          navigate('/profile');
-        }, 100);
+      } else {
+        console.error('Signup failed:', result.error);
+        setError(result.error || 'Failed to create account. Please try again.');
       }
-    } catch (error) {
-      console.error('SignUp error:', error);
-      setErrorDialogConfig({
-        title: 'Unexpected Error',
-        message: `Account creation failed: ${(error as Error).message}. Please try again.`
-      });
-      setShowErrorDialog(true);
+    } catch (error: any) {
+      console.error('Signup error:', error);
+      setError(error.message || 'An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   const formContent = (
-    <div className="w-full">
-      {/* Progress indicator */}
-      <div className="flex items-center justify-center mb-4">
-        {[1, 2, 3].map((pageNum) => (
-          <div key={pageNum} className="flex items-center">
-            <div
-              className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
-                step >= pageNum
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground'
-              }`}
-            >
-              {pageNum}
+    <div className="space-y-6 max-w-2xl mx-auto">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        
+        {/* Account Type Section */}
+        <div className="space-y-3">
+          <h3 className="text-lg font-semibold">Account Type</h3>
+          <RadioGroup
+            value={signupData.accountType}
+            onValueChange={(value: 'individual' | 'business/organization' | 'group/team') => setSignupData(prev => ({ ...prev, accountType: value }))}
+            className="space-y-2"
+          >
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="individual" id="individual" />
+              <Label htmlFor="individual" className="text-sm cursor-pointer">Individual</Label>
             </div>
-            {pageNum < 3 && (
-              <div
-                className={`w-8 h-0.5 mx-1 ${
-                  step > pageNum ? 'bg-primary' : 'bg-muted'
-                }`}
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="business/organization" id="business" />
+              <Label htmlFor="business" className="text-sm cursor-pointer">Business/Organization</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="group/team" id="group" />
+              <Label htmlFor="group" className="text-sm cursor-pointer">Group/Team</Label>
+            </div>
+          </RadioGroup>
+        </div>
+
+        {/* Company Information (for business/organization and group/team) */}
+        {(signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && (
+          <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
+            <h3 className="text-lg font-semibold">
+              {signupData.accountType === 'business/organization' ? 'Business/Organization Information' : 'Group/Team Information'}
+            </h3>
+            
+            <div className="space-y-1">
+              <Label htmlFor="companyName" className="text-sm">
+                {signupData.accountType === 'business/organization' ? 'Business/Organization Name' : 'Group/Team Name'}
+              </Label>
+              <Input
+                id="companyName"
+                value={signupData.companyName}
+                onChange={(e) => setSignupData(prev => ({ ...prev, companyName: e.target.value }))}
+                placeholder={signupData.accountType === 'business/organization' ? 'Enter business/organization name' : 'Enter group/team name'}
+                className={`h-8 text-sm ${getFieldErrorClass('companyName')}`}
               />
-            )}
-          </div>
-        ))}
-      </div>
+            </div>
 
-      {/* Page 1: Account Type & Basic Info */}
-      {step === 1 && (
-        <form onSubmit={handleStep1Submit} className="space-y-3">
-          <div className="text-center mb-3">
-            <h3 className="text-base font-semibold">Account Setup</h3>
-            <p className="text-xs text-muted-foreground">Choose your account type and enter basic information</p>
-          </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label htmlFor="companyExecutorFirstName" className="text-sm">Executor First Name</Label>
+                <Input
+                  id="companyExecutorFirstName"
+                  value={signupData.companyExecutorFirstName}
+                  onChange={(e) => setSignupData(prev => ({ ...prev, companyExecutorFirstName: e.target.value }))}
+                  placeholder="First Name"
+                  className={`h-8 text-sm ${getFieldErrorClass('companyExecutorFirstName')}`}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="companyExecutorLastName" className="text-sm">Executor Last Name</Label>
+                <Input
+                  id="companyExecutorLastName"
+                  value={signupData.companyExecutorLastName}
+                  onChange={(e) => setSignupData(prev => ({ ...prev, companyExecutorLastName: e.target.value }))}
+                  placeholder="Last Name"
+                  className={`h-8 text-sm ${getFieldErrorClass('companyExecutorLastName')}`}
+                />
+              </div>
+            </div>
 
-          <div className="space-y-2">
-            <Label className="text-sm">Account Type</Label>
-            <RadioGroup
-              value={signupData.accountType}
-              onValueChange={(value: 'individual' | 'business/organization' | 'group/team') => setSignupData(prev => ({ ...prev, accountType: value }))}
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="individual" id="individual" />
-                <Label htmlFor="individual" className="text-sm">Individual</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="business/organization" id="business-organization" />
-                <Label htmlFor="business-organization" className="text-sm">Business / Organization</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="group/team" id="group-team" />
-                <Label htmlFor="group-team" className="text-sm">Group / Team</Label>
-              </div>
-            </RadioGroup>
-          </div>
-          
-           {(signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && (
-             <div className="space-y-3">
-               <div className="space-y-1">
-                 <Label htmlFor="companyName" className="text-sm">
-                   {signupData.accountType === 'business/organization' ? 'Business/Organization Name' : 'Group/Team Name'}
-                 </Label>
-                 <TooltipWrapper 
-                   content={validationErrors.companyName || (signupData.accountType === 'business/organization' ? 'Enter your business/organization name' : 'Enter your group/team name')}
-                   disabled={!validationErrors.companyName}
-                 >
-                   <Input
-                     id="companyName"
-                     value={signupData.companyName}
-                     onChange={(e) => setSignupData(prev => ({ ...prev, companyName: e.target.value }))}
-                     required
-                     className={`h-8 text-sm ${getFieldErrorClass('companyName')}`}
-                   />
-                 </TooltipWrapper>
-               </div>
-               
-
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="space-y-1">
-                     <Label htmlFor="companyExecutorFirstName" className="text-sm">
-                       {signupData.accountType === 'business/organization' ? 'First Name of Business / Organization Account Master Executor' : 'First Name of Group / Team Account Master Executor'}
-                     </Label>
-                     <Input
-                       id="companyExecutorFirstName"
-                       value={signupData.companyExecutorFirstName}
-                       onChange={(e) => setSignupData(prev => ({ ...prev, companyExecutorFirstName: e.target.value }))}
-                       placeholder="First name"
-                       className={`h-8 text-sm ${getFieldErrorClass('companyExecutorFirstName')}`}
-                       required
-                     />
-                     {validationErrors.companyExecutorFirstName && (
-                       <p className="text-xs text-destructive mt-1">{validationErrors.companyExecutorFirstName}</p>
-                     )}
-                  </div>
-                  <div className="space-y-1">
-                     <Label htmlFor="companyExecutorLastName" className="text-sm">
-                       {signupData.accountType === 'business/organization' ? 'Last Name of Business / Organization Account Master Executor' : 'Last Name of Group / Team Account Master Executor'}
-                     </Label>
-                     <Input
-                       id="companyExecutorLastName"
-                       value={signupData.companyExecutorLastName}
-                       onChange={(e) => setSignupData(prev => ({ ...prev, companyExecutorLastName: e.target.value }))}
-                       placeholder="Last name"
-                       className={`h-8 text-sm ${getFieldErrorClass('companyExecutorLastName')}`}
-                       required
-                     />
-                     {validationErrors.companyExecutorLastName && (
-                       <p className="text-xs text-destructive mt-1">{validationErrors.companyExecutorLastName}</p>
-                     )}
-                  </div>
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Account Master Selection</Label>
+              <p className="text-xs text-muted-foreground">
+                Choose who will be the Account Master for this {signupData.accountType === 'business/organization' ? 'business/organization' : 'group/team'}.
+              </p>
+              <UserSearchBox onUserSelect={handleUserSelect} selectedUser={null} />
+              {signupData.companyAccountMasterName && (
+                <div className="p-2 bg-green-50 border border-green-200 rounded text-sm">
+                  <strong>Selected Account Master:</strong> {signupData.companyAccountMasterName}
                 </div>
+              )}
+            </div>
 
-               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                 <div className="flex items-start space-x-2">
-                   <Checkbox
-                     id="companyExecutorAcknowledged"
-                     checked={signupData.companyExecutorAcknowledged}
-                     onCheckedChange={(checked) => setSignupData(prev => ({ ...prev, companyExecutorAcknowledged: checked as boolean }))}
-                     className="mt-0.5"
-                   />
-                   <div className="flex-1">
-                     <Label htmlFor="companyExecutorAcknowledged" className="text-sm font-medium text-yellow-800 cursor-pointer">
-                       {signupData.accountType === 'business/organization' 
-                         ? 'I acknowledge that the Business/Organization Account Master has executor authority for the business/organization'
-                         : 'I acknowledge that the Group/Team Account Master has executor authority for the group/team'}
-                     </Label>
-                     <p className="text-xs text-yellow-700 mt-1">
-                       {signupData.accountType === 'business/organization'
-                         ? 'The Business/Organization Account Master will have full control and authority to act on behalf of the business/organization account, including but not limited to managing content, financial transactions, and legal agreements.'
-                         : 'The Group/Team Account Master will have full control and authority to act on behalf of the group/team account, including but not limited to managing content, financial transactions, and legal agreements.'}
-                     </p>
-                   </div>
-                 </div>
-               </div>
-               
-                <div className="space-y-1">
-                  <Label className="text-sm">
-                    {signupData.accountType === 'business/organization' ? 'Business / Organization Account Master Public Streamer Personal Profile' : 'Group / Team Account Master Public Streamer Personal Profile'}
-                  </Label>
-                 <UserSearchBox
-                   onUserSelect={(user) => {
-                     setSignupData(prev => ({ 
-                       ...prev, 
-                       companyAccountMaster: user
-                     }));
-                   }}
-                   selectedUser={signupData.companyAccountMaster}
-                   placeholder="Search for existing profile..."
-                 />
-               </div>
-             </div>
-           )}
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="executorAuth"
+                checked={signupData.companyExecutorAcknowledged}
+                onCheckedChange={(checked) => setSignupData(prev => ({ ...prev, companyExecutorAcknowledged: !!checked }))}
+              />
+              <Label htmlFor="executorAuth" className="text-xs">
+                I acknowledge that the selected Account Master has executor authority for this {signupData.accountType === 'business/organization' ? 'business/organization' : 'group/team'} account.
+              </Label>
+            </div>
+          </div>
+        )}
+
+        {/* Basic Account Information */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Account Information</h3>
           
-           <div className="space-y-1">
-               <Label htmlFor="email" className="text-sm">
-                 {signupData.accountType === 'business/organization' ? 'Business / Organization Account Master Public Streamer Personal Profile Email' : 
-                  signupData.accountType === 'group/team' ? 'Group / Team Account Master Public Streamer Personal Profile Email' : 'Email'}
-               </Label>
+          <div className="space-y-1">
+            <Label htmlFor="email" className="text-sm">Email Address</Label>
             <Input
               id="email"
               type="email"
               value={signupData.email}
               onChange={(e) => setSignupData(prev => ({ ...prev, email: e.target.value }))}
-              required
+              placeholder="Enter your email"
               className={`h-8 text-sm ${getFieldErrorClass('email')}`}
-              autoComplete="email"
-              placeholder="Enter your email address"
             />
-            {validationErrors.email && (
-              <p className="text-xs text-destructive mt-1">{validationErrors.email}</p>
-            )}
           </div>
-          
-          <div className="space-y-1">
-               <Label htmlFor="password" className="text-sm">
-                 {signupData.accountType === 'business/organization' ? 'Business / Organization Account Master Public Streamer Personal Profile Password' : 
-                  signupData.accountType === 'group/team' ? 'Group / Team Account Master Public Streamer Personal Profile Password' : 'Password'}
-               </Label>
-             <Input
-               id="password"
-               type="password"
-               value={signupData.password}
-               onChange={(e) => setSignupData(prev => ({ ...prev, password: e.target.value }))}
-               required
-               className={`h-8 text-sm ${getPasswordFieldClass('password')}`}
-               autoComplete="new-password"
-               placeholder={(signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && signupData.companyAccountMaster ? "Enter password" : "Create a secure password"}
-             />
-             {validationErrors.password && (
-               <p className="text-xs text-destructive mt-1">{validationErrors.password}</p>
-             )}
-             {signupData.password && signupData.confirmPassword && !passwordsMatch() && (
-               <p className="text-xs text-destructive mt-1">Passwords do not match</p>
-             )}
-          </div>
-          
-          <div className="flex space-x-2 pt-3">
-            <Button type="button" variant="outline" onClick={onClose} className="flex-1 h-8 text-sm">
-              Cancel
-            </Button>
-            <TooltipWrapper 
-              content={getStep1ValidationError() || "Continue to personal details"}
-              disabled={!getStep1ValidationError()}
-            >
-              <Button 
-                type="submit" 
-                className="flex-1 h-8 text-sm"
-                disabled={!!getStep1ValidationError()}
-              >
-                Next
-              </Button>
-            </TooltipWrapper>
-          </div>
-        </form>
-      )}
 
-      {/* Page 2: Personal Details */}
-      {step === 2 && (
-        <form onSubmit={handleStep2Submit} className="space-y-3">
-          <div className="text-center mb-3">
-            <h3 className="text-base font-semibold">Personal Details</h3>
-            <p className="text-xs text-muted-foreground">Complete your profile information</p>
-            {/* Debug info */}
-            <div className="text-xs text-red-500 mt-2">
-              DEBUG: {getStep2ValidationError() || "No validation errors"}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label htmlFor="password" className="text-sm">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                value={signupData.password}
+                onChange={(e) => setSignupData(prev => ({ ...prev, password: e.target.value }))}
+                placeholder="Enter password"
+                className={`h-8 text-sm ${getFieldErrorClass('password')}`}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="confirmPassword" className="text-sm">Confirm Password</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                value={signupData.confirmPassword}
+                onChange={(e) => setSignupData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                placeholder="Confirm password"
+                className={`h-8 text-sm ${getFieldErrorClass('confirmPassword')}`}
+              />
             </div>
           </div>
+        </div>
 
-          {/* Profile photo section */}
-          <div className="flex flex-col items-center space-y-2 mb-3">
+        {/* Personal Information */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Personal Information</h3>
+          
+          {/* Profile Photo */}
+          <div className="flex flex-col items-center space-y-2">
             <div className="relative">
-              <Avatar className="w-16 h-16">
-                <AvatarImage src={photoPreview || undefined} />
+              <Avatar className="w-20 h-20">
+                <AvatarImage src={profilePhotoPreview || undefined} />
                 <AvatarFallback>
-                  <Camera className="w-6 h-6 text-gray-400" />
+                  <Camera className="w-8 h-8 text-muted-foreground" />
                 </AvatarFallback>
               </Avatar>
-              <TooltipWrapper content="Upload a profile photo to increase your profile visibility and engagement by up to 300%">
-                <label className="absolute bottom-0 right-0 bg-primary text-primary-foreground rounded-full p-1 cursor-pointer hover:bg-primary/90 transition-colors">
-                  <Upload className="w-3 h-3" />
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handlePhotoUpload}
-                    className="hidden"
-                  />
-                </label>
-              </TooltipWrapper>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleProfilePhotoUpload}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+              <div className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground rounded-full p-1">
+                <Upload className="w-3 h-3" />
+              </div>
             </div>
-            <div className="flex items-center space-x-1">
-               <Label className="text-xs text-muted-foreground">
-                 {signupData.accountType === 'business/organization' ? 'Business/Organization Logo' : 
-                  signupData.accountType === 'group/team' ? 'Group/Team Logo' : 'Profile Photo'}
-               </Label>
-              <TooltipWrapper content="Profiles with photos receive significantly more interest and interaction from other users">
-                <Info className="w-3 h-3 text-muted-foreground hover:text-primary cursor-help transition-colors" />
-              </TooltipWrapper>
+            <p className="text-xs text-muted-foreground text-center">Click to upload profile photo (optional)</p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label htmlFor="firstName" className="text-sm">First Name</Label>
+              <Input
+                id="firstName"
+                value={signupData.firstName}
+                onChange={(e) => setSignupData(prev => ({ ...prev, firstName: e.target.value }))}
+                placeholder="First Name"
+                className={`h-8 text-sm ${getFieldErrorClass('firstName')}`}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="lastName" className="text-sm">Last Name</Label>
+              <Input
+                id="lastName"
+                value={signupData.lastName}
+                onChange={(e) => setSignupData(prev => ({ ...prev, lastName: e.target.value }))}
+                placeholder="Last Name"
+                className={`h-8 text-sm ${getFieldErrorClass('lastName')}`}
+              />
             </div>
           </div>
 
-          {/* Only show name fields for individual accounts or company accounts without master selected */}
-          {(signupData.accountType === 'individual' || 
-            ((signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && !signupData.companyAccountMaster)) && (
-            <>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1">
-                  <Label htmlFor="firstName" className="text-sm">First Name</Label>
-                  <TooltipWrapper 
-                    content={validationErrors.firstName || "Enter your first name"}
-                    disabled={!validationErrors.firstName}
-                  >
-                    <Input
-                      id="firstName"
-                      value={signupData.firstName}
-                      onChange={(e) => setSignupData(prev => ({ ...prev, firstName: e.target.value }))}
-                      required
-                      className={`h-8 text-sm ${getFieldErrorClass('firstName')}`}
-                    />
-                  </TooltipWrapper>
-                </div>
-                <div className="space-y-1">
-                  <Label htmlFor="lastName" className="text-sm">Last Name</Label>
-                  <TooltipWrapper 
-                    content={validationErrors.lastName || "Enter your last name"}
-                    disabled={!validationErrors.lastName}
-                  >
-                    <Input
-                      id="lastName"
-                      value={signupData.lastName}
-                      onChange={(e) => setSignupData(prev => ({ ...prev, lastName: e.target.value }))}
-                      required
-                      className={`h-8 text-sm ${getFieldErrorClass('lastName')}`}
-                    />
-                  </TooltipWrapper>
-                </div>
-              </div>
+          <div className="space-y-1">
+            <Label htmlFor="birthDate" className="text-sm">Birth Date</Label>
+            <BirthdaySelector
+              value={signupData.birthDate}
+              onChange={(date) => setSignupData(prev => ({ ...prev, birthDate: date }))}
+              className={getFieldErrorClass('birthDate')}
+            />
+          </div>
 
-              <div className="space-y-1">
-                <Label htmlFor="confirmPassword" className="text-sm">Confirm Password</Label>
-                 <Input
-                   id="confirmPassword"
-                   type="password"
-                   value={signupData.confirmPassword}
-                   onChange={(e) => setSignupData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                   required
-                   className={`h-8 text-sm ${getPasswordFieldClass('confirmPassword')}`}
-                   placeholder="Re-enter your password to confirm"
-                 />
-                 {validationErrors.confirmPassword && (
-                   <p className="text-xs text-destructive mt-1">{validationErrors.confirmPassword}</p>
-                 )}
-                 {signupData.confirmPassword && !passwordsMatch() && (
-                   <p className="text-xs text-destructive mt-1">Passwords do not match</p>
-                 )}
-              </div>
-
-              <TooltipWrapper 
-                content={validationErrors.birthDate || "You must be at least 18 years old to join"}
-                disabled={!validationErrors.birthDate}
-              >
-                <BirthdaySelector
-                  value={signupData.birthDate}
-                  onChange={(value) => setSignupData(prev => ({ ...prev, birthDate: value }))}
-                  className={validationErrors.birthDate ? 'border-destructive' : ''}
-                />
-              </TooltipWrapper>
-              {validationErrors.birthDate && (
-                <p className="text-xs text-destructive mt-1">{validationErrors.birthDate}</p>
-              )}
-            </>
-          )}
-          
-          <div className="flex space-x-2 pt-3">
-            <Button type="button" variant="outline" onClick={() => setStep(1)} className="flex-1 h-8 text-sm">
-              Back
-            </Button>
+          <div className="space-y-1">
             <TooltipWrapper 
-              content={getStep2ValidationError() || "Continue to final details"}
-              disabled={!getStep2ValidationError()}
+              content={validationErrors.phone || "Enter your cell phone number"}
+              disabled={!validationErrors.phone}
             >
-              <Button 
-                type="submit" 
-                className="flex-1 h-8 text-sm"
-                disabled={!!getStep2ValidationError()}
-                onClick={() => {
-                  const error = getStep2ValidationError();
-                  if (error) {
-                    alert(`Form validation error: ${error}`);
-                  }
-                }}
-              >
-                Next
-              </Button>
+              <Label htmlFor="phone" className="text-sm">
+                {signupData.accountType === 'business/organization' ? 'Business/Organization Cell Phone Number' : 
+                 signupData.accountType === 'group/team' ? 'Group/Team Cell Phone Number' : 'Cell Phone Number'}
+              </Label>
             </TooltipWrapper>
+            <Input
+              id="phone"
+              type="tel"
+              value={signupData.phone}
+              onChange={handlePhoneChange}
+              placeholder="XXX-XXX-XXXX"
+              className={`h-8 text-sm ${getFieldErrorClass('phone')}`}
+            />
           </div>
-        </form>
-      )}
-
-      {/* Page 3: Final Details & Legal */}
-      {step === 3 && (
-        <form onSubmit={handleFinalSubmit} className="space-y-3">
-          <div className="text-center mb-3">
-            <h3 className="text-base font-semibold">Final Details</h3>
-            <p className="text-xs text-muted-foreground">Complete your registration</p>
-          </div>
-
-          {(signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && (
-            <div className="space-y-3 mb-3 p-3 border rounded-lg bg-muted/50">
-             <h4 className="font-medium text-xs">
-               {signupData.accountType === 'business/organization' ? 'Verify Business/Organization Account Master' : 'Verify Group/Team Account Master'}
-               {signupData.companyAccountMasterName && (
-                 <span className="text-muted-foreground font-normal"> - {signupData.companyAccountMasterName}</span>
-               )}
-             </h4>
-               <div className="grid grid-cols-1 gap-2">
-                <div>
-                  <Label htmlFor="emailVerification" className="text-sm">Verify Email</Label>
-                  <TooltipWrapper 
-                    content={validationErrors.emailVerification || "Re-enter your email to confirm"}
-                    disabled={!validationErrors.emailVerification}
-                  >
-                    <Input
-                      id="emailVerification"
-                      type="email"
-                      value={emailVerification}
-                      onChange={(e) => setEmailVerification(e.target.value)}
-                      placeholder="Re-enter your email"
-                      className={`h-8 text-sm ${getFieldErrorClass('emailVerification')}`}
-                    />
-                  </TooltipWrapper>
-                </div>
-                <div>
-                  <Label htmlFor="passwordVerification" className="text-sm">Verify Password</Label>
-                  <TooltipWrapper 
-                    content={validationErrors.passwordVerification || "Re-enter your password to confirm"}
-                    disabled={!validationErrors.passwordVerification}
-                  >
-                    <Input
-                      id="passwordVerification"
-                      type="password"
-                      value={passwordVerification}
-                      onChange={(e) => setPasswordVerification(e.target.value)}
-                      placeholder="Re-enter your password"
-                      className={`h-8 text-sm ${getFieldErrorClass('passwordVerification')}`}
-                    />
-                  </TooltipWrapper>
-                </div>
-              </div>
-            </div>
-          )}
-
-           <div className="space-y-1">
-             <TooltipWrapper 
-               content={validationErrors.phone || "Enter your cell phone number"}
-               disabled={!validationErrors.phone}
-             >
-               <Label htmlFor="phone" className="text-sm">
-                 {signupData.accountType === 'business/organization' ? 'Business/Organization Cell Phone Number' : 
-                  signupData.accountType === 'group/team' ? 'Group/Team Cell Phone Number' : 'Cell Phone Number'}
-               </Label>
-             </TooltipWrapper>
-             <Input
-               id="phone"
-               type="tel"
-               value={signupData.phone}
-               onChange={handlePhoneChange}
-               placeholder="XXX-XXX-XXXX"
-               required
-               className={`h-8 text-sm ${getFieldErrorClass('phone')}`}
-             />
-           </div>
           
           <div className="space-y-1">
-             <Label htmlFor="location" className="text-sm">
-               {signupData.accountType === 'business/organization' ? 'Business/Organization Location' : 
-                signupData.accountType === 'group/team' ? 'Group/Team Location' : 'Location'}
-             </Label>
+            <Label htmlFor="location" className="text-sm">Location (Optional)</Label>
             <Input
               id="location"
               value={signupData.location}
               onChange={(e) => setSignupData(prev => ({ ...prev, location: e.target.value }))}
-              placeholder="City, State"
-              required
+              placeholder="City, State/Country"
               className="h-8 text-sm"
             />
           </div>
-          
+
           <div className="space-y-1">
-            <Label htmlFor="bio" className="text-sm">
-                {signupData.accountType === 'business/organization' ? 'Company/Organization Story (Optional)' : 
-                 signupData.accountType === 'group/team' ? 'Group / Team Story (Optional)' : 'Bio (Optional)'}
-              </Label>
-              <Textarea
-                id="bio"
-                value={signupData.bio}
-                onChange={(e) => setSignupData(prev => ({ ...prev, bio: e.target.value }))}
-                placeholder={signupData.accountType === 'business/organization' ? 'Tell us about your company/organization' : 
-                           signupData.accountType === 'group/team' ? 'Tell us about your group/team' : 'Tell us about yourself...'}
-                className="min-h-[40px] text-sm"
-              />
+            <Label htmlFor="bio" className="text-sm">Bio (Optional)</Label>
+            <Textarea
+              id="bio"
+              value={signupData.bio}
+              onChange={(e) => setSignupData(prev => ({ ...prev, bio: e.target.value }))}
+              placeholder="Tell us about yourself..."
+              className="text-sm min-h-[60px]"
+            />
           </div>
-          
-          <div className="space-y-2 pt-2">
-            <TooltipWrapper 
-              content={validationErrors.agreeToTerms || "You must agree to continue"}
-              disabled={!validationErrors.agreeToTerms}
-            >
-              <div className={`flex items-center space-x-2 p-2 rounded ${hasFieldError('agreeToTerms') ? 'bg-red-50 border border-red-500' : ''}`}>
-                <Checkbox
-                  id="agreeToTerms"
-                  checked={signupData.agreeToTerms}
-                  onCheckedChange={(checked) => setSignupData(prev => ({ ...prev, agreeToTerms: checked as boolean }))}
-                />
-                <Label htmlFor="agreeToTerms" className="text-xs">
-                  I agree to the Terms of Service and Privacy Policy
-                </Label>
-              </div>
-            </TooltipWrapper>
+        </div>
+
+        {/* Verification Section (for business/organization and group/team) */}
+        {(signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && (
+          <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
+            <h3 className="text-lg font-semibold">
+              Verify {signupData.accountType === 'business/organization' ? 'Business/Organization' : 'Group/Team'} Account Master
+            </h3>
+            {signupData.companyAccountMasterName && (
+              <p className="text-sm text-muted-foreground">
+                Account Master: <span className="font-medium">{signupData.companyAccountMasterName}</span>
+              </p>
+            )}
             
-            <TooltipWrapper 
-              content={validationErrors.confirmAge || "You must be 18 or older to join"}
-              disabled={!validationErrors.confirmAge}
-            >
-              <div className={`flex items-center space-x-2 p-2 rounded ${hasFieldError('confirmAge') ? 'bg-red-50 border border-red-500' : ''}`}>
-                <Checkbox
-                  id="confirmAge"
-                  checked={signupData.confirmAge}
-                  onCheckedChange={(checked) => setSignupData(prev => ({ ...prev, confirmAge: checked as boolean }))}
-                />
-                <Label htmlFor="confirmAge" className="text-xs">
-                  I confirm that I am 18 years of age or older
-                </Label>
-              </div>
-            </TooltipWrapper>
-            
-            <div className="text-center">
-              <TooltipWrapper 
-                content={validationErrors.legalDocument || "Sign the legal document to proceed"}
-                disabled={!validationErrors.legalDocument}
-              >
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    // Use modal instead of popup on mobile to prevent sliding issues
-                    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-                    
-                    if (isMobile) {
-                       // Save form data and current step for mobile legal document flow
-                       sessionStorage.setItem('signupFormData', JSON.stringify(signupData));
-                       sessionStorage.setItem('signupStep', step.toString());
-                        const userFullName = (signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && signupData.companyExecutorFirstName && signupData.companyExecutorLastName
-                          ? `${signupData.companyExecutorFirstName} ${signupData.companyExecutorLastName}`
-                          : `${signupData.firstName} ${signupData.lastName}`;
-                       const encodedName = encodeURIComponent(userFullName);
-                       window.location.href = `/legal?mobile=true&return=signup&tab=signup&name=${encodedName}`;
-                    } else {
-                       // Desktop: use popup as before
-                       const popupFeatures = 'width=800,height=600,scrollbars=yes,resizable=yes';
-                        const userFullName = (signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && signupData.companyExecutorFirstName && signupData.companyExecutorLastName
-                          ? `${signupData.companyExecutorFirstName} ${signupData.companyExecutorLastName}`
-                          : `${signupData.firstName} ${signupData.lastName}`;
-                       const encodedName = encodeURIComponent(userFullName);
-                       const popup = window.open(`/legal?name=${encodedName}`, '_blank', popupFeatures);
-                      if (!popup) {
-                        alert('Please allow popups to view the legal document');
-                      } else {
-                        popupWindowRef.current = popup;
-                      }
-                    }
-                  }}
-                  className={`text-xs h-8 transition-all duration-300 ${
-                    legalDocumentSigned 
-                      ? 'bg-green-100 border-green-300 text-green-800 hover:bg-green-200' 
-                      : 'bg-yellow-100 border-yellow-300 text-yellow-800 hover:bg-yellow-200'
-                  } ${hasFieldError('legalDocument') ? 'border-red-500 bg-red-50' : ''}`}
-                >
-                  {legalDocumentSigned ? '✓ Legal Document Signed' : 'Sign Legal Document'}
-                </Button>
-              </TooltipWrapper>
+            <div className="space-y-1">
+              <Label htmlFor="emailVerification" className="text-sm">Re-enter Email Address</Label>
+              <Input
+                id="emailVerification"
+                type="email"
+                value={emailVerification}
+                onChange={(e) => setEmailVerification(e.target.value)}
+                placeholder="Confirm email address"
+                className="h-8 text-sm"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <Label htmlFor="passwordVerification" className="text-sm">Re-enter Password</Label>
+              <Input
+                id="passwordVerification"
+                type="password"
+                value={passwordVerification}
+                onChange={(e) => setPasswordVerification(e.target.value)}
+                placeholder="Confirm password"
+                className="h-8 text-sm"
+              />
             </div>
           </div>
+        )}
+
+        {/* Legal Agreement Section */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Legal Agreement</h3>
           
-          <div className="flex space-x-2 pt-3">
-            <Button type="button" variant="outline" onClick={() => setStep(2)} className="flex-1 h-8 text-sm">
-              Back
-            </Button>
-            <TooltipWrapper 
-              content={getStep3ValidationError() || "Complete your account registration"}
-              disabled={!getStep3ValidationError()}
-            >
-              <Button 
-                type="submit" 
-                disabled={loading || !!getStep3ValidationError()}
-                className="flex-1 h-8 text-sm"
+          <div className="space-y-3">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="agreeTerms"
+                checked={signupData.agreeToTerms}
+                onCheckedChange={(checked) => setSignupData(prev => ({ ...prev, agreeToTerms: !!checked }))}
+              />
+              <Label htmlFor="agreeTerms" className="text-sm">
+                I agree to the Terms of Service and Privacy Policy
+              </Label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="confirmAge"
+                checked={signupData.confirmAge}
+                onCheckedChange={(checked) => setSignupData(prev => ({ ...prev, confirmAge: !!checked }))}
+              />
+              <Label htmlFor="confirmAge" className="text-sm">
+                I confirm that I am 18 years of age or older
+              </Label>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm">Legal Document Signature</Label>
+                {legalDocumentSigned ? (
+                  <span className="text-green-600 text-sm font-medium">✓ Signed</span>
+                ) : (
+                  <span className="text-red-600 text-sm font-medium">Required</span>
+                )}
+              </div>
+              
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleLegalDocumentSign}
+                disabled={!signupData.firstName || !signupData.lastName || !signupData.email}
+                className="w-full"
               >
-                {loading ? 'Creating...' : 'Create Account'}
+                <Info className="w-4 h-4 mr-2" />
+                {legalDocumentSigned ? 'Review Legal Document' : 'Sign Legal Document'}
               </Button>
-            </TooltipWrapper>
+              
+              {legalDocumentSigned && signatureData && (
+                <div className="text-xs text-muted-foreground">
+                  Signed by: {signatureData.signature} on {signatureData.date}
+                </div>
+              )}
+            </div>
           </div>
-        </form>
-      )}
+        </div>
+
+        {/* Submit Button */}
+        <div className="pt-4">
+          <TooltipWrapper 
+            content={getFormValidationError() || "Create your account"}
+            disabled={!getFormValidationError()}
+          >
+            <Button 
+              type="submit" 
+              disabled={loading || !!getFormValidationError()}
+              className="w-full h-10"
+            >
+              {loading ? 'Creating Account...' : 'Create Account'}
+            </Button>
+          </TooltipWrapper>
+        </div>
+      </form>
     </div>
   );
 
@@ -1260,15 +763,19 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
   return (
     <>
       <div 
-        className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
+        className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 auth-template"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            onClose();
+          }
+        }}
       >
         <div 
-          className="w-full max-w-sm bg-card rounded-lg border shadow-lg"
+          className="w-full max-w-4xl max-h-[95vh] bg-card rounded-lg border shadow-lg overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="p-4">
-            <div className="flex items-center justify-between mb-4">
+          <div className="p-6 border-b">
+            <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <LiveStreamLogo size="md" className="mr-3" />
                 <h2 className="text-xl sm:text-2xl font-bold">
@@ -1285,8 +792,8 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
               </Button>
             </div>
             {error && (
-              <Alert variant="destructive" className="mb-3">
-                <AlertDescription className="text-xs">{error}</AlertDescription>
+              <Alert variant="destructive" className="mt-3">
+                <AlertDescription className="text-sm">{error}</AlertDescription>
                 {showResetPassword && (
                   <Button
                     variant="link"
@@ -1299,12 +806,15 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
             </Alert>
             )}
             {debugStatus && (
-              <div className="mb-3 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
+              <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
                 <strong>Debug Status:</strong> {debugStatus}
               </div>
             )}
-            {formContent}
           </div>
+          
+          <ScrollArea className="h-[calc(95vh-120px)] p-6">
+            {formContent}
+          </ScrollArea>
         </div>
       </div>
       {showResetPassword && (
