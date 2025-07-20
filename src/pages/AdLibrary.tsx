@@ -8,7 +8,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PlayCircle, Edit, Copy, Rocket, Trash2, Search, Filter, TrendingUp, Eye, Clock, DollarSign, BarChart3 } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Slider } from "@/components/ui/slider";
+import { PlayCircle, Edit, Copy, Rocket, Trash2, Search, Filter, TrendingUp, Eye, Clock, DollarSign, BarChart3, FlaskConical, Lightbulb, CheckCircle, AlertCircle, Trophy, Target, Zap } from "lucide-react";
 import { toast } from "sonner";
 
 interface AdPerformance {
@@ -21,6 +25,34 @@ interface AdPerformance {
   budgetSpent: number;
 }
 
+interface ABTestResult {
+  testName: string;
+  dateRun: string;
+  status: "Running" | "Completed";
+  variationA: {
+    name: string;
+    views: number;
+    engagement: number;
+    avgDuration: number;
+    cost: number;
+  };
+  variationB: {
+    name: string;
+    views: number;
+    engagement: number;
+    avgDuration: number;
+    cost: number;
+  };
+  winner?: "A" | "B" | "tie";
+}
+
+interface AISuggestion {
+  type: "warning" | "suggestion" | "success";
+  title: string;
+  description: string;
+  actionable: boolean;
+}
+
 interface SavedAd {
   id: string;
   name: string;
@@ -30,6 +62,7 @@ interface SavedAd {
   status: "Draft" | "Published" | "Archived";
   duration?: number;
   performanceHistory: AdPerformance[];
+  abTestResults?: ABTestResult[];
 }
 
 // Mock data for saved ads
@@ -60,6 +93,28 @@ const mockSavedAds: SavedAd[] = [
         avgViewDuration: 18.7,
         ctr: 2.8,
         budgetSpent: 75.00
+      }
+    ],
+    abTestResults: [
+      {
+        testName: "Music Test",
+        dateRun: "2024-01-28 - 2024-02-01",
+        status: "Completed",
+        variationA: {
+          name: "Original Music",
+          views: 8420,
+          engagement: 3.2,
+          avgDuration: 24.5,
+          cost: 85.20
+        },
+        variationB: {
+          name: "Upbeat Music",
+          views: 9680,
+          engagement: 4.1,
+          avgDuration: 27.8,
+          cost: 92.40
+        },
+        winner: "B"
       }
     ]
   },
@@ -94,6 +149,61 @@ const mockSavedAds: SavedAd[] = [
   }
 ];
 
+// Mock AI suggestions generator
+const generateAISuggestions = (ad: SavedAd): AISuggestion[] => {
+  const suggestions: AISuggestion[] = [];
+  
+  if (ad.duration && ad.duration > 60) {
+    suggestions.push({
+      type: "warning",
+      title: "Consider shortening your ad",
+      description: "Your ad runs over 60 seconds. Shorter ads typically have higher completion rates and better engagement.",
+      actionable: true
+    });
+  }
+  
+  if (ad.mediaType === "Video" && Math.random() > 0.5) {
+    suggestions.push({
+      type: "suggestion",
+      title: "Add a clear headline",
+      description: "Try adding a headline that highlights your main offer or benefit to grab viewers' attention immediately.",
+      actionable: true
+    });
+  }
+  
+  if (ad.mediaType === "Image") {
+    suggestions.push({
+      type: "suggestion",
+      title: "Consider adding motion",
+      description: "Converting your image to a short video with subtle animation can increase engagement by up to 40%.",
+      actionable: true
+    });
+  }
+  
+  if (Math.random() > 0.7) {
+    suggestions.push({
+      type: "warning",
+      title: "Image quality check",
+      description: "This image may appear pixelated on mobile devices. Consider using a higher resolution version.",
+      actionable: true
+    });
+  }
+  
+  if (ad.performanceHistory.length > 0) {
+    const avgEngagement = ad.performanceHistory.reduce((sum, perf) => sum + perf.ctr, 0) / ad.performanceHistory.length;
+    if (avgEngagement > 3.5) {
+      suggestions.push({
+        type: "success",
+        title: "Great performance!",
+        description: "This ad is performing well with above-average engagement rates. Consider using similar elements in future ads.",
+        actionable: false
+      });
+    }
+  }
+  
+  return suggestions;
+};
+
 const AdLibrary = () => {
   const navigate = useNavigate();
   const [ads, setAds] = useState<SavedAd[]>(mockSavedAds);
@@ -102,6 +212,19 @@ const AdLibrary = () => {
   const [typeFilter, setTypeFilter] = useState("All");
   const [sortBy, setSortBy] = useState("Newest");
   const [selectedAd, setSelectedAd] = useState<SavedAd | null>(null);
+  
+  // A/B Testing state
+  const [showABTestDialog, setShowABTestDialog] = useState(false);
+  const [abTestBudget, setAbTestBudget] = useState([50]);
+  const [abTestDuration, setAbTestDuration] = useState([3]);
+  const [abTestSplit, setAbTestSplit] = useState([50]);
+  const [variationBName, setVariationBName] = useState("");
+  const [variationBChanges, setVariationBChanges] = useState("");
+  
+  // AI Feedback state
+  const [showAIFeedback, setShowAIFeedback] = useState(false);
+  const [aiSuggestions, setAiSuggestions] = useState<AISuggestion[]>([]);
+  const [loadingAI, setLoadingAI] = useState(false);
 
   const filteredAds = ads
     .filter(ad => {
@@ -166,6 +289,63 @@ const AdLibrary = () => {
     const avgCPV = totalSpent / totalViews;
     
     return { totalViews, totalSpent, avgDuration, avgCPV, campaignCount: ad.performanceHistory.length };
+  };
+
+  // A/B Testing handlers
+  const handleRunABTest = (ad: SavedAd) => {
+    setSelectedAd(ad);
+    setVariationBName(`${ad.name} - Variation B`);
+    setVariationBChanges("");
+    setShowABTestDialog(true);
+  };
+
+  const handleLaunchABTest = () => {
+    if (!selectedAd) return;
+    
+    // Simulate creating A/B test
+    const newTest: ABTestResult = {
+      testName: `A/B Test: ${selectedAd.name}`,
+      dateRun: `${new Date().toISOString().split('T')[0]} - Running`,
+      status: "Running",
+      variationA: {
+        name: selectedAd.name,
+        views: 0,
+        engagement: 0,
+        avgDuration: 0,
+        cost: 0
+      },
+      variationB: {
+        name: variationBName,
+        views: 0,
+        engagement: 0,
+        avgDuration: 0,
+        cost: 0
+      }
+    };
+
+    // Update the ad with the new test
+    setAds(ads.map(ad => 
+      ad.id === selectedAd.id 
+        ? { ...ad, abTestResults: [...(ad.abTestResults || []), newTest] }
+        : ad
+    ));
+
+    setShowABTestDialog(false);
+    toast.success("A/B test launched successfully! Results will appear in 24-48 hours.");
+  };
+
+  // AI Feedback handlers
+  const handleGetAIFeedback = (ad: SavedAd) => {
+    setSelectedAd(ad);
+    setLoadingAI(true);
+    setShowAIFeedback(true);
+    
+    // Simulate AI analysis delay
+    setTimeout(() => {
+      const suggestions = generateAISuggestions(ad);
+      setAiSuggestions(suggestions);
+      setLoadingAI(false);
+    }, 2000);
   };
 
   return (
@@ -410,9 +590,11 @@ const AdLibrary = () => {
               </div>
 
               <Tabs defaultValue="preview" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-2">
+                <TabsList className="grid w-full grid-cols-4">
                   <TabsTrigger value="preview">Preview</TabsTrigger>
-                  <TabsTrigger value="performance">Performance History</TabsTrigger>
+                  <TabsTrigger value="performance">Performance</TabsTrigger>
+                  <TabsTrigger value="abtest">A/B Tests</TabsTrigger>
+                  <TabsTrigger value="ai">AI Feedback</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="preview" className="space-y-4">
@@ -570,11 +752,352 @@ const AdLibrary = () => {
                     </Card>
                   )}
                 </TabsContent>
+
+                <TabsContent value="abtest" className="space-y-6">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h3 className="text-lg font-semibold">A/B Testing</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Test different versions of your ad to see what works best
+                      </p>
+                    </div>
+                    <Button onClick={() => handleRunABTest(selectedAd)} className="flex items-center gap-2">
+                      <FlaskConical className="h-4 w-4" />
+                      Run A/B Test
+                    </Button>
+                  </div>
+
+                  {selectedAd.abTestResults && selectedAd.abTestResults.length > 0 ? (
+                    <div className="space-y-4">
+                      {selectedAd.abTestResults.map((test, index) => (
+                        <Card key={index}>
+                          <CardHeader>
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <CardTitle className="text-base">{test.testName}</CardTitle>
+                                <p className="text-sm text-muted-foreground">{test.dateRun}</p>
+                              </div>
+                              <Badge className={test.status === "Running" ? "bg-blue-500" : "bg-success"}>
+                                {test.status}
+                              </Badge>
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                              {/* Variation A */}
+                              <div className={`border rounded-lg p-4 ${test.winner === "A" ? "border-success bg-success/10" : ""}`}>
+                                <div className="flex justify-between items-center mb-3">
+                                  <h4 className="font-semibold flex items-center gap-2">
+                                    {test.variationA.name}
+                                    {test.winner === "A" && <Trophy className="h-4 w-4 text-success" />}
+                                  </h4>
+                                  <span className="text-xs text-muted-foreground">Variation A</span>
+                                </div>
+                                <div className="grid grid-cols-2 gap-3 text-sm">
+                                  <div>
+                                    <span className="text-muted-foreground">Views:</span>
+                                    <div className="font-medium">{test.variationA.views.toLocaleString()}</div>
+                                  </div>
+                                  <div>
+                                    <span className="text-muted-foreground">Engagement:</span>
+                                    <div className="font-medium">{test.variationA.engagement}%</div>
+                                  </div>
+                                  <div>
+                                    <span className="text-muted-foreground">Avg Duration:</span>
+                                    <div className="font-medium">{test.variationA.avgDuration}s</div>
+                                  </div>
+                                  <div>
+                                    <span className="text-muted-foreground">Cost:</span>
+                                    <div className="font-medium">${test.variationA.cost}</div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Variation B */}
+                              <div className={`border rounded-lg p-4 ${test.winner === "B" ? "border-success bg-success/10" : ""}`}>
+                                <div className="flex justify-between items-center mb-3">
+                                  <h4 className="font-semibold flex items-center gap-2">
+                                    {test.variationB.name}
+                                    {test.winner === "B" && <Trophy className="h-4 w-4 text-success" />}
+                                  </h4>
+                                  <span className="text-xs text-muted-foreground">Variation B</span>
+                                </div>
+                                <div className="grid grid-cols-2 gap-3 text-sm">
+                                  <div>
+                                    <span className="text-muted-foreground">Views:</span>
+                                    <div className="font-medium">{test.variationB.views.toLocaleString()}</div>
+                                  </div>
+                                  <div>
+                                    <span className="text-muted-foreground">Engagement:</span>
+                                    <div className="font-medium">{test.variationB.engagement}%</div>
+                                  </div>
+                                  <div>
+                                    <span className="text-muted-foreground">Avg Duration:</span>
+                                    <div className="font-medium">{test.variationB.avgDuration}s</div>
+                                  </div>
+                                  <div>
+                                    <span className="text-muted-foreground">Cost:</span>
+                                    <div className="font-medium">${test.variationB.cost}</div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {test.winner && (
+                              <div className="mt-4 p-3 bg-success/10 border border-success/20 rounded-lg">
+                                <div className="flex items-center gap-2 text-success">
+                                  <Trophy className="h-4 w-4" />
+                                  <span className="font-medium">
+                                    Variation {test.winner} is the winner!
+                                  </span>
+                                </div>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  This variation performed better and is recommended for future campaigns.
+                                </p>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : (
+                    <Card>
+                      <CardContent className="text-center py-12">
+                        <FlaskConical className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold text-muted-foreground mb-2">No A/B Tests Yet</h3>
+                        <p className="text-muted-foreground mb-4">
+                          Start testing different versions of your ad to optimize performance.
+                        </p>
+                        <Button onClick={() => handleRunABTest(selectedAd)}>
+                          <FlaskConical className="h-4 w-4 mr-2" />
+                          Run Your First A/B Test
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="ai" className="space-y-6">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h3 className="text-lg font-semibold">AI Feedback</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Get smart suggestions to improve your ad performance
+                      </p>
+                    </div>
+                    <Button onClick={() => handleGetAIFeedback(selectedAd)} className="flex items-center gap-2">
+                      <Lightbulb className="h-4 w-4" />
+                      Get AI Suggestions
+                    </Button>
+                  </div>
+
+                  {loadingAI ? (
+                    <Card>
+                      <CardContent className="text-center py-12">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                        <h3 className="text-lg font-semibold mb-2">Analyzing Your Ad...</h3>
+                        <p className="text-muted-foreground">
+                          Our AI is reviewing your ad and generating personalized suggestions.
+                        </p>
+                      </CardContent>
+                    </Card>
+                  ) : aiSuggestions.length > 0 ? (
+                    <div className="space-y-4">
+                      {aiSuggestions.map((suggestion, index) => (
+                        <Card key={index}>
+                          <CardContent className="p-4">
+                            <div className="flex items-start gap-3">
+                              <div className="flex-shrink-0 mt-1">
+                                {suggestion.type === "warning" && (
+                                  <AlertCircle className="h-5 w-5 text-warning" />
+                                )}
+                                {suggestion.type === "suggestion" && (
+                                  <Lightbulb className="h-5 w-5 text-primary" />
+                                )}
+                                {suggestion.type === "success" && (
+                                  <CheckCircle className="h-5 w-5 text-success" />
+                                )}
+                              </div>
+                              <div className="flex-1">
+                                <h4 className="font-semibold mb-1">{suggestion.title}</h4>
+                                <p className="text-sm text-muted-foreground mb-3">
+                                  {suggestion.description}
+                                </p>
+                                {suggestion.actionable && (
+                                  <Button size="sm" variant="outline" onClick={() => handleEdit(selectedAd.id)}>
+                                    <Edit className="h-3 w-3 mr-1" />
+                                    Fix This
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : (
+                    <Card>
+                      <CardContent className="text-center py-12">
+                        <Lightbulb className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold text-muted-foreground mb-2">No AI Analysis Yet</h3>
+                        <p className="text-muted-foreground mb-4">
+                          Get personalized suggestions to optimize your ad for better performance.
+                        </p>
+                        <Button onClick={() => handleGetAIFeedback(selectedAd)}>
+                          <Lightbulb className="h-4 w-4 mr-2" />
+                          Analyze This Ad
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )}
+                </TabsContent>
               </Tabs>
             </div>
           </div>
         </div>
       )}
+
+      {/* A/B Test Setup Dialog */}
+      <Dialog open={showABTestDialog} onOpenChange={setShowABTestDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FlaskConical className="h-5 w-5" />
+              Set Up A/B Test
+            </DialogTitle>
+            <DialogDescription>
+              Test different versions of your ad to see which performs better. We'll create two variations and split your audience evenly.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            {/* Test Setup */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <h4 className="font-semibold">Variation A (Original)</h4>
+                <div className="aspect-video bg-muted rounded-lg overflow-hidden">
+                  <img 
+                    src={selectedAd?.thumbnail} 
+                    alt={selectedAd?.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  This is your current ad that will serve as the control.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="font-semibold">Variation B (Test)</h4>
+                <div className="space-y-3">
+                  <div>
+                    <Label htmlFor="variationName">Variation Name</Label>
+                    <Input
+                      id="variationName"
+                      value={variationBName}
+                      onChange={(e) => setVariationBName(e.target.value)}
+                      placeholder="e.g., Summer Sale - Upbeat Music"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="changes">What will you change?</Label>
+                    <Textarea
+                      id="changes"
+                      value={variationBChanges}
+                      onChange={(e) => setVariationBChanges(e.target.value)}
+                      placeholder="e.g., Change background music to upbeat track, adjust text overlay color to blue"
+                      className="h-20"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Describe the changes you'll make to create the test variation.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Test Parameters */}
+            <div className="space-y-4 border-t pt-6">
+              <h4 className="font-semibold">Test Parameters</h4>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="space-y-2">
+                  <Label>Total Budget: ${abTestBudget[0]}</Label>
+                  <Slider
+                    value={abTestBudget}
+                    onValueChange={setAbTestBudget}
+                    max={500}
+                    min={10}
+                    step={5}
+                    className="w-full"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    This budget will be split between both variations.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Test Duration: {abTestDuration[0]} days</Label>
+                  <Slider
+                    value={abTestDuration}
+                    onValueChange={setAbTestDuration}
+                    max={14}
+                    min={1}
+                    step={1}
+                    className="w-full"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    How long should the test run?
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Traffic Split: {abTestSplit[0]}% / {100 - abTestSplit[0]}%</Label>
+                  <Slider
+                    value={abTestSplit}
+                    onValueChange={setAbTestSplit}
+                    max={90}
+                    min={10}
+                    step={10}
+                    className="w-full"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    A / B split percentage
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Tips */}
+            <div className="bg-muted/50 rounded-lg p-4">
+              <h5 className="font-semibold mb-2 flex items-center gap-2">
+                <Target className="h-4 w-4" />
+                A/B Testing Tips
+              </h5>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                <li>• Test one element at a time (music, text, colors) for clear results</li>
+                <li>• Run tests for at least 3-5 days to gather meaningful data</li>
+                <li>• We'll automatically declare a winner when results are statistically significant</li>
+                <li>• You can pause or stop the test anytime from your dashboard</li>
+              </ul>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowABTestDialog(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleLaunchABTest}
+              disabled={!variationBName.trim() || !variationBChanges.trim()}
+              className="flex items-center gap-2"
+            >
+              <Zap className="h-4 w-4" />
+              Launch A/B Test
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
