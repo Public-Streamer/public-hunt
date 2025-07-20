@@ -48,7 +48,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   const { localParticipant } = useLocalParticipant();
   const participants = useParticipants();
   const controls = useStreamingControls(eventId);
-  const { goLive } = controls;
+  // const { goLive } = controls;
   const screenSize = useScreenSize();
 
   // Get local camera track
@@ -65,10 +65,10 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   }).filter((t) => t.participant !== localParticipant);
 
   // Update event live status based on go live status
-  useEventLiveStatus({
-    eventId,
-    goLive,
-  });
+  // useEventLiveStatus({
+  //   eventId,
+  //   goLive,
+  // });
 
   if (!localParticipant) {
     return (
@@ -91,28 +91,48 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
               <div className="min-w-0 flex-1">
                 <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
                   <Video className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
-                  <span className="truncate">{screenSize === 'mobile' ? 'Streaming' : `${eventTitle} - Streaming Controls`}</span>
+                  <span className="truncate">
+                    {screenSize === "mobile"
+                      ? "Streaming"
+                      : `${eventTitle} - Streaming Controls`}
+                  </span>
                 </CardTitle>
               </div>
               <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
-                <Badge variant={controls.isConnected ? "default" : "secondary"} className="text-xs">
+                <Badge
+                  variant={controls.isConnected ? "default" : "secondary"}
+                  className="text-xs"
+                >
                   {controls.isConnected ? "Connected" : "Disconnected"}
                 </Badge>
                 <div className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground">
                   <Users className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span>{controls.participantCount} {screenSize === 'mobile' ? '' : 'participants'}</span>
+                  <span>
+                    {controls.participantCount}{" "}
+                    {screenSize === "mobile" ? "" : "participants"}
+                  </span>
                 </div>
               </div>
             </div>
           </CardHeader>
         </Card>
 
-        <div className={`grid gap-3 sm:gap-6 ${screenSize === 'desktop' ? 'lg:grid-cols-3' : 'grid-cols-1'}`}>
+        <div
+          className={`grid gap-3 sm:gap-6 ${
+            screenSize === "desktop" ? "lg:grid-cols-3" : "grid-cols-1"
+          }`}
+        >
           {/* Video Preview */}
-          <div className={`space-y-3 sm:space-y-4 ${screenSize === 'desktop' ? 'lg:col-span-2' : ''}`}>
+          <div
+            className={`space-y-3 sm:space-y-4 ${
+              screenSize === "desktop" ? "lg:col-span-2" : ""
+            }`}
+          >
             <Card>
               <CardHeader className="p-3 sm:p-6">
-                <CardTitle className="text-sm sm:text-base">Your Stream Preview</CardTitle>
+                <CardTitle className="text-sm sm:text-base">
+                  Your Stream Preview
+                </CardTitle>
               </CardHeader>
               <CardContent className="p-3 sm:p-6">
                 <div className="aspect-video bg-muted rounded-lg overflow-hidden relative">
@@ -158,10 +178,16 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
             {otherCameraTracks.length > 0 && (
               <Card>
                 <CardHeader className="p-3 sm:p-6">
-                  <CardTitle className="text-sm sm:text-base">Other Streamers</CardTitle>
+                  <CardTitle className="text-sm sm:text-base">
+                    Other Streamers
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="p-3 sm:p-6">
-                  <div className={`grid gap-2 sm:gap-4 ${screenSize === 'mobile' ? 'grid-cols-1' : 'grid-cols-2'}`}>
+                  <div
+                    className={`grid gap-2 sm:gap-4 ${
+                      screenSize === "mobile" ? "grid-cols-1" : "grid-cols-2"
+                    }`}
+                  >
                     {otherCameraTracks.map((trackRef) => (
                       <div
                         key={trackRef.participant.sid}
@@ -190,7 +216,9 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
             {/* Stream Controls */}
             <Card>
               <CardHeader className="p-3 sm:p-6">
-                <CardTitle className="text-sm sm:text-base">Stream Controls</CardTitle>
+                <CardTitle className="text-sm sm:text-base">
+                  Stream Controls
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-6">
                 {/* Go Live / Stop Stream */}
@@ -199,10 +227,13 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                     <Button
                       onClick={controls.startStream}
                       className="w-full text-sm sm:text-base px-3 sm:px-4 py-3 sm:py-4 max-w-full"
-                      size={screenSize === 'mobile' ? 'sm' : 'lg'}
+                      size={screenSize === "mobile" ? "sm" : "lg"}
                       disabled={!controls.isConnected}
                     >
-                      <LiveStreamLogo size="md" className="mr-1 flex-shrink-0" />
+                      <LiveStreamLogo
+                        size="md"
+                        className="mr-1 flex-shrink-0"
+                      />
                       <Play className="h-4 w-4 sm:h-4 sm:w-4 md:h-5 md:w-5 mr-1 sm:mr-2 flex-shrink-0" />
                       <span className="truncate">Go Live</span>
                     </Button>
@@ -211,7 +242,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                       onClick={controls.stopStream}
                       variant="destructive"
                       className="w-full text-xs sm:text-sm"
-                      size={screenSize === 'mobile' ? 'sm' : 'lg'}
+                      size={screenSize === "mobile" ? "sm" : "lg"}
                     >
                       <Square className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                       Stop Stream
@@ -222,22 +253,28 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                 <Separator />
 
                 {/* Media Controls */}
-                <div className={`space-y-2 ${screenSize === 'mobile' ? 'grid grid-cols-2 gap-2 space-y-0' : ''}`}>
+                <div
+                  className={`space-y-2 ${
+                    screenSize === "mobile"
+                      ? "grid grid-cols-2 gap-2 space-y-0"
+                      : ""
+                  }`}
+                >
                   <Button
                     onClick={controls.toggleVideo}
                     variant={controls.isVideoEnabled ? "default" : "secondary"}
                     className="w-full text-xs sm:text-sm"
-                    size={screenSize === 'mobile' ? 'sm' : 'default'}
+                    size={screenSize === "mobile" ? "sm" : "default"}
                   >
                     {controls.isVideoEnabled ? (
                       <>
                         <Video className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                        {screenSize === 'mobile' ? 'Cam' : 'Camera On'}
+                        {screenSize === "mobile" ? "Cam" : "Camera On"}
                       </>
                     ) : (
                       <>
                         <VideoOff className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                        {screenSize === 'mobile' ? 'Cam' : 'Camera Off'}
+                        {screenSize === "mobile" ? "Cam" : "Camera Off"}
                       </>
                     )}
                   </Button>
@@ -246,17 +283,17 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                     onClick={controls.toggleAudio}
                     variant={controls.isAudioEnabled ? "default" : "secondary"}
                     className="w-full text-xs sm:text-sm"
-                    size={screenSize === 'mobile' ? 'sm' : 'default'}
+                    size={screenSize === "mobile" ? "sm" : "default"}
                   >
                     {controls.isAudioEnabled ? (
                       <>
                         <Mic className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                        {screenSize === 'mobile' ? 'Mic' : 'Mic On'}
+                        {screenSize === "mobile" ? "Mic" : "Mic On"}
                       </>
                     ) : (
                       <>
                         <MicOff className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                        {screenSize === 'mobile' ? 'Mic' : 'Mic Off'}
+                        {screenSize === "mobile" ? "Mic" : "Mic Off"}
                       </>
                     )}
                   </Button>
@@ -264,18 +301,22 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                   <Button
                     onClick={controls.toggleScreenShare}
                     variant={controls.isScreenSharing ? "default" : "secondary"}
-                    className={`w-full text-xs sm:text-sm ${screenSize === 'mobile' ? 'col-span-2' : ''}`}
-                    size={screenSize === 'mobile' ? 'sm' : 'default'}
+                    className={`w-full text-xs sm:text-sm ${
+                      screenSize === "mobile" ? "col-span-2" : ""
+                    }`}
+                    size={screenSize === "mobile" ? "sm" : "default"}
                   >
                     {controls.isScreenSharing ? (
                       <>
                         <Monitor className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                        {screenSize === 'mobile' ? 'Stop Share' : 'Stop Sharing'}
+                        {screenSize === "mobile"
+                          ? "Stop Share"
+                          : "Stop Sharing"}
                       </>
                     ) : (
                       <>
                         <MonitorOff className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                        {screenSize === 'mobile' ? 'Share' : 'Share Screen'}
+                        {screenSize === "mobile" ? "Share" : "Share Screen"}
                       </>
                     )}
                   </Button>
@@ -286,11 +327,15 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
             {/* Stream Info */}
             <Card>
               <CardHeader className="p-3 sm:p-6">
-                <CardTitle className="text-sm sm:text-base">Stream Information</CardTitle>
+                <CardTitle className="text-sm sm:text-base">
+                  Stream Information
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 p-3 sm:p-6">
                 <div className="flex justify-between">
-                  <span className="text-xs sm:text-sm text-muted-foreground">Status:</span>
+                  <span className="text-xs sm:text-sm text-muted-foreground">
+                    Status:
+                  </span>
                   <span className="text-xs sm:text-sm font-medium">
                     {controls.isStreaming ? "Live" : "Offline"}
                   </span>

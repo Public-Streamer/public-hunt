@@ -22,6 +22,8 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   const { localParticipant } = useLocalParticipant();
   const room = useRoomContext();
 
+  console.log("room name", room.name);
+
   const [isStreaming, setIsStreaming] = useState(false);
   const [isVideoEnabled, setIsVideoEnabled] = useState(false);
   const [isAudioEnabled, setIsAudioEnabled] = useState(false);
@@ -193,23 +195,23 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       await updateParticipantLiveStatus(true);
 
       // Create LiveKit room
-      const { error } = await supabase.functions.invoke("manage-livekit-room", {
-        body: {
-          action: "create",
-          eventId,
-          roomConfig: {
-            maxParticipants: 100,
-            emptyTimeout: 300,
-          },
-        },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
+      // const { error } = await supabase.functions.invoke("manage-livekit-room", {
+      //   body: {
+      //     action: "create",
+      //     eventId,
+      //     roomConfig: {
+      //       maxParticipants: 100,
+      //       emptyTimeout: 300,
+      //     },
+      //   },
+      //   headers: {
+      //     Authorization: `Bearer ${session.access_token}`,
+      //   },
+      // });
 
-      if (error) {
-        throw new Error(error.message);
-      }
+      // if (error) {
+      //   throw new Error(error.message);
+      // }
 
       // Create event stream record
       await supabase.from("event_streams").insert({
@@ -256,6 +258,33 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
         .update({ is_active: false })
         .eq("event_id", eventId)
         .eq("streamer_id", session.user.id);
+
+      const { data: event, error } = await supabase
+        .from("events")
+        .select("*")
+        .eq("id", eventId)
+        .single();
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (event?.is_live === false) {
+        console.log(
+          `event is not live anymore , so closing room for event: ${eventId}`
+        );
+        await supabase.functions.invoke("manage-livekit-room", {
+          body: {
+            action: "close",
+            eventId,
+          },
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        });
+
+        console.log(`room closed for event: ${eventId}`);
+      }
 
       // Close LiveKit room
       // const { error } = await supabase.functions.invoke("manage-livekit-room", {

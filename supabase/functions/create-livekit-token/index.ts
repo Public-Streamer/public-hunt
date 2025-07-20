@@ -260,7 +260,26 @@ serve(async (req) => {
       name: user.email || `User ${user.id}`,
     });
 
-    at.addGrant(tokenPermissions);
+    if (event.livekit_room_name) {
+      at.addGrant({
+        ...tokenPermissions,
+        roomJoin: true,
+        room: event.livekit_room_name,
+      });
+    } else {
+      at.addGrant({
+        ...tokenPermissions,
+        roomJoin: true,
+        room: `event-${eventId}`,
+      });
+
+      await supabase
+        .from("events")
+        .upsert({
+          livekit_room_name: `event-${eventId}`,
+        })
+        .eq("id", eventId);
+    }
 
     const token = await at.toJwt();
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours

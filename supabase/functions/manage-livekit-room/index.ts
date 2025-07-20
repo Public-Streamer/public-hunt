@@ -244,6 +244,13 @@ serve(async (req) => {
             })
             .eq("event_id", eventId);
 
+          await supabase
+            .from("events")
+            .update({
+              livekit_room_name: null,
+            })
+            .eq("id", eventId);
+
           response = { success: true };
         } catch (error) {
           console.error("Error closing room:", error);
