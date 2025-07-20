@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Upload, Camera, Info, AlertTriangle } from 'lucide-react';
+import { Upload, Camera, Info, AlertTriangle, X } from 'lucide-react';
 import TooltipWrapper from '@/components/ui/tooltip-wrapper';
 import LiveStreamLogo from '@/components/ui/live-stream-logo';
 import { useToast } from "@/hooks/use-toast";
@@ -839,7 +839,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
         </div>
 
         {/* Submit Button */}
-        <div className="pt-4">
+        <div className="pt-4 space-y-3">
           <TooltipWrapper 
             content={getFormValidationError() || "Create your account"}
             disabled={!getFormValidationError()}
@@ -852,6 +852,16 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
               {loading ? 'Creating Account...' : 'Create Account'}
             </Button>
           </TooltipWrapper>
+          
+          {/* Cancel Button */}
+          <Button 
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            className="w-full h-10 border-2 hover:bg-destructive/10 hover:border-destructive/50"
+          >
+            Cancel
+          </Button>
         </div>
       </form>
     </div>
@@ -891,9 +901,10 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                 variant="ghost"
                 size="sm"
                 onClick={onClose}
-                className="text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground hover:text-foreground hover:bg-destructive/10 p-2"
+                aria-label="Close form"
               >
-                Cancel
+                <X className="w-5 h-5" />
               </Button>
             </div>
             {error && (
