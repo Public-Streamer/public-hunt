@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import TooltipWrapper from "@/components/ui/tooltip-wrapper";
 import CreateChannelForm from "@/components/CreateChannelForm";
 import CreateEventForm from "@/components/CreateEventForm";
@@ -422,13 +424,18 @@ const Create: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="create-ad">
-            <CreateAdForm
-              formData={adFormData}
-              onInputChange={handleAdInputChange}
-              onSubmit={handleAdSubmit}
-              onMediaUpload={setAdMedia}
-              isValid={isAdFormValid()}
-            />
+            <Card>
+              <CardContent className="text-center py-12">
+                <h3 className="text-2xl font-bold mb-4">Create Advertising Campaigns</h3>
+                <p className="text-gray-600 mb-6">Ad creation has moved to our dedicated Advertisers page with an improved workflow.</p>
+                <Button 
+                  onClick={() => window.location.href = '/advertisers'} 
+                  className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3"
+                >
+                  Go to Advertisers Page
+                </Button>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
