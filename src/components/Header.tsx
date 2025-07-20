@@ -123,7 +123,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
             <div className="flex items-center justify-between gap-2">
               {/* Left: Large Logo that scales down proportionally */}
               <Link to="/" className="flex items-center space-x-3 flex-shrink-0 min-w-0 max-w-[60%]">
-                <div className="relative bg-gradient-to-br from-white/30 to-white/10 backdrop-blur-sm rounded-xl border border-white/40 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 group p-3" style={{ filter: 'drop-shadow(3px 3px 6px rgba(0,0,0,0.6))' }}>
+                <div className="relative bg-gradient-to-br from-white/30 to-white/10 backdrop-blur-sm rounded-xl border border-white/40 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 group p-2.5 flex-shrink-0" style={{ filter: 'drop-shadow(3px 3px 6px rgba(0,0,0,0.6))' }}>
                   {/* Main Play Button with flanking icons - keep desktop proportions */}
                   <div className="relative z-10 flex items-center justify-center h-full">
                     {/* Lightning bolt to the left of triangle */}
@@ -147,16 +147,21 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                 </div>
                 
                 <div className="flex flex-col min-w-0 flex-1">
-                  <h1 className="font-orbitron font-black text-white tracking-wide text-lg leading-tight" style={{ textShadow: '3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)' }}>
-                    Public Streamer
-                  </h1>
-                   <div className="flex items-center space-x-1 text-white/80 font-medium text-xs overflow-hidden" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>
-                      <Zap className="text-yellow-300 h-3 w-3 flex-shrink-0" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
-                      <span className="whitespace-nowrap">Go Live</span>
-                      <AnimatedConnector isMobile={true} />
-                      <span className="whitespace-nowrap">Get Paid</span>
-                      <DollarSign className="text-green-300 h-3 w-3 flex-shrink-0" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
-                   </div>
+                  <div className="flex flex-col">
+                    <span className="font-orbitron font-black text-white tracking-wide text-base leading-tight" style={{ textShadow: '3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)' }}>
+                      Public
+                    </span>
+                    <span className="font-orbitron font-black text-white tracking-wide text-base leading-tight -mt-1" style={{ textShadow: '3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)' }}>
+                      Streamer
+                    </span>
+                  </div>
+                   <div className="flex items-center space-x-1 text-white/80 font-medium text-xs overflow-hidden mt-1" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>
+                       <Zap className="text-yellow-300 h-3 w-3 flex-shrink-0" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
+                       <span className="whitespace-nowrap">Go Live</span>
+                       <AnimatedConnector isMobile={true} />
+                       <span className="whitespace-nowrap">Get Paid</span>
+                       <DollarSign className="text-green-300 h-3 w-3 flex-shrink-0" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
+                    </div>
                 </div>
               </Link>
               
@@ -231,17 +236,22 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                   </div>
                   
                   <div className="flex flex-col min-w-0 flex-1">
-                    <h1 className="font-orbitron font-black text-white tracking-wide text-2xl" style={{ textShadow: '3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)' }}>
-                      Public Streamer
-                    </h1>
-                     <div className="flex items-center space-x-1 text-white/80 font-medium text-xs" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>
-                        <Zap className="text-yellow-300 h-4 w-4" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
-                        <span className="whitespace-nowrap">Go Live</span>
-                        <AnimatedConnector isMobile={false} />
-                        <span className="whitespace-nowrap">Get Paid</span>
-                        <DollarSign className="text-green-300 h-4 w-4" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
-                     </div>
-                  </div>
+                    <div className="flex flex-col">
+                      <span className="font-orbitron font-black text-white tracking-wide text-xl leading-tight" style={{ textShadow: '3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)' }}>
+                        Public
+                      </span>
+                      <span className="font-orbitron font-black text-white tracking-wide text-xl leading-tight -mt-1" style={{ textShadow: '3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)' }}>
+                        Streamer
+                      </span>
+                    </div>
+                     <div className="flex items-center space-x-1 text-white/80 font-medium text-sm mt-1" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>
+                         <Zap className="text-yellow-300 h-4 w-4" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
+                         <span className="whitespace-nowrap">Go Live</span>
+                         <AnimatedConnector isMobile={false} />
+                         <span className="whitespace-nowrap">Get Paid</span>
+                         <DollarSign className="text-green-300 h-4 w-4" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
+                      </div>
+                   </div>
                 </Link>
               </div>
               
