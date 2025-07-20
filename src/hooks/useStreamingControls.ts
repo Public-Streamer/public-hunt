@@ -116,8 +116,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
         
         // Replace the track in the participant
         await localParticipant.publishTrack(newVideoTrack, {
-          name: 'camera',
-          source: 'camera'
+          name: 'camera'
         });
 
         setCurrentCamera(nextCamera.deviceId);
