@@ -32,9 +32,19 @@ export const LegalDocumentModal: React.FC<LegalDocumentModalProps> = ({
   const currentDate = new Date().toLocaleDateString();
   
   // Validate signature matches user's full name
+  const normalizeString = (str: string) => str.trim().toLowerCase().replace(/\s+/g, ' ');
+  
+  console.log('[Legal Document] Signature validation:');
+  console.log('- User Full Name:', userFullName);
+  console.log('- Current Signature:', signature);
+  console.log('- Normalized Full Name:', userFullName ? normalizeString(userFullName) : 'N/A');
+  console.log('- Normalized Signature:', normalizeString(signature));
+  
   const isValidSignature = userFullName 
-    ? signature.trim().toLowerCase() === userFullName.toLowerCase()
+    ? normalizeString(signature) === normalizeString(userFullName)
     : signature.trim().length >= 3; // Fallback: at least 3 characters if no user name provided
+  
+  console.log('- Is Valid Signature:', isValidSignature);
   
   const canSubmit = isValidSignature && acknowledgedRisks && acknowledgedLiability && acknowledgedCompliance;
 
