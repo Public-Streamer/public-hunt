@@ -19,6 +19,7 @@ export interface StreamingControls {
   // Camera switching functionality
   availableCameras: MediaDeviceInfo[];
   currentCamera: string | null;
+  currentFacingMode: 'user' | 'environment';
   isSwitchingCamera: boolean;
   switchCamera: () => Promise<void>;
 }
@@ -38,6 +39,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   // Camera switching state
   const [availableCameras, setAvailableCameras] = useState<MediaDeviceInfo[]>([]);
   const [currentCamera, setCurrentCamera] = useState<string | null>(null);
+  const [currentFacingMode, setCurrentFacingMode] = useState<'user' | 'environment'>('user');
   const [isSwitchingCamera, setIsSwitchingCamera] = useState(false);
 
   const participantCount = room?.numParticipants || 1;
@@ -45,6 +47,9 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   // Enumerate available cameras
   const enumerateCameras = useCallback(async () => {
     try {
+      // Request permissions first to get proper device labels
+      await navigator.mediaDevices.getUserMedia({ video: true });
+      
       const devices = await navigator.mediaDevices.enumerateDevices();
       const videoDevices = devices.filter(device => 
         device.kind === 'videoinput' && device.deviceId !== 'default'
@@ -58,7 +63,10 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       
       console.log('Available cameras:', videoDevices.map(d => ({ 
         id: d.deviceId, 
-        label: d.label || 'Camera' 
+        label: d.label || 'Camera',
+        facingMode: d.label.toLowerCase().includes('back') || 
+                   d.label.toLowerCase().includes('rear') ||
+                   d.label.toLowerCase().includes('environment') ? 'environment' : 'user'
       })));
     } catch (error) {
       console.error('Error enumerating cameras:', error);
@@ -72,59 +80,72 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
 
   // Switch camera function
   const switchCamera = useCallback(async () => {
-    if (!localParticipant || availableCameras.length < 2 || isSwitchingCamera) {
+    if (!localParticipant || isSwitchingCamera) {
       return;
     }
 
     setIsSwitchingCamera(true);
     
     try {
-      // Find next camera
-      const currentIndex = availableCameras.findIndex(
-        camera => camera.deviceId === currentCamera
-      );
-      const nextIndex = (currentIndex + 1) % availableCameras.length;
-      const nextCamera = availableCameras[nextIndex];
+      // Toggle between front and back camera using facingMode
+      const newFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
       
-      console.log(`Switching from camera ${currentIndex} to ${nextIndex}:`, {
-        current: availableCameras[currentIndex]?.label || 'Unknown',
-        next: nextCamera.label || 'Unknown'
-      });
+      console.log(`Switching from ${currentFacingMode} to ${newFacingMode} camera`);
 
       // Get the current video track
       const videoTrack = localParticipant.videoTrackPublications.values().next().value?.track;
       
       if (videoTrack) {
-        // Create new constraints with the new camera
+        // Create constraints with facingMode for mobile devices
         const constraints = {
-          deviceId: { exact: nextCamera.deviceId },
+          facingMode: { exact: newFacingMode },
           width: { ideal: 1280 },
           height: { ideal: 720 },
         };
 
-        // Restart the track with new device
-        await videoTrack.restartTrack({
-          video: constraints
-        });
+        try {
+          // Try with exact facingMode first
+          await videoTrack.restartTrack({
+            video: constraints
+          });
+        } catch (exactError) {
+          console.log('Exact facingMode failed, trying ideal:', exactError);
+          // Fallback to ideal facingMode if exact fails
+          const fallbackConstraints = {
+            facingMode: { ideal: newFacingMode },
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+          };
+          
+          await videoTrack.restartTrack({
+            video: fallbackConstraints
+          });
+        }
 
-        setCurrentCamera(nextCamera.deviceId);
+        setCurrentFacingMode(newFacingMode);
         
-        // Determine camera type for user feedback
-        const cameraType = nextCamera.label.toLowerCase().includes('back') || 
-                          nextCamera.label.toLowerCase().includes('rear') ||
-                          nextCamera.label.toLowerCase().includes('environment')
-                          ? 'back' 
-                          : 'front';
-                          
+        // Update current camera deviceId if available
+        const stream = videoTrack.mediaStream;
+        if (stream) {
+          const videoTracks = stream.getVideoTracks();
+          if (videoTracks.length > 0) {
+            const settings = videoTracks[0].getSettings();
+            if (settings.deviceId) {
+              setCurrentCamera(settings.deviceId);
+            }
+          }
+        }
+        
+        const cameraType = newFacingMode === 'environment' ? 'back' : 'front';
         toast.success(`Switched to ${cameraType} camera`);
       }
     } catch (error) {
       console.error('Error switching camera:', error);
-      toast.error('Failed to switch camera');
+      toast.error('Failed to switch camera. Make sure your device has multiple cameras.');
     } finally {
       setIsSwitchingCamera(false);
     }
-  }, [localParticipant, availableCameras, currentCamera, isSwitchingCamera]);
+  }, [localParticipant, currentFacingMode, isSwitchingCamera]);
 
   // Helper function to update participant live status
   const updateParticipantLiveStatus = useCallback(
@@ -203,6 +224,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       participantCount: 0,
       availableCameras: [],
       currentCamera: null,
+      currentFacingMode: 'user' as const,
       isSwitchingCamera: false,
       switchCamera: async () => {},
     };
@@ -389,6 +411,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
     participantCount,
     availableCameras,
     currentCamera,
+    currentFacingMode,
     isSwitchingCamera,
     switchCamera,
   };
