@@ -482,13 +482,20 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
               )}
             </div>
 
-            <div className="flex items-center space-x-2">
+            <div className={`flex items-center space-x-2 p-2 rounded border ${
+              !signupData.companyExecutorAcknowledged 
+                ? 'border-red-300 bg-red-50' 
+                : 'border-green-300 bg-green-50'
+            }`}>
               <Checkbox
                 id="executorAuth"
                 checked={signupData.companyExecutorAcknowledged}
                 onCheckedChange={(checked) => setSignupData(prev => ({ ...prev, companyExecutorAcknowledged: !!checked }))}
+                className={!signupData.companyExecutorAcknowledged ? 'border-red-400' : 'border-green-400'}
               />
-              <Label htmlFor="executorAuth" className="text-xs">
+              <Label htmlFor="executorAuth" className={`text-xs ${
+                !signupData.companyExecutorAcknowledged ? 'text-red-700' : 'text-green-700'
+              }`}>
                 I acknowledge that the selected Account Master has executor authority for this {signupData.accountType === 'business/organization' ? 'business/organization' : 'group/team'} account.
               </Label>
             </div>
@@ -561,6 +568,10 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
               </div>
             </div>
             <p className="text-xs text-muted-foreground text-center">Click to upload profile photo (optional)</p>
+            <div className="flex items-center space-x-1 text-xs text-primary bg-primary/10 px-2 py-1 rounded">
+              <Info className="w-3 h-3" />
+              <span>Tip: Uploading a profile photo increases interest and activity by over 300% on average!</span>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">

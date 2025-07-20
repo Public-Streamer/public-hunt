@@ -90,8 +90,8 @@ export const BirthdaySelector: React.FC<BirthdaySelectorProps> = ({ value, onCha
             console.log('Month selected:', value);
             handleChange('month', value);
           }}>
-            <SelectTrigger className="h-12 text-lg font-semibold bg-background border-2 shadow-sm text-center">
-              <SelectValue placeholder="Select Month" />
+            <SelectTrigger className="h-12 text-sm font-semibold bg-background border-2 shadow-sm text-center">
+              <SelectValue placeholder="Select" />
             </SelectTrigger>
             <SelectContent className="max-h-[200px]">
               {months.map((m) => (
@@ -114,8 +114,8 @@ export const BirthdaySelector: React.FC<BirthdaySelectorProps> = ({ value, onCha
             console.log('Day selected:', value);
             handleChange('day', value);
           }}>
-            <SelectTrigger className="h-12 text-lg font-semibold bg-background border-2 shadow-sm text-center">
-              <SelectValue placeholder="Select Day" />
+            <SelectTrigger className="h-12 text-sm font-semibold bg-background border-2 shadow-sm text-center">
+              <SelectValue placeholder="Select" />
             </SelectTrigger>
             <SelectContent className="max-h-[200px]">
               {days.map((d) => (
@@ -138,8 +138,8 @@ export const BirthdaySelector: React.FC<BirthdaySelectorProps> = ({ value, onCha
             console.log('Year selected:', value);
             handleChange('year', value);
           }}>
-            <SelectTrigger className="h-12 text-lg font-semibold bg-background border-2 shadow-sm text-center">
-              <SelectValue placeholder="Select Year" />
+            <SelectTrigger className="h-12 text-sm font-semibold bg-background border-2 shadow-sm text-center">
+              <SelectValue placeholder="Select" />
             </SelectTrigger>
             <SelectContent className="max-h-[200px]">
               {years.map((y) => (
