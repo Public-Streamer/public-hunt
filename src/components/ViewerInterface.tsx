@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+
+import React, { useState, useEffect, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,7 +20,7 @@ import {
   useRoomContext,
   VideoTrack,
 } from "@livekit/components-react";
-import { Track } from "livekit-client";
+import { Track, TrackPublication, Participant } from "livekit-client";
 import MultiCameraGrid from "./MultiCameraGrid";
 import StreamSelector from "./StreamSelector";
 import TicketVerification from "./TicketVerification";
@@ -117,12 +118,89 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
   const [currentQuality, setCurrentQuality] = useState("Auto");
 
   const room = useRoomContext();
-  console.log("Rooms for viewer", room.name);
+  console.log("👁️ VIEWER INTERFACE - Room name:", room.name);
+  
   const participants = useParticipants();
   const tracks = useTracks([Track.Source.Camera, Track.Source.ScreenShare], { onlySubscribed: true });
   const audioTracks = useTracks([Track.Source.Microphone], {
     onlySubscribed: true,
   });
+
+  // Enhanced debugging for tracks
+  useEffect(() => {
+    console.log("👁️ VIEWER INTERFACE - Track Detection:", {
+      totalTracks: tracks.length,
+      participants: participants.length,
+      trackDetails: tracks.map(track => ({
+        source: track.publication.source,
+        kind: track.publication.kind,
+        enabled: track.publication.track?.enabled,
+        participant: track.participant.name || track.participant.identity,
+        trackSid: track.publication.trackSid
+      })),
+      roomState: room?.state,
+      roomName: room?.name
+    });
+  }, [tracks, participants, room]);
+
+  // Add real-time track subscription listeners
+  useEffect(() => {
+    if (!room) return;
+
+    const handleTrackSubscribed = (track: Track, publication: TrackPublication, participant: Participant) => {
+      console.log("👁️ VIEWER INTERFACE - Track subscribed:", {
+        source: publication.source,
+        kind: publication.kind,
+        participant: participant.name || participant.identity,
+        trackSid: publication.trackSid
+      });
+    };
+
+    const handleTrackUnsubscribed = (track: Track, publication: TrackPublication, participant: Participant) => {
+      console.log("👁️ VIEWER INTERFACE - Track unsubscribed:", {
+        source: publication.source,
+        kind: publication.kind,
+        participant: participant.name || participant.identity,
+        trackSid: publication.trackSid
+      });
+    };
+
+    const handleTrackPublished = (publication: TrackPublication, participant: Participant) => {
+      console.log("👁️ VIEWER INTERFACE - Track published:", {
+        source: publication.source,
+        kind: publication.kind,
+        participant: participant.name || participant.identity,
+        trackSid: publication.trackSid
+      });
+    };
+
+    const handleTrackUnpublished = (publication: TrackPublication, participant: Participant) => {
+      console.log("👁️ VIEWER INTERFACE - Track unpublished:", {
+        source: publication.source,
+        kind: publication.kind,
+        participant: participant.name || participant.identity,
+        trackSid: publication.trackSid
+      });
+    };
+
+    // Add event listeners for all participants
+    participants.forEach(participant => {
+      participant.on('trackSubscribed', handleTrackSubscribed);
+      participant.on('trackUnsubscribed', handleTrackUnsubscribed);
+      participant.on('trackPublished', handleTrackPublished);
+      participant.on('trackUnpublished', handleTrackUnpublished);
+    });
+
+    // Cleanup
+    return () => {
+      participants.forEach(participant => {
+        participant.off('trackSubscribed', handleTrackSubscribed);
+        participant.off('trackUnsubscribed', handleTrackUnsubscribed);
+        participant.off('trackPublished', handleTrackPublished);
+        participant.off('trackUnpublished', handleTrackUnpublished);
+      });
+    };
+  }, [room, participants]);
 
   // Check if we're properly connected to the room
   const isConnected = room && room.state === "connected";
@@ -166,6 +244,11 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
             This event is not currently live. Check back later or contact the
             organizer.
           </p>
+          <div className="mt-4 text-sm text-gray-500">
+            <p>Connected participants: {participants.length}</p>
+            <p>Room: {room?.name}</p>
+            <p>Debug: Waiting for camera or screen share tracks...</p>
+          </div>
         </CardContent>
       </Card>
     );
@@ -304,6 +387,10 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
                 </div>
               </div>
               <div className="text-gray-500">Event ID: {eventId}</div>
+            </div>
+            {/* Debug Info */}
+            <div className="mt-2 text-xs text-gray-400">
+              <p>Tracks: {tracks.map(t => `${t.publication.source}(${t.participant.name || t.participant.identity})`).join(', ')}</p>
             </div>
           </div>
         </CardContent>

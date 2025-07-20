@@ -1,4 +1,3 @@
-
 import React from "react";
 import {
   VideoTrack,
@@ -23,6 +22,7 @@ import {
   Square,
   Users,
   Eye,
+  ScreenShare,
 } from "lucide-react";
 import { useStreamingControls } from "@/hooks/useStreamingControls";
 import { useEventLiveStatus } from "@/hooks/useEventLiveStatus";
@@ -60,10 +60,41 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     (t) => t.participant === localParticipant
   );
 
-  // Get other participants' camera tracks
+  // Get local screen share track
+  const localScreenTracks = useTracks([Track.Source.ScreenShare], {
+    onlySubscribed: false,
+  });
+  const localScreenTrack = localScreenTracks.find(
+    (t) => t.participant === localParticipant
+  );
+
+  // Get other participants' tracks
   const otherCameraTracks = useTracks([Track.Source.Camera], {
     onlySubscribed: true,
   }).filter((t) => t.participant !== localParticipant);
+
+  const otherScreenTracks = useTracks([Track.Source.ScreenShare], {
+    onlySubscribed: true,
+  }).filter((t) => t.participant !== localParticipant);
+
+  // Combine other participants' tracks
+  const otherTracks = [...otherCameraTracks, ...otherScreenTracks];
+
+  // Debug logging
+  console.log("🎬 STREAMER INTERFACE - Track Status:", {
+    localCamera: {
+      exists: !!localCameraTrack,
+      enabled: controls.isVideoEnabled,
+      trackEnabled: localCameraTrack?.publication.track?.enabled
+    },
+    localScreenShare: {
+      exists: !!localScreenTrack,
+      enabled: controls.isScreenSharing,
+      trackEnabled: localScreenTrack?.publication.track?.enabled
+    },
+    otherParticipants: otherTracks.length,
+    isStreaming: controls.isStreaming
+  });
 
   if (!localParticipant) {
     return (
@@ -75,6 +106,40 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
       </div>
     );
   }
+
+  // Determine what to show in the main preview
+  const getMainPreviewContent = () => {
+    // Priority: Screen share > Camera > Placeholder
+    if (localScreenTrack && controls.isScreenSharing) {
+      console.log("🎬 STREAMER INTERFACE - Showing screen share in preview");
+      return (
+        <VideoTrack
+          trackRef={localScreenTrack}
+          style={{ width: "100%", height: "100%" }}
+        />
+      );
+    } else if (localCameraTrack && controls.isVideoEnabled) {
+      console.log("🎬 STREAMER INTERFACE - Showing camera in preview");
+      return (
+        <VideoTrack
+          trackRef={localCameraTrack}
+          style={{ width: "100%", height: "100%" }}
+        />
+      );
+    } else {
+      console.log("🎬 STREAMER INTERFACE - Showing placeholder in preview");
+      return (
+        <div className="absolute inset-0 flex items-center justify-center bg-muted">
+          <div className="text-center">
+            <VideoOff className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
+            <p className="text-muted-foreground">
+              {controls.isScreenSharing ? "Screen sharing..." : "Camera is off"}
+            </p>
+          </div>
+        </div>
+      );
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background p-2 sm:p-4">
@@ -125,25 +190,23 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
           >
             <Card>
               <CardHeader className="p-3 sm:p-6">
-                <CardTitle className="text-sm sm:text-base">
-                  Your Stream Preview
+                <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+                  {controls.isScreenSharing ? (
+                    <>
+                      <ScreenShare className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+                      Your Screen Share Preview
+                    </>
+                  ) : (
+                    <>
+                      <Video className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+                      Your Stream Preview
+                    </>
+                  )}
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-3 sm:p-6">
                 <div className="aspect-video bg-muted rounded-lg overflow-hidden relative">
-                  {localCameraTrack && controls.isVideoEnabled ? (
-                    <VideoTrack
-                      trackRef={localCameraTrack}
-                      style={{ width: "100%", height: "100%" }}
-                    />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center bg-muted">
-                      <div className="text-center">
-                        <VideoOff className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
-                        <p className="text-muted-foreground">Camera is off</p>
-                      </div>
-                    </div>
-                  )}
+                  {getMainPreviewContent()}
 
                   {/* Stream Status Overlay */}
                   <div className="absolute top-2 left-2">
@@ -155,8 +218,26 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                     )}
                   </div>
 
-                  {/* Viewer Count */}
+                  {/* Track Type Indicator */}
                   <div className="absolute top-2 right-2">
+                    <div className="flex items-center gap-2">
+                      {controls.isScreenSharing && (
+                        <Badge variant="secondary" className="flex items-center gap-1 text-xs">
+                          <ScreenShare className="h-3 w-3" />
+                          Screen
+                        </Badge>
+                      )}
+                      {controls.isVideoEnabled && (
+                        <Badge variant="secondary" className="flex items-center gap-1 text-xs">
+                          <Video className="h-3 w-3" />
+                          Camera
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Viewer Count */}
+                  <div className="absolute bottom-2 right-2">
                     <Badge
                       variant="secondary"
                       className="flex items-center gap-1 text-xs"
@@ -170,7 +251,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
             </Card>
 
             {/* Other Participants */}
-            {otherCameraTracks.length > 0 && (
+            {otherTracks.length > 0 && (
               <Card>
                 <CardHeader className="p-3 sm:p-6">
                   <CardTitle className="text-sm sm:text-base">
@@ -183,9 +264,9 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                       screenSize === "mobile" ? "grid-cols-1" : "grid-cols-2"
                     }`}
                   >
-                    {otherCameraTracks.map((trackRef) => (
+                    {otherTracks.map((trackRef) => (
                       <div
-                        key={trackRef.participant.sid}
+                        key={trackRef.participant.sid + trackRef.publication.source}
                         className="aspect-video bg-muted rounded-lg overflow-hidden relative"
                       >
                         <VideoTrack
@@ -194,10 +275,18 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                         />
                         <div className="absolute bottom-2 left-2">
                           <Badge variant="secondary" className="text-xs">
-                            {trackRef.participant.name ||
-                              trackRef.participant.identity}
+                            {trackRef.participant.name || trackRef.participant.identity}
+                            {trackRef.publication.source === Track.Source.ScreenShare && ' (Screen)'}
                           </Badge>
                         </div>
+                        {trackRef.publication.source === Track.Source.ScreenShare && (
+                          <div className="absolute top-2 left-2">
+                            <Badge className="bg-blue-600 text-white text-xs">
+                              <ScreenShare className="h-3 w-3 mr-1" />
+                              SCREEN
+                            </Badge>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -371,6 +460,18 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                   </span>
                   <span className="text-xs sm:text-sm font-medium">
                     {controls.isConnected ? "Connected" : "Disconnected"}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-xs sm:text-sm text-muted-foreground">
+                    Active Tracks:
+                  </span>
+                  <span className="text-xs sm:text-sm font-medium">
+                    {[
+                      controls.isVideoEnabled && "Camera",
+                      controls.isScreenSharing && "Screen",
+                      controls.isAudioEnabled && "Audio"
+                    ].filter(Boolean).join(", ") || "None"}
                   </span>
                 </div>
                 {controls.availableCameras.length > 1 && (

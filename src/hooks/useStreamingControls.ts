@@ -1,6 +1,7 @@
+
 import { useState, useCallback, useEffect } from "react";
 import { useLocalParticipant, useRoomContext, useMediaDevices, useMediaDeviceSelect } from "@livekit/components-react";
-import { Track } from "livekit-client";
+import { Track, TrackPublication } from "livekit-client";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -29,7 +30,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   const { localParticipant } = useLocalParticipant();
   const room = useRoomContext();
 
-  console.log("room name", room.name);
+  console.log("🎥 STREAMING CONTROLS - Room name:", room.name);
 
   const [isStreaming, setIsStreaming] = useState(false);
   const [isVideoEnabled, setIsVideoEnabled] = useState(false);
@@ -51,6 +52,77 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   const [currentFacingMode, setCurrentFacingMode] = useState<"user" | "environment">("user");
 
   const participantCount = room?.numParticipants || 1;
+
+  // Sync state with actual LiveKit track publications
+  useEffect(() => {
+    if (!localParticipant) return;
+
+    const syncTrackStates = () => {
+      // Check camera track
+      const cameraTrack = localParticipant.getTrackPublication(Track.Source.Camera);
+      const newVideoEnabled = cameraTrack?.track?.enabled ?? false;
+      
+      // Check microphone track
+      const micTrack = localParticipant.getTrackPublication(Track.Source.Microphone);
+      const newAudioEnabled = micTrack?.track?.enabled ?? false;
+      
+      // Check screen share track
+      const screenTrack = localParticipant.getTrackPublication(Track.Source.ScreenShare);
+      const newScreenSharing = screenTrack?.track?.Enabled ?? false;
+
+      console.log("🎥 STREAMING CONTROLS - Track State Sync:", {
+        camera: { enabled: newVideoEnabled, track: !!cameraTrack },
+        microphone: { enabled: newAudioEnabled, track: !!micTrack },
+        screenShare: { enabled: newScreenSharing, track: !!screenTrack },
+        currentState: { isVideoEnabled, isAudioEnabled, isScreenSharing }
+      });
+
+      // Update states if they've changed
+      if (newVideoEnabled !== isVideoEnabled) {
+        console.log("🎥 STREAMING CONTROLS - Syncing video state:", newVideoEnabled);
+        setIsVideoEnabled(newVideoEnabled);
+      }
+      if (newAudioEnabled !== isAudioEnabled) {
+        console.log("🎥 STREAMING CONTROLS - Syncing audio state:", newAudioEnabled);
+        setIsAudioEnabled(newAudioEnabled);
+      }
+      if (newScreenSharing !== isScreenSharing) {
+        console.log("🎥 STREAMING CONTROLS - Syncing screen share state:", newScreenSharing);
+        setIsScreenSharing(newScreenSharing);
+      }
+    };
+
+    // Initial sync
+    syncTrackStates();
+
+    // Listen for track publication events
+    const handleTrackPublished = (publication: TrackPublication) => {
+      console.log("🎥 STREAMING CONTROLS - Track published:", {
+        source: publication.source,
+        kind: publication.kind,
+        enabled: publication.track?.enabled
+      });
+      syncTrackStates();
+    };
+
+    const handleTrackUnpublished = (publication: TrackPublication) => {
+      console.log("🎥 STREAMING CONTROLS - Track unpublished:", {
+        source: publication.source,
+        kind: publication.kind
+      });
+      syncTrackStates();
+    };
+
+    // Add event listeners
+    localParticipant.on('trackPublished', handleTrackPublished);
+    localParticipant.on('trackUnpublished', handleTrackUnpublished);
+
+    // Cleanup
+    return () => {
+      localParticipant.off('trackPublished', handleTrackPublished);
+      localParticipant.off('trackUnpublished', handleTrackUnpublished);
+    };
+  }, [localParticipant, isVideoEnabled, isAudioEnabled, isScreenSharing]);
 
   // Enhanced mobile debugging - Log available cameras whenever they change
   useEffect(() => {
@@ -309,8 +381,9 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
 
     try {
       const enabled = !isVideoEnabled;
+      console.log("🎥 STREAMING CONTROLS - Toggling video:", { from: isVideoEnabled, to: enabled });
       await localParticipant.setCameraEnabled(enabled);
-      setIsVideoEnabled(enabled);
+      // State will be synced via the track event listeners
 
       if (enabled) {
         toast.success("Camera turned on");
@@ -331,8 +404,9 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
 
     try {
       const enabled = !isAudioEnabled;
+      console.log("🎥 STREAMING CONTROLS - Toggling audio:", { from: isAudioEnabled, to: enabled });
       await localParticipant.setMicrophoneEnabled(enabled);
-      setIsAudioEnabled(enabled);
+      // State will be synced via the track event listeners
 
       if (enabled) {
         toast.success("Microphone turned on");
@@ -353,8 +427,9 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
 
     try {
       const enabled = !isScreenSharing;
+      console.log("🎥 STREAMING CONTROLS - Toggling screen share:", { from: isScreenSharing, to: enabled });
       await localParticipant.setScreenShareEnabled(enabled);
-      setIsScreenSharing(enabled);
+      // State will be synced via the track event listeners
 
       if (enabled) {
         toast.success("Screen sharing started");
