@@ -637,9 +637,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
 
                 <div className="grid grid-cols-2 gap-2">
                   <div className="space-y-1">
-                    <Label htmlFor="companyExecutorFirstName" className="text-sm">
-                      {signupData.accountType === 'business/organization' ? 'First Name of Business/Organization Account Master Executor' : 'First Name of Group/Team Account Master Executor'}
-                    </Label>
+                     <Label htmlFor="companyExecutorFirstName" className="text-sm">
+                       {signupData.accountType === 'business/organization' ? 'First Name of Business / Organization Account Master Executor' : 'First Name of Group / Team Account Master Executor'}
+                     </Label>
                      <Input
                        id="companyExecutorFirstName"
                        value={signupData.companyExecutorFirstName}
@@ -653,9 +653,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                      )}
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor="companyExecutorLastName" className="text-sm">
-                      {signupData.accountType === 'business/organization' ? 'Last Name of Business/Organization Account Master Executor' : 'Last Name of Group/Team Account Master Executor'}
-                    </Label>
+                     <Label htmlFor="companyExecutorLastName" className="text-sm">
+                       {signupData.accountType === 'business/organization' ? 'Last Name of Business / Organization Account Master Executor' : 'Last Name of Group / Team Account Master Executor'}
+                     </Label>
                      <Input
                        id="companyExecutorLastName"
                        value={signupData.companyExecutorLastName}
@@ -695,7 +695,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                
                 <div className="space-y-1">
                   <Label className="text-sm">
-                    {signupData.accountType === 'business/organization' ? 'Business / Organization Account Master Profile' : 'Group/Team Account Master Profile'}
+                    {signupData.accountType === 'business/organization' ? 'Business / Organization Account Master Public Streamer Personal Profile' : 'Group / Team Account Master Public Streamer Personal Profile'}
                   </Label>
                  <UserSearchBox
                    onUserSelect={(user) => {
@@ -712,10 +712,10 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
            )}
           
            <div className="space-y-1">
-              <Label htmlFor="email" className="text-sm">
-                {signupData.accountType === 'business/organization' ? 'Business/Organization Account Master Email' : 
-                 signupData.accountType === 'group/team' ? 'Group/Team Account Master Email' : 'Email'}
-              </Label>
+               <Label htmlFor="email" className="text-sm">
+                 {signupData.accountType === 'business/organization' ? 'Business / Organization Account Master Public Streamer Personal Profile Email' : 
+                  signupData.accountType === 'group/team' ? 'Group / Team Account Master Public Streamer Personal Profile Email' : 'Email'}
+               </Label>
             <Input
               id="email"
               type="email"
@@ -732,10 +732,10 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
           </div>
           
           <div className="space-y-1">
-              <Label htmlFor="password" className="text-sm">
-                {signupData.accountType === 'business/organization' ? 'Business/Organization Account Master Password' : 
-                 signupData.accountType === 'group/team' ? 'Group/Team Account Master Password' : 'Password'}
-              </Label>
+               <Label htmlFor="password" className="text-sm">
+                 {signupData.accountType === 'business/organization' ? 'Business / Organization Account Master Public Streamer Personal Profile Password' : 
+                  signupData.accountType === 'group/team' ? 'Group / Team Account Master Public Streamer Personal Profile Password' : 'Password'}
+               </Label>
             <Input
               id="password"
               type="password"
