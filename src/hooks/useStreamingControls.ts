@@ -1,5 +1,6 @@
+
 import { useState, useCallback, useEffect } from "react";
-import { useLocalParticipant, useRoomContext } from "@livekit/components-react";
+import { useLocalParticipant, useRoomContext, useMediaDevices, useMediaDeviceSelect } from "@livekit/components-react";
 import { Track } from "livekit-client";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -37,181 +38,92 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [goLive, setGoLive] = useState(false);
 
-  // Camera switching state
-  const [availableCameras, setAvailableCameras] = useState<MediaDeviceInfo[]>(
-    []
-  );
-  const [currentCamera, setCurrentCamera] = useState<string | null>(null);
-  const [currentFacingMode, setCurrentFacingMode] = useState<
-    "user" | "environment"
-  >("user");
-  const [isSwitchingCamera, setIsSwitchingCamera] = useState(false);
+  // Use LiveKit's hooks for camera management
+  const videoDevices = useMediaDevices({ kind: 'videoinput' });
+  const { 
+    activeDeviceId: currentCamera, 
+    setActiveMediaDevice,
+    isChangingDevice: isSwitchingCamera 
+  } = useMediaDeviceSelect({ kind: 'videoinput' });
+
+  // State for tracking current facing mode
+  const [currentFacingMode, setCurrentFacingMode] = useState<"user" | "environment">("user");
 
   const participantCount = room?.numParticipants || 1;
 
-  // Enhanced camera enumeration with better detection
-  const enumerateCameras = useCallback(async () => {
-    try {
-      // Request permissions first to get proper device labels
-      await navigator.mediaDevices.getUserMedia({ video: true });
-
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      const videoDevices = devices.filter(
-        (device) =>
-          device.kind === "videoinput" && device.deviceId !== "default"
-      );
-      
-      // Enhanced camera detection
-      const enhancedCameras = videoDevices.map((device) => {
-        const label = device.label.toLowerCase();
-        const isFront = label.includes('front') || label.includes('user') || label.includes('facing');
-        const isBack = label.includes('back') || label.includes('rear') || label.includes('environment');
-        
-        return {
-          ...device,
-          isFront,
-          isBack,
-          detectedType: isFront ? 'front' : isBack ? 'back' : 'unknown'
-        };
-      });
-
-      setAvailableCameras(videoDevices);
-
-      // Set current camera if not already set
-      if (!currentCamera && videoDevices.length > 0) {
-        setCurrentCamera(videoDevices[0].deviceId);
-      }
-
-      console.log("Available cameras:", JSON.stringify(enhancedCameras.map(cam => ({
-        label: cam.label,
-        deviceId: cam.deviceId,
-        detectedType: cam.detectedType
-      })), null, 2));
-    } catch (error) {
-      console.error("Error enumerating cameras:", error);
+  // Helper function to detect camera type from device info
+  const getCameraType = useCallback((device: MediaDeviceInfo): "user" | "environment" | "unknown" => {
+    const label = device.label.toLowerCase();
+    if (label.includes('front') || label.includes('user') || label.includes('facing')) {
+      return 'user';
     }
-  }, [currentCamera]);
+    if (label.includes('back') || label.includes('rear') || label.includes('environment')) {
+      return 'environment';
+    }
+    return 'unknown';
+  }, []);
 
-  // Initialize cameras on mount
-  useEffect(() => {
-    enumerateCameras();
-  }, [enumerateCameras]);
-
-  // Enhanced camera switching with facingMode-first approach
+  // Enhanced camera switching with LiveKit hooks
   const switchCamera = useCallback(async () => {
-    if (!localParticipant || isSwitchingCamera) {
+    if (!localParticipant || isSwitchingCamera || videoDevices.length < 2) {
       return;
     }
 
-    setIsSwitchingCamera(true);
-
     try {
-      // Toggle between front and back camera
-      const newFacingMode =
-        currentFacingMode === "user" ? "environment" : "user";
-
+      // Determine the target facing mode
+      const newFacingMode = currentFacingMode === "user" ? "environment" : "user";
+      
       console.log(`Switching from ${currentFacingMode} to ${newFacingMode} camera`);
 
-      // Get the current video track publication
-      const videoPublication = localParticipant.videoTrackPublications.values().next().value;
+      // Find cameras of the target type
+      const targetCameras = videoDevices.filter(device => {
+        const cameraType = getCameraType(device);
+        return cameraType === newFacingMode;
+      });
+
+      // If no specific cameras found for the target type, try to find any different camera
+      let targetCamera: MediaDeviceInfo | undefined;
       
-      if (videoPublication?.track) {
-        const currentTrack = videoPublication.track;
-        
-        // Method 1: Try facingMode first (recommended for mobile)
-        let newStream: MediaStream | null = null;
-        
-        try {
-          // Primary approach: Use facingMode
-          const facingModeConstraints = {
-            video: {
-              facingMode: { exact: newFacingMode },
-              width: { ideal: 1280 },
-              height: { ideal: 720 },
-            }
-          };
-          
-          newStream = await navigator.mediaDevices.getUserMedia(facingModeConstraints);
-          console.log("Camera switched using facingMode");
-        } catch (facingModeError) {
-          console.log("FacingMode failed, trying with ideal constraint:", facingModeError);
-          
-          // Fallback 1: Use ideal facingMode
-          try {
-            const idealConstraints = {
-              video: {
-                facingMode: { ideal: newFacingMode },
-                width: { ideal: 1280 },
-                height: { ideal: 720 },
-              }
-            };
-            
-            newStream = await navigator.mediaDevices.getUserMedia(idealConstraints);
-            console.log("Camera switched using ideal facingMode");
-          } catch (idealError) {
-            console.log("Ideal facingMode failed, trying deviceId approach:", idealError);
-            
-            // Fallback 2: Use specific deviceId if available
-            const targetCamera = availableCameras.find((camera) => {
-              const label = camera.label.toLowerCase();
-              return newFacingMode === "environment" 
-                ? label.includes('back') || label.includes('rear') || label.includes('environment')
-                : label.includes('front') || label.includes('user') || label.includes('facing');
-            });
-            
-            if (targetCamera) {
-              const deviceConstraints = {
-                video: {
-                  deviceId: { exact: targetCamera.deviceId },
-                  width: { ideal: 1280 },
-                  height: { ideal: 720 },
-                }
-              };
-              
-              newStream = await navigator.mediaDevices.getUserMedia(deviceConstraints);
-              console.log("Camera switched using deviceId");
-            } else {
-              throw new Error("No suitable camera found");
-            }
-          }
-        }
-
-        if (newStream) {
-          // Stop the current track
-          currentTrack.stop();
-          
-          // Unpublish the current track
-          await localParticipant.unpublishTrack(currentTrack);
-          
-          // Create and publish new track
-          const newVideoTrack = newStream.getVideoTracks()[0];
-          await localParticipant.publishTrack(newVideoTrack, {
-            name: "camera",
-            source: Track.Source.Camera
-          });
-
-          // Update state
-          setCurrentFacingMode(newFacingMode);
-          
-          // Update current camera deviceId
-          const settings = newVideoTrack.getSettings();
-          if (settings.deviceId) {
-            setCurrentCamera(settings.deviceId);
-          }
-
-          const cameraType = newFacingMode === "environment" ? "back" : "front";
-          toast.success(`Switched to ${cameraType} camera`);
-        }
+      if (targetCameras.length > 0) {
+        // Use the first camera of the target type
+        targetCamera = targetCameras[0];
+      } else {
+        // Fallback: use any camera that's not the current one
+        targetCamera = videoDevices.find(device => device.deviceId !== currentCamera);
       }
+
+      if (!targetCamera) {
+        toast.error("No alternative camera found");
+        return;
+      }
+
+      console.log("Switching to camera:", {
+        deviceId: targetCamera.deviceId,
+        label: targetCamera.label,
+        detectedType: getCameraType(targetCamera)
+      });
+
+      // Use LiveKit's device selection
+      await setActiveMediaDevice(targetCamera.deviceId);
+      
+      // Update the facing mode state
+      const actualCameraType = getCameraType(targetCamera);
+      if (actualCameraType !== "unknown") {
+        setCurrentFacingMode(actualCameraType);
+      } else {
+        // Toggle the facing mode even if we couldn't detect the type
+        setCurrentFacingMode(newFacingMode);
+      }
+
+      const cameraType = actualCameraType !== "unknown" ? actualCameraType : newFacingMode;
+      const friendlyName = cameraType === "environment" ? "back" : "front";
+      toast.success(`Switched to ${friendlyName} camera`);
+
     } catch (error) {
       console.error("Error switching camera:", error);
-      toast.error(
-        "Failed to switch camera. Make sure your device has multiple cameras."
-      );
-    } finally {
-      setIsSwitchingCamera(false);
+      toast.error("Failed to switch camera. Please try again.");
     }
-  }, [localParticipant, currentFacingMode, isSwitchingCamera, availableCameras]);
+  }, [localParticipant, currentFacingMode, isSwitchingCamera, videoDevices, currentCamera, setActiveMediaDevice, getCameraType]);
 
   // Helper function to update participant live status
   const updateParticipantLiveStatus = useCallback(
@@ -309,8 +221,6 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
 
       if (enabled) {
         toast.success("Camera turned on");
-        // Re-enumerate cameras when video is enabled
-        setTimeout(enumerateCameras, 500);
       } else {
         toast.info("Camera turned off");
       }
@@ -318,7 +228,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       toast.error("Failed to toggle camera");
       console.error("Toggle video error:", error);
     }
-  }, [localParticipant, isVideoEnabled, enumerateCameras]);
+  }, [localParticipant, isVideoEnabled]);
 
   const toggleAudio = useCallback(async () => {
     if (!localParticipant) {
@@ -475,7 +385,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
     startStream,
     stopStream,
     participantCount,
-    availableCameras,
+    availableCameras: videoDevices,
     currentCamera,
     currentFacingMode,
     isSwitchingCamera,

@@ -8,6 +8,7 @@ interface CameraSwitchButtonProps {
   availableCameras: MediaDeviceInfo[];
   isSwitchingCamera: boolean;
   isVideoEnabled: boolean;
+  currentFacingMode: "user" | "environment";
   onSwitchCamera: () => Promise<void>;
 }
 
@@ -15,6 +16,7 @@ const CameraSwitchButton: React.FC<CameraSwitchButtonProps> = ({
   availableCameras,
   isSwitchingCamera,
   isVideoEnabled,
+  currentFacingMode,
   onSwitchCamera
 }) => {
   const screenSize = useScreenSize();
@@ -23,6 +25,9 @@ const CameraSwitchButton: React.FC<CameraSwitchButtonProps> = ({
   if (availableCameras.length < 2 || !isVideoEnabled) {
     return null;
   }
+
+  // Determine the target camera type for user feedback
+  const targetCameraType = currentFacingMode === "user" ? "back" : "front";
 
   return (
     <Button
@@ -40,7 +45,10 @@ const CameraSwitchButton: React.FC<CameraSwitchButtonProps> = ({
       ) : (
         <>
           <Camera className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-          {screenSize === "mobile" ? "Flip" : "Switch Camera"}
+          {screenSize === "mobile" ? 
+            `To ${targetCameraType}` : 
+            `Switch to ${targetCameraType} camera`
+          }
         </>
       )}
     </Button>
