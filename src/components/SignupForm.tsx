@@ -1271,7 +1271,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center">
                 <LiveStreamLogo size="md" className="mr-3" />
-                <h2 className="text-lg font-semibold">
+                <h2 className="text-xl sm:text-2xl font-bold">
                   Create Your <span className="font-orbitron font-black bg-gradient-to-r from-primary via-blue-500 to-purple-600 bg-clip-text text-transparent">Public Streamer</span> Account
                 </h2>
               </div>
