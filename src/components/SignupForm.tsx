@@ -634,18 +634,6 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                  </TooltipWrapper>
                </div>
                
-                <div className="space-y-1">
-                  <Label htmlFor="companyAccountMasterName" className="text-sm">
-                    {signupData.accountType === 'business/organization' ? 'Name of Business/Organization Account Master and Executor' : 'Name of Group/Team Account Master and Executor'}
-                  </Label>
-                  <Input
-                    id="companyAccountMasterName"
-                    value={signupData.companyAccountMasterName}
-                    onChange={(e) => setSignupData(prev => ({ ...prev, companyAccountMasterName: e.target.value }))}
-                    placeholder={signupData.accountType === 'business/organization' ? 'Enter the full name of the business/organization account master and executor' : 'Enter the full name of the group/team account master and executor'}
-                    className="h-8 text-sm"
-                  />
-                </div>
 
                 <div className="grid grid-cols-2 gap-2">
                   <div className="space-y-1">
@@ -705,10 +693,10 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                  </div>
                </div>
                
-               <div className="space-y-1">
-                 <Label className="text-sm">
-                   {signupData.accountType === 'business/organization' ? 'Business/Organization Account Master' : 'Group/Team Account Master'}
-                 </Label>
+                <div className="space-y-1">
+                  <Label className="text-sm">
+                    {signupData.accountType === 'business/organization' ? 'Business / Organization Account Master Profile' : 'Group/Team Account Master Profile'}
+                  </Label>
                  <UserSearchBox
                    onUserSelect={(user) => {
                      setSignupData(prev => ({ 
