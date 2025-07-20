@@ -569,6 +569,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
     // Validate final step requirements
     const step3Error = getStep3ValidationError();
     if (step3Error) {
+      console.log('Step 3 validation error:', step3Error);
       setErrorDialogConfig({
         title: 'Missing Requirements',
         message: step3Error
@@ -577,6 +578,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
       return;
     }
     
+    console.log('Starting account creation for individual account...');
     setLoading(true);
     setError(null);
     
@@ -594,7 +596,10 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
         profilePhoto: photoPreview || undefined
       });
       
+      console.log('SignUp result:', result);
+      
       if (result.error) {
+        console.log('SignUp error:', result.error);
         if (result.error.toLowerCase().includes('email already exists') || 
             result.error.toLowerCase().includes('user already registered')) {
           setErrorDialogConfig({
@@ -612,16 +617,28 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
         }
       } else {
         // Account created successfully
+        console.log('Account created successfully, showing success toast...');
         toast({
           title: 'Welcome!',
           description: 'Your account has been created successfully.',
         });
         
+        // Clear saved form data on success
+        sessionStorage.removeItem('signupFormData');
+        sessionStorage.removeItem('signupStep');
+        sessionStorage.removeItem('legalDocumentCompleted');
+        
         // Close the form and redirect to profile
+        console.log('Closing form and navigating to profile...');
         onClose();
-        navigate('/profile');
+        
+        // Small delay to ensure form closes before navigation
+        setTimeout(() => {
+          navigate('/profile');
+        }, 100);
       }
     } catch (error) {
+      console.error('SignUp error:', error);
       setErrorDialogConfig({
         title: 'Unexpected Error',
         message: `Account creation failed: ${(error as Error).message}. Please try again.`

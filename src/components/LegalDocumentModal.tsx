@@ -265,7 +265,7 @@ export const LegalDocumentModal: React.FC<LegalDocumentModalProps> = ({
           <div className="flex justify-end space-x-2">
             <button 
               onClick={onClose}
-              className="px-4 py-2 border rounded hover:bg-gray-50 shadow-md hover:shadow-lg transition-all duration-200"
+              className="px-4 py-2 border-2 border-gray-300 bg-white rounded hover:bg-gray-100 hover:border-gray-400 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
             >
               Cancel
             </button>
@@ -276,10 +276,10 @@ export const LegalDocumentModal: React.FC<LegalDocumentModalProps> = ({
               <button 
                 onClick={handleAccept}
                 disabled={!canSubmit}
-                className={`px-4 py-2 rounded text-white shadow-md hover:shadow-lg transition-all duration-200 ${
+                className={`px-4 py-2 rounded text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 ${
                   canSubmit 
-                    ? 'bg-green-600 hover:bg-green-700 shadow-green-600/30' 
-                    : 'bg-gray-400 cursor-not-allowed'
+                    ? 'bg-green-600 hover:bg-green-700 border-2 border-green-500 hover:border-green-600 shadow-green-600/30' 
+                    : 'bg-gray-400 border-2 border-gray-300 cursor-not-allowed'
                 }`}
               >
                 I Accept and Electronically Sign
