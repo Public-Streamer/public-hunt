@@ -299,7 +299,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
     setSignupData(prev => ({
       ...prev,
       companyAccountMaster: user.id,
-      companyAccountMasterName: `${user.firstName} ${user.lastName}`
+      companyAccountMasterName: user.display_name || user.username || 'Unknown User'
     }));
   };
 
