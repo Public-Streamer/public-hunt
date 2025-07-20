@@ -12,8 +12,9 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
-import { PlayCircle, Edit, Copy, Rocket, Trash2, Search, Filter, TrendingUp, Eye, Clock, DollarSign, BarChart3, FlaskConical, Lightbulb, CheckCircle, AlertCircle, Trophy, Target, Zap } from "lucide-react";
+import { PlayCircle, Edit, Copy, Rocket, Trash2, Search, Filter, TrendingUp, Eye, Clock, DollarSign, BarChart3, FlaskConical, Lightbulb, CheckCircle, AlertCircle, Trophy, Target, Zap, Star, MessageSquare, Flag, Users } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AdPerformance {
   campaignName: string;
@@ -51,6 +52,15 @@ interface AISuggestion {
   title: string;
   description: string;
   actionable: boolean;
+}
+
+interface ViewerFeedback {
+  id: string;
+  starRating: number;
+  selectedTags: string[];
+  feedbackText?: string;
+  createdAt: string;
+  isFlagged: boolean;
 }
 
 interface SavedAd {
@@ -225,6 +235,16 @@ const AdLibrary = () => {
   const [showAIFeedback, setShowAIFeedback] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState<AISuggestion[]>([]);
   const [loadingAI, setLoadingAI] = useState(false);
+  
+  // Viewer Feedback state
+  const [viewerFeedback, setViewerFeedback] = useState<ViewerFeedback[]>([]);
+  const [loadingFeedback, setLoadingFeedback] = useState(false);
+  const [feedbackStats, setFeedbackStats] = useState<{
+    avgRating: number;
+    totalResponses: number;
+    topTags: { tag: string; count: number; percentage: number }[];
+    responseRate: number;
+  } | null>(null);
 
   const filteredAds = ads
     .filter(ad => {
@@ -346,6 +366,91 @@ const AdLibrary = () => {
       setAiSuggestions(suggestions);
       setLoadingAI(false);
     }, 2000);
+  };
+
+  // Viewer Feedback handlers
+  const handleLoadViewerFeedback = async (ad: SavedAd) => {
+    setLoadingFeedback(true);
+    
+    try {
+      const { data: feedback, error } = await supabase
+        .from("ad_feedback")
+        .select("*")
+        .eq("ad_id", ad.id)
+        .eq("is_flagged", false)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      // Process feedback data
+      const processedFeedback: ViewerFeedback[] = feedback.map(item => ({
+        id: item.id,
+        starRating: item.star_rating,
+        selectedTags: item.selected_tags || [],
+        feedbackText: item.feedback_text,
+        createdAt: item.created_at,
+        isFlagged: item.is_flagged
+      }));
+
+      setViewerFeedback(processedFeedback);
+
+      // Calculate stats
+      if (feedback.length > 0) {
+        const avgRating = feedback.reduce((sum, item) => sum + item.star_rating, 0) / feedback.length;
+        
+        // Calculate top tags
+        const tagCounts: { [key: string]: number } = {};
+        feedback.forEach(item => {
+          (item.selected_tags || []).forEach((tag: string) => {
+            tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+          });
+        });
+
+        const topTags = Object.entries(tagCounts)
+          .map(([tag, count]) => ({
+            tag,
+            count,
+            percentage: (count / feedback.length) * 100
+          }))
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 3);
+
+        // Mock total views for response rate calculation
+        const totalViews = ad.performanceHistory.reduce((sum, perf) => sum + perf.totalViews, 0) || 1000;
+        const responseRate = (feedback.length / totalViews) * 100;
+
+        setFeedbackStats({
+          avgRating,
+          totalResponses: feedback.length,
+          topTags,
+          responseRate
+        });
+      } else {
+        setFeedbackStats(null);
+      }
+    } catch (error) {
+      console.error("Error loading viewer feedback:", error);
+      toast.error("Failed to load viewer feedback");
+    } finally {
+      setLoadingFeedback(false);
+    }
+  };
+
+  const handleFlagFeedback = async (feedbackId: string) => {
+    try {
+      const { error } = await supabase
+        .from("ad_feedback")
+        .update({ is_flagged: true })
+        .eq("id", feedbackId);
+
+      if (error) throw error;
+
+      setViewerFeedback(prev => prev.filter(f => f.id !== feedbackId));
+      toast.success("Feedback flagged and hidden");
+    } catch (error) {
+      console.error("Error flagging feedback:", error);
+      toast.error("Failed to flag feedback");
+    }
   };
 
   return (
@@ -590,9 +695,10 @@ const AdLibrary = () => {
               </div>
 
               <Tabs defaultValue="preview" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className="grid w-full grid-cols-5">
                   <TabsTrigger value="preview">Preview</TabsTrigger>
                   <TabsTrigger value="performance">Performance</TabsTrigger>
+                  <TabsTrigger value="feedback">Viewer Feedback</TabsTrigger>
                   <TabsTrigger value="abtest">A/B Tests</TabsTrigger>
                   <TabsTrigger value="ai">AI Feedback</TabsTrigger>
                 </TabsList>
@@ -647,6 +753,202 @@ const AdLibrary = () => {
                       </AlertDialogContent>
                     </AlertDialog>
                   </div>
+                </TabsContent>
+
+                <TabsContent value="feedback" className="space-y-6">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h3 className="text-lg font-semibold">Viewer Feedback</h3>
+                      <p className="text-sm text-muted-foreground">
+                        See what viewers think about your ad
+                      </p>
+                    </div>
+                    <Button 
+                      onClick={() => handleLoadViewerFeedback(selectedAd)} 
+                      disabled={loadingFeedback}
+                      className="flex items-center gap-2"
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                      {loadingFeedback ? "Loading..." : "Refresh Feedback"}
+                    </Button>
+                  </div>
+
+                  {loadingFeedback ? (
+                    <Card>
+                      <CardContent className="text-center py-12">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                        <h3 className="text-lg font-semibold mb-2">Loading Viewer Feedback...</h3>
+                        <p className="text-muted-foreground">
+                          Gathering insights from your audience.
+                        </p>
+                      </CardContent>
+                    </Card>
+                  ) : feedbackStats ? (
+                    <>
+                      {/* Feedback Overview */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <BarChart3 className="h-5 w-5" />
+                            Feedback Overview
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div className="text-center p-4 bg-muted/50 rounded-lg">
+                              <div className="flex items-center justify-center gap-2 mb-2">
+                                <Star className="h-4 w-4 text-yellow-500" />
+                                <span className="text-sm text-muted-foreground">Avg Rating</span>
+                              </div>
+                              <div className="text-2xl font-bold flex items-center justify-center gap-1">
+                                {feedbackStats.avgRating.toFixed(1)}
+                                <div className="flex">
+                                  {[1, 2, 3, 4, 5].map((star) => (
+                                    <Star
+                                      key={star}
+                                      className={`h-4 w-4 ${
+                                        star <= Math.round(feedbackStats.avgRating)
+                                          ? "fill-yellow-400 text-yellow-400"
+                                          : "text-muted-foreground"
+                                      }`}
+                                    />
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-center p-4 bg-muted/50 rounded-lg">
+                              <div className="flex items-center justify-center gap-2 mb-2">
+                                <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-sm text-muted-foreground">Total Responses</span>
+                              </div>
+                              <div className="text-2xl font-bold">{feedbackStats.totalResponses}</div>
+                            </div>
+                            <div className="text-center p-4 bg-muted/50 rounded-lg">
+                              <div className="flex items-center justify-center gap-2 mb-2">
+                                <Users className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-sm text-muted-foreground">Response Rate</span>
+                              </div>
+                              <div className="text-2xl font-bold">{feedbackStats.responseRate.toFixed(1)}%</div>
+                            </div>
+                            <div className="text-center p-4 bg-muted/50 rounded-lg">
+                              <div className="flex items-center justify-center gap-2 mb-2">
+                                <Target className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-sm text-muted-foreground">Top Tag</span>
+                              </div>
+                              <div className="text-sm font-bold">
+                                {feedbackStats.topTags[0]?.tag.replace('_', ' ') || 'N/A'}
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Top Tags */}
+                      {feedbackStats.topTags.length > 0 && (
+                        <Card>
+                          <CardHeader>
+                            <CardTitle>Most Common Feedback Tags</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-3">
+                              {feedbackStats.topTags.map((tag, index) => (
+                                <div key={tag.tag} className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <Badge variant="outline">
+                                      {tag.tag.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                    </Badge>
+                                    <span className="text-sm text-muted-foreground">
+                                      {tag.count} responses
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-20 bg-muted rounded-full h-2">
+                                      <div 
+                                        className="bg-primary h-2 rounded-full" 
+                                        style={{ width: `${tag.percentage}%` }}
+                                      />
+                                    </div>
+                                    <span className="text-sm font-medium">{tag.percentage.toFixed(0)}%</span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+
+                      {/* Recent Comments */}
+                      {viewerFeedback.filter(f => f.feedbackText).length > 0 && (
+                        <Card>
+                          <CardHeader>
+                            <CardTitle>Recent Viewer Comments</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-4">
+                              {viewerFeedback
+                                .filter(f => f.feedbackText)
+                                .slice(0, 5)
+                                .map((feedback) => (
+                                  <div key={feedback.id} className="border rounded-lg p-4 space-y-2">
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex items-center gap-2">
+                                        <div className="flex">
+                                          {[1, 2, 3, 4, 5].map((star) => (
+                                            <Star
+                                              key={star}
+                                              className={`h-3 w-3 ${
+                                                star <= feedback.starRating
+                                                  ? "fill-yellow-400 text-yellow-400"
+                                                  : "text-muted-foreground"
+                                              }`}
+                                            />
+                                          ))}
+                                        </div>
+                                        <span className="text-xs text-muted-foreground">
+                                          {new Date(feedback.createdAt).toLocaleDateString()}
+                                        </span>
+                                      </div>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleFlagFeedback(feedback.id)}
+                                        className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                                      >
+                                        <Flag className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                    <p className="text-sm">{feedback.feedbackText}</p>
+                                    {feedback.selectedTags.length > 0 && (
+                                      <div className="flex gap-1 flex-wrap">
+                                        {feedback.selectedTags.map((tag) => (
+                                          <Badge key={tag} variant="secondary" className="text-xs">
+                                            {tag.replace('_', ' ')}
+                                          </Badge>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+                    </>
+                  ) : (
+                    <Card>
+                      <CardContent className="text-center py-12">
+                        <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold text-muted-foreground mb-2">No Viewer Feedback Yet</h3>
+                        <p className="text-muted-foreground mb-4">
+                          Viewers can rate and review your ads when they appear in campaigns. Feedback will appear here once your ad goes live.
+                        </p>
+                        <Button onClick={() => handleLoadViewerFeedback(selectedAd)}>
+                          <MessageSquare className="h-4 w-4 mr-2" />
+                          Check for Feedback
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )}
                 </TabsContent>
 
                 <TabsContent value="performance" className="space-y-6">

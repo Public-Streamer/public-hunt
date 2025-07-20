@@ -23,8 +23,10 @@ import {
   Volume2,
   Eye,
   Settings,
-  Zap
+  Zap,
+  MessageSquare
 } from "lucide-react";
+import AdWithFeedback from "@/components/AdWithFeedback";
 
 interface MediaFile {
   id: string;
@@ -517,6 +519,39 @@ const CreateAd: React.FC = () => {
                       <Zap className="h-5 w-5 mr-2" />
                       Run My Ad Now
                     </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Ad with Feedback Demo */}
+            {generatedAdUrl && (
+              <Card className="bg-white/10 backdrop-blur-sm border-white/20">
+                <CardHeader>
+                  <CardTitle className="text-white text-lg flex items-center gap-2">
+                    <MessageSquare className="h-5 w-5" />
+                    Preview: How Viewers Will See Your Ad
+                  </CardTitle>
+                  <p className="text-white/80 text-sm">
+                    This shows how your ad will appear to viewers with the feedback system
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <div className="max-w-sm mx-auto">
+                    <AdWithFeedback
+                      adId={`demo-${Date.now()}`}
+                      adName={adDescription || "Your Amazing Ad"}
+                      adType="video"
+                      adDuration={30}
+                      thumbnailUrl={generatedAdUrl}
+                    />
+                  </div>
+                  <div className="mt-4 p-3 bg-black/20 rounded-lg">
+                    <p className="text-white/80 text-xs text-center">
+                      📝 Try watching the full ad to see the feedback popup in action!
+                      <br />
+                      Viewer feedback helps you improve future ads.
+                    </p>
                   </div>
                 </CardContent>
               </Card>

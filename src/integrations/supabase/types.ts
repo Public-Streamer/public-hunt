@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_feedback: {
+        Row: {
+          ad_id: string
+          created_at: string
+          feedback_text: string | null
+          id: string
+          is_flagged: boolean | null
+          is_moderated: boolean | null
+          selected_tags: string[] | null
+          star_rating: number
+          updated_at: string
+          user_agent: string | null
+          viewer_ip: string | null
+          viewer_session_id: string
+        }
+        Insert: {
+          ad_id: string
+          created_at?: string
+          feedback_text?: string | null
+          id?: string
+          is_flagged?: boolean | null
+          is_moderated?: boolean | null
+          selected_tags?: string[] | null
+          star_rating: number
+          updated_at?: string
+          user_agent?: string | null
+          viewer_ip?: string | null
+          viewer_session_id: string
+        }
+        Update: {
+          ad_id?: string
+          created_at?: string
+          feedback_text?: string | null
+          id?: string
+          is_flagged?: boolean | null
+          is_moderated?: boolean | null
+          selected_tags?: string[] | null
+          star_rating?: number
+          updated_at?: string
+          user_agent?: string | null
+          viewer_ip?: string | null
+          viewer_session_id?: string
+        }
+        Relationships: []
+      }
       ads: {
         Row: {
           ad_type: string | null
