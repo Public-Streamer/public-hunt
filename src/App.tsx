@@ -16,7 +16,7 @@ import StagePage from "./pages/StagePage";
 import Profile from "./pages/Profile";
 import CompanyProfile from "./pages/CompanyProfile";
 import Login from "./pages/Login";
-import Admin from "./pages/Admin";
+
 import WithdrawFunds from "./pages/WithdrawFunds";
 import QA from "./pages/QA";
 import PastEvents from "./pages/PastEvents";
@@ -45,11 +45,13 @@ const App = () => (
                 <Route path="/stage/:eventId" element={<StagePage />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/profile/:userId" element={<Profile />} />
-                <Route path="/company/:companyId" element={<CompanyProfile />} />
+                <Route
+                  path="/company/:companyId"
+                  element={<CompanyProfile />}
+                />
                 <Route path="/login" element={<Login />} />
                 <Route path="/past-events" element={<PastEvents />} />
                 <Route path="/my-ads" element={<MyAds />} />
-                <Route path="/admin" element={<Admin />} />
                 <Route path="/withdraw" element={<WithdrawFunds />} />
                 <Route path="/qa" element={<QA />} />
                 <Route path="/legal" element={<LegalDocumentPage />} />

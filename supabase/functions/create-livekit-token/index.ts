@@ -261,12 +261,14 @@ serve(async (req) => {
     });
 
     if (event.livekit_room_name) {
+      console.log("Using existing room for event");
       at.addGrant({
         ...tokenPermissions,
         roomJoin: true,
         room: event.livekit_room_name,
       });
     } else {
+      console.log("Creating new room for event");
       at.addGrant({
         ...tokenPermissions,
         roomJoin: true,
