@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect } from "react";
 import { useLocalParticipant, useRoomContext, useMediaDevices, useMediaDeviceSelect } from "@livekit/components-react";
 import { Track } from "livekit-client";
@@ -53,21 +52,67 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
 
   const participantCount = room?.numParticipants || 1;
 
+  // Enhanced mobile debugging - Log available cameras whenever they change
+  useEffect(() => {
+    console.log("📱 MOBILE DEBUG - Available Video Devices:", JSON.stringify({
+      deviceCount: videoDevices.length,
+      devices: videoDevices.map(device => ({
+        deviceId: device.deviceId,
+        label: device.label,
+        kind: device.kind,
+        groupId: device.groupId
+      })),
+      currentActiveCamera: currentCamera,
+      currentFacingMode: currentFacingMode
+    }, null, 2));
+  }, [videoDevices, currentCamera, currentFacingMode]);
+
   // Helper function to detect camera type from device info
   const getCameraType = useCallback((device: MediaDeviceInfo): "user" | "environment" | "unknown" => {
     const label = device.label.toLowerCase();
+    console.log("📱 MOBILE DEBUG - Camera Classification:", JSON.stringify({
+      deviceId: device.deviceId,
+      originalLabel: device.label,
+      lowercaseLabel: label,
+      containsFront: label.includes('front'),
+      containsUser: label.includes('user'),
+      containsFacing: label.includes('facing'),
+      containsBack: label.includes('back'),
+      containsRear: label.includes('rear'),
+      containsEnvironment: label.includes('environment')
+    }, null, 2));
+
     if (label.includes('front') || label.includes('user') || label.includes('facing')) {
+      console.log("📱 MOBILE DEBUG - Classified as USER camera");
       return 'user';
     }
     if (label.includes('back') || label.includes('rear') || label.includes('environment')) {
+      console.log("📱 MOBILE DEBUG - Classified as ENVIRONMENT camera");
       return 'environment';
     }
+    console.log("📱 MOBILE DEBUG - Classified as UNKNOWN camera");
     return 'unknown';
   }, []);
 
   // Enhanced camera switching with LiveKit hooks
   const switchCamera = useCallback(async () => {
+    console.log("📱 MOBILE DEBUG - Camera Switch Initiated:", JSON.stringify({
+      hasLocalParticipant: !!localParticipant,
+      isSwitchingCamera: isSwitchingCamera,
+      videoDevicesCount: videoDevices.length,
+      currentCamera: currentCamera,
+      currentFacingMode: currentFacingMode
+    }, null, 2));
+
     if (!localParticipant || isSwitchingCamera || videoDevices.length < 2) {
+      console.log("📱 MOBILE DEBUG - Camera Switch Blocked:", JSON.stringify({
+        reason: !localParticipant ? "No local participant" : 
+                isSwitchingCamera ? "Already switching" :
+                "Insufficient cameras",
+        localParticipant: !!localParticipant,
+        isSwitchingCamera: isSwitchingCamera,
+        videoDevicesCount: videoDevices.length
+      }, null, 2));
       return;
     }
 
@@ -76,7 +121,11 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       // Determine the target facing mode
       const newFacingMode = currentFacingMode === "user" ? "environment" : "user";
       
-      console.log(`Switching from ${currentFacingMode} to ${newFacingMode} camera`);
+      console.log("📱 MOBILE DEBUG - Camera Switch Details:", JSON.stringify({
+        switchingFrom: currentFacingMode,
+        switchingTo: newFacingMode,
+        timestamp: new Date().toISOString()
+      }, null, 2));
 
       // Find cameras of the target type
       const targetCameras = videoDevices.filter(device => {
@@ -84,49 +133,88 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
         return cameraType === newFacingMode;
       });
 
+      console.log("📱 MOBILE DEBUG - Target Cameras Found:", JSON.stringify({
+        targetFacingMode: newFacingMode,
+        targetCamerasCount: targetCameras.length,
+        targetCameras: targetCameras.map(cam => ({
+          deviceId: cam.deviceId,
+          label: cam.label,
+          classifiedType: getCameraType(cam)
+        }))
+      }, null, 2));
+
       // If no specific cameras found for the target type, try to find any different camera
       let targetCamera: MediaDeviceInfo | undefined;
       
       if (targetCameras.length > 0) {
         // Use the first camera of the target type
         targetCamera = targetCameras[0];
+        console.log("📱 MOBILE DEBUG - Using classified target camera");
       } else {
         // Fallback: use any camera that's not the current one
         targetCamera = videoDevices.find(device => device.deviceId !== currentCamera);
+        console.log("📱 MOBILE DEBUG - Using fallback camera (any different camera)");
       }
 
       if (!targetCamera) {
+        console.log("📱 MOBILE DEBUG - No target camera found");
         toast.error("No alternative camera found");
         return;
       }
 
-      console.log("Switching to camera:", {
-        deviceId: targetCamera.deviceId,
-        label: targetCamera.label,
-        detectedType: getCameraType(targetCamera)
-      });
+      console.log("📱 MOBILE DEBUG - Final Camera Selection:", JSON.stringify({
+        selectedCamera: {
+          deviceId: targetCamera.deviceId,
+          label: targetCamera.label,
+          detectedType: getCameraType(targetCamera)
+        },
+        selectionMethod: targetCameras.length > 0 ? "classified" : "fallback"
+      }, null, 2));
 
       // Use LiveKit's device selection
+      console.log("📱 MOBILE DEBUG - Calling setActiveMediaDevice...");
       await setActiveMediaDevice(targetCamera.deviceId);
+      console.log("📱 MOBILE DEBUG - setActiveMediaDevice completed successfully");
       
       // Update the facing mode state
       const actualCameraType = getCameraType(targetCamera);
       if (actualCameraType !== "unknown") {
         setCurrentFacingMode(actualCameraType);
+        console.log("📱 MOBILE DEBUG - Updated facing mode to detected type:", actualCameraType);
       } else {
         // Toggle the facing mode even if we couldn't detect the type
         setCurrentFacingMode(newFacingMode);
+        console.log("📱 MOBILE DEBUG - Updated facing mode to target type:", newFacingMode);
       }
 
       const cameraType = actualCameraType !== "unknown" ? actualCameraType : newFacingMode;
       const friendlyName = cameraType === "environment" ? "back" : "front";
+      
+      console.log("📱 MOBILE DEBUG - Camera Switch Success:", JSON.stringify({
+        finalFacingMode: cameraType,
+        friendlyName: friendlyName,
+        actualCameraType: actualCameraType,
+        newFacingMode: newFacingMode
+      }, null, 2));
+      
       toast.success(`Switched to ${friendlyName} camera`);
 
     } catch (error) {
-      console.error("Error switching camera:", error);
+      console.error("📱 MOBILE DEBUG - Camera Switch Error:", JSON.stringify({
+        error: error instanceof Error ? {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        } : error,
+        timestamp: new Date().toISOString(),
+        currentCamera: currentCamera,
+        currentFacingMode: currentFacingMode,
+        videoDevicesCount: videoDevices.length
+      }, null, 2));
       toast.error("Failed to switch camera. Please try again.");
     } finally {
       setIsSwitchingCamera(false);
+      console.log("📱 MOBILE DEBUG - Camera switching state reset to false");
     }
   }, [localParticipant, currentFacingMode, isSwitchingCamera, videoDevices, currentCamera, setActiveMediaDevice, getCameraType]);
 
