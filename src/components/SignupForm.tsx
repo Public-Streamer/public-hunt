@@ -303,8 +303,10 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
     }));
   };
 
-  // Validate legal document signature
-  const userFullName = `${signupData.firstName} ${signupData.lastName}`;
+  // Validate legal document signature - use executor name for business accounts
+  const userFullName = signupData.accountType === 'individual' 
+    ? `${signupData.firstName} ${signupData.lastName}`
+    : `${signupData.companyExecutorFirstName} ${signupData.companyExecutorLastName}`;
   const normalizeString = (str: string) => str.trim().toLowerCase().replace(/\s+/g, ' ');
   const isValidLegalSignature = userFullName.trim() 
     ? normalizeString(legalSignature) === normalizeString(userFullName)
@@ -574,28 +576,31 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <Label htmlFor="firstName" className="text-sm">First Name</Label>
-              <Input
-                id="firstName"
-                value={signupData.firstName}
-                onChange={(e) => setSignupData(prev => ({ ...prev, firstName: e.target.value }))}
-                placeholder="First Name"
-                className={`h-8 text-sm ${getFieldErrorClass('firstName')}`}
-              />
+          {/* Only show first/last name for individual accounts since business accounts use executor fields */}
+          {signupData.accountType === 'individual' && (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label htmlFor="firstName" className="text-sm">First Name</Label>
+                <Input
+                  id="firstName"
+                  value={signupData.firstName}
+                  onChange={(e) => setSignupData(prev => ({ ...prev, firstName: e.target.value }))}
+                  placeholder="First Name"
+                  className={`h-8 text-sm ${getFieldErrorClass('firstName')}`}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="lastName" className="text-sm">Last Name</Label>
+                <Input
+                  id="lastName"
+                  value={signupData.lastName}
+                  onChange={(e) => setSignupData(prev => ({ ...prev, lastName: e.target.value }))}
+                  placeholder="Last Name"
+                  className={`h-8 text-sm ${getFieldErrorClass('lastName')}`}
+                />
+              </div>
             </div>
-            <div className="space-y-1">
-              <Label htmlFor="lastName" className="text-sm">Last Name</Label>
-              <Input
-                id="lastName"
-                value={signupData.lastName}
-                onChange={(e) => setSignupData(prev => ({ ...prev, lastName: e.target.value }))}
-                placeholder="Last Name"
-                className={`h-8 text-sm ${getFieldErrorClass('lastName')}`}
-              />
-            </div>
-          </div>
+          )}
 
           <div className="space-y-1">
             <Label htmlFor="birthDate" className="text-sm">Birth Date</Label>
