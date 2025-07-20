@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { useLocalParticipant, useRoomContext } from "@livekit/components-react";
+import { Track } from "livekit-client";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -186,7 +187,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
           const newVideoTrack = newStream.getVideoTracks()[0];
           await localParticipant.publishTrack(newVideoTrack, {
             name: "camera",
-            source: "camera"
+            source: Track.Source.Camera
           });
 
           // Update state
