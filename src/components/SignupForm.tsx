@@ -400,7 +400,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
   };
 
   const formContent = (
-    <div className="space-y-6 max-w-2xl mx-auto">
+    <div className="space-y-6 max-w-2xl mx-auto px-2">
       <form onSubmit={handleSubmit} className="space-y-6">
         
         {/* Account Type Section */}
@@ -857,7 +857,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
   return (
     <>
       <div 
-        className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 auth-template"
+        className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 auth-template overflow-auto"
         onClick={(e) => {
           if (e.target === e.currentTarget) {
             onClose();
@@ -865,14 +865,14 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
         }}
       >
         <div 
-          className="w-full max-w-4xl max-h-[95vh] bg-card rounded-lg border shadow-lg overflow-hidden"
+          className="w-full max-w-4xl max-h-[95vh] bg-card rounded-lg border shadow-lg overflow-hidden mx-2"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="p-6 border-b">
+          <div className="p-4 sm:p-6 border-b">
             <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <LiveStreamLogo size="md" className="mr-3" />
-                <h2 className="text-xl sm:text-2xl font-bold">
+              <div className="flex items-center min-w-0 flex-1">
+                <LiveStreamLogo size="md" className="mr-2 sm:mr-3 flex-shrink-0" />
+                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold truncate">
                   Create Your <span className="font-orbitron font-black bg-gradient-to-r from-primary via-blue-500 to-purple-600 bg-clip-text text-transparent">Public Streamer</span> Account
                 </h2>
               </div>
@@ -906,8 +906,10 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
             )}
           </div>
           
-          <ScrollArea className="h-[calc(95vh-120px)] p-6">
-            {formContent}
+          <ScrollArea className="h-[calc(95vh-120px)]">
+            <div className="p-4 sm:p-6 pr-2 sm:pr-4">
+              {formContent}
+            </div>
           </ScrollArea>
         </div>
       </div>
