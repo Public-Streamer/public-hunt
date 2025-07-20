@@ -299,6 +299,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                       availableCameras={controls.availableCameras}
                       isSwitchingCamera={controls.isSwitchingCamera}
                       isVideoEnabled={controls.isVideoEnabled}
+                      currentFacingMode={controls.currentFacingMode}
                       onSwitchCamera={controls.switchCamera}
                     />
                   )}
@@ -333,6 +334,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                     availableCameras={controls.availableCameras}
                     isSwitchingCamera={controls.isSwitchingCamera}
                     isVideoEnabled={controls.isVideoEnabled}
+                    currentFacingMode={controls.currentFacingMode}
                     onSwitchCamera={controls.switchCamera}
                   />
                 )}

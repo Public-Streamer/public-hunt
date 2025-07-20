@@ -42,9 +42,11 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   const videoDevices = useMediaDevices({ kind: 'videoinput' });
   const { 
     activeDeviceId: currentCamera, 
-    setActiveMediaDevice,
-    isChangingDevice: isSwitchingCamera 
+    setActiveMediaDevice
   } = useMediaDeviceSelect({ kind: 'videoinput' });
+  
+  // State for tracking camera switching
+  const [isSwitchingCamera, setIsSwitchingCamera] = useState(false);
 
   // State for tracking current facing mode
   const [currentFacingMode, setCurrentFacingMode] = useState<"user" | "environment">("user");
@@ -69,6 +71,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       return;
     }
 
+    setIsSwitchingCamera(true);
     try {
       // Determine the target facing mode
       const newFacingMode = currentFacingMode === "user" ? "environment" : "user";
@@ -122,6 +125,8 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
     } catch (error) {
       console.error("Error switching camera:", error);
       toast.error("Failed to switch camera. Please try again.");
+    } finally {
+      setIsSwitchingCamera(false);
     }
   }, [localParticipant, currentFacingMode, isSwitchingCamera, videoDevices, currentCamera, setActiveMediaDevice, getCameraType]);
 
