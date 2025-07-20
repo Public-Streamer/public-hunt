@@ -73,32 +73,32 @@ const EventPage: React.FC = () => {
     }
   }, [currentUser, eventData]);
 
-  // Set up real-time subscription for live status updates
-  useEffect(() => {
-    if (!eventId) return;
+  // // Set up real-time subscription for live status updates
+  // useEffect(() => {
+  //   if (!eventId) return;
 
-    const subscription = supabase
-      .channel(`event-${eventId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "events",
-          filter: `id=eq.${eventId}`,
-        },
-        (payload) => {
-          if (payload.new) {
-            setEventData((prev) => (prev ? { ...prev, ...payload.new } : null));
-          }
-        }
-      )
-      .subscribe();
+  //   const subscription = supabase
+  //     .channel(`event-${eventId}`)
+  //     .on(
+  //       "postgres_changes",
+  //       {
+  //         event: "UPDATE",
+  //         schema: "public",
+  //         table: "events",
+  //         filter: `id=eq.${eventId}`,
+  //       },
+  //       (payload) => {
+  //         if (payload.new) {
+  //           setEventData((prev) => (prev ? { ...prev, ...payload.new } : null));
+  //         }
+  //       }
+  //     )
+  //     .subscribe();
 
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [eventId]);
+  //   return () => {
+  //     subscription.unsubscribe();
+  //   };
+  // }, [eventId]);
 
   // Derived variables
   const isEventHost =
