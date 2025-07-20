@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
-import { PlayCircle, Edit, Copy, Rocket, Trash2, Search, Filter, TrendingUp, Eye, Clock, DollarSign, BarChart3, FlaskConical, Lightbulb, CheckCircle, AlertCircle, Trophy, Target, Zap, Star, MessageSquare, Flag, Users } from "lucide-react";
+import { PlayCircle, Edit, Copy, Rocket, Trash2, Search, Filter, TrendingUp, Eye, Clock, DollarSign, BarChart3, FlaskConical, Lightbulb, CheckCircle, AlertCircle, Trophy, Target, Zap, Star, MessageSquare, Flag, Users, AlertTriangle, Award } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -61,6 +61,26 @@ interface ViewerFeedback {
   feedbackText?: string;
   createdAt: string;
   isFlagged: boolean;
+}
+
+interface AdFlag {
+  type: "underperforming" | "poor_feedback" | "high_cost";
+  severity: "warning" | "critical";
+  message: string;
+  suggestions: string[];
+}
+
+interface AdPerformanceAnalysis {
+  isTopPerforming: boolean;
+  isFlagged: boolean;
+  flags: AdFlag[];
+  topPerformingBadges: string[];
+  totalImpressions: number;
+  viewThroughRate: number;
+  avgViewDuration: number;
+  costPerView: number;
+  avgRating: number;
+  positiveTagsPercentage: number;
 }
 
 interface SavedAd {
@@ -135,7 +155,17 @@ const mockSavedAds: SavedAd[] = [
     dateCreated: "2024-01-10",
     mediaType: "Image",
     status: "Draft",
-    performanceHistory: []
+    performanceHistory: [
+      {
+        campaignName: "Test Campaign",
+        dateRun: "2024-01-15 - 2024-01-20",
+        status: "Completed",
+        totalViews: 2000,
+        avgViewDuration: 4.2,
+        ctr: 0.1,
+        budgetSpent: 400.00
+      }
+    ]
   },
   {
     id: "3",
@@ -158,6 +188,153 @@ const mockSavedAds: SavedAd[] = [
     ]
   }
 ];
+
+// Performance analysis functions
+const analyzeAdPerformance = (ad: SavedAd, feedback: ViewerFeedback[]): AdPerformanceAnalysis => {
+  const totalImpressions = ad.performanceHistory.reduce((sum, perf) => sum + perf.totalViews, 0);
+  const totalBudget = ad.performanceHistory.reduce((sum, perf) => sum + perf.budgetSpent, 0);
+  
+  // Calculate metrics
+  const viewThroughRate = totalImpressions > 0 ? 75 : 0; // Mock VTR - in real app would be calculated
+  const avgViewDuration = ad.performanceHistory.length > 0 
+    ? ad.performanceHistory.reduce((sum, perf) => sum + perf.avgViewDuration, 0) / ad.performanceHistory.length 
+    : 0;
+  const costPerView = totalImpressions > 0 ? totalBudget / totalImpressions : 0;
+  const avgRating = feedback.length > 0 
+    ? feedback.reduce((sum, f) => sum + f.starRating, 0) / feedback.length 
+    : 0;
+  
+  // Calculate positive tags percentage
+  const negativeTagsCount = feedback.reduce((count, f) => {
+    const negativeTags = f.selectedTags.filter(tag => 
+      ['confusing', 'too_long'].includes(tag)
+    ).length;
+    return count + negativeTags;
+  }, 0);
+  const totalTags = feedback.reduce((count, f) => count + f.selectedTags.length, 0);
+  const positiveTagsPercentage = totalTags > 0 ? ((totalTags - negativeTagsCount) / totalTags) * 100 : 100;
+
+  // Check flagging criteria (minimum 500 impressions required)
+  const flags: AdFlag[] = [];
+  const shouldAnalyze = totalImpressions >= 500;
+
+  if (shouldAnalyze) {
+    // Performance-based flags
+    if (viewThroughRate < 20) {
+      flags.push({
+        type: "underperforming",
+        severity: "critical",
+        message: "Very low view-through rate",
+        suggestions: [
+          "Consider making your opening more engaging",
+          "Test different thumbnails or preview images",
+          "Shorten the ad duration"
+        ]
+      });
+    }
+
+    if (ad.duration && avgViewDuration < 5 && ad.duration > 15) {
+      flags.push({
+        type: "underperforming",
+        severity: "warning",
+        message: "Viewers are not watching your ad to completion",
+        suggestions: [
+          "Hook viewers in the first 3 seconds",
+          "Consider shortening your ad",
+          "Make your value proposition clearer"
+        ]
+      });
+    }
+
+    if (costPerView > 0.1) { // Mock threshold
+      flags.push({
+        type: "high_cost",
+        severity: "warning",
+        message: "Cost per view is higher than average",
+        suggestions: [
+          "Optimize your targeting",
+          "Test different creative approaches",
+          "Consider adjusting your budget"
+        ]
+      });
+    }
+
+    // Feedback-based flags
+    if (avgRating < 2.5 && feedback.length >= 10) {
+      flags.push({
+        type: "poor_feedback",
+        severity: "critical",
+        message: "Poor viewer ratings",
+        suggestions: [
+          "Review negative feedback comments",
+          "Test different messaging",
+          "Improve audio/visual quality"
+        ]
+      });
+    }
+
+    if (positiveTagsPercentage < 50 && feedback.length >= 10) {
+      flags.push({
+        type: "poor_feedback",
+        severity: "warning",
+        message: "High negative feedback rate",
+        suggestions: [
+          "Address common complaints from feedback",
+          "A/B test different versions",
+          "Consider updating your creative"
+        ]
+      });
+    }
+  }
+
+  // Check top performing criteria
+  const topPerformingBadges: string[] = [];
+  const isTopPerforming = shouldAnalyze && checkTopPerformingCriteria();
+
+  function checkTopPerformingCriteria(): boolean {
+    let criteriasMet = 0;
+
+    if (avgRating >= 4.5 && feedback.length >= 10) {
+      criteriasMet++;
+      topPerformingBadges.push("High Rated");
+    }
+
+    if (ad.duration && avgViewDuration >= ad.duration * 0.8) {
+      criteriasMet++;
+      topPerformingBadges.push("High Completion");
+    }
+
+    if (viewThroughRate >= 60) {
+      criteriasMet++;
+      topPerformingBadges.push("High Engagement");
+    }
+
+    if (positiveTagsPercentage >= 60 && feedback.length >= 5) {
+      criteriasMet++;
+      topPerformingBadges.push("Positive Feedback");
+    }
+
+    if (costPerView <= 0.02) { // Top 25% mock threshold
+      criteriasMet++;
+      topPerformingBadges.push("Cost Effective");
+    }
+
+    return criteriasMet >= 3;
+  }
+
+  return {
+    isTopPerforming,
+    isFlagged: flags.length > 0,
+    flags,
+    topPerformingBadges,
+    totalImpressions,
+    viewThroughRate,
+    avgViewDuration,
+    costPerView,
+    avgRating,
+    positiveTagsPercentage
+  };
+};
 
 // Mock AI suggestions generator
 const generateAISuggestions = (ad: SavedAd): AISuggestion[] => {
@@ -245,6 +422,26 @@ const AdLibrary = () => {
     topTags: { tag: string; count: number; percentage: number }[];
     responseRate: number;
   } | null>(null);
+  
+  // Performance Analysis state
+  const [adAnalysis, setAdAnalysis] = useState<{ [adId: string]: AdPerformanceAnalysis }>({});
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+
+  useEffect(() => {
+    // Analyze performance for all ads
+    const analyses: { [adId: string]: AdPerformanceAnalysis } = {};
+    ads.forEach(ad => {
+      const mockFeedback: ViewerFeedback[] = ad.id === "1" ? [
+        { id: "1", starRating: 5, selectedTags: ["helpful", "relevant"], feedbackText: "Great ad!", createdAt: "2024-01-20", isFlagged: false },
+        { id: "2", starRating: 4, selectedTags: ["good_music"], feedbackText: "", createdAt: "2024-01-21", isFlagged: false },
+      ] : ad.id === "2" ? [
+        { id: "3", starRating: 2, selectedTags: ["confusing", "too_long"], feedbackText: "Too confusing", createdAt: "2024-01-15", isFlagged: false },
+      ] : [];
+      
+      analyses[ad.id] = analyzeAdPerformance(ad, mockFeedback);
+    });
+    setAdAnalysis(analyses);
+  }, [ads]);
 
   const filteredAds = ads
     .filter(ad => {
@@ -535,130 +732,154 @@ const AdLibrary = () => {
 
           {/* Ads Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredAds.map((ad) => (
-              <Card key={ad.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                <div className="aspect-video bg-muted relative">
-                  <img 
-                    src={ad.thumbnail} 
-                    alt={ad.name}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute top-2 right-2">
-                    <Badge className={getStatusColor(ad.status)}>
-                      {ad.status}
-                    </Badge>
-                  </div>
-                  {ad.duration && (
-                    <div className="absolute bottom-2 right-2 bg-black/80 text-white px-2 py-1 rounded text-xs">
-                      {ad.duration}s
+            {filteredAds.map((ad) => {
+              const analysis = adAnalysis[ad.id];
+              
+              return (
+                <Card key={ad.id} className="overflow-hidden hover:shadow-lg transition-shadow relative">
+                  {/* Top Performing Badge */}
+                  {analysis?.isTopPerforming && (
+                    <div className="absolute top-2 left-2 z-10">
+                      <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-semibold flex items-center gap-1">
+                        <Trophy className="h-3 w-3" />
+                        Top Performing
+                      </Badge>
                     </div>
                   )}
-                </div>
-                
-                <CardContent className="p-4 space-y-4">
-                  <div>
-                    <h3 className="font-semibold text-foreground truncate">{ad.name}</h3>
-                    <div className="flex justify-between text-sm text-muted-foreground mt-1">
-                      <span>{ad.mediaType}</span>
-                      <span>{new Date(ad.dateCreated).toLocaleDateString()}</span>
+                  
+                  {/* Flag Indicator */}
+                  {analysis?.isFlagged && (
+                    <div className="absolute top-2 right-2 z-10">
+                      <Badge variant="destructive" className="flex items-center gap-1">
+                        <AlertTriangle className="h-3 w-3" />
+                        Needs Attention
+                      </Badge>
                     </div>
+                  )}
+                  
+                  <div className="aspect-video bg-muted relative">
+                    <img 
+                      src={ad.thumbnail} 
+                      alt={ad.name}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute bottom-2 right-2">
+                      <Badge className={getStatusColor(ad.status)}>
+                        {ad.status}
+                      </Badge>
+                    </div>
+                    {ad.duration && (
+                      <div className="absolute bottom-2 left-2 bg-black/80 text-white px-2 py-1 rounded text-xs">
+                        {ad.duration}s
+                      </div>
+                    )}
                   </div>
+                  
+                  <CardContent className="p-4 space-y-4">
+                    <div>
+                      <h3 className="font-semibold text-foreground truncate">{ad.name}</h3>
+                      <div className="flex justify-between text-sm text-muted-foreground mt-1">
+                        <span>{ad.mediaType}</span>
+                        <span>{new Date(ad.dateCreated).toLocaleDateString()}</span>
+                      </div>
+                    </div>
 
-                  {/* Performance Quick Stats */}
-                  {ad.performanceHistory.length > 0 && (
-                    <div className="bg-muted/50 rounded-lg p-3 space-y-1">
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <TrendingUp className="h-3 w-3" />
-                        Performance Summary
-                      </div>
-                      <div className="grid grid-cols-2 gap-2 text-xs">
-                        <div>
-                          <span className="text-muted-foreground">Total Views:</span>
-                          <div className="font-medium">{calculateTotalPerformance(ad)?.totalViews.toLocaleString()}</div>
+                    {/* Performance Quick Stats */}
+                    {ad.performanceHistory.length > 0 && (
+                      <div className="bg-muted/50 rounded-lg p-3 space-y-1">
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <TrendingUp className="h-3 w-3" />
+                          Performance Summary
                         </div>
-                        <div>
-                          <span className="text-muted-foreground">Campaigns:</span>
-                          <div className="font-medium">{ad.performanceHistory.length}</div>
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div>
+                            <span className="text-muted-foreground">Total Views:</span>
+                            <div className="font-medium">{calculateTotalPerformance(ad)?.totalViews.toLocaleString()}</div>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Campaigns:</span>
+                            <div className="font-medium">{ad.performanceHistory.length}</div>
+                          </div>
                         </div>
                       </div>
+                    )}
+                    
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePreview(ad)}
+                        className="flex items-center gap-2"
+                      >
+                        <PlayCircle className="h-4 w-4" />
+                        Preview
+                      </Button>
+                      
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEdit(ad.id)}
+                        className="flex items-center gap-2"
+                      >
+                        <Edit className="h-4 w-4" />
+                        Edit
+                      </Button>
                     </div>
-                  )}
-                  
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePreview(ad)}
-                      className="flex items-center gap-2"
-                    >
-                      <PlayCircle className="h-4 w-4" />
-                      Preview
-                    </Button>
                     
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEdit(ad.id)}
-                      className="flex items-center gap-2"
-                    >
-                      <Edit className="h-4 w-4" />
-                      Edit
-                    </Button>
-                  </div>
-                  
-                  <div className="grid grid-cols-3 gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDuplicate(ad)}
-                      className="flex items-center gap-1"
-                    >
-                      <Copy className="h-3 w-3" />
-                      Copy
-                    </Button>
-                    
-                    <Button
-                      size="sm"
-                      onClick={() => handleUseInCampaign(ad.id)}
-                      className="flex items-center gap-1"
-                    >
-                      <Rocket className="h-3 w-3" />
-                      Launch
-                    </Button>
-                    
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex items-center gap-1 text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                          Delete
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Delete Ad</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Are you sure you want to delete "{ad.name}"? This action cannot be undone.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => handleDelete(ad.id)}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    <div className="grid grid-cols-3 gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDuplicate(ad)}
+                        className="flex items-center gap-1"
+                      >
+                        <Copy className="h-3 w-3" />
+                        Copy
+                      </Button>
+                      
+                      <Button
+                        size="sm"
+                        onClick={() => handleUseInCampaign(ad.id)}
+                        className="flex items-center gap-1"
+                      >
+                        <Rocket className="h-3 w-3" />
+                        Launch
+                      </Button>
+                      
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex items-center gap-1 text-destructive hover:text-destructive"
                           >
+                            <Trash2 className="h-3 w-3" />
                             Delete
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Ad</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete "{ad.name}"? This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDelete(ad.id)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
 
           {filteredAds.length === 0 && (
@@ -682,7 +903,7 @@ const AdLibrary = () => {
         </div>
       </div>
 
-      {/* Ad Preview Modal */}
+      {/* Ad Preview Modal with Flag Warnings */}
       {selectedAd && (
         <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
           <div className="bg-background rounded-lg max-w-4xl w-full max-h-[90vh] overflow-auto">
@@ -693,6 +914,53 @@ const AdLibrary = () => {
                   Close
                 </Button>
               </div>
+
+              {/* Performance Alerts */}
+              {adAnalysis[selectedAd.id]?.isFlagged && (
+                <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+                  <div className="flex items-center gap-2 text-destructive mb-2">
+                    <AlertTriangle className="h-5 w-5" />
+                    <h3 className="font-semibold">This ad is underperforming</h3>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Consider making edits or running an A/B test to improve results.
+                  </p>
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={() => handleEdit(selectedAd.id)}>
+                      <Edit className="h-3 w-3 mr-1" />
+                      Edit Ad
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => handleRunABTest(selectedAd)}>
+                      <FlaskConical className="h-3 w-3 mr-1" />
+                      Run A/B Test
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => handleGetAIFeedback(selectedAd)}>
+                      <Lightbulb className="h-3 w-3 mr-1" />
+                      Get Suggestions
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Top Performing Celebration */}
+              {adAnalysis[selectedAd.id]?.isTopPerforming && (
+                <div className="mb-6 p-4 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/20 rounded-lg">
+                  <div className="flex items-center gap-2 text-yellow-600 mb-2">
+                    <Award className="h-5 w-5" />
+                    <h3 className="font-semibold">Congratulations! This ad is among the top-performing on the platform.</h3>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Great job! This ad is performing excellently across multiple metrics.
+                  </p>
+                  <div className="flex gap-1 flex-wrap">
+                    {adAnalysis[selectedAd.id]?.topPerformingBadges.map((badge) => (
+                      <Badge key={badge} className="bg-yellow-500/20 text-yellow-700 border-yellow-500/30">
+                        {badge}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <Tabs defaultValue="preview" className="space-y-6">
                 <TabsList className="grid w-full grid-cols-5">
