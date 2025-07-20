@@ -275,12 +275,16 @@ serve(async (req) => {
         room: `event-${eventId}`,
       });
 
-      await supabase
+      const { error } = await supabase
         .from("events")
         .upsert({
           livekit_room_name: `event-${eventId}`,
         })
         .eq("id", eventId);
+
+      if (error) {
+        console.error("Error updating liveRoom name", error);
+      }
     }
 
     const token = await at.toJwt();
@@ -299,7 +303,7 @@ serve(async (req) => {
 
     const response: CreateTokenResponse = {
       token,
-      roomName: event.livekit_room_name,
+      roomName: event.livekit_room_name ?? `event-${eventId}`,
       serverUrl: LIVEKIT_WS_URL,
       expiresAt: expiresAt.toISOString(),
     };
