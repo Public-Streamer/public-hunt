@@ -393,38 +393,63 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
   };
 
   const getStep2ValidationError = () => {
+    console.log('[Step2 Validation] Starting validation for account type:', signupData.accountType);
+    console.log('[Step2 Validation] Company Account Master:', signupData.companyAccountMaster);
+    
     if (signupData.accountType === 'individual' || 
         ((signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && !signupData.companyAccountMaster)) {
+      
+      console.log('[Step2 Validation] Validating personal info fields...');
+      console.log('[Step2 Validation] Password valid:', isPasswordValid(signupData.password));
+      console.log('[Step2 Validation] Confirm password valid:', isPasswordValid(signupData.confirmPassword));
+      console.log('[Step2 Validation] Passwords match:', signupData.password === signupData.confirmPassword);
+      console.log('[Step2 Validation] First name:', signupData.firstName);
+      console.log('[Step2 Validation] Last name:', signupData.lastName);
+      console.log('[Step2 Validation] Birth date:', signupData.birthDate);
+      console.log('[Step2 Validation] Phone:', signupData.phone);
+      
       if (!isPasswordValid(signupData.password)) {
+        console.log('[Step2 Validation] FAILED: Password not valid');
         return 'Password must be at least 8 characters long';
       }
       if (!isPasswordValid(signupData.confirmPassword)) {
+        console.log('[Step2 Validation] FAILED: Confirm password not valid');
         return 'Confirm password must be at least 8 characters long';
       }
       if (signupData.password !== signupData.confirmPassword) {
+        console.log('[Step2 Validation] FAILED: Passwords do not match');
         return 'Passwords do not match';
       }
       if (!signupData.firstName) {
+        console.log('[Step2 Validation] FAILED: First name missing');
         return 'Please enter your first name';
       }
       if (!signupData.lastName) {
+        console.log('[Step2 Validation] FAILED: Last name missing');
         return 'Please enter your last name';
       }
       if (!signupData.birthDate) {
+        console.log('[Step2 Validation] FAILED: Birth date missing');
         return 'Please enter your birth date';
       }
       const age = calculateAge(signupData.birthDate);
+      console.log('[Step2 Validation] Calculated age:', age);
       if (age < 18) {
+        console.log('[Step2 Validation] FAILED: Under 18');
         return 'You must be 18 years or older to join';
       }
       if (!signupData.phone) {
+        console.log('[Step2 Validation] FAILED: Phone missing');
         return 'Please enter your cell phone number';
       }
       const phoneDigits = signupData.phone.replace(/\D/g, '');
+      console.log('[Step2 Validation] Phone digits:', phoneDigits, 'Length:', phoneDigits.length);
       if (phoneDigits.length !== 10) {
+        console.log('[Step2 Validation] FAILED: Phone not 10 digits');
         return 'Please enter a valid 10-digit cell phone number';
       }
     }
+    console.log('[Step2 Validation] All validations passed!');
     return null;
   };
 
