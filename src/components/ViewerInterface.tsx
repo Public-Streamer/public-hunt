@@ -119,7 +119,7 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
   const room = useRoomContext();
   console.log("Rooms for viewer", room.name);
   const participants = useParticipants();
-  const tracks = useTracks([Track.Source.Camera], { onlySubscribed: true });
+  const tracks = useTracks([Track.Source.Camera, Track.Source.ScreenShare], { onlySubscribed: true });
   const audioTracks = useTracks([Track.Source.Microphone], {
     onlySubscribed: true,
   });
@@ -208,7 +208,7 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
                 LIVE
               </Badge>
               <span className="text-sm text-gray-600">
-                {tracks.length} camera{tracks.length !== 1 ? "s" : ""} •{" "}
+                {tracks.length} stream{tracks.length !== 1 ? "s" : ""} •{" "}
                 {participants.length} participant
                 {participants.length !== 1 ? "s" : ""}
               </span>

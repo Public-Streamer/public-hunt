@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Video, Users, Monitor, Play } from 'lucide-react';
+import { Video, Users, Monitor, Play, ScreenShare } from 'lucide-react';
 import { TrackReference } from '@livekit/components-react';
 
 interface StreamSelectorProps {
@@ -25,7 +25,7 @@ const StreamSelector: React.FC<StreamSelectorProps> = ({
     <Card className="mt-4">
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-lg font-semibold">Camera Views</h3>
+          <h3 className="text-lg font-semibold">Stream Views</h3>
           <Button
             variant={selectedTrack === null ? 'default' : 'outline'}
             size="sm"
@@ -45,12 +45,20 @@ const StreamSelector: React.FC<StreamSelectorProps> = ({
             >
               <div className="relative">
                 <div className="w-16 h-12 bg-gray-100 rounded flex items-center justify-center">
-                  <Video className="h-4 w-4 text-gray-400" />
+                  {track.publication.source === 'screen_share' ? (
+                    <ScreenShare className="h-4 w-4 text-blue-600" />
+                  ) : (
+                    <Video className="h-4 w-4 text-gray-400" />
+                  )}
                 </div>
                 
                 {/* Live indicator */}
-                <Badge className="absolute -top-1 -right-1 bg-red-600 text-white text-xs px-1">
-                  LIVE
+                <Badge className={`absolute -top-1 -right-1 text-white text-xs px-1 ${
+                  track.publication.source === 'screen_share' 
+                    ? 'bg-blue-600' 
+                    : 'bg-red-600'
+                }`}>
+                  {track.publication.source === 'screen_share' ? 'SCREEN' : 'LIVE'}
                 </Badge>
               </div>
               
@@ -62,6 +70,7 @@ const StreamSelector: React.FC<StreamSelectorProps> = ({
                 </Avatar>
                 <div className="text-sm truncate">
                   {track.participant.name || 'Anonymous'}
+                  {track.publication.source === 'screen_share' && ' (Screen)'}
                 </div>
               </div>
             </Button>
@@ -69,7 +78,7 @@ const StreamSelector: React.FC<StreamSelectorProps> = ({
         </div>
         
         <div className="mt-3 text-sm text-gray-600 text-center">
-          Click on a camera to view it fullscreen, or "Show All" to see the grid view
+          Click on a stream to view it fullscreen, or "Show All" to see the grid view
         </div>
       </CardContent>
     </Card>

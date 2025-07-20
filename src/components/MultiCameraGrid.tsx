@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Video, Users, VolumeX, Monitor } from 'lucide-react';
+import { Video, Users, VolumeX, Monitor, ScreenShare } from 'lucide-react';
 import { TrackReference, VideoTrack } from '@livekit/components-react';
 import { Track } from 'livekit-client';
 
@@ -40,13 +40,18 @@ const MultiCameraGrid: React.FC<MultiCameraGridProps> = ({
         
         {/* Track Info Overlay */}
         <div className="absolute bottom-4 left-4 bg-black/70 text-white px-3 py-1 rounded flex items-center gap-2">
-          <Avatar className="h-6 w-6">
-            <AvatarFallback className="text-xs">
-              {track.participant.name?.substring(0, 2).toUpperCase() || 'U'}
-            </AvatarFallback>
-          </Avatar>
+          {track.publication.source === Track.Source.ScreenShare ? (
+            <ScreenShare className="h-4 w-4 text-blue-400" />
+          ) : (
+            <Avatar className="h-6 w-6">
+              <AvatarFallback className="text-xs">
+                {track.participant.name?.substring(0, 2).toUpperCase() || 'U'}
+              </AvatarFallback>
+            </Avatar>
+          )}
           <span className="text-sm">
             {track.participant.name || 'Anonymous'}
+            {track.publication.source === Track.Source.ScreenShare && ' (Screen)'}
           </span>
         </div>
       </div>
@@ -80,9 +85,13 @@ const MultiCameraGrid: React.FC<MultiCameraGridProps> = ({
             />
             
             {/* Live Badge */}
-            <Badge className="absolute top-2 left-2 bg-red-600 text-white text-xs">
+            <Badge className={`absolute top-2 left-2 text-white text-xs ${
+              track.publication.source === Track.Source.ScreenShare 
+                ? 'bg-blue-600' 
+                : 'bg-red-600'
+            }`}>
               <div className="w-1.5 h-1.5 bg-white rounded-full mr-1 animate-pulse" />
-              LIVE
+              {track.publication.source === Track.Source.ScreenShare ? 'SCREEN' : 'LIVE'}
             </Badge>
             
             {/* Audio Status */}
@@ -93,13 +102,18 @@ const MultiCameraGrid: React.FC<MultiCameraGridProps> = ({
             {/* Track Info */}
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
               <div className="flex items-center gap-2">
-                <Avatar className="h-6 w-6">
-                  <AvatarFallback className="text-xs">
-                    {track.participant.name?.substring(0, 2).toUpperCase() || 'U'}
-                  </AvatarFallback>
-                </Avatar>
+                {track.publication.source === Track.Source.ScreenShare ? (
+                  <ScreenShare className="h-4 w-4 text-blue-400" />
+                ) : (
+                  <Avatar className="h-6 w-6">
+                    <AvatarFallback className="text-xs">
+                      {track.participant.name?.substring(0, 2).toUpperCase() || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                )}
                 <div className="text-white text-sm truncate">
                   {track.participant.name || 'Anonymous'}
+                  {track.publication.source === Track.Source.ScreenShare && ' (Screen)'}
                 </div>
               </div>
             </div>
