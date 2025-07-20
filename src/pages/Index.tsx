@@ -5,6 +5,7 @@ import EventGrid from '@/components/EventGrid';
 import StageView from '@/components/StageView';
 import LiveNewsFeed from '@/components/LiveNewsFeed';
 import FeaturedAdsCarousel from '@/components/FeaturedAdsCarousel';
+import TrendingAnalyticsPanel from '@/components/TrendingAnalyticsPanel';
 
 const Index: React.FC = () => {
   const { sidebarOpen, toggleSidebar } = useAppContext();
@@ -104,6 +105,7 @@ const Index: React.FC = () => {
     <div className="bg-white">
       <Hero />
       <FeaturedAdsCarousel />
+      <TrendingAnalyticsPanel />
       <div className="container mx-auto px-4 py-8">
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
