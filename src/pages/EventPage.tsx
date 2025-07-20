@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -210,6 +209,7 @@ const EventPage: React.FC = () => {
     if (!currentUser || !eventData) return;
 
     try {
+      setLoading(true);
       const { data, error } = await supabase.functions.invoke(
         "create-livekit-token",
         {
@@ -230,10 +230,17 @@ const EventPage: React.FC = () => {
         return;
       }
 
+      if (!data?.token || !data?.roomName || !data?.serverUrl) {
+        console.error("Invalid token response");
+        return;
+      }
+
       setLivekitToken(data.token);
       setRoomName(data.roomName);
       setServerUrl(data.serverUrl);
+      setLoading(false);
     } catch (error) {
+      setLoading(false);
       console.error("Error generating viewer token:", error);
     }
   };
@@ -347,6 +354,13 @@ const EventPage: React.FC = () => {
       thumbnail: url.endsWith(".mp4") ? "/placeholder.svg" : url,
     })) || [];
 
+  console.log({
+    isLive: eventData.is_live,
+    hasToken: livekitToken,
+    roomName,
+    serverUrl,
+  });
+
   return (
     <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 max-w-7xl">
       {/* Back to Events Button */}
@@ -403,7 +417,9 @@ const EventPage: React.FC = () => {
                 </CardTitle>
                 <div className="flex flex-wrap gap-1 sm:gap-2">
                   {eventData.category && (
-                    <Badge variant="secondary" className="text-xs">{eventData.category}</Badge>
+                    <Badge variant="secondary" className="text-xs">
+                      {eventData.category}
+                    </Badge>
                   )}
                   {eventData.is_live && (
                     <Badge className="bg-red-600 text-white text-xs">
@@ -431,21 +447,22 @@ const EventPage: React.FC = () => {
                   </div>
                   <div className="flex items-center text-xs sm:text-sm">
                     <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 text-gray-500 flex-shrink-0" />
-                    <span className="truncate">{eventData.viewer_count || 0} viewers</span>
+                    <span className="truncate">
+                      {eventData.viewer_count || 0} viewers
+                    </span>
                   </div>
                   <div className="flex items-center text-xs sm:text-sm">
                     <MapPin className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 text-gray-500 flex-shrink-0" />
-                    <span className="truncate">{eventData.location || "Online"}</span>
+                    <span className="truncate">
+                      {eventData.location || "Online"}
+                    </span>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             {/* Live Streams Section */}
-            {eventData.is_live &&
-            eventData.livekit_room_name &&
-            livekitToken &&
-            serverUrl ? (
+            {eventData.is_live && roomName && livekitToken && serverUrl ? (
               <div className="w-full">
                 <LiveKitRoom
                   token={livekitToken}
@@ -480,9 +497,12 @@ const EventPage: React.FC = () => {
               <Card>
                 <CardContent className="p-4 sm:p-6 lg:p-8 text-center">
                   <Video className="h-12 w-12 sm:h-16 sm:w-16 mx-auto mb-3 sm:mb-4 text-gray-400" />
-                  <h3 className="text-lg sm:text-xl font-semibold mb-2">Event Not Live</h3>
+                  <h3 className="text-lg sm:text-xl font-semibold mb-2">
+                    Event Not Live
+                  </h3>
                   <p className="text-gray-600 text-sm sm:text-base">
-                    This event is not currently streaming. Check back at the scheduled time.
+                    This event is not currently streaming. Check back at the
+                    scheduled time.
                   </p>
                 </CardContent>
               </Card>
@@ -508,16 +528,22 @@ const EventPage: React.FC = () => {
             {/* Event Details Card */}
             <Card>
               <CardHeader className="p-3 sm:p-6">
-                <CardTitle className="text-base sm:text-lg">Event Details</CardTitle>
+                <CardTitle className="text-base sm:text-lg">
+                  Event Details
+                </CardTitle>
               </CardHeader>
               <CardContent className="p-3 sm:p-6 space-y-3 sm:space-y-4">
                 <div>
                   <p className="font-semibold text-sm sm:text-base">Status</p>
                   <div className="mt-1">
                     {eventData.is_live ? (
-                      <Badge className="bg-green-600 text-white text-xs">Live Now</Badge>
+                      <Badge className="bg-green-600 text-white text-xs">
+                        Live Now
+                      </Badge>
                     ) : (
-                      <Badge variant="secondary" className="text-xs">Scheduled</Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        Scheduled
+                      </Badge>
                     )}
                   </div>
                 </div>
@@ -534,15 +560,21 @@ const EventPage: React.FC = () => {
                   </p>
                 </div>
                 <div>
-                  <p className="font-semibold text-sm sm:text-base">Current Viewers</p>
+                  <p className="font-semibold text-sm sm:text-base">
+                    Current Viewers
+                  </p>
                   <p className="text-gray-600 text-sm sm:text-base">
                     {(eventData.viewer_count || 0).toLocaleString()}
                   </p>
                 </div>
                 {hasTicket && (
                   <div>
-                    <p className="font-semibold text-sm sm:text-base">Your Access</p>
-                    <Badge className="bg-green-600 text-white text-xs">Full Access</Badge>
+                    <p className="font-semibold text-sm sm:text-base">
+                      Your Access
+                    </p>
+                    <Badge className="bg-green-600 text-white text-xs">
+                      Full Access
+                    </Badge>
                   </div>
                 )}
               </CardContent>
@@ -551,7 +583,9 @@ const EventPage: React.FC = () => {
             {/* Share Event Card */}
             <Card>
               <CardHeader className="p-3 sm:p-6">
-                <CardTitle className="text-base sm:text-lg">Share Event</CardTitle>
+                <CardTitle className="text-base sm:text-lg">
+                  Share Event
+                </CardTitle>
               </CardHeader>
               <CardContent className="p-3 sm:p-6">
                 <SocialShareMenu

@@ -1,14 +1,28 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Video, Users, Monitor, Maximize2, Volume2, VolumeX, Settings, Camera } from 'lucide-react';
-import { useTracks, useParticipants, useRoomContext, VideoTrack } from '@livekit/components-react';
-import { Track } from 'livekit-client';
-import MultiCameraGrid from './MultiCameraGrid';
-import StreamSelector from './StreamSelector';
-import TicketVerification from './TicketVerification';
+import React, { useState, useEffect } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Video,
+  Users,
+  Monitor,
+  Maximize2,
+  Volume2,
+  VolumeX,
+  Settings,
+  Camera,
+} from "lucide-react";
+import {
+  useTracks,
+  useParticipants,
+  useRoomContext,
+  VideoTrack,
+} from "@livekit/components-react";
+import { Track } from "livekit-client";
+import MultiCameraGrid from "./MultiCameraGrid";
+import StreamSelector from "./StreamSelector";
+import TicketVerification from "./TicketVerification";
 
 interface ViewerInterfaceProps {
   eventId: string;
@@ -30,10 +44,10 @@ const ViewerControls: React.FC<ViewerControlsProps> = ({
   onQualityChange,
   onVolumeToggle,
   isMuted,
-  isFullscreen
+  isFullscreen,
 }) => {
   const [showQualityMenu, setShowQualityMenu] = useState(false);
-  const qualities = ['Auto', 'HD', 'SD', 'Low'];
+  const qualities = ["Auto", "HD", "SD", "Low"];
 
   return (
     <div className="flex items-center gap-2 p-2 bg-black/70 rounded-lg">
@@ -43,9 +57,13 @@ const ViewerControls: React.FC<ViewerControlsProps> = ({
         onClick={onVolumeToggle}
         className="text-white hover:bg-white/20"
       >
-        {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+        {isMuted ? (
+          <VolumeX className="h-4 w-4" />
+        ) : (
+          <Volume2 className="h-4 w-4" />
+        )}
       </Button>
-      
+
       <div className="relative">
         <Button
           variant="ghost"
@@ -55,7 +73,7 @@ const ViewerControls: React.FC<ViewerControlsProps> = ({
         >
           <Settings className="h-4 w-4" />
         </Button>
-        
+
         {showQualityMenu && (
           <div className="absolute bottom-full mb-2 right-0 bg-black/90 rounded-lg p-2 min-w-[100px]">
             {qualities.map((quality) => (
@@ -73,7 +91,7 @@ const ViewerControls: React.FC<ViewerControlsProps> = ({
           </div>
         )}
       </div>
-      
+
       <Button
         variant="ghost"
         size="sm"
@@ -90,27 +108,30 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
   eventId,
   hasAccess,
   onUpgrade,
-  showUpgradePrompt = true
+  showUpgradePrompt = true,
 }) => {
   const [selectedTrack, setSelectedTrack] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-  const [viewMode, setViewMode] = useState<'grid' | 'single'>('grid');
-  const [currentQuality, setCurrentQuality] = useState('Auto');
-  
+  const [viewMode, setViewMode] = useState<"grid" | "single">("grid");
+  const [currentQuality, setCurrentQuality] = useState("Auto");
+
   const room = useRoomContext();
+  console.log("Rooms for viewer", room.name);
   const participants = useParticipants();
   const tracks = useTracks([Track.Source.Camera], { onlySubscribed: true });
-  const audioTracks = useTracks([Track.Source.Microphone], { onlySubscribed: true });
+  const audioTracks = useTracks([Track.Source.Microphone], {
+    onlySubscribed: true,
+  });
 
   // Check if we're properly connected to the room
-  const isConnected = room && room.state === 'connected';
+  const isConnected = room && room.state === "connected";
 
   // Access control check
   if (!hasAccess) {
     return (
-      <TicketVerification 
-        eventId={eventId} 
+      <TicketVerification
+        eventId={eventId}
         onUpgrade={onUpgrade}
         showUpgradePrompt={showUpgradePrompt}
       />
@@ -123,7 +144,9 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
       <Card className="mb-6">
         <CardContent className="p-8 text-center">
           <div className="animate-spin h-8 w-8 border-4 border-purple-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-          <h3 className="text-xl font-semibold mb-2">Connecting to Live Stream</h3>
+          <h3 className="text-xl font-semibold mb-2">
+            Connecting to Live Stream
+          </h3>
           <p className="text-gray-600">
             Establishing connection to the live event...
           </p>
@@ -140,7 +163,8 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
           <Video className="h-16 w-16 mx-auto mb-4 text-gray-400" />
           <h3 className="text-xl font-semibold mb-2">No Live Streams</h3>
           <p className="text-gray-600">
-            This event is not currently live. Check back later or contact the organizer.
+            This event is not currently live. Check back later or contact the
+            organizer.
           </p>
         </CardContent>
       </Card>
@@ -160,7 +184,7 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
   const handleVolumeToggle = () => {
     setIsMuted(!isMuted);
     // Mute/unmute audio tracks
-    audioTracks.forEach(trackRef => {
+    audioTracks.forEach((trackRef) => {
       if (trackRef.publication.track) {
         trackRef.publication.track.mediaStreamTrack.enabled = isMuted;
       }
@@ -169,7 +193,7 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
 
   const handleTrackSelect = (trackId: string | null) => {
     setSelectedTrack(trackId);
-    setViewMode(trackId ? 'single' : 'grid');
+    setViewMode(trackId ? "single" : "grid");
   };
 
   return (
@@ -184,25 +208,27 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
                 LIVE
               </Badge>
               <span className="text-sm text-gray-600">
-                {tracks.length} camera{tracks.length !== 1 ? 's' : ''} • {participants.length} participant{participants.length !== 1 ? 's' : ''}
+                {tracks.length} camera{tracks.length !== 1 ? "s" : ""} •{" "}
+                {participants.length} participant
+                {participants.length !== 1 ? "s" : ""}
               </span>
             </div>
-            
+
             <div className="flex items-center gap-2">
               <Button
-                variant={viewMode === 'grid' ? 'default' : 'outline'}
+                variant={viewMode === "grid" ? "default" : "outline"}
                 size="sm"
                 onClick={() => {
-                  setViewMode('grid');
+                  setViewMode("grid");
                   setSelectedTrack(null);
                 }}
               >
                 Grid
               </Button>
               <Button
-                variant={viewMode === 'single' ? 'default' : 'outline'}
+                variant={viewMode === "single" ? "default" : "outline"}
                 size="sm"
-                onClick={() => setViewMode('single')}
+                onClick={() => setViewMode("single")}
                 disabled={!selectedTrack}
               >
                 Single
@@ -213,7 +239,7 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
           {/* Main Video Display */}
           <div className="relative bg-black rounded-lg overflow-hidden mb-4">
             <div className="aspect-video">
-              {viewMode === 'grid' || !selectedTrack ? (
+              {viewMode === "grid" || !selectedTrack ? (
                 <MultiCameraGrid
                   tracks={tracks}
                   onTrackSelect={handleTrackSelect}
@@ -223,15 +249,18 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
                 <div className="w-full h-full relative">
                   {/* Single track view */}
                   {(() => {
-                    const track = tracks.find(t => t.publication.trackSid === selectedTrack);
-                    if (!track) return (
-                      <div className="w-full h-full flex items-center justify-center text-white">
-                        <Camera className="h-12 w-12 text-white/50" />
-                      </div>
+                    const track = tracks.find(
+                      (t) => t.publication.trackSid === selectedTrack
                     );
+                    if (!track)
+                      return (
+                        <div className="w-full h-full flex items-center justify-center text-white">
+                          <Camera className="h-12 w-12 text-white/50" />
+                        </div>
+                      );
                     return (
-                      <VideoTrack 
-                        trackRef={track} 
+                      <VideoTrack
+                        trackRef={track}
                         className="w-full h-full object-cover"
                       />
                     );
@@ -239,7 +268,7 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
                 </div>
               )}
             </div>
-            
+
             {/* Overlay Controls */}
             <div className="absolute bottom-4 right-4">
               <ViewerControls
@@ -274,9 +303,7 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
                   <span>Quality: {currentQuality}</span>
                 </div>
               </div>
-              <div className="text-gray-500">
-                Event ID: {eventId}
-              </div>
+              <div className="text-gray-500">Event ID: {eventId}</div>
             </div>
           </div>
         </CardContent>
