@@ -177,7 +177,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
 
   // Helper function to check if field is required
   const isFieldRequired = (fieldName: string) => {
-    const requiredFields = ['email', 'password', 'confirmPassword', 'firstName', 'lastName', 'birthDate'];
+    const requiredFields = ['email', 'password', 'confirmPassword', 'firstName', 'lastName', 'birthDate', 'phone'];
     if (signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') {
       requiredFields.push('companyName', 'companyExecutorFirstName', 'companyExecutorLastName');
     }
@@ -199,6 +199,10 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
         return signupData.lastName.trim() !== '';
       case 'birthDate':
         return signupData.birthDate !== '';
+      case 'phone':
+        // Phone number should be in format XXX-XXX-XXXX (10 digits)
+        const phoneDigits = signupData.phone.replace(/\D/g, '');
+        return phoneDigits.length === 10;
       case 'companyName':
         return signupData.companyName.trim() !== '';
       case 'companyExecutorFirstName':
@@ -412,6 +416,13 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
       const age = calculateAge(signupData.birthDate);
       if (age < 18) {
         return 'You must be 18 years or older to join';
+      }
+      if (!signupData.phone) {
+        return 'Please enter your cell phone number';
+      }
+      const phoneDigits = signupData.phone.replace(/\D/g, '');
+      if (phoneDigits.length !== 10) {
+        return 'Please enter a valid 10-digit cell phone number';
       }
     }
     return null;
@@ -1049,21 +1060,26 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
             </div>
           )}
 
-          <div className="space-y-1">
-             <Label htmlFor="phone" className="text-sm">
-               {signupData.accountType === 'business/organization' ? 'Business/Organization Phone Number' : 
-                signupData.accountType === 'group/team' ? 'Group/Team Phone Number' : 'Phone Number'}
-             </Label>
-            <Input
-              id="phone"
-              type="tel"
-              value={signupData.phone}
-              onChange={handlePhoneChange}
-              placeholder="XXX-XXX-XXXX"
-              required
-              className="h-8 text-sm"
-            />
-          </div>
+           <div className="space-y-1">
+             <TooltipWrapper 
+               content={validationErrors.phone || "Enter your cell phone number"}
+               disabled={!validationErrors.phone}
+             >
+               <Label htmlFor="phone" className="text-sm">
+                 {signupData.accountType === 'business/organization' ? 'Business/Organization Cell Phone Number' : 
+                  signupData.accountType === 'group/team' ? 'Group/Team Cell Phone Number' : 'Cell Phone Number'}
+               </Label>
+             </TooltipWrapper>
+             <Input
+               id="phone"
+               type="tel"
+               value={signupData.phone}
+               onChange={handlePhoneChange}
+               placeholder="XXX-XXX-XXXX"
+               required
+               className={`h-8 text-sm ${getFieldErrorClass('phone')}`}
+             />
+           </div>
           
           <div className="space-y-1">
              <Label htmlFor="location" className="text-sm">
