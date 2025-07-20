@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Upload, Camera, Info } from 'lucide-react';
+import { Upload, Camera, Info, AlertTriangle } from 'lucide-react';
 import TooltipWrapper from '@/components/ui/tooltip-wrapper';
 import LiveStreamLogo from '@/components/ui/live-stream-logo';
 import { useToast } from "@/hooks/use-toast";
@@ -101,6 +101,12 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
   const [legalDocumentSigned, setLegalDocumentSigned] = useState(false);
   const [signatureData, setSignatureData] = useState<{ signature: string; date: string } | null>(null);
   const [showLegalModal, setShowLegalModal] = useState(false);
+  
+  // Legal document states - embedded approach
+  const [legalSignature, setLegalSignature] = useState('');
+  const [acknowledgedRisks, setAcknowledgedRisks] = useState(false);
+  const [acknowledgedLiability, setAcknowledgedLiability] = useState(false);
+  const [acknowledgedCompliance, setAcknowledgedCompliance] = useState(false);
   const [debugStatus, setDebugStatus] = useState('');
   const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [errorDialogConfig, setErrorDialogConfig] = useState({
@@ -297,25 +303,19 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
     }));
   };
 
-  const handleLegalDocumentSign = () => {
-    const userFullName = `${signupData.firstName} ${signupData.lastName}`;
-    const params = new URLSearchParams({
-      email: signupData.email,
-      fullName: userFullName
-    });
-    
-    const popupUrl = `/legal-document?${params.toString()}`;
-    
-    // Open legal document in popup
-    popupWindowRef.current = window.open(
-      popupUrl, 
-      'legal-document',
-      'width=800,height=900,scrollbars=yes,resizable=yes,location=no,menubar=no,toolbar=no'
-    );
-    
-    // Focus the popup if it was successfully opened
-    if (popupWindowRef.current) {
-      popupWindowRef.current.focus();
+  // Validate legal document signature
+  const userFullName = `${signupData.firstName} ${signupData.lastName}`;
+  const normalizeString = (str: string) => str.trim().toLowerCase().replace(/\s+/g, ' ');
+  const isValidLegalSignature = userFullName.trim() 
+    ? normalizeString(legalSignature) === normalizeString(userFullName)
+    : legalSignature.trim().length >= 3;
+  const canSignLegal = isValidLegalSignature && acknowledgedRisks && acknowledgedLiability && acknowledgedCompliance;
+  
+  const handleLegalDocumentAccept = () => {
+    if (canSignLegal) {
+      const currentDate = new Date().toLocaleDateString();
+      setSignatureData({ signature: legalSignature, date: currentDate });
+      setLegalDocumentSigned(true);
     }
   };
 
@@ -703,30 +703,124 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
               </Label>
             </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label className="text-sm">Legal Document Signature</Label>
-                {legalDocumentSigned ? (
-                  <span className="text-green-600 text-sm font-medium">✓ Signed</span>
-                ) : (
-                  <span className="text-red-600 text-sm font-medium">Required</span>
+            {/* Legal Document Section - Embedded */}
+            <div className="space-y-4 p-4 border rounded-lg bg-red-50 border-red-200">
+              <div className="flex items-center gap-2 text-red-600">
+                <AlertTriangle className="h-5 w-5" />
+                <h3 className="text-lg font-bold">LEGAL AGREEMENT REQUIRED</h3>
+                {legalDocumentSigned && (
+                  <span className="text-green-600 text-sm font-medium ml-auto">✓ Signed</span>
                 )}
               </div>
               
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleLegalDocumentSign}
-                disabled={!signupData.firstName || !signupData.lastName || !signupData.email}
-                className="w-full"
-              >
-                <Info className="w-4 h-4 mr-2" />
-                {legalDocumentSigned ? 'Review Legal Document' : 'Sign Legal Document'}
-              </Button>
+              {!legalDocumentSigned && (
+                <>
+                  <div className="bg-red-100 p-3 rounded border border-red-300">
+                    <p className="text-red-700 text-sm font-medium">
+                      This document contains critical legal terms that LIMIT PUBLIC STREAMER'S LIABILITY and TRANSFER RISKS TO YOU. 
+                      Read carefully before signing.
+                    </p>
+                  </div>
+
+                  <div className="space-y-3 text-xs max-h-40 overflow-y-auto border p-3 bg-white">
+                    <h4 className="font-bold">PUBLIC STREAMER PLATFORM USER AGREEMENT</h4>
+                    
+                    <div>
+                      <h5 className="font-semibold">1. LIABILITY WAIVER</h5>
+                      <p>Public Streamer, LLC shall NOT be liable for any content you create, third-party claims, copyright violations, privacy violations, financial losses, or any damages arising from your use of the platform.</p>
+                    </div>
+                    
+                    <div>
+                      <h5 className="font-semibold">2. INDEMNIFICATION</h5>
+                      <p>You agree to DEFEND, INDEMNIFY, and HOLD HARMLESS Public Streamer from all claims, damages, and expenses arising from your use of the platform or content you upload.</p>
+                    </div>
+                    
+                    <div>
+                      <h5 className="font-semibold">3. CONTENT RESPONSIBILITY</h5>
+                      <p>You represent that you own all content you upload, that it complies with all laws, and you assume full responsibility for all activities under your account.</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="risks"
+                        checked={acknowledgedRisks}
+                        onCheckedChange={(checked) => setAcknowledgedRisks(!!checked)}
+                      />
+                      <Label htmlFor="risks" className="text-xs">
+                        I acknowledge that I have read and understand the risks and liability waivers above
+                      </Label>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="liability"
+                        checked={acknowledgedLiability}
+                        onCheckedChange={(checked) => setAcknowledgedLiability(!!checked)}
+                      />
+                      <Label htmlFor="liability" className="text-xs">
+                        I agree to indemnify and hold harmless Public Streamer from all claims and damages
+                      </Label>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="compliance"
+                        checked={acknowledgedCompliance}
+                        onCheckedChange={(checked) => setAcknowledgedCompliance(!!checked)}
+                      />
+                      <Label htmlFor="compliance" className="text-xs">
+                        I certify that I will comply with all laws and platform terms
+                      </Label>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="legalSignature" className="text-sm font-medium">
+                      Electronic Signature (Type your full legal name exactly)
+                    </Label>
+                    {userFullName && (
+                      <div className="bg-blue-50 border border-blue-200 rounded p-2">
+                        <p className="text-xs text-blue-700 font-medium">
+                          Please type exactly: <span className="font-bold">{userFullName}</span>
+                        </p>
+                      </div>
+                    )}
+                    <Input
+                      id="legalSignature"
+                      value={legalSignature}
+                      onChange={(e) => setLegalSignature(e.target.value)}
+                      placeholder={userFullName ? `Type: ${userFullName}` : "Type your full legal name"}
+                      className={`h-8 text-sm ${
+                        legalSignature.trim() && !isValidLegalSignature ? 'border-red-500 bg-red-50' : ''
+                      }`}
+                    />
+                    {legalSignature.trim() && !isValidLegalSignature && userFullName && (
+                      <p className="text-red-500 text-xs">
+                        Signature must match exactly: {userFullName}
+                      </p>
+                    )}
+                  </div>
+
+                  <Button
+                    type="button"
+                    onClick={handleLegalDocumentAccept}
+                    disabled={!canSignLegal}
+                    className={`w-full ${
+                      canSignLegal 
+                        ? 'bg-green-600 hover:bg-green-700 text-white' 
+                        : 'bg-gray-400 text-gray-700 cursor-not-allowed'
+                    }`}
+                  >
+                    {canSignLegal ? 'I Accept and Electronically Sign' : 'Complete All Fields Above'}
+                  </Button>
+                </>
+              )}
               
               {legalDocumentSigned && signatureData && (
-                <div className="text-xs text-muted-foreground">
-                  Signed by: {signatureData.signature} on {signatureData.date}
+                <div className="text-xs text-green-700 bg-green-100 p-2 rounded">
+                  ✓ Legal document signed by: {signatureData.signature} on {signatureData.date}
                 </div>
               )}
             </div>
