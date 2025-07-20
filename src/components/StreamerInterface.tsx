@@ -1,3 +1,4 @@
+
 import React from "react";
 import {
   VideoTrack,
@@ -29,6 +30,7 @@ import StageShareMenu from "@/components/StageShareMenu";
 import EventSharePanel from "@/components/EventSharePanel";
 import { useScreenSize } from "@/hooks/use-mobile";
 import LiveStreamLogo from "@/components/ui/live-stream-logo";
+import CameraSwitchButton from "@/components/CameraSwitchButton";
 
 interface StreamerInterfaceProps {
   eventId: string;
@@ -48,7 +50,6 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   const { localParticipant } = useLocalParticipant();
   const participants = useParticipants();
   const controls = useStreamingControls(eventId);
-  // const { goLive } = controls;
   const screenSize = useScreenSize();
 
   // Get local camera track
@@ -63,12 +64,6 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   const otherCameraTracks = useTracks([Track.Source.Camera], {
     onlySubscribed: true,
   }).filter((t) => t.participant !== localParticipant);
-
-  // Update event live status based on go live status
-  // useEventLiveStatus({
-  //   eventId,
-  //   goLive,
-  // });
 
   if (!localParticipant) {
     return (
@@ -298,11 +293,21 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                     )}
                   </Button>
 
+                  {/* Camera Switch Button - Show in mobile layout */}
+                  {screenSize === "mobile" && (
+                    <CameraSwitchButton
+                      availableCameras={controls.availableCameras}
+                      isSwitchingCamera={controls.isSwitchingCamera}
+                      isVideoEnabled={controls.isVideoEnabled}
+                      onSwitchCamera={controls.switchCamera}
+                    />
+                  )}
+
                   <Button
                     onClick={controls.toggleScreenShare}
                     variant={controls.isScreenSharing ? "default" : "secondary"}
                     className={`w-full text-xs sm:text-sm ${
-                      screenSize === "mobile" ? "col-span-2" : ""
+                      screenSize === "mobile" ? "col-span-1" : ""
                     }`}
                     size={screenSize === "mobile" ? "sm" : "default"}
                   >
@@ -321,6 +326,16 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                     )}
                   </Button>
                 </div>
+
+                {/* Camera Switch Button - Show in desktop layout */}
+                {screenSize !== "mobile" && (
+                  <CameraSwitchButton
+                    availableCameras={controls.availableCameras}
+                    isSwitchingCamera={controls.isSwitchingCamera}
+                    isVideoEnabled={controls.isVideoEnabled}
+                    onSwitchCamera={controls.switchCamera}
+                  />
+                )}
               </CardContent>
             </Card>
 
@@ -356,6 +371,16 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                     {controls.isConnected ? "Connected" : "Disconnected"}
                   </span>
                 </div>
+                {controls.availableCameras.length > 1 && (
+                  <div className="flex justify-between">
+                    <span className="text-xs sm:text-sm text-muted-foreground">
+                      Cameras:
+                    </span>
+                    <span className="text-xs sm:text-sm font-medium">
+                      {controls.availableCameras.length} available
+                    </span>
+                  </div>
+                )}
               </CardContent>
             </Card>
 

@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useLocalParticipant, useRoomContext } from "@livekit/components-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -16,6 +16,11 @@ export interface StreamingControls {
   startStream: () => Promise<void>;
   stopStream: () => Promise<void>;
   participantCount: number;
+  // Camera switching functionality
+  availableCameras: MediaDeviceInfo[];
+  currentCamera: string | null;
+  isSwitchingCamera: boolean;
+  switchCamera: () => Promise<void>;
 }
 
 export const useStreamingControls = (eventId: string): StreamingControls => {
@@ -29,8 +34,97 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   const [isAudioEnabled, setIsAudioEnabled] = useState(false);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [goLive, setGoLive] = useState(false);
+  
+  // Camera switching state
+  const [availableCameras, setAvailableCameras] = useState<MediaDeviceInfo[]>([]);
+  const [currentCamera, setCurrentCamera] = useState<string | null>(null);
+  const [isSwitchingCamera, setIsSwitchingCamera] = useState(false);
 
   const participantCount = room?.numParticipants || 1;
+
+  // Enumerate available cameras
+  const enumerateCameras = useCallback(async () => {
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoDevices = devices.filter(device => 
+        device.kind === 'videoinput' && device.deviceId !== 'default'
+      );
+      setAvailableCameras(videoDevices);
+      
+      // Set current camera if not already set
+      if (!currentCamera && videoDevices.length > 0) {
+        setCurrentCamera(videoDevices[0].deviceId);
+      }
+      
+      console.log('Available cameras:', videoDevices.map(d => ({ 
+        id: d.deviceId, 
+        label: d.label || 'Camera' 
+      })));
+    } catch (error) {
+      console.error('Error enumerating cameras:', error);
+    }
+  }, [currentCamera]);
+
+  // Initialize cameras on mount
+  useEffect(() => {
+    enumerateCameras();
+  }, [enumerateCameras]);
+
+  // Switch camera function
+  const switchCamera = useCallback(async () => {
+    if (!localParticipant || availableCameras.length < 2 || isSwitchingCamera) {
+      return;
+    }
+
+    setIsSwitchingCamera(true);
+    
+    try {
+      // Find next camera
+      const currentIndex = availableCameras.findIndex(
+        camera => camera.deviceId === currentCamera
+      );
+      const nextIndex = (currentIndex + 1) % availableCameras.length;
+      const nextCamera = availableCameras[nextIndex];
+      
+      console.log(`Switching from camera ${currentIndex} to ${nextIndex}:`, {
+        current: availableCameras[currentIndex]?.label || 'Unknown',
+        next: nextCamera.label || 'Unknown'
+      });
+
+      // Get the current video track
+      const videoTrack = localParticipant.videoTrackPublications.values().next().value?.track;
+      
+      if (videoTrack) {
+        // Create new constraints with the new camera
+        const constraints = {
+          deviceId: { exact: nextCamera.deviceId },
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        };
+
+        // Restart the track with new device
+        await videoTrack.restartTrack({
+          video: constraints
+        });
+
+        setCurrentCamera(nextCamera.deviceId);
+        
+        // Determine camera type for user feedback
+        const cameraType = nextCamera.label.toLowerCase().includes('back') || 
+                          nextCamera.label.toLowerCase().includes('rear') ||
+                          nextCamera.label.toLowerCase().includes('environment')
+                          ? 'back' 
+                          : 'front';
+                          
+        toast.success(`Switched to ${cameraType} camera`);
+      }
+    } catch (error) {
+      console.error('Error switching camera:', error);
+      toast.error('Failed to switch camera');
+    } finally {
+      setIsSwitchingCamera(false);
+    }
+  }, [localParticipant, availableCameras, currentCamera, isSwitchingCamera]);
 
   // Helper function to update participant live status
   const updateParticipantLiveStatus = useCallback(
@@ -107,6 +201,10 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       startStream: async () => {},
       stopStream: async () => {},
       participantCount: 0,
+      availableCameras: [],
+      currentCamera: null,
+      isSwitchingCamera: false,
+      switchCamera: async () => {},
     };
   }
 
@@ -123,6 +221,8 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
 
       if (enabled) {
         toast.success("Camera turned on");
+        // Re-enumerate cameras when video is enabled
+        setTimeout(enumerateCameras, 500);
       } else {
         toast.info("Camera turned off");
       }
@@ -130,7 +230,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       toast.error("Failed to toggle camera");
       console.error("Toggle video error:", error);
     }
-  }, [localParticipant, isVideoEnabled]);
+  }, [localParticipant, isVideoEnabled, enumerateCameras]);
 
   const toggleAudio = useCallback(async () => {
     if (!localParticipant) {
@@ -193,25 +293,6 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
 
       // Set participant as live
       await updateParticipantLiveStatus(true);
-
-      // Create LiveKit room
-      // const { error } = await supabase.functions.invoke("manage-livekit-room", {
-      //   body: {
-      //     action: "create",
-      //     eventId,
-      //     roomConfig: {
-      //       maxParticipants: 100,
-      //       emptyTimeout: 300,
-      //     },
-      //   },
-      //   headers: {
-      //     Authorization: `Bearer ${session.access_token}`,
-      //   },
-      // });
-
-      // if (error) {
-      //   throw new Error(error.message);
-      // }
 
       // Create event stream record
       await supabase.from("event_streams").insert({
@@ -286,21 +367,6 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
         console.log(`room closed for event: ${eventId}`);
       }
 
-      // Close LiveKit room
-      // const { error } = await supabase.functions.invoke("manage-livekit-room", {
-      //   body: {
-      //     action: "close",
-      //     eventId,
-      //   },
-      //   headers: {
-      //     Authorization: `Bearer ${session.access_token}`,
-      //   },
-      // });
-
-      // if (error) {
-      //   throw new Error(error.message);
-      // }
-
       toast.success("Stream stopped");
     } catch (error) {
       toast.error("Failed to stop stream");
@@ -321,5 +387,9 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
     startStream,
     stopStream,
     participantCount,
+    availableCameras,
+    currentCamera,
+    isSwitchingCamera,
+    switchCamera,
   };
 };
