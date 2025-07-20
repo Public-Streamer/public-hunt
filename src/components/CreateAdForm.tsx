@@ -169,17 +169,68 @@ const AdvertisingCampaignForm: React.FC<CreateAdFormProps> = ({
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="budget">Total Campaign Budget (USD)</Label>
-                <Input
-                  id="budget"
-                  type="number"
-                  placeholder="Enter amount (minimum $25)"
-                  value={campaignData.budget}
-                  onChange={(e) => setCampaignData({...campaignData, budget: e.target.value})}
-                  min="25"
-                  step="1"
-                />
+              <div className="space-y-4">
+                <Label htmlFor="budget" className="text-base font-medium">Total Campaign Budget</Label>
+                
+                {/* Dollar Input Field */}
+                <div className="space-y-2">
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">$</span>
+                    <Input
+                      id="budget"
+                      type="text"
+                      placeholder="25.00"
+                      value={campaignData.budget ? parseFloat(campaignData.budget).toFixed(2) : ''}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/[^0-9.]/g, '');
+                        if (!value || !isNaN(parseFloat(value))) {
+                          setCampaignData({...campaignData, budget: value});
+                        }
+                      }}
+                      className="pl-8 text-lg font-medium"
+                    />
+                  </div>
+                  <p className="text-sm text-gray-600">Minimum budget: $25.00</p>
+                </div>
+
+                {/* Budget Slider */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-sm text-gray-600">
+                    <span>$25</span>
+                    <span className="font-medium">Quick Budget Selection</span>
+                    <span>$5,000</span>
+                  </div>
+                  <div className="px-2">
+                    <input
+                      type="range"
+                      min="25"
+                      max="5000"
+                      step="25"
+                      value={campaignData.budget || 25}
+                      onChange={(e) => setCampaignData({...campaignData, budget: e.target.value})}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                      style={{
+                        background: `linear-gradient(to right, hsl(var(--primary)) 0%, hsl(var(--primary)) ${((parseFloat(campaignData.budget) || 25) - 25) / (5000 - 25) * 100}%, #e5e7eb ${((parseFloat(campaignData.budget) || 25) - 25) / (5000 - 25) * 100}%, #e5e7eb 100%)`
+                      }}
+                    />
+                  </div>
+                  
+                  {/* Quick Budget Buttons */}
+                  <div className="grid grid-cols-4 gap-2 mt-3">
+                    {[50, 100, 250, 500].map(amount => (
+                      <Button
+                        key={amount}
+                        type="button"
+                        variant={parseFloat(campaignData.budget) === amount ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setCampaignData({...campaignData, budget: amount.toString()})}
+                        className="text-xs"
+                      >
+                        ${amount}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               {campaignData.budget && parseFloat(campaignData.budget) >= 25 && (

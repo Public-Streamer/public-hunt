@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search, Users, Calendar, Tv, Star } from 'lucide-react';
+import { Search, Users, Calendar, Tv, Star, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface Channel {
@@ -151,23 +151,41 @@ export const ChannelEventSelector: React.FC<ChannelEventSelectorProps> = ({
             </div>
 
             {selectedChannels.length > 0 && (
-              <div className="space-y-2">
-                <Label className="text-xs font-medium">Selected Channels:</Label>
-                <div className="flex flex-wrap gap-1">
-                  {selectedChannels.map(channelId => {
-                    const channel = channels.find(c => c.id === channelId);
-                    return channel ? (
-                      <Badge key={channelId} variant="secondary" className="text-xs">
-                        {channel.name}
-                        <button
-                          onClick={() => handleChannelToggle(channelId)}
-                          className="ml-1 text-xs hover:text-red-500"
+              <div className="space-y-3">
+                <Label className="text-sm font-medium text-primary">Selected Channels ({selectedChannels.length})</Label>
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
+                  <div className="space-y-2">
+                    {selectedChannels.map(channelId => {
+                      const channel = channels.find(c => c.id === channelId);
+                      return channel ? (
+                        <div 
+                          key={channelId} 
+                          className="bg-white rounded-lg p-3 border border-blue-100 shadow-sm animate-fade-in flex items-center justify-between hover:shadow-md transition-all duration-200"
                         >
-                          ×
-                        </button>
-                      </Badge>
-                    ) : null;
-                  })}
+                          <div className="flex items-center space-x-3">
+                            <div className="bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold">
+                              {channel.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <div className="font-medium text-gray-900">{channel.name}</div>
+                              {channel.category && (
+                                <Badge variant="outline" className="text-xs mt-1">{channel.category}</Badge>
+                              )}
+                            </div>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleChannelToggle(channelId)}
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : null;
+                    })}
+                  </div>
                 </div>
               </div>
             )}
@@ -218,23 +236,46 @@ export const ChannelEventSelector: React.FC<ChannelEventSelectorProps> = ({
             </div>
 
             {selectedEvents.length > 0 && (
-              <div className="space-y-2">
-                <Label className="text-xs font-medium">Selected Events:</Label>
-                <div className="flex flex-wrap gap-1">
-                  {selectedEvents.map(eventId => {
-                    const event = events.find(e => e.id === eventId);
-                    return event ? (
-                      <Badge key={eventId} variant="secondary" className="text-xs">
-                        {event.name}
-                        <button
-                          onClick={() => handleEventToggle(eventId)}
-                          className="ml-1 text-xs hover:text-red-500"
+              <div className="space-y-3">
+                <Label className="text-sm font-medium text-primary">Selected Events ({selectedEvents.length})</Label>
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4">
+                  <div className="space-y-2">
+                    {selectedEvents.map(eventId => {
+                      const event = events.find(e => e.id === eventId);
+                      return event ? (
+                        <div 
+                          key={eventId} 
+                          className="bg-white rounded-lg p-3 border border-green-100 shadow-sm animate-fade-in flex items-center justify-between hover:shadow-md transition-all duration-200"
                         >
-                          ×
-                        </button>
-                      </Badge>
-                    ) : null;
-                  })}
+                          <div className="flex items-center space-x-3">
+                            <div className="bg-green-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold">
+                              {event.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <div className="font-medium text-gray-900">{event.name}</div>
+                              <div className="flex items-center gap-2 mt-1">
+                                <Badge variant="outline" className="text-xs">{event.channel_name}</Badge>
+                                {event.date && (
+                                  <span className="text-xs text-gray-500">
+                                    {new Date(event.date).toLocaleDateString()}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEventToggle(eventId)}
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : null;
+                    })}
+                  </div>
                 </div>
               </div>
             )}
