@@ -906,6 +906,10 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
           <div className="text-center mb-3">
             <h3 className="text-base font-semibold">Personal Details</h3>
             <p className="text-xs text-muted-foreground">Complete your profile information</p>
+            {/* Debug info */}
+            <div className="text-xs text-red-500 mt-2">
+              DEBUG: {getStep2ValidationError() || "No validation errors"}
+            </div>
           </div>
 
           {/* Profile photo section */}
@@ -1024,6 +1028,12 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                 type="submit" 
                 className="flex-1 h-8 text-sm"
                 disabled={!!getStep2ValidationError()}
+                onClick={() => {
+                  const error = getStep2ValidationError();
+                  if (error) {
+                    alert(`Form validation error: ${error}`);
+                  }
+                }}
               >
                 Next
               </Button>
