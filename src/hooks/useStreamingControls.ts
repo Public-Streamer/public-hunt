@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect } from "react";
 import { useLocalParticipant, useRoomContext } from "@livekit/components-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -71,7 +70,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
     enumerateCameras();
   }, [enumerateCameras]);
 
-  // Switch camera function with complete track recreation
+  // Switch camera function
   const switchCamera = useCallback(async () => {
     if (!localParticipant || availableCameras.length < 2 || isSwitchingCamera) {
       return;
@@ -92,31 +91,20 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
         next: nextCamera.label || 'Unknown'
       });
 
-      // Get the current video track publication
+      // Get the current video track
       const videoTrack = localParticipant.videoTrackPublications.values().next().value?.track;
       
       if (videoTrack) {
-        // Stop the current video track completely
-        videoTrack.stop();
-        
-        // Create new video track with the new camera
+        // Create new constraints with the new camera
         const constraints = {
           deviceId: { exact: nextCamera.deviceId },
           width: { ideal: 1280 },
           height: { ideal: 720 },
         };
 
-        // Get new media stream with the new camera
-        const newStream = await navigator.mediaDevices.getUserMedia({
+        // Restart the track with new device
+        await videoTrack.restartTrack({
           video: constraints
-        });
-
-        // Create new video track from the stream
-        const newVideoTrack = newStream.getVideoTracks()[0];
-        
-        // Replace the track in the participant
-        await localParticipant.publishTrack(newVideoTrack, {
-          name: 'camera'
         });
 
         setCurrentCamera(nextCamera.deviceId);
@@ -129,8 +117,6 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
                           : 'front';
                           
         toast.success(`Switched to ${cameraType} camera`);
-        
-        console.log('Camera switched successfully to:', nextCamera.label);
       }
     } catch (error) {
       console.error('Error switching camera:', error);
