@@ -23,6 +23,7 @@ import PastEvents from "./pages/PastEvents";
 import MyAds from "./pages/MyAds";
 import Advertisers from "./pages/Advertisers";
 import CreateAd from "./pages/CreateAd";
+import AdvertiserDashboard from "./pages/AdvertiserDashboard";
 import NotFound from "./pages/NotFound";
 import LegalDocumentPage from "./pages/LegalDocument";
 
@@ -56,6 +57,7 @@ const App = () => (
                 <Route path="/my-ads" element={<MyAds />} />
                 <Route path="/advertisers" element={<Advertisers />} />
                 <Route path="/create-ad" element={<CreateAd />} />
+                <Route path="/advertiser-dashboard" element={<AdvertiserDashboard />} />
                 <Route path="/withdraw" element={<WithdrawFunds />} />
                 <Route path="/qa" element={<QA />} />
                 <Route path="/legal" element={<LegalDocumentPage />} />

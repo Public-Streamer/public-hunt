@@ -131,13 +131,14 @@ const Profile: React.FC = () => {
       </div>
       
       <Tabs defaultValue="timeline" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-10">
+        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-11">
           <TabsTrigger value="timeline">Timeline</TabsTrigger>
           <TabsTrigger value="about">About</TabsTrigger>
           <TabsTrigger value="friends">Friends</TabsTrigger>
           <TabsTrigger value="media">Media</TabsTrigger>
           <TabsTrigger value="events">Events</TabsTrigger>
           <TabsTrigger value="channels">Channels</TabsTrigger>
+          {isOwnProfile && <TabsTrigger value="dashboard">Dashboard</TabsTrigger>}
           {isOwnProfile && <TabsTrigger value="my-ads">My Ads</TabsTrigger>}
           {isOwnProfile && <TabsTrigger value="messages">Messages</TabsTrigger>}
           {isOwnProfile && <TabsTrigger value="notifications">Notifications</TabsTrigger>}
@@ -187,6 +188,55 @@ const Profile: React.FC = () => {
         <TabsContent value="channels" className="mt-6">
           <UserChannelsList userId={profile.id} />
         </TabsContent>
+        
+        {isOwnProfile && (
+          <TabsContent value="dashboard" className="mt-6">
+            <div className="bg-card rounded-lg shadow p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-2xl font-bold">Advertiser Dashboard</h3>
+                <button 
+                  onClick={() => window.location.href = '/advertiser-dashboard'}
+                  className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+                >
+                  Open Full Dashboard
+                </button>
+              </div>
+              <p className="text-muted-foreground mb-4">Manage your advertising campaigns, track performance, and optimize your ad spend.</p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-semibold mb-2">Campaign Overview</h4>
+                  <p className="text-sm text-muted-foreground mb-3">View all your active campaigns and their performance</p>
+                  <button 
+                    onClick={() => window.location.href = '/advertiser-dashboard'}
+                    className="text-primary hover:underline text-sm"
+                  >
+                    View Campaigns →
+                  </button>
+                </div>
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-semibold mb-2">Real-Time Analytics</h4>
+                  <p className="text-sm text-muted-foreground mb-3">Track impressions, clicks, and spend in real-time</p>
+                  <button 
+                    onClick={() => window.location.href = '/advertiser-dashboard'}
+                    className="text-primary hover:underline text-sm"
+                  >
+                    View Analytics →
+                  </button>
+                </div>
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-semibold mb-2">Create New Campaign</h4>
+                  <p className="text-sm text-muted-foreground mb-3">Start advertising on Public Streamer</p>
+                  <button 
+                    onClick={() => window.location.href = '/create-ad'}
+                    className="text-primary hover:underline text-sm"
+                  >
+                    Create Ad →
+                  </button>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+        )}
         
         {isOwnProfile && (
           <TabsContent value="messages" className="mt-6">
