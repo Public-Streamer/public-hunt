@@ -878,61 +878,64 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
   return (
     <>
       <div 
-        className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 auth-template overflow-auto"
+        className="fixed inset-0 bg-black/50 z-50 auth-template"
         onClick={(e) => {
           if (e.target === e.currentTarget) {
             onClose();
           }
         }}
       >
-        <div 
-          className="w-full max-w-4xl max-h-[95vh] bg-card rounded-lg border shadow-lg overflow-hidden mx-2"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="p-4 sm:p-6 border-b">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center min-w-0 flex-1">
-                <LiveStreamLogo size="md" className="mr-2 sm:mr-3 flex-shrink-0" />
-                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold truncate">
-                  Create Your <span className="font-orbitron font-black bg-gradient-to-r from-primary via-blue-500 to-purple-600 bg-clip-text text-transparent">Public Streamer</span> Account
-                </h2>
+        <div className="h-full w-full flex items-start justify-center overflow-auto p-2 sm:p-4">
+          <div 
+            className="w-full max-w-4xl min-h-full bg-card rounded-lg border shadow-lg overflow-hidden mx-auto my-auto"
+            onClick={(e) => e.stopPropagation()}
+            style={{ minHeight: 'fit-content' }}
+          >
+            {/* Fixed Header */}
+            <div className="sticky top-0 z-10 bg-card p-4 sm:p-6 border-b">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center min-w-0 flex-1">
+                  <LiveStreamLogo size="md" className="mr-2 sm:mr-3 flex-shrink-0" />
+                  <h2 className="text-lg sm:text-xl lg:text-2xl font-bold truncate">
+                    Create Your <span className="font-orbitron font-black bg-gradient-to-r from-primary via-blue-500 to-purple-600 bg-clip-text text-transparent">Public Streamer</span> Account
+                  </h2>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onClose}
+                  className="text-muted-foreground hover:text-foreground hover:bg-destructive/10 p-2"
+                  aria-label="Close form"
+                >
+                  <X className="w-5 h-5" />
+                </Button>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onClose}
-                className="text-muted-foreground hover:text-foreground hover:bg-destructive/10 p-2"
-                aria-label="Close form"
-              >
-                <X className="w-5 h-5" />
-              </Button>
-            </div>
-            {error && (
-              <Alert variant="destructive" className="mt-3">
-                <AlertDescription className="text-sm">{error}</AlertDescription>
-                {showResetPassword && (
-                  <Button
-                    variant="link"
-                    className="mt-1 p-0 text-xs"
-                    onClick={() => setShowResetPassword(true)}
-                  >
-                    Reset Password
-                  </Button>
+              {error && (
+                <Alert variant="destructive" className="mt-3">
+                  <AlertDescription className="text-sm">{error}</AlertDescription>
+                  {showResetPassword && (
+                    <Button
+                      variant="link"
+                      className="mt-1 p-0 text-xs"
+                      onClick={() => setShowResetPassword(true)}
+                    >
+                      Reset Password
+                    </Button>
+                )}
+              </Alert>
               )}
-            </Alert>
-            )}
-            {debugStatus && (
-              <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
-                <strong>Debug Status:</strong> {debugStatus}
-              </div>
-            )}
-          </div>
-          
-          <ScrollArea className="h-[calc(95vh-120px)]">
-            <div className="p-4 sm:p-6 pr-2 sm:pr-4">
+              {debugStatus && (
+                <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
+                  <strong>Debug Status:</strong> {debugStatus}
+                </div>
+              )}
+            </div>
+            
+            {/* Scrollable Content */}
+            <div className="p-4 sm:p-6 pb-8">
               {formContent}
             </div>
-          </ScrollArea>
+          </div>
         </div>
       </div>
       {showResetPassword && (
