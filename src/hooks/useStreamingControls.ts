@@ -60,15 +60,15 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
     const syncTrackStates = () => {
       // Check camera track
       const cameraTrack = localParticipant.getTrackPublication(Track.Source.Camera);
-      const newVideoEnabled = cameraTrack?.track?.enabled ?? false;
+      const newVideoEnabled = cameraTrack?.isEnabled ?? false;
       
       // Check microphone track
       const micTrack = localParticipant.getTrackPublication(Track.Source.Microphone);
-      const newAudioEnabled = micTrack?.track?.enabled ?? false;
+      const newAudioEnabled = micTrack?.isEnabled ?? false;
       
       // Check screen share track
       const screenTrack = localParticipant.getTrackPublication(Track.Source.ScreenShare);
-      const newScreenSharing = screenTrack?.track?.Enabled ?? false;
+      const newScreenSharing = screenTrack?.isEnabled ?? false;
 
       console.log("🎥 STREAMING CONTROLS - Track State Sync:", {
         camera: { enabled: newVideoEnabled, track: !!cameraTrack },
@@ -100,7 +100,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       console.log("🎥 STREAMING CONTROLS - Track published:", {
         source: publication.source,
         kind: publication.kind,
-        enabled: publication.track?.enabled
+        enabled: publication.isEnabled
       });
       syncTrackStates();
     };

@@ -85,12 +85,12 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     localCamera: {
       exists: !!localCameraTrack,
       enabled: controls.isVideoEnabled,
-      trackEnabled: localCameraTrack?.publication.track?.enabled
+      trackEnabled: localCameraTrack?.publication.isEnabled
     },
     localScreenShare: {
       exists: !!localScreenTrack,
       enabled: controls.isScreenSharing,
-      trackEnabled: localScreenTrack?.publication.track?.enabled
+      trackEnabled: localScreenTrack?.publication.isEnabled
     },
     otherParticipants: otherTracks.length,
     isStreaming: controls.isStreaming

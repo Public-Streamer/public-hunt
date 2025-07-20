@@ -134,7 +134,7 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
       trackDetails: tracks.map(track => ({
         source: track.publication.source,
         kind: track.publication.kind,
-        enabled: track.publication.track?.enabled,
+        enabled: track.publication.isEnabled,
         participant: track.participant.name || track.participant.identity,
         trackSid: track.publication.trackSid
       })),
@@ -147,38 +147,38 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
   useEffect(() => {
     if (!room) return;
 
-    const handleTrackSubscribed = (track: Track, publication: TrackPublication, participant: Participant) => {
+    const handleTrackSubscribed = (track: any, publication: any) => {
       console.log("👁️ VIEWER INTERFACE - Track subscribed:", {
         source: publication.source,
         kind: publication.kind,
-        participant: participant.name || participant.identity,
+        participant: publication.participant?.name || publication.participant?.identity,
         trackSid: publication.trackSid
       });
     };
 
-    const handleTrackUnsubscribed = (track: Track, publication: TrackPublication, participant: Participant) => {
+    const handleTrackUnsubscribed = (track: any, publication: any) => {
       console.log("👁️ VIEWER INTERFACE - Track unsubscribed:", {
         source: publication.source,
         kind: publication.kind,
-        participant: participant.name || participant.identity,
+        participant: publication.participant?.name || publication.participant?.identity,
         trackSid: publication.trackSid
       });
     };
 
-    const handleTrackPublished = (publication: TrackPublication, participant: Participant) => {
+    const handleTrackPublished = (publication: any) => {
       console.log("👁️ VIEWER INTERFACE - Track published:", {
         source: publication.source,
         kind: publication.kind,
-        participant: participant.name || participant.identity,
+        participant: publication.participant?.name || publication.participant?.identity,
         trackSid: publication.trackSid
       });
     };
 
-    const handleTrackUnpublished = (publication: TrackPublication, participant: Participant) => {
+    const handleTrackUnpublished = (publication: any) => {
       console.log("👁️ VIEWER INTERFACE - Track unpublished:", {
         source: publication.source,
         kind: publication.kind,
-        participant: participant.name || participant.identity,
+        participant: publication.participant?.name || publication.participant?.identity,
         trackSid: publication.trackSid
       });
     };
