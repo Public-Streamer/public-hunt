@@ -122,8 +122,8 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
             // Mobile layout: Logo left, Menu center, Login right
             <div className="flex items-center justify-between gap-2">
               {/* Left: Large Logo that scales down proportionally */}
-              <Link to="/" className="flex items-center space-x-3 flex-shrink-0 min-w-0 max-w-[60%]">
-                <div className="relative bg-gradient-to-br from-white/30 to-white/10 backdrop-blur-sm rounded-xl border border-white/40 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 group p-2.5 flex-shrink-0" style={{ filter: 'drop-shadow(3px 3px 6px rgba(0,0,0,0.6))' }}>
+              <Link to="/" className="flex items-center space-x-2 flex-shrink-0 min-w-0 max-w-[75%]">
+                <div className="relative bg-gradient-to-br from-white/30 to-white/10 backdrop-blur-sm rounded-xl border border-white/40 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 group p-3 w-14 h-14 flex-shrink-0" style={{ filter: 'drop-shadow(3px 3px 6px rgba(0,0,0,0.6))' }}>
                   {/* Main Play Button with flanking icons - keep desktop proportions */}
                   <div className="relative z-10 flex items-center justify-center h-full">
                     {/* Lightning bolt to the left of triangle */}
@@ -155,12 +155,14 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                       Streamer
                     </span>
                   </div>
-                   <div className="flex items-center space-x-1 text-white/80 font-medium text-xs overflow-hidden mt-1" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>
-                       <Zap className="text-yellow-300 h-3 w-3 flex-shrink-0" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
-                       <span className="whitespace-nowrap">Go Live</span>
-                       <AnimatedConnector isMobile={true} />
-                       <span className="whitespace-nowrap">Get Paid</span>
-                       <DollarSign className="text-green-300 h-3 w-3 flex-shrink-0" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
+                   <div className="flex items-center space-x-1 text-white/80 font-medium text-xs overflow-hidden mt-1 min-w-0" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>
+                       <Zap className="text-yellow-300 h-2.5 w-2.5 flex-shrink-0" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
+                       <span className="whitespace-nowrap text-[10px] sm:text-xs">Go Live</span>
+                       <div className="flex-shrink-0 mx-0.5">
+                         <AnimatedConnector isMobile={true} />
+                       </div>
+                       <span className="whitespace-nowrap text-[10px] sm:text-xs">Get Paid</span>
+                       <DollarSign className="text-green-300 h-2.5 w-2.5 flex-shrink-0" style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))' }} />
                     </div>
                 </div>
               </Link>
