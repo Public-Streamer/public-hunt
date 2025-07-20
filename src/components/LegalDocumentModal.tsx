@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { TooltipWrapper } from '@/components/ui/tooltip-wrapper';
 
 interface LegalDocumentModalProps {
   isOpen: boolean;
@@ -36,6 +37,15 @@ export const LegalDocumentModal: React.FC<LegalDocumentModalProps> = ({
     : signature.trim().length >= 3; // Fallback: at least 3 characters if no user name provided
   
   const canSubmit = isValidSignature && acknowledgedRisks && acknowledgedLiability && acknowledgedCompliance;
+
+  const getValidationMessage = () => {
+    if (!signature.trim()) return 'Please enter your electronic signature';
+    if (!isValidSignature) return userFullName ? `Signature must match exactly: ${userFullName}` : 'Please enter a valid signature (minimum 3 characters)';
+    if (!acknowledgedRisks) return 'Please acknowledge that you understand the risks';
+    if (!acknowledgedLiability) return 'Please agree to indemnify Public Streamer';
+    if (!acknowledgedCompliance) return 'Please agree to comply with laws and platform terms';
+    return null;
+  };
 
   const handleAccept = async () => {
     if (canSubmit) {
@@ -255,21 +265,26 @@ export const LegalDocumentModal: React.FC<LegalDocumentModalProps> = ({
           <div className="flex justify-end space-x-2">
             <button 
               onClick={onClose}
-              className="px-4 py-2 border rounded hover:bg-gray-50"
+              className="px-4 py-2 border rounded hover:bg-gray-50 shadow-md hover:shadow-lg transition-all duration-200"
             >
               Cancel
             </button>
-            <button 
-              onClick={handleAccept}
-              disabled={!canSubmit}
-              className={`px-4 py-2 rounded text-white ${
-                canSubmit 
-                  ? 'bg-green-600 hover:bg-green-700' 
-                  : 'bg-gray-400 cursor-not-allowed'
-              }`}
+            <TooltipWrapper 
+              content={!canSubmit ? getValidationMessage() : "Sign the legal document electronically"}
+              disabled={canSubmit}
             >
-              I Accept and Electronically Sign
-            </button>
+              <button 
+                onClick={handleAccept}
+                disabled={!canSubmit}
+                className={`px-4 py-2 rounded text-white shadow-md hover:shadow-lg transition-all duration-200 ${
+                  canSubmit 
+                    ? 'bg-green-600 hover:bg-green-700 shadow-green-600/30' 
+                    : 'bg-gray-400 cursor-not-allowed'
+                }`}
+              >
+                I Accept and Electronically Sign
+              </button>
+            </TooltipWrapper>
           </div>
         </div>
       </div>

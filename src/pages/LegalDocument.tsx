@@ -487,60 +487,64 @@ const LegalDocumentPage: React.FC = () => {
           <div className="flex flex-col items-center space-y-4 pt-8">
             {/* Main action buttons - side by side and centered */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <button 
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  console.log('Cancel button clicked via onClick');
-                  handleCancel();
-                }}
-                onTouchEnd={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  console.log('Cancel button touched via onTouchEnd');
-                  setTimeout(() => handleCancel(), 100);
-                }}
-                className="w-48 px-6 py-3 min-h-[48px] text-base font-medium border-2 border-gray-400 rounded-lg bg-white hover:bg-gray-50 active:bg-gray-100 text-gray-700 transition-colors duration-200 cursor-pointer shadow-md"
-                style={{ 
-                  WebkitTapHighlightColor: 'rgba(0,0,0,0.1)',
-                  touchAction: 'manipulation',
-                  WebkitTouchCallout: 'none',
-                  WebkitUserSelect: 'none',
-                  userSelect: 'none'
-                }}
-              >
-                Cancel
-              </button>
+               <button 
+                 type="button"
+                 onClick={(e) => {
+                   e.preventDefault();
+                   e.stopPropagation();
+                   console.log('Cancel button clicked via onClick');
+                   handleCancel();
+                 }}
+                 onTouchEnd={(e) => {
+                   e.preventDefault();
+                   e.stopPropagation();
+                   console.log('Cancel button touched via onTouchEnd');
+                   setTimeout(() => handleCancel(), 100);
+                 }}
+                 className="w-48 px-6 py-3 min-h-[48px] text-base font-medium border-2 border-gray-400 rounded-lg bg-white hover:bg-gray-50 active:bg-gray-100 text-gray-700 transition-all duration-200 cursor-pointer shadow-lg hover:shadow-xl"
+                 style={{ 
+                   WebkitTapHighlightColor: 'rgba(0,0,0,0.1)',
+                   touchAction: 'manipulation',
+                   WebkitTouchCallout: 'none',
+                   WebkitUserSelect: 'none',
+                   userSelect: 'none'
+                 }}
+               >
+                 Cancel
+               </button>
               
-              <button 
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  console.log('Accept button clicked via onClick', { canSubmit });
-                  if (canSubmit) {
-                    handleAccept();
-                  } else {
-                    alert(getValidationMessage());
-                  }
-                }}
-                onTouchEnd={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  console.log('Accept button touched via onTouchEnd', { canSubmit });
-                  if (canSubmit) {
-                    setTimeout(() => handleAccept(), 100);
-                  } else {
-                    setTimeout(() => alert(getValidationMessage()), 100);
-                  }
-                }}
-                disabled={!canSubmit}
-                className={`w-48 px-6 py-3 min-h-[48px] text-base font-medium rounded-lg transition-colors duration-200 cursor-pointer shadow-md ${
-                  canSubmit 
-                    ? 'bg-green-600 hover:bg-green-700 active:bg-green-800 text-white border-2 border-green-600' 
-                    : 'bg-gray-300 cursor-not-allowed text-gray-500 border-2 border-gray-300'
-                }`}
+               <TooltipWrapper 
+                 content={!canSubmit ? getValidationMessage() : "Sign the legal document electronically"}
+                 disabled={canSubmit}
+               >
+                 <button 
+                   type="button"
+                   onClick={(e) => {
+                     e.preventDefault();
+                     e.stopPropagation();
+                     console.log('Accept button clicked via onClick', { canSubmit });
+                     if (canSubmit) {
+                       handleAccept();
+                     } else {
+                       alert(getValidationMessage());
+                     }
+                   }}
+                   onTouchEnd={(e) => {
+                     e.preventDefault();
+                     e.stopPropagation();
+                     console.log('Accept button touched via onTouchEnd', { canSubmit });
+                     if (canSubmit) {
+                       setTimeout(() => handleAccept(), 100);
+                     } else {
+                       setTimeout(() => alert(getValidationMessage()), 100);
+                     }
+                   }}
+                   disabled={!canSubmit}
+                   className={`w-48 px-6 py-3 min-h-[48px] text-base font-medium rounded-lg transition-all duration-200 cursor-pointer ${
+                     canSubmit 
+                       ? 'bg-green-600 hover:bg-green-700 active:bg-green-800 text-white border-2 border-green-600 shadow-lg hover:shadow-xl shadow-green-600/30' 
+                       : 'bg-gray-300 cursor-not-allowed text-gray-500 border-2 border-gray-300 shadow-lg'
+                   }`}
                 style={{ 
                   WebkitTapHighlightColor: canSubmit ? 'rgba(0,255,0,0.2)' : 'rgba(0,0,0,0.1)',
                   touchAction: 'manipulation',
@@ -557,8 +561,9 @@ const LegalDocumentPage: React.FC = () => {
                 ) : (
                   'Accept and Sign'
                 )}
-              </button>
-            </div>
+               </button>
+                 </TooltipWrapper>
+             </div>
 
             {/* Close Window Button - only visible after document is signed */}
             {documentSigned && (

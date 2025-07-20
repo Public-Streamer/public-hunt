@@ -156,7 +156,80 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
 
   // Helper function to get field error class
   const getFieldErrorClass = (fieldName: string) => {
-    return hasFieldError(fieldName) ? 'border-red-500 bg-red-50 ring-red-500' : '';
+    if (hasFieldError(fieldName)) {
+      return 'border-red-500 bg-red-50 ring-red-500 focus:ring-red-500';
+    }
+    
+    // Check if field is complete and required
+    const isRequired = isFieldRequired(fieldName);
+    const isComplete = isFieldComplete(fieldName);
+    
+    if (isRequired && isComplete) {
+      return 'border-green-500 bg-green-50 ring-green-500 focus:ring-green-500';
+    }
+    
+    if (isRequired && !isComplete) {
+      return 'border-red-500 bg-red-50 ring-red-500 focus:ring-red-500';
+    }
+    
+    return '';
+  };
+
+  // Helper function to check if field is required
+  const isFieldRequired = (fieldName: string) => {
+    const requiredFields = ['email', 'password', 'confirmPassword', 'firstName', 'lastName', 'birthDate'];
+    if (signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') {
+      requiredFields.push('companyName', 'companyExecutorFirstName', 'companyExecutorLastName');
+    }
+    return requiredFields.includes(fieldName);
+  };
+
+  // Helper function to check if field is complete
+  const isFieldComplete = (fieldName: string) => {
+    switch (fieldName) {
+      case 'email':
+        return signupData.email.trim() !== '' && signupData.email.includes('@');
+      case 'password':
+        return signupData.password.length >= 8;
+      case 'confirmPassword':
+        return signupData.confirmPassword === signupData.password && signupData.confirmPassword !== '';
+      case 'firstName':
+        return signupData.firstName.trim() !== '';
+      case 'lastName':
+        return signupData.lastName.trim() !== '';
+      case 'birthDate':
+        return signupData.birthDate !== '';
+      case 'companyName':
+        return signupData.companyName.trim() !== '';
+      case 'companyExecutorFirstName':
+        return signupData.companyExecutorFirstName.trim() !== '';
+      case 'companyExecutorLastName':
+        return signupData.companyExecutorLastName.trim() !== '';
+      default:
+        return true;
+    }
+  };
+
+  // Helper function to check if passwords match
+  const passwordsMatch = () => {
+    return signupData.password === signupData.confirmPassword && signupData.confirmPassword !== '';
+  };
+
+  // Helper function to get password field class with match validation
+  const getPasswordFieldClass = (fieldName: string) => {
+    const baseClass = getFieldErrorClass(fieldName);
+    
+    if (fieldName === 'confirmPassword' && signupData.confirmPassword !== '') {
+      if (!passwordsMatch()) {
+        return 'border-red-500 bg-red-50 ring-red-500 focus:ring-red-500';
+      }
+    }
+    
+    if (fieldName === 'password' && signupData.confirmPassword !== '' && !passwordsMatch()) {
+      return 'border-red-500 bg-red-50 ring-red-500 focus:ring-red-500';
+    }
+    
+    return baseClass;
   };
 
   // Real-time validation effect - optimized to prevent focus issues
@@ -736,19 +809,22 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                  {signupData.accountType === 'business/organization' ? 'Business / Organization Account Master Public Streamer Personal Profile Password' : 
                   signupData.accountType === 'group/team' ? 'Group / Team Account Master Public Streamer Personal Profile Password' : 'Password'}
                </Label>
-            <Input
-              id="password"
-              type="password"
-              value={signupData.password}
-              onChange={(e) => setSignupData(prev => ({ ...prev, password: e.target.value }))}
-              required
-              className={`h-8 text-sm ${getFieldErrorClass('password')}`}
-              autoComplete="new-password"
-              placeholder={(signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && signupData.companyAccountMaster ? "Enter password" : "Create a secure password"}
-            />
-            {validationErrors.password && (
-              <p className="text-xs text-destructive mt-1">{validationErrors.password}</p>
-            )}
+             <Input
+               id="password"
+               type="password"
+               value={signupData.password}
+               onChange={(e) => setSignupData(prev => ({ ...prev, password: e.target.value }))}
+               required
+               className={`h-8 text-sm ${getPasswordFieldClass('password')}`}
+               autoComplete="new-password"
+               placeholder={(signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && signupData.companyAccountMaster ? "Enter password" : "Create a secure password"}
+             />
+             {validationErrors.password && (
+               <p className="text-xs text-destructive mt-1">{validationErrors.password}</p>
+             )}
+             {signupData.password && signupData.confirmPassword && !passwordsMatch() && (
+               <p className="text-xs text-destructive mt-1">Passwords do not match</p>
+             )}
           </div>
           
           <div className="flex space-x-2 pt-3">
@@ -850,18 +926,21 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
 
               <div className="space-y-1">
                 <Label htmlFor="confirmPassword" className="text-sm">Confirm Password</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  value={signupData.confirmPassword}
-                  onChange={(e) => setSignupData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                  required
-                  className={`h-8 text-sm ${getFieldErrorClass('confirmPassword')}`}
-                  placeholder="Re-enter your password to confirm"
-                />
-                {validationErrors.confirmPassword && (
-                  <p className="text-xs text-destructive mt-1">{validationErrors.confirmPassword}</p>
-                )}
+                 <Input
+                   id="confirmPassword"
+                   type="password"
+                   value={signupData.confirmPassword}
+                   onChange={(e) => setSignupData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                   required
+                   className={`h-8 text-sm ${getPasswordFieldClass('confirmPassword')}`}
+                   placeholder="Re-enter your password to confirm"
+                 />
+                 {validationErrors.confirmPassword && (
+                   <p className="text-xs text-destructive mt-1">{validationErrors.confirmPassword}</p>
+                 )}
+                 {signupData.confirmPassword && !passwordsMatch() && (
+                   <p className="text-xs text-destructive mt-1">Passwords do not match</p>
+                 )}
               </div>
 
               <TooltipWrapper 
