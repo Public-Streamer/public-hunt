@@ -155,13 +155,6 @@ serve(async (req) => {
           await roomClient.deleteRoom(event.livekit_room_name);
 
           // Update database
-          await supabase
-            .from("livekit_rooms")
-            .update({
-              is_active: false,
-              closed_at: new Date().toISOString(),
-            })
-            .eq("event_id", eventId);
 
           await supabase
             .from("events")
