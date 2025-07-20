@@ -1,8 +1,7 @@
-
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { RotateCcw, Camera } from 'lucide-react';
-import { useScreenSize } from '@/hooks/use-mobile';
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { RotateCcw, Camera } from "lucide-react";
+import { useScreenSize } from "@/hooks/use-mobile";
 
 interface CameraSwitchButtonProps {
   availableCameras: MediaDeviceInfo[];
@@ -17,7 +16,7 @@ const CameraSwitchButton: React.FC<CameraSwitchButtonProps> = ({
   isSwitchingCamera,
   isVideoEnabled,
   currentFacingMode,
-  onSwitchCamera
+  onSwitchCamera,
 }) => {
   const screenSize = useScreenSize();
 
@@ -45,10 +44,7 @@ const CameraSwitchButton: React.FC<CameraSwitchButtonProps> = ({
       ) : (
         <>
           <Camera className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-          {screenSize === "mobile" ? 
-            `To ${targetCameraType}` : 
-            `Switch to ${targetCameraType} camera`
-          }
+          {screenSize === "mobile" ? `To ${targetCameraType}` : `Change camera`}
         </>
       )}
     </Button>
