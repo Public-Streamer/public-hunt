@@ -251,15 +251,15 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
             {isOwnProfile ? (
               <>
                 <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-                  <DialogTrigger asChild>
-                    <TooltipWrapper content="Edit your profile information">
+                  <TooltipWrapper content="Edit your profile information">
+                    <DialogTrigger asChild>
                       <Button variant="outline" size="sm" className="text-xs sm:text-sm px-3 py-2">
                         <Settings className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                         <span className="hidden xs:inline">Edit Profile</span>
                         <span className="xs:hidden">Edit</span>
                       </Button>
-                    </TooltipWrapper>
-                  </DialogTrigger>
+                    </DialogTrigger>
+                  </TooltipWrapper>
                   <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle>Edit Profile</DialogTitle>

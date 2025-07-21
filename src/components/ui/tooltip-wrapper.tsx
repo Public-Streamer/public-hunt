@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, forwardRef } from 'react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface TooltipWrapperProps {
@@ -7,11 +7,11 @@ interface TooltipWrapperProps {
   disabled?: boolean;
 }
 
-const TooltipWrapper: React.FC<TooltipWrapperProps> = ({ 
+const TooltipWrapper = forwardRef<any, TooltipWrapperProps>(({ 
   children, 
   content, 
   disabled = false 
-}) => {
+}, ref) => {
   if (disabled) {
     return <>{children}</>;
   }
@@ -20,8 +20,7 @@ const TooltipWrapper: React.FC<TooltipWrapperProps> = ({
     <Tooltip>
       <TooltipTrigger 
         asChild
-        onFocus={(e) => e.stopPropagation()} // Prevent focus stealing
-        tabIndex={-1} // Remove from tab order to prevent focus issues
+        ref={ref}
       >
         {children}
       </TooltipTrigger>
@@ -30,7 +29,9 @@ const TooltipWrapper: React.FC<TooltipWrapperProps> = ({
       </TooltipContent>
     </Tooltip>
   );
-};
+});
+
+TooltipWrapper.displayName = 'TooltipWrapper';
 
 export default TooltipWrapper;
 export { TooltipWrapper };
