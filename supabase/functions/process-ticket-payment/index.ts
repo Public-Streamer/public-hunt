@@ -4,7 +4,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 interface PaymentRequest {
@@ -38,12 +39,16 @@ serve(async (req) => {
       }
     );
 
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
     if (userError || !user) {
       throw new Error("User not authenticated");
     }
 
-    const { eventId, amount, connectedAccountId }: PaymentRequest = await req.json();
+    const { eventId, amount, connectedAccountId }: PaymentRequest =
+      await req.json();
 
     // Validate event exists and get details
     const { data: event, error: eventError } = await supabase
@@ -69,9 +74,12 @@ serve(async (req) => {
     }
 
     // Initialize Stripe
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
-      apiVersion: "2023-10-16",
-    });
+    const stripe = new Stripe(
+      "sk_test_51RjhRTCREXNJuBpe8mOvq9rUOic9YNvoFUgX24EfJXHvFQQDScvj6Jl5XlKBHuki5DvNDVo855BsPGtIiln9wdoE00fQF8wFLA",
+      {
+        apiVersion: "2023-10-16",
+      }
+    );
 
     // Calculate platform fee (10%)
     const platformFee = Math.round(amount * 0.1);
@@ -83,7 +91,7 @@ serve(async (req) => {
       payment_method_types: ["card"],
       transfer_data: {
         destination: connectedAccountId,
-        amount: (amount * 100) - (platformFee * 100), // Host gets 90%
+        amount: amount * 100 - platformFee * 100, // Host gets 90%
       },
       metadata: {
         eventId,
@@ -106,12 +114,9 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error("Payment processing error:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 500,
-      }
-    );
+    return new Response(JSON.stringify({ error: error.message }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
+    });
   }
 });

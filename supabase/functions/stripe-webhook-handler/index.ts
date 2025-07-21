@@ -4,7 +4,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 serve(async (req) => {
@@ -13,13 +14,18 @@ serve(async (req) => {
   }
 
   try {
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
-      apiVersion: "2023-10-16",
-    });
+    const stripe = new Stripe(
+      "sk_test_51RjhRTCREXNJuBpe8mOvq9rUOic9YNvoFUgX24EfJXHvFQQDScvj6Jl5XlKBHuki5DvNDVo855BsPGtIiln9wdoE00fQF8wFLA",
+      {
+        apiVersion: "2023-10-16",
+      }
+    );
+
+    const cryptoProvider = Stripe.createSubtleCryptoProvider();
 
     const signature = req.headers.get("stripe-signature");
     const body = await req.text();
-    
+
     if (!signature) {
       throw new Error("No Stripe signature found");
     }
@@ -30,8 +36,14 @@ serve(async (req) => {
       throw new Error("Webhook secret not configured");
     }
 
-    const event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
-    
+    const event = stripe.webhooks.constructEvent(
+      body,
+      signature!,
+      webhookSecret!,
+      undefined,
+      cryptoProvider
+    );
+
     console.log("Webhook event received:", event.type);
 
     // Create Supabase client with service role key for database operations
@@ -48,15 +60,13 @@ serve(async (req) => {
         console.log("Payment succeeded for:", { eventId, userId, platformFee });
 
         // Create ticket record
-        const { error: ticketError } = await supabase
-          .from("tickets")
-          .insert({
-            user_id: userId,
-            event_id: eventId,
-            payment_id: paymentIntent.id,
-            amount: paymentIntent.amount / 100, // Convert from cents
-            status: "active",
-          });
+        const { error: ticketError } = await supabase.from("tickets").insert({
+          user_id: userId,
+          event_id: eventId,
+          payment_id: paymentIntent.id,
+          amount: paymentIntent.amount / 100, // Convert from cents
+          status: "active",
+        });
 
         if (ticketError) {
           console.error("Error creating ticket:", ticketError);
@@ -64,14 +74,17 @@ serve(async (req) => {
         }
 
         // Log successful payment processing
-        console.log("Ticket created successfully for payment:", paymentIntent.id);
+        console.log(
+          "Ticket created successfully for payment:",
+          paymentIntent.id
+        );
         break;
       }
 
       case "payment_intent.payment_failed": {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
         console.log("Payment failed:", paymentIntent.id);
-        
+
         // Handle payment failure - could notify user or log for retry
         break;
       }
@@ -79,7 +92,7 @@ serve(async (req) => {
       case "account.updated": {
         const account = event.data.object as Stripe.Account;
         console.log("Stripe account updated:", account.id);
-        
+
         // Update host account status if needed
         // This would update host_stripe_accounts table when implemented
         break;
@@ -89,21 +102,15 @@ serve(async (req) => {
         console.log("Unhandled webhook event type:", event.type);
     }
 
-    return new Response(
-      JSON.stringify({ received: true }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      }
-    );
+    return new Response(JSON.stringify({ received: true }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 200,
+    });
   } catch (error) {
     console.error("Webhook processing error:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 500,
-      }
-    );
+    return new Response(JSON.stringify({ error: error.message }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
+    });
   }
 });
