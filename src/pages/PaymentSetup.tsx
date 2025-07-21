@@ -16,10 +16,10 @@ const PaymentSetup: React.FC = () => {
   const [showWizard, setShowWizard] = useState(true);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
+    // if (!isAuthenticated) {
+    //   navigate('/login');
+    //   return;
+    // }
 
     // Handle Stripe redirect responses
     const success = searchParams.get('success');

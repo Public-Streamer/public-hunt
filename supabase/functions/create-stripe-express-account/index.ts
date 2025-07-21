@@ -37,9 +37,12 @@ serve(async (req) => {
     const { email, firstName, lastName } = await req.json();
 
     // Initialize Stripe
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
-      apiVersion: "2023-10-16",
-    });
+    const stripe = new Stripe(
+      "sk_test_51RjhRTCREXNJuBpe8mOvq9rUOic9YNvoFUgX24EfJXHvFQQDScvj6Jl5XlKBHuki5DvNDVo855BsPGtIiln9wdoE00fQF8wFLA",
+      {
+        apiVersion: "2023-10-16",
+      }
+    );
 
     // Check if user already has a Stripe account
     const { data: existingAccount } = await supabase
