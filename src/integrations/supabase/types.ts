@@ -938,8 +938,10 @@ export type Database = {
           max_participants: number | null
           media_urls: string[] | null
           name: string
+          payment_enabled: boolean | null
           stream_quality: string | null
           stream_url: string | null
+          stripe_account_id: string | null
           ticket_price: number | null
           time: string | null
           updated_at: string | null
@@ -959,8 +961,10 @@ export type Database = {
           max_participants?: number | null
           media_urls?: string[] | null
           name: string
+          payment_enabled?: boolean | null
           stream_quality?: string | null
           stream_url?: string | null
+          stripe_account_id?: string | null
           ticket_price?: number | null
           time?: string | null
           updated_at?: string | null
@@ -980,8 +984,10 @@ export type Database = {
           max_participants?: number | null
           media_urls?: string[] | null
           name?: string
+          payment_enabled?: boolean | null
           stream_quality?: string | null
           stream_url?: string | null
+          stripe_account_id?: string | null
           ticket_price?: number | null
           time?: string | null
           updated_at?: string | null
@@ -996,6 +1002,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      host_stripe_accounts: {
+        Row: {
+          account_status: string | null
+          created_at: string | null
+          id: string
+          onboarding_completed: boolean | null
+          payouts_enabled: boolean | null
+          stripe_account_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          account_status?: string | null
+          created_at?: string | null
+          id?: string
+          onboarding_completed?: boolean | null
+          payouts_enabled?: boolean | null
+          stripe_account_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          account_status?: string | null
+          created_at?: string | null
+          id?: string
+          onboarding_completed?: boolean | null
+          payouts_enabled?: boolean | null
+          stripe_account_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       legal_documents: {
         Row: {
@@ -1281,6 +1320,50 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_transactions: {
+        Row: {
+          amount_total: number
+          created_at: string | null
+          host_revenue: number
+          id: string
+          platform_fee: number
+          processed_at: string | null
+          status: string | null
+          stripe_payment_intent_id: string
+          ticket_id: string
+        }
+        Insert: {
+          amount_total: number
+          created_at?: string | null
+          host_revenue: number
+          id?: string
+          platform_fee: number
+          processed_at?: string | null
+          status?: string | null
+          stripe_payment_intent_id: string
+          ticket_id: string
+        }
+        Update: {
+          amount_total?: number
+          created_at?: string | null
+          host_revenue?: number
+          id?: string
+          platform_fee?: number
+          processed_at?: string | null
+          status?: string | null
+          stripe_payment_intent_id?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_transactions_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       post_interactions: {
         Row: {
           created_at: string | null
@@ -1411,8 +1494,11 @@ export type Database = {
           id: string
           payment_id: string
           purchased_at: string | null
+          qr_code: string | null
           status: string | null
+          stripe_payment_intent_id: string | null
           user_id: string | null
+          verification_status: string | null
         }
         Insert: {
           amount: number
@@ -1421,8 +1507,11 @@ export type Database = {
           id?: string
           payment_id: string
           purchased_at?: string | null
+          qr_code?: string | null
           status?: string | null
+          stripe_payment_intent_id?: string | null
           user_id?: string | null
+          verification_status?: string | null
         }
         Update: {
           amount?: number
@@ -1431,8 +1520,11 @@ export type Database = {
           id?: string
           payment_id?: string
           purchased_at?: string | null
+          qr_code?: string | null
           status?: string | null
+          stripe_payment_intent_id?: string | null
           user_id?: string | null
+          verification_status?: string | null
         }
         Relationships: []
       }
