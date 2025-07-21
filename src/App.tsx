@@ -8,6 +8,7 @@ import { AppProvider } from "@/contexts/AppContext";
 import Layout from "@/components/Layout";
 import Index from "./pages/Index";
 import Create from "./pages/Create";
+import CreateEpisode from "./pages/CreateEpisode";
 import Channels from "./pages/Channels";
 import ChannelPage from "./pages/ChannelPage";
 import Events from "./pages/Events";
@@ -43,6 +44,7 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/create" element={<Create />} />
+                <Route path="/create-episode" element={<CreateEpisode />} />
                 <Route path="/channels" element={<Channels />} />
                 <Route path="/channel/:channelId" element={<ChannelPage />} />
                 <Route path="/events" element={<Events />} />

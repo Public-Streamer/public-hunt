@@ -458,7 +458,7 @@ const Create: React.FC = () => {
                 <h3 className="text-2xl font-bold mb-4">Create Episode Content</h3>
                 <p className="text-gray-600 mb-6">Build episodic content for your channel with scheduled publishing and series management.</p>
                 <Button 
-                  onClick={() => toast({ title: "Coming Soon", description: "Episode creation feature is in development!" })}
+                  onClick={() => navigate('/create-episode')}
                   className="bg-orange-600 hover:bg-orange-700 text-lg px-8 py-3"
                 >
                   Start Creating Episodes
