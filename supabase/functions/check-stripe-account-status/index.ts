@@ -37,7 +37,7 @@ serve(async (req) => {
       .single();
 
     if (fetchError || !stripeAccount) {
-      throw new Error("No Stripe account found for user");
+      throw new Error("No Stripe account found for user", { cause: fetchError });
     }
 
     // Initialize Stripe
