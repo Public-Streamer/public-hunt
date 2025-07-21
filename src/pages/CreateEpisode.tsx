@@ -288,7 +288,59 @@ const CreateEpisode: React.FC = () => {
     }
 
     try {
-      // Save episode data (mock implementation)
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError || !userData.user) {
+        toast({
+          title: "Authentication Required",
+          description: "You must be logged in to create episodes",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Create episode
+      const { data: episodeData, error: episodeError } = await supabase
+        .from('episodes')
+        .insert({
+          title: episodeTitle,
+          source_event_id: selectedEvent.id,
+          creator_id: userData.user.id,
+          target_length_minutes: targetLength || customLength,
+          status: 'draft'
+        })
+        .select()
+        .single();
+
+      if (episodeError) {
+        console.error('Error creating episode:', episodeError);
+        toast({
+          title: "Error",
+          description: "Failed to create episode",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Save clips
+      if (episodeClips.length > 0) {
+        const clipsToInsert = episodeClips.map(clip => ({
+          episode_id: episodeData.id,
+          clip_title: clip.title,
+          start_time_seconds: clip.start_time,
+          end_time_seconds: clip.end_time,
+          clip_order: clip.order,
+          clip_type: 'manual'
+        }));
+
+        const { error: clipsError } = await supabase
+          .from('episode_clips')
+          .insert(clipsToInsert);
+
+        if (clipsError) {
+          console.error('Error saving clips:', clipsError);
+        }
+      }
+
       toast({
         title: "Draft Saved!",
         description: "Your episode has been saved as a draft",
@@ -315,7 +367,60 @@ const CreateEpisode: React.FC = () => {
     }
 
     try {
-      // Publish episode (mock implementation)
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError || !userData.user) {
+        toast({
+          title: "Authentication Required",
+          description: "You must be logged in to publish episodes",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Create episode
+      const { data: episodeData, error: episodeError } = await supabase
+        .from('episodes')
+        .insert({
+          title: episodeTitle,
+          source_event_id: selectedEvent.id,
+          creator_id: userData.user.id,
+          target_length_minutes: targetLength || customLength,
+          status: 'published',
+          published_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (episodeError) {
+        console.error('Error creating episode:', episodeError);
+        toast({
+          title: "Error",
+          description: "Failed to create episode",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Save clips
+      if (episodeClips.length > 0) {
+        const clipsToInsert = episodeClips.map(clip => ({
+          episode_id: episodeData.id,
+          clip_title: clip.title,
+          start_time_seconds: clip.start_time,
+          end_time_seconds: clip.end_time,
+          clip_order: clip.order,
+          clip_type: 'manual'
+        }));
+
+        const { error: clipsError } = await supabase
+          .from('episode_clips')
+          .insert(clipsToInsert);
+
+        if (clipsError) {
+          console.error('Error saving clips:', clipsError);
+        }
+      }
+
       toast({
         title: "Episode Published!",
         description: "Your episode is now live and available to viewers",

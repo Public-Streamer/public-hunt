@@ -170,6 +170,53 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_highlights: {
+        Row: {
+          analysis_metadata: Json | null
+          confidence_score: number
+          created_at: string
+          end_time_seconds: number
+          engagement_score: number
+          highlight_type: string
+          id: string
+          source_event_id: string
+          start_time_seconds: number
+          title: string
+        }
+        Insert: {
+          analysis_metadata?: Json | null
+          confidence_score: number
+          created_at?: string
+          end_time_seconds: number
+          engagement_score: number
+          highlight_type: string
+          id?: string
+          source_event_id: string
+          start_time_seconds: number
+          title: string
+        }
+        Update: {
+          analysis_metadata?: Json | null
+          confidence_score?: number
+          created_at?: string
+          end_time_seconds?: number
+          engagement_score?: number
+          highlight_type?: string
+          id?: string
+          source_event_id?: string
+          start_time_seconds?: number
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_highlights_source_event_id_fkey"
+            columns: ["source_event_id"]
+            isOneToOne: false
+            referencedRelation: "past_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blog_answers: {
         Row: {
           author: string
@@ -563,6 +610,131 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      episode_clips: {
+        Row: {
+          clip_order: number
+          clip_title: string
+          clip_type: string | null
+          created_at: string
+          end_time_seconds: number
+          engagement_score: number | null
+          episode_id: string
+          highlight_type: string | null
+          id: string
+          start_time_seconds: number
+          updated_at: string
+        }
+        Insert: {
+          clip_order: number
+          clip_title: string
+          clip_type?: string | null
+          created_at?: string
+          end_time_seconds: number
+          engagement_score?: number | null
+          episode_id: string
+          highlight_type?: string | null
+          id?: string
+          start_time_seconds: number
+          updated_at?: string
+        }
+        Update: {
+          clip_order?: number
+          clip_title?: string
+          clip_type?: string | null
+          created_at?: string
+          end_time_seconds?: number
+          engagement_score?: number | null
+          episode_id?: string
+          highlight_type?: string | null
+          id?: string
+          start_time_seconds?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "episode_clips_episode_id_fkey"
+            columns: ["episode_id"]
+            isOneToOne: false
+            referencedRelation: "episodes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      episodes: {
+        Row: {
+          channel_id: string | null
+          created_at: string
+          creator_id: string
+          current_length_minutes: number | null
+          description: string | null
+          id: string
+          likes_count: number | null
+          metadata: Json | null
+          published_at: string | null
+          source_event_id: string | null
+          status: string
+          target_length_minutes: number
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+          video_url: string | null
+          view_count: number | null
+        }
+        Insert: {
+          channel_id?: string | null
+          created_at?: string
+          creator_id: string
+          current_length_minutes?: number | null
+          description?: string | null
+          id?: string
+          likes_count?: number | null
+          metadata?: Json | null
+          published_at?: string | null
+          source_event_id?: string | null
+          status?: string
+          target_length_minutes?: number
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+          video_url?: string | null
+          view_count?: number | null
+        }
+        Update: {
+          channel_id?: string | null
+          created_at?: string
+          creator_id?: string
+          current_length_minutes?: number | null
+          description?: string | null
+          id?: string
+          likes_count?: number | null
+          metadata?: Json | null
+          published_at?: string | null
+          source_event_id?: string | null
+          status?: string
+          target_length_minutes?: number
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+          video_url?: string | null
+          view_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "episodes_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "episodes_source_event_id_fkey"
+            columns: ["source_event_id"]
+            isOneToOne: false
+            referencedRelation: "past_events"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       event_channel_requests: {
         Row: {
