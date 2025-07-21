@@ -433,12 +433,12 @@ const AdvertiserDashboard: React.FC = () => {
           ].map(({ id, label, icon: Icon }) => (
             <Button
               key={id}
-              variant={activeTab === id ? "default" : "outline"}
+              variant={activeTab === id ? "default" : "secondary"}
               onClick={() => setActiveTab(id as any)}
               className={`${
                 activeTab === id 
                   ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white' 
-                  : 'border-white/20 text-white hover:bg-white/10'
+                  : 'bg-white/10 border border-white/30 text-white hover:bg-white/20'
               }`}
             >
               <Icon className="h-4 w-4 mr-2" />
