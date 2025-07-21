@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppContext } from '@/contexts/AppContext';
 import Hero from '@/components/Hero';
 import EventGrid from '@/components/EventGrid';
@@ -6,54 +6,58 @@ import StageView from '@/components/StageView';
 import LiveNewsFeed from '@/components/LiveNewsFeed';
 import FeaturedAdsCarousel from '@/components/FeaturedAdsCarousel';
 import TrendingAnalyticsPanel from '@/components/TrendingAnalyticsPanel';
+import { supabase } from '@/integrations/supabase/client';
 
 const Index: React.FC = () => {
   const { sidebarOpen, toggleSidebar } = useAppContext();
   const [currentView, setCurrentView] = useState<'home' | 'stage'>('home');
   const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
+  const [events, setEvents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data for demonstration
-  const mockEvents = [
-    {
-      id: '1',
-      title: 'Concert in the Park',
-      description: 'Live music performance with multiple camera angles',
-      price: 15,
-      date: '2024-01-20',
-      time: '8:00 PM',
-      duration: '2 hours',
-      viewers: 1234,
-      streamerCount: 4,
-      isLive: true,
-      thumbnail: ''
-    },
-    {
-      id: '2',
-      title: 'Cooking Masterclass',
-      description: 'Professional chef cooking demonstration',
-      price: 25,
-      date: '2024-01-21',
-      time: '2:00 PM',
-      duration: '1.5 hours',
-      viewers: 567,
-      streamerCount: 3,
-      isLive: false,
-      thumbnail: ''
-    },
-    {
-      id: '3',
-      title: 'Sports Tournament',
-      description: 'Live sports event with commentary',
-      price: 20,
-      date: '2024-01-22',
-      time: '6:00 PM',
-      duration: '3 hours',
-      viewers: 2345,
-      streamerCount: 6,
-      isLive: true,
-      thumbnail: ''
-    }
-  ];
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('events')
+          .select(`
+            *,
+            channels (
+              name,
+              description
+            )
+          `)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Error fetching events:', error);
+          return;
+        }
+
+        const formattedEvents = data?.map(event => ({
+          id: event.id,
+          title: event.name,
+          description: event.description || event.channels?.description || 'No description available',
+          price: Number(event.ticket_price) || 0,
+          date: event.date || new Date().toISOString().split('T')[0],
+          time: event.time || '12:00 PM',
+          duration: '2 hours',
+          viewers: event.viewer_count || 0,
+          streamerCount: 2,
+          isLive: event.is_live || false,
+          thumbnail: event.media_urls?.[0] || ''
+        })) || [];
+
+        setEvents(formattedEvents);
+      } catch (error) {
+        console.error('Error loading events:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvents();
+  }, []);
 
   const mockStreams = [
     {
@@ -92,7 +96,7 @@ const Index: React.FC = () => {
   };
 
   if (currentView === 'stage' && selectedEvent) {
-    const event = mockEvents.find(e => e.id === selectedEvent);
+    const event = events.find(e => e.id === selectedEvent);
     return (
       <StageView 
         eventTitle={event?.title || 'Live Event'} 
@@ -110,7 +114,7 @@ const Index: React.FC = () => {
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <EventGrid 
-              events={mockEvents}
+              events={events}
               onPurchase={handlePurchase}
               onWatch={handleWatch}
             />
