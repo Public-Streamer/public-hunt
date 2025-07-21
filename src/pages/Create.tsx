@@ -357,7 +357,7 @@ const Create: React.FC = () => {
         </TooltipWrapper>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TooltipWrapper content={getEventTabTooltip()}>
               <TabsTrigger
                 value="create-event"
@@ -400,6 +400,20 @@ const Create: React.FC = () => {
                 </div>
               </TabsTrigger>
             </TooltipWrapper>
+            <TooltipWrapper content="Create episodic content for your channel with scheduled publishing and series management">
+              <TabsTrigger
+                value="create-episode"
+                className="text-white bg-gradient-to-r from-orange-600 to-yellow-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-700 data-[state=active]:to-yellow-700 hover:from-orange-700 hover:to-yellow-700 transition-all duration-200 shadow-lg transform hover:scale-105 flex items-center justify-center py-3 px-2 min-h-[3.5rem]"
+              >
+                <div className="flex items-center justify-center gap-2 text-xl lg:text-2xl xl:text-3xl font-bold sm:flex-col sm:gap-0 sm:text-base md:flex-row md:gap-2 md:text-lg lg:flex-row">
+                  <span className="flex items-center gap-1">
+                    <span>🎬</span>
+                    <span className="hidden sm:inline md:inline lg:inline">Create</span>
+                  </span>
+                  <span>Episode</span>
+                </div>
+              </TabsTrigger>
+            </TooltipWrapper>
           </TabsList>
 
           <TabsContent value="create-channel">
@@ -433,6 +447,21 @@ const Create: React.FC = () => {
                   className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3"
                 >
                   Go to Advertisers Page
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="create-episode">
+            <Card>
+              <CardContent className="text-center py-12">
+                <h3 className="text-2xl font-bold mb-4">Create Episode Content</h3>
+                <p className="text-gray-600 mb-6">Build episodic content for your channel with scheduled publishing and series management.</p>
+                <Button 
+                  onClick={() => toast({ title: "Coming Soon", description: "Episode creation feature is in development!" })}
+                  className="bg-orange-600 hover:bg-orange-700 text-lg px-8 py-3"
+                >
+                  Start Creating Episodes
                 </Button>
               </CardContent>
             </Card>
