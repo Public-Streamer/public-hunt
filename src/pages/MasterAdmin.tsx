@@ -4,6 +4,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
 import { 
   Users, 
   Eye, 
@@ -85,8 +89,18 @@ interface AdminAd {
   };
 }
 
+interface AdminAssignment {
+  id: string;
+  email: string;
+  role: 'owner' | 'master' | 'manager' | 'administrator';
+  assigned_by?: string;
+  assigned_at: string;
+  is_active: boolean;
+}
+
 const MasterAdmin: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [userRole, setUserRole] = useState<string>('');
   const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<AdminStats>({
@@ -100,8 +114,12 @@ const MasterAdmin: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [events, setEvents] = useState<AdminEvent[]>([]);
   const [ads, setAds] = useState<AdminAd[]>([]);
+  const [adminAssignments, setAdminAssignments] = useState<AdminAssignment[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
+  const [newAdminEmail, setNewAdminEmail] = useState('');
+  const [newAdminRole, setNewAdminRole] = useState<'master' | 'manager' | 'administrator'>('administrator');
+  const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -117,15 +135,22 @@ const MasterAdmin: React.FC = () => {
         return;
       }
 
-      // Check if user is authorized admin (you can implement your own logic here)
-      // For now, we'll check for specific admin emails or user IDs
-      const adminEmails = [
-        'admin@publicstreamer.com',
-        'owner@publicstreamer.com'
-      ];
+      // Check if user has admin role assignment
+      const { data: adminAssignment, error } = await supabase
+        .from('admin_user_assignments')
+        .select('role')
+        .eq('user_id', user.id)
+        .single();
 
-      if (adminEmails.includes(user.email || '')) {
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking admin status:', error);
+        navigate('/');
+        return;
+      }
+
+      if (adminAssignment) {
         setCurrentUser(user);
+        setUserRole(adminAssignment.role);
         setIsAuthorized(true);
         await loadAdminData();
       } else {
@@ -173,6 +198,7 @@ const MasterAdmin: React.FC = () => {
       await loadUsers();
       await loadEvents();
       await loadAds();
+      await loadAdminAssignments();
     } catch (error) {
       console.error('Error loading admin data:', error);
     }
@@ -269,6 +295,85 @@ const MasterAdmin: React.FC = () => {
       setAds(adsWithAdvertisers);
     } catch (error) {
       console.error('Error loading ads:', error);
+    }
+  };
+
+  const loadAdminAssignments = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('admin_users')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setAdminAssignments(data || []);
+    } catch (error) {
+      console.error('Error loading admin assignments:', error);
+    }
+  };
+
+  const assignAdminRole = async () => {
+    if (!newAdminEmail || !newAdminRole) {
+      toast({
+        title: "Error",
+        description: "Please enter an email and select a role",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('admin_users')
+        .insert({
+          email: newAdminEmail,
+          role: newAdminRole,
+          assigned_by: currentUser?.id,
+          is_active: true
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: `Admin role ${newAdminRole} assigned to ${newAdminEmail}`,
+      });
+
+      setNewAdminEmail('');
+      setNewAdminRole('administrator');
+      await loadAdminAssignments();
+    } catch (error) {
+      console.error('Error assigning admin role:', error);
+      toast({
+        title: "Error",
+        description: "Failed to assign admin role",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const removeAdminRole = async (assignmentId: string) => {
+    try {
+      const { error } = await supabase
+        .from('admin_users')
+        .update({ is_active: false })
+        .eq('id', assignmentId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Admin role removed successfully",
+      });
+
+      await loadAdminAssignments();
+    } catch (error) {
+      console.error('Error removing admin role:', error);
+      toast({
+        title: "Error",
+        description: "Failed to remove admin role",
+        variant: "destructive",
+      });
     }
   };
 
@@ -691,16 +796,111 @@ const MasterAdmin: React.FC = () => {
 
                 <div>
                   <h3 className="text-lg font-semibold text-white mb-4">Admin Access Control</h3>
-                  <div className="text-center py-8">
-                    <UserCheck className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-300">Admin team management</p>
-                    <p className="text-sm text-gray-400 mt-2">
-                      Add or remove admin access for team members
-                    </p>
-                    <Button className="mt-4" variant="outline">
-                      Manage Team Access
-                    </Button>
-                  </div>
+                  
+                  {/* Add New Admin */}
+                  {userRole === 'owner' && (
+                    <Card className="bg-white/5 border-white/20 mb-6">
+                      <CardHeader>
+                        <CardTitle className="text-white text-lg">Assign Admin Role</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <Label htmlFor="adminEmail" className="text-white">Email Address</Label>
+                            <Input
+                              id="adminEmail"
+                              type="email"
+                              placeholder="user@example.com"
+                              value={newAdminEmail}
+                              onChange={(e) => setNewAdminEmail(e.target.value)}
+                              className="bg-white/20 border-white/30 text-white placeholder:text-gray-300"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="adminRole" className="text-white">Admin Role</Label>
+                            <Select value={newAdminRole} onValueChange={(value: 'master' | 'manager' | 'administrator') => setNewAdminRole(value)}>
+                              <SelectTrigger className="bg-white/20 border-white/30 text-white">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="administrator">Administrator</SelectItem>
+                                <SelectItem value="manager">Manager</SelectItem>
+                                <SelectItem value="master">Master</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="flex items-end">
+                            <Button onClick={assignAdminRole} className="w-full">
+                              Assign Role
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="text-sm text-gray-300">
+                          <p><strong>Administrator:</strong> Basic admin access with content moderation</p>
+                          <p><strong>Manager:</strong> Advanced access with user management</p>
+                          <p><strong>Master:</strong> Full platform access (excluding owner privileges)</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                  
+                  {/* Current Admin Assignments */}
+                  <Card className="bg-white/5 border-white/20">
+                    <CardHeader>
+                      <CardTitle className="text-white text-lg">Current Admin Team</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        {adminAssignments.filter(admin => admin.is_active).map((admin) => (
+                          <div key={admin.id} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                                <span className="text-white font-bold text-sm">
+                                  {admin.email.charAt(0).toUpperCase()}
+                                </span>
+                              </div>
+                              <div>
+                                <p className="font-medium text-white">{admin.email}</p>
+                                <p className="text-xs text-gray-300">
+                                  Assigned {new Date(admin.assigned_at).toLocaleDateString()}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Badge 
+                                variant={admin.role === 'owner' ? 'default' : 'secondary'}
+                                className={
+                                  admin.role === 'owner' ? 'bg-yellow-500 text-black' :
+                                  admin.role === 'master' ? 'bg-purple-500 text-white' :
+                                  admin.role === 'manager' ? 'bg-blue-500 text-white' :
+                                  'bg-gray-500 text-white'
+                                }
+                              >
+                                {admin.role}
+                              </Badge>
+                              {userRole === 'owner' && admin.role !== 'owner' && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => removeAdminRole(admin.id)}
+                                  className="text-red-400 border-red-400 hover:bg-red-400 hover:text-white"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                        
+                        {adminAssignments.filter(admin => admin.is_active).length === 0 && (
+                          <div className="text-center py-6">
+                            <UserCheck className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                            <p className="text-gray-300">No admin assignments yet</p>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
               </CardContent>
             </Card>
