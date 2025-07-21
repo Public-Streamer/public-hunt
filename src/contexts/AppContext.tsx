@@ -27,6 +27,8 @@ interface AppContextType {
   signUp: (email: string, password: string, userData: Omit<UserProfile, 'id' | 'email'>) => Promise<{error?: string}>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
+  isAdminUser: boolean;
+  adminRole: string | null;
 }
 
 const defaultAppContext: AppContextType = {
@@ -38,6 +40,8 @@ const defaultAppContext: AppContextType = {
   signUp: async () => ({ error: 'Not implemented' }),
   logout: async () => {},
   isAuthenticated: false,
+  isAdminUser: false,
+  adminRole: null,
 };
 
 const AppContext = createContext<AppContextType>(defaultAppContext);
@@ -48,6 +52,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [isAdminUser, setIsAdminUser] = useState(false);
+  const [adminRole, setAdminRole] = useState<string | null>(null);
 
   const toggleSidebar = () => {
     setSidebarOpen(prev => !prev);
@@ -195,6 +201,39 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  // Function to check admin role
+  const checkAdminRole = async (userId: string, email: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('admin_user_assignments')
+        .select('role')
+        .eq('user_id', userId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking admin role:', error);
+        return;
+      }
+
+      if (data) {
+        setIsAdminUser(true);
+        setAdminRole(data.role);
+        
+        // Redirect to master admin if owner
+        if (data.role === 'owner') {
+          setTimeout(() => {
+            window.location.href = '/master-admin';
+          }, 1000);
+        }
+      } else {
+        setIsAdminUser(false);
+        setAdminRole(null);
+      }
+    } catch (error) {
+      console.error('Error checking admin role:', error);
+    }
+  };
+
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -220,8 +259,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               profilePhoto: metadata.profilePhoto
             });
           }
+          
+          // Check admin role after a delay to ensure user is fully loaded
+          setTimeout(() => {
+            checkAdminRole(session.user.id, session.user.email || '');
+          }, 500);
         } else {
           setUserProfile(null);
+          setIsAdminUser(false);
+          setAdminRole(null);
         }
       }
     );
@@ -248,6 +294,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             profilePhoto: metadata.profilePhoto
           });
         }
+        
+        // Check admin role
+        setTimeout(() => {
+          checkAdminRole(session.user.id, session.user.email || '');
+        }, 500);
       }
     });
 
@@ -265,6 +316,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         signUp,
         logout,
         isAuthenticated: !!user,
+        isAdminUser,
+        adminRole,
       }}
     >
       {children}
