@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useAppContext } from '@/contexts/AppContext';
 import Hero from '@/components/Hero';
+import SearchBar from '@/components/SearchBar';
+import LiveEventSpotlight from '@/components/LiveEventSpotlight';
+import TrendingChannels from '@/components/TrendingChannels';
+import UpcomingEvents from '@/components/UpcomingEvents';
+import LiveFeed from '@/components/LiveFeed';
+import TrendingEpisodes from '@/components/TrendingEpisodes';
 import EventGrid from '@/components/EventGrid';
 import StageView from '@/components/StageView';
 import LiveNewsFeed from '@/components/LiveNewsFeed';
@@ -106,21 +112,58 @@ const Index: React.FC = () => {
   }
 
   return (
-    <div className="bg-white">
+    <div className="bg-white min-h-screen">
+      {/* Search Bar at the top */}
+      <div className="bg-muted/50 py-6">
+        <div className="container mx-auto px-4">
+          <SearchBar />
+        </div>
+      </div>
+
+      {/* Hero Section - Preserved */}
       <Hero />
-      <FeaturedAdsCarousel />
-      <TrendingAnalyticsPanel />
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <EventGrid 
-              events={events}
-              onPurchase={handlePurchase}
-              onWatch={handleWatch}
-            />
+
+      {/* Live Event Spotlight - Top 3 trending live events */}
+      <LiveEventSpotlight />
+
+      {/* Trending Channels */}
+      <TrendingChannels />
+
+      {/* Upcoming Events */}
+      <UpcomingEvents />
+
+      {/* Live Feed - All live events sorted by popularity */}
+      <LiveFeed />
+
+      {/* Trending Episodes Carousel */}
+      <TrendingEpisodes />
+
+      {/* Original EventGrid and LiveNewsFeed in side layout */}
+      <div className="py-8">
+        <div className="container mx-auto px-4">
+          <div className="grid lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2">
+              <h2 className="text-2xl font-bold mb-6">All Events</h2>
+              <EventGrid 
+                events={events}
+                onPurchase={handlePurchase}
+                onWatch={handleWatch}
+              />
+            </div>
+            <div className="lg:col-span-1">
+              <LiveNewsFeed />
+            </div>
           </div>
-          <div className="lg:col-span-1">
-            <LiveNewsFeed />
+        </div>
+      </div>
+
+      {/* Ad Data and Analytics - Moved to bottom (deprioritized) */}
+      <div className="bg-muted/30 py-8">
+        <div className="container mx-auto px-4">
+          <h2 className="text-xl font-semibold mb-6 text-muted-foreground">Advertisement Performance</h2>
+          <FeaturedAdsCarousel />
+          <div className="mt-8">
+            <TrendingAnalyticsPanel />
           </div>
         </div>
       </div>
