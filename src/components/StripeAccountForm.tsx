@@ -55,10 +55,8 @@ const StripeAccountForm: React.FC = () => {
           // Account is fully set up
           console.log("onboarding completed");
           setStripeAccount(data);
-          toast({
-            title: "Account Setup Complete",
-            description: "Your Stripe account is now ready for payments!",
-          });
+
+          return;
         } else {
           // if onboarding is not completed
           console.log("onboarding not completed, checking latest from stripe");
@@ -170,6 +168,8 @@ const StripeAccountForm: React.FC = () => {
         "check-stripe-account-status"
       );
 
+      console.log(data);
+
       if (error) throw error;
 
       // Refresh account data
@@ -266,14 +266,14 @@ const StripeAccountForm: React.FC = () => {
 
           <Button
             onClick={() =>
-              window.open(`https://dashboard.stripe.com/express/`, "_blank")
+              window.open(`https://connect.stripe.com/express_login`, "_blank")
             }
             className="w-full"
           >
             <ExternalLink className="h-4 w-4 mr-2" />
             Login to Stripe
           </Button>
-
+          {/* 
           <Button
             onClick={checkStripeAccountStatus}
             disabled={isCheckingStatus}
@@ -291,7 +291,7 @@ const StripeAccountForm: React.FC = () => {
                 Refresh Account Status
               </>
             )}
-          </Button>
+          </Button> */}
 
           {error && (
             <Alert variant="destructive">
