@@ -25,6 +25,7 @@ import Advertisers from "./pages/Advertisers";
 import CreateAd from "./pages/CreateAd";
 import AdLibrary from "./pages/AdLibrary";
 import AdvertiserDashboard from "./pages/AdvertiserDashboard";
+import MasterAdmin from "./pages/MasterAdmin";
 import NotFound from "./pages/NotFound";
 import LegalDocumentPage from "./pages/LegalDocument";
 
@@ -61,6 +62,7 @@ const App = () => (
                 <Route path="/ad-library" element={<AdLibrary />} />
                 <Route path="/advertiser-dashboard" element={<AdvertiserDashboard />} />
                 <Route path="/withdraw" element={<WithdrawFunds />} />
+                <Route path="/master-admin" element={<MasterAdmin />} />
                 <Route path="/qa" element={<QA />} />
                 <Route path="/legal" element={<LegalDocumentPage />} />
                 <Route path="*" element={<NotFound />} />
