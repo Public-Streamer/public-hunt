@@ -496,16 +496,16 @@ const CreateAd: React.FC = () => {
                     <div className="grid grid-cols-2 gap-3">
                       <Button
                         onClick={saveAd}
-                        variant="outline"
-                        className="border-white/20 text-white hover:bg-white/10"
+                        variant="secondary"
+                        className="bg-white/10 border border-white/30 text-white hover:bg-white/20"
                       >
                         <Save className="h-4 w-4 mr-2" />
                         Save Ad
                       </Button>
                       <Button
                         onClick={downloadAd}
-                        variant="outline"
-                        className="border-white/20 text-white hover:bg-white/10"
+                        variant="secondary"
+                        className="bg-white/10 border border-white/30 text-white hover:bg-white/20"
                       >
                         <Download className="h-4 w-4 mr-2" />
                         Download
