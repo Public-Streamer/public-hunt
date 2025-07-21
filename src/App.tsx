@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,7 +18,7 @@ import StagePage from "./pages/StagePage";
 import Profile from "./pages/Profile";
 import CompanyProfile from "./pages/CompanyProfile";
 import Login from "./pages/Login";
-
+import PaymentSetup from "./pages/PaymentSetup";
 import WithdrawFunds from "./pages/WithdrawFunds";
 import QA from "./pages/QA";
 import PastEvents from "./pages/PastEvents";
@@ -57,6 +58,7 @@ const App = () => (
                   element={<CompanyProfile />}
                 />
                 <Route path="/login" element={<Login />} />
+                <Route path="/payment-setup" element={<PaymentSetup />} />
                 <Route path="/past-events" element={<PastEvents />} />
                 <Route path="/my-ads" element={<MyAds />} />
                 <Route path="/advertisers" element={<Advertisers />} />
