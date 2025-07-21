@@ -1,7 +1,11 @@
-
 import { useState, useCallback, useEffect } from "react";
-import { useLocalParticipant, useRoomContext, useMediaDevices, useMediaDeviceSelect } from "@livekit/components-react";
-import { Track, TrackPublication } from "livekit-client";
+import {
+  useLocalParticipant,
+  useRoomContext,
+  useMediaDevices,
+  useMediaDeviceSelect,
+} from "@livekit/components-react";
+import { Track } from "livekit-client";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -30,7 +34,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   const { localParticipant } = useLocalParticipant();
   const room = useRoomContext();
 
-  console.log("🎥 STREAMING CONTROLS - Room name:", room.name);
+  console.log("room name", room.name);
 
   const [isStreaming, setIsStreaming] = useState(false);
   const [isVideoEnabled, setIsVideoEnabled] = useState(false);
@@ -39,193 +43,182 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   const [goLive, setGoLive] = useState(false);
 
   // Use LiveKit's hooks for camera management
-  const videoDevices = useMediaDevices({ kind: 'videoinput' });
-  const { 
-    activeDeviceId: currentCamera, 
-    setActiveMediaDevice
-  } = useMediaDeviceSelect({ kind: 'videoinput' });
-  
+  const videoDevices = useMediaDevices({ kind: "videoinput" });
+  const { activeDeviceId: currentCamera, setActiveMediaDevice } =
+    useMediaDeviceSelect({ kind: "videoinput" });
+
   // State for tracking camera switching
   const [isSwitchingCamera, setIsSwitchingCamera] = useState(false);
 
   // State for tracking current facing mode
-  const [currentFacingMode, setCurrentFacingMode] = useState<"user" | "environment">("user");
+  const [currentFacingMode, setCurrentFacingMode] = useState<
+    "user" | "environment"
+  >("user");
 
   const participantCount = room?.numParticipants || 1;
 
-  // Sync state with actual LiveKit track publications
-  useEffect(() => {
-    if (!localParticipant) return;
-
-    const syncTrackStates = () => {
-      // Check camera track
-      const cameraTrack = localParticipant.getTrackPublication(Track.Source.Camera);
-      const newVideoEnabled = cameraTrack?.isEnabled ?? false;
-      
-      // Check microphone track
-      const micTrack = localParticipant.getTrackPublication(Track.Source.Microphone);
-      const newAudioEnabled = micTrack?.isEnabled ?? false;
-      
-      // Check screen share track
-      const screenTrack = localParticipant.getTrackPublication(Track.Source.ScreenShare);
-      const newScreenSharing = screenTrack?.isEnabled ?? false;
-
-      console.log("🎥 STREAMING CONTROLS - Track State Sync:", {
-        camera: { enabled: newVideoEnabled, track: !!cameraTrack },
-        microphone: { enabled: newAudioEnabled, track: !!micTrack },
-        screenShare: { enabled: newScreenSharing, track: !!screenTrack },
-        currentState: { isVideoEnabled, isAudioEnabled, isScreenSharing }
-      });
-
-      // Update states if they've changed
-      if (newVideoEnabled !== isVideoEnabled) {
-        console.log("🎥 STREAMING CONTROLS - Syncing video state:", newVideoEnabled);
-        setIsVideoEnabled(newVideoEnabled);
-      }
-      if (newAudioEnabled !== isAudioEnabled) {
-        console.log("🎥 STREAMING CONTROLS - Syncing audio state:", newAudioEnabled);
-        setIsAudioEnabled(newAudioEnabled);
-      }
-      if (newScreenSharing !== isScreenSharing) {
-        console.log("🎥 STREAMING CONTROLS - Syncing screen share state:", newScreenSharing);
-        setIsScreenSharing(newScreenSharing);
-      }
-    };
-
-    // Initial sync
-    syncTrackStates();
-
-    // Listen for track publication events
-    const handleTrackPublished = (publication: TrackPublication) => {
-      console.log("🎥 STREAMING CONTROLS - Track published:", {
-        source: publication.source,
-        kind: publication.kind,
-        enabled: publication.isEnabled
-      });
-      syncTrackStates();
-    };
-
-    const handleTrackUnpublished = (publication: TrackPublication) => {
-      console.log("🎥 STREAMING CONTROLS - Track unpublished:", {
-        source: publication.source,
-        kind: publication.kind
-      });
-      syncTrackStates();
-    };
-
-    // Add event listeners
-    localParticipant.on('trackPublished', handleTrackPublished);
-    localParticipant.on('trackUnpublished', handleTrackUnpublished);
-
-    // Cleanup
-    return () => {
-      localParticipant.off('trackPublished', handleTrackPublished);
-      localParticipant.off('trackUnpublished', handleTrackUnpublished);
-    };
-  }, [localParticipant, isVideoEnabled, isAudioEnabled, isScreenSharing]);
-
   // Enhanced mobile debugging - Log available cameras whenever they change
   useEffect(() => {
-    console.log("📱 MOBILE DEBUG - Available Video Devices:", JSON.stringify({
-      deviceCount: videoDevices.length,
-      devices: videoDevices.map(device => ({
-        deviceId: device.deviceId,
-        label: device.label,
-        kind: device.kind,
-        groupId: device.groupId
-      })),
-      currentActiveCamera: currentCamera,
-      currentFacingMode: currentFacingMode
-    }, null, 2));
+    console.log(
+      "📱 MOBILE DEBUG - Available Video Devices:",
+      JSON.stringify(
+        {
+          deviceCount: videoDevices.length,
+          devices: videoDevices.map((device) => ({
+            deviceId: device.deviceId,
+            label: device.label,
+            kind: device.kind,
+            groupId: device.groupId,
+          })),
+          currentActiveCamera: currentCamera,
+          currentFacingMode: currentFacingMode,
+        },
+        null,
+        2
+      )
+    );
   }, [videoDevices, currentCamera, currentFacingMode]);
 
   // Helper function to detect camera type from device info
-  const getCameraType = useCallback((device: MediaDeviceInfo): "user" | "environment" | "unknown" => {
-    const label = device.label.toLowerCase();
-    console.log("📱 MOBILE DEBUG - Camera Classification:", JSON.stringify({
-      deviceId: device.deviceId,
-      originalLabel: device.label,
-      lowercaseLabel: label,
-      containsFront: label.includes('front'),
-      containsUser: label.includes('user'),
-      containsFacing: label.includes('facing'),
-      containsBack: label.includes('back'),
-      containsRear: label.includes('rear'),
-      containsEnvironment: label.includes('environment')
-    }, null, 2));
+  const getCameraType = useCallback(
+    (device: MediaDeviceInfo): "user" | "environment" | "unknown" => {
+      const label = device.label.toLowerCase();
+      console.log(
+        "📱 MOBILE DEBUG - Camera Classification:",
+        JSON.stringify(
+          {
+            deviceId: device.deviceId,
+            originalLabel: device.label,
+            lowercaseLabel: label,
+            containsFront: label.includes("front"),
+            containsUser: label.includes("user"),
+            containsFacing: label.includes("facing"),
+            containsBack: label.includes("back"),
+            containsRear: label.includes("rear"),
+            containsEnvironment: label.includes("environment"),
+          },
+          null,
+          2
+        )
+      );
 
-    if (label.includes('front') || label.includes('user') || label.includes('facing')) {
-      console.log("📱 MOBILE DEBUG - Classified as USER camera");
-      return 'user';
-    }
-    if (label.includes('back') || label.includes('rear') || label.includes('environment')) {
-      console.log("📱 MOBILE DEBUG - Classified as ENVIRONMENT camera");
-      return 'environment';
-    }
-    console.log("📱 MOBILE DEBUG - Classified as UNKNOWN camera");
-    return 'unknown';
-  }, []);
+      if (
+        label.includes("front") ||
+        label.includes("user") ||
+        label.includes("facing")
+      ) {
+        console.log("📱 MOBILE DEBUG - Classified as USER camera");
+        return "user";
+      }
+      if (
+        label.includes("back") ||
+        label.includes("rear") ||
+        label.includes("environment")
+      ) {
+        console.log("📱 MOBILE DEBUG - Classified as ENVIRONMENT camera");
+        return "environment";
+      }
+      console.log("📱 MOBILE DEBUG - Classified as UNKNOWN camera");
+      return "unknown";
+    },
+    []
+  );
 
   // Enhanced camera switching with LiveKit hooks
   const switchCamera = useCallback(async () => {
-    console.log("📱 MOBILE DEBUG - Camera Switch Initiated:", JSON.stringify({
-      hasLocalParticipant: !!localParticipant,
-      isSwitchingCamera: isSwitchingCamera,
-      videoDevicesCount: videoDevices.length,
-      currentCamera: currentCamera,
-      currentFacingMode: currentFacingMode
-    }, null, 2));
+    console.log(
+      "📱 MOBILE DEBUG - Camera Switch Initiated:",
+      JSON.stringify(
+        {
+          hasLocalParticipant: !!localParticipant,
+          isSwitchingCamera: isSwitchingCamera,
+          videoDevicesCount: videoDevices.length,
+          currentCamera: currentCamera,
+          currentFacingMode: currentFacingMode,
+        },
+        null,
+        2
+      )
+    );
 
     if (!localParticipant || isSwitchingCamera || videoDevices.length < 2) {
-      console.log("📱 MOBILE DEBUG - Camera Switch Blocked:", JSON.stringify({
-        reason: !localParticipant ? "No local participant" : 
-                isSwitchingCamera ? "Already switching" :
-                "Insufficient cameras",
-        localParticipant: !!localParticipant,
-        isSwitchingCamera: isSwitchingCamera,
-        videoDevicesCount: videoDevices.length
-      }, null, 2));
+      console.log(
+        "📱 MOBILE DEBUG - Camera Switch Blocked:",
+        JSON.stringify(
+          {
+            reason: !localParticipant
+              ? "No local participant"
+              : isSwitchingCamera
+              ? "Already switching"
+              : "Insufficient cameras",
+            localParticipant: !!localParticipant,
+            isSwitchingCamera: isSwitchingCamera,
+            videoDevicesCount: videoDevices.length,
+          },
+          null,
+          2
+        )
+      );
       return;
     }
 
     setIsSwitchingCamera(true);
     try {
       // Determine the target facing mode
-      const newFacingMode = currentFacingMode === "user" ? "environment" : "user";
-      
-      console.log("📱 MOBILE DEBUG - Camera Switch Details:", JSON.stringify({
-        switchingFrom: currentFacingMode,
-        switchingTo: newFacingMode,
-        timestamp: new Date().toISOString()
-      }, null, 2));
+      const newFacingMode =
+        currentFacingMode === "user" ? "environment" : "user";
+
+      console.log(
+        "📱 MOBILE DEBUG - Camera Switch Details:",
+        JSON.stringify(
+          {
+            switchingFrom: currentFacingMode,
+            switchingTo: newFacingMode,
+            timestamp: new Date().toISOString(),
+          },
+          null,
+          2
+        )
+      );
 
       // Find cameras of the target type
-      const targetCameras = videoDevices.filter(device => {
+      const targetCameras = videoDevices.filter((device) => {
         const cameraType = getCameraType(device);
         return cameraType === newFacingMode;
       });
 
-      console.log("📱 MOBILE DEBUG - Target Cameras Found:", JSON.stringify({
-        targetFacingMode: newFacingMode,
-        targetCamerasCount: targetCameras.length,
-        targetCameras: targetCameras.map(cam => ({
-          deviceId: cam.deviceId,
-          label: cam.label,
-          classifiedType: getCameraType(cam)
-        }))
-      }, null, 2));
+      console.log(
+        "📱 MOBILE DEBUG - Target Cameras Found:",
+        JSON.stringify(
+          {
+            targetFacingMode: newFacingMode,
+            targetCamerasCount: targetCameras.length,
+            targetCameras: targetCameras.map((cam) => ({
+              deviceId: cam.deviceId,
+              label: cam.label,
+              classifiedType: getCameraType(cam),
+            })),
+          },
+          null,
+          2
+        )
+      );
 
       // If no specific cameras found for the target type, try to find any different camera
       let targetCamera: MediaDeviceInfo | undefined;
-      
+
       if (targetCameras.length > 0) {
         // Use the first camera of the target type
         targetCamera = targetCameras[0];
         console.log("📱 MOBILE DEBUG - Using classified target camera");
       } else {
         // Fallback: use any camera that's not the current one
-        targetCamera = videoDevices.find(device => device.deviceId !== currentCamera);
-        console.log("📱 MOBILE DEBUG - Using fallback camera (any different camera)");
+        targetCamera = videoDevices.find(
+          (device) => device.deviceId !== currentCamera
+        );
+        console.log(
+          "📱 MOBILE DEBUG - Using fallback camera (any different camera)"
+        );
       }
 
       if (!targetCamera) {
@@ -234,61 +227,102 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
         return;
       }
 
-      console.log("📱 MOBILE DEBUG - Final Camera Selection:", JSON.stringify({
-        selectedCamera: {
-          deviceId: targetCamera.deviceId,
-          label: targetCamera.label,
-          detectedType: getCameraType(targetCamera)
-        },
-        selectionMethod: targetCameras.length > 0 ? "classified" : "fallback"
-      }, null, 2));
+      console.log(
+        "📱 MOBILE DEBUG - Final Camera Selection:",
+        JSON.stringify(
+          {
+            selectedCamera: {
+              deviceId: targetCamera.deviceId,
+              label: targetCamera.label,
+              detectedType: getCameraType(targetCamera),
+            },
+            selectionMethod:
+              targetCameras.length > 0 ? "classified" : "fallback",
+          },
+          null,
+          2
+        )
+      );
 
       // Use LiveKit's device selection
       console.log("📱 MOBILE DEBUG - Calling setActiveMediaDevice...");
       await setActiveMediaDevice(targetCamera.deviceId);
-      console.log("📱 MOBILE DEBUG - setActiveMediaDevice completed successfully");
-      
+      console.log(
+        "📱 MOBILE DEBUG - setActiveMediaDevice completed successfully"
+      );
+
       // Update the facing mode state
       const actualCameraType = getCameraType(targetCamera);
       if (actualCameraType !== "unknown") {
         setCurrentFacingMode(actualCameraType);
-        console.log("📱 MOBILE DEBUG - Updated facing mode to detected type:", actualCameraType);
+        console.log(
+          "📱 MOBILE DEBUG - Updated facing mode to detected type:",
+          actualCameraType
+        );
       } else {
         // Toggle the facing mode even if we couldn't detect the type
         setCurrentFacingMode(newFacingMode);
-        console.log("📱 MOBILE DEBUG - Updated facing mode to target type:", newFacingMode);
+        console.log(
+          "📱 MOBILE DEBUG - Updated facing mode to target type:",
+          newFacingMode
+        );
       }
 
-      const cameraType = actualCameraType !== "unknown" ? actualCameraType : newFacingMode;
+      const cameraType =
+        actualCameraType !== "unknown" ? actualCameraType : newFacingMode;
       const friendlyName = cameraType === "environment" ? "back" : "front";
-      
-      console.log("📱 MOBILE DEBUG - Camera Switch Success:", JSON.stringify({
-        finalFacingMode: cameraType,
-        friendlyName: friendlyName,
-        actualCameraType: actualCameraType,
-        newFacingMode: newFacingMode
-      }, null, 2));
-      
-      toast.success(`Switched to ${friendlyName} camera`);
 
+      console.log(
+        "📱 MOBILE DEBUG - Camera Switch Success:",
+        JSON.stringify(
+          {
+            finalFacingMode: cameraType,
+            friendlyName: friendlyName,
+            actualCameraType: actualCameraType,
+            newFacingMode: newFacingMode,
+          },
+          null,
+          2
+        )
+      );
+
+      toast.success(`Switched to ${friendlyName} camera`);
     } catch (error) {
-      console.error("📱 MOBILE DEBUG - Camera Switch Error:", JSON.stringify({
-        error: error instanceof Error ? {
-          name: error.name,
-          message: error.message,
-          stack: error.stack
-        } : error,
-        timestamp: new Date().toISOString(),
-        currentCamera: currentCamera,
-        currentFacingMode: currentFacingMode,
-        videoDevicesCount: videoDevices.length
-      }, null, 2));
+      console.error(
+        "📱 MOBILE DEBUG - Camera Switch Error:",
+        JSON.stringify(
+          {
+            error:
+              error instanceof Error
+                ? {
+                    name: error.name,
+                    message: error.message,
+                    stack: error.stack,
+                  }
+                : error,
+            timestamp: new Date().toISOString(),
+            currentCamera: currentCamera,
+            currentFacingMode: currentFacingMode,
+            videoDevicesCount: videoDevices.length,
+          },
+          null,
+          2
+        )
+      );
       toast.error("Failed to switch camera. Please try again.");
     } finally {
       setIsSwitchingCamera(false);
       console.log("📱 MOBILE DEBUG - Camera switching state reset to false");
     }
-  }, [localParticipant, currentFacingMode, isSwitchingCamera, videoDevices, currentCamera, setActiveMediaDevice, getCameraType]);
+  }, [
+    localParticipant,
+    currentFacingMode,
+    isSwitchingCamera,
+    videoDevices,
+    currentCamera,
+    setActiveMediaDevice,
+    getCameraType,
+  ]);
 
   // Helper function to update participant live status
   const updateParticipantLiveStatus = useCallback(
@@ -381,9 +415,8 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
 
     try {
       const enabled = !isVideoEnabled;
-      console.log("🎥 STREAMING CONTROLS - Toggling video:", { from: isVideoEnabled, to: enabled });
       await localParticipant.setCameraEnabled(enabled);
-      // State will be synced via the track event listeners
+      setIsVideoEnabled(enabled);
 
       if (enabled) {
         toast.success("Camera turned on");
@@ -404,9 +437,8 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
 
     try {
       const enabled = !isAudioEnabled;
-      console.log("🎥 STREAMING CONTROLS - Toggling audio:", { from: isAudioEnabled, to: enabled });
       await localParticipant.setMicrophoneEnabled(enabled);
-      // State will be synced via the track event listeners
+      setIsAudioEnabled(enabled);
 
       if (enabled) {
         toast.success("Microphone turned on");
@@ -427,9 +459,8 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
 
     try {
       const enabled = !isScreenSharing;
-      console.log("🎥 STREAMING CONTROLS - Toggling screen share:", { from: isScreenSharing, to: enabled });
       await localParticipant.setScreenShareEnabled(enabled);
-      // State will be synced via the track event listeners
+      setIsScreenSharing(enabled);
 
       if (enabled) {
         toast.success("Screen sharing started");
