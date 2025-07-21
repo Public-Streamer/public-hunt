@@ -119,7 +119,7 @@ const AdFeedbackPopup: React.FC<AdFeedbackPopupProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 animate-fade-in">
+    <div className="fixed inset-0 bg-black/50 z-[9998] flex items-center justify-center p-4 animate-fade-in">
       <Card className="w-full max-w-md animate-scale-in">
         <CardHeader className="text-center space-y-2">
           <div className="flex justify-between items-center">

@@ -558,7 +558,7 @@ const CreateAd: React.FC = () => {
             )}
 
             {/* Helper Tips */}
-            <Card className="bg-white/10 backdrop-blur-sm border-white/20">
+            <Card className="bg-white/10 backdrop-blur-sm border-white/20 relative z-0">
               <CardHeader>
                 <CardTitle className="text-white text-lg">💡 Pro Tips</CardTitle>
               </CardHeader>
