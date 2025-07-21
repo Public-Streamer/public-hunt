@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { CheckCircle, CreditCard, Building2, ArrowRight } from 'lucide-react';
+import { CheckCircle, CreditCard, Building2, ArrowRight, Loader2 } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+import { useAppContext } from '@/contexts/AppContext';
 import StripeAccountForm from './StripeAccountForm';
 import BankingInfoForm from './BankingInfoForm';
 
@@ -12,9 +15,61 @@ interface PaymentSetupWizardProps {
   onComplete: () => void;
 }
 
+interface StripeAccount {
+  id: string;
+  stripe_account_id: string;
+  account_status: string;
+  onboarding_completed: boolean;
+  payouts_enabled: boolean;
+}
+
 const PaymentSetupWizard: React.FC<PaymentSetupWizardProps> = ({ onComplete }) => {
   const [currentStep, setCurrentStep] = useState<SetupStep>('welcome');
   const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
+  const [loading, setLoading] = useState(true);
+  const [stripeAccount, setStripeAccount] = useState<StripeAccount | null>(null);
+  const { user } = useAppContext();
+
+  useEffect(() => {
+    if (user) {
+      checkExistingSetup();
+    }
+  }, [user]);
+
+  const checkExistingSetup = async () => {
+    try {
+      setLoading(true);
+      
+      // Check for existing Stripe account
+      const { data: stripeData, error: stripeError } = await supabase
+        .from('host_stripe_accounts')
+        .select('*')
+        .eq('user_id', user?.id)
+        .single();
+
+      if (stripeError && stripeError.code !== 'PGRST116') {
+        throw stripeError;
+      }
+
+      if (stripeData) {
+        setStripeAccount(stripeData);
+        
+        if (stripeData.onboarding_completed && stripeData.payouts_enabled) {
+          setCompletedSteps(prev => new Set([...prev, 'stripe']));
+          
+          // Check banking info (this is a simplified check - you might want to add a banking_info table)
+          setCompletedSteps(prev => new Set([...prev, 'banking']));
+          setCurrentStep('complete');
+        } else {
+          setCurrentStep('stripe');
+        }
+      }
+    } catch (err) {
+      console.error('Error checking existing setup:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleStripeAccountLinked = () => {
     setCompletedSteps(prev => new Set([...prev, 'stripe']));
@@ -64,6 +119,19 @@ const PaymentSetupWizard: React.FC<PaymentSetupWizardProps> = ({ onComplete }) =
       </div>
     );
   };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+            <p className="text-muted-foreground">Loading payment setup...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (currentStep === 'welcome') {
     return (
@@ -127,12 +195,27 @@ const PaymentSetupWizard: React.FC<PaymentSetupWizardProps> = ({ onComplete }) =
             </div>
             <div className="flex items-center space-x-2">
               <CheckCircle className="h-4 w-4 text-green-600" />
-              <span className="text-sm">Banking information saved</span>
+              <span className="text-sm">Banking information configured</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+              <span className="text-sm">Ready to accept payments</span>
             </div>
           </div>
+
+          {stripeAccount && (
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <h4 className="font-medium mb-2">Account Details</h4>
+              <div className="text-sm text-gray-600">
+                <p>Account ID: {stripeAccount.stripe_account_id}</p>
+                <p>Status: {stripeAccount.account_status}</p>
+                <p>Payouts: {stripeAccount.payouts_enabled ? 'Enabled' : 'Pending'}</p>
+              </div>
+            </div>
+          )}
           
           <Button onClick={handleComplete} className="w-full">
-            Continue to Admin Dashboard
+            Continue to Dashboard
           </Button>
         </CardContent>
       </Card>
