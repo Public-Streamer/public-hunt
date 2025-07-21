@@ -1781,9 +1781,22 @@ export type Database = {
         Args: { user_email: string }
         Returns: Database["public"]["Enums"]["admin_role"]
       }
+      get_user_admin_role_safe: {
+        Args: { user_id_param: string }
+        Returns: Database["public"]["Enums"]["admin_role"]
+      }
       is_admin_user: {
         Args: { user_id: string }
         Returns: boolean
+      }
+      update_stripe_account_status: {
+        Args: {
+          account_id: string
+          new_status: string
+          onboarding_completed: boolean
+          payouts_enabled: boolean
+        }
+        Returns: undefined
       }
     }
     Enums: {

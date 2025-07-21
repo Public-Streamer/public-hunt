@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { CreditCard, ExternalLink, CheckCircle, Loader2, AlertCircle } from 'lucide-react';
+import { CreditCard, ExternalLink, CheckCircle, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { useAppContext } from '@/contexts/AppContext';
@@ -25,6 +25,7 @@ interface StripeAccount {
 const StripeAccountForm: React.FC<StripeAccountFormProps> = ({ onAccountLinked }) => {
   const [hasStripeAccount, setHasStripeAccount] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isCheckingStatus, setIsCheckingStatus] = useState(false);
   const [error, setError] = useState('');
   const [existingAccount, setExistingAccount] = useState<StripeAccount | null>(null);
   const [checkingAccount, setCheckingAccount] = useState(true);
@@ -140,6 +141,38 @@ const StripeAccountForm: React.FC<StripeAccountFormProps> = ({ onAccountLinked }
     poll();
   };
 
+  const checkStripeAccountStatus = async () => {
+    if (!existingAccount) return;
+    
+    setIsCheckingStatus(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("check-stripe-account-status");
+      
+      if (error) throw error;
+
+      // Refresh account data
+      await checkExistingStripeAccount();
+      
+      toast({
+        title: "Status Updated",
+        description: `Account status: ${data.accountStatus}`,
+      });
+
+      if (data.accountStatus === "active") {
+        onAccountLinked();
+      }
+    } catch (error) {
+      console.error("Error checking account status:", error);
+      toast({
+        title: "Error",
+        description: "Failed to check account status",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCheckingStatus(false);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
@@ -232,22 +265,55 @@ const StripeAccountForm: React.FC<StripeAccountFormProps> = ({ onAccountLinked }
               </AlertDescription>
             </Alert>
           ) : (
-            <Alert>
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                Complete your Stripe account setup to start receiving payments.
+            <div className="space-y-4">
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Complete your Stripe account setup to start receiving payments.
+                </AlertDescription>
+              </Alert>
+              
+              <div className="space-y-2">
                 {!existingAccount.onboarding_completed && (
                   <Button
-                    variant="link"
-                    className="p-0 h-auto ml-2"
                     onClick={handleCreateStripeAccount}
                     disabled={loading}
+                    className="w-full"
                   >
-                    Continue Setup
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Redirecting...
+                      </>
+                    ) : (
+                      <>
+                        <ExternalLink className="mr-2 h-4 w-4" />
+                        Continue Setup
+                      </>
+                    )}
                   </Button>
                 )}
-              </AlertDescription>
-            </Alert>
+                
+                <Button 
+                  onClick={checkStripeAccountStatus} 
+                  disabled={isCheckingStatus}
+                  variant="outline"
+                  className="w-full"
+                >
+                  {isCheckingStatus ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Checking Status...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="mr-2 h-4 w-4" />
+                      Check Account Status
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
           )}
 
           {error && (

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { CheckCircle, CreditCard, Building2, ArrowRight, Loader2 } from 'lucide-react';
+import { CheckCircle, CreditCard, Building2, ArrowRight, Loader2, RefreshCw } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAppContext } from '@/contexts/AppContext';
 import StripeAccountForm from './StripeAccountForm';
@@ -27,6 +27,7 @@ const PaymentSetupWizard: React.FC<PaymentSetupWizardProps> = ({ onComplete }) =
   const [currentStep, setCurrentStep] = useState<SetupStep>('welcome');
   const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [isCheckingStatus, setIsCheckingStatus] = useState(false);
   const [stripeAccount, setStripeAccount] = useState<StripeAccount | null>(null);
   const { user } = useAppContext();
 
@@ -83,6 +84,30 @@ const PaymentSetupWizard: React.FC<PaymentSetupWizardProps> = ({ onComplete }) =
 
   const handleComplete = () => {
     onComplete();
+  };
+
+  const checkStripeAccountStatus = async () => {
+    if (!stripeAccount) return;
+    
+    setIsCheckingStatus(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("check-stripe-account-status");
+      
+      if (error) throw error;
+
+      // Refresh the setup check
+      await checkExistingSetup();
+      
+      console.log("Status Updated:", data.accountStatus);
+
+      if (data.accountStatus === "active") {
+        setCurrentStep('complete');
+      }
+    } catch (error) {
+      console.error("Error checking account status:", error);
+    } finally {
+      setIsCheckingStatus(false);
+    }
   };
 
   const renderStepIndicator = () => {
@@ -213,10 +238,31 @@ const PaymentSetupWizard: React.FC<PaymentSetupWizardProps> = ({ onComplete }) =
               </div>
             </div>
           )}
-          
-          <Button onClick={handleComplete} className="w-full">
-            Continue to Dashboard
-          </Button>
+
+          <div className="space-y-2">
+            <Button onClick={handleComplete} className="w-full">
+              Continue to Dashboard
+            </Button>
+            
+            <Button 
+              onClick={checkStripeAccountStatus} 
+              disabled={isCheckingStatus}
+              variant="outline"
+              className="w-full"
+            >
+              {isCheckingStatus ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Checking Status...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Refresh Account Status
+                </>
+              )}
+            </Button>
+          </div>
         </CardContent>
       </Card>
     );
