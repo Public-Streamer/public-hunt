@@ -1,18 +1,18 @@
-
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { CreditCard, ExternalLink, CheckCircle, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
-import { useToast } from '@/hooks/use-toast';
-import { useAppContext } from '@/contexts/AppContext';
-
-interface StripeAccountFormProps {
-  onAccountLinked: () => void;
-}
+import React, { useState, useEffect, useCallback } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  CreditCard,
+  ExternalLink,
+  CheckCircle,
+  Loader2,
+  AlertCircle,
+  RefreshCw,
+} from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { useToast } from "@/hooks/use-toast";
+import { useAppContext } from "@/contexts/AppContext";
 
 interface StripeAccount {
   id: string;
@@ -22,146 +22,168 @@ interface StripeAccount {
   payouts_enabled: boolean;
 }
 
-const StripeAccountForm: React.FC<StripeAccountFormProps> = ({ onAccountLinked }) => {
-  const [hasStripeAccount, setHasStripeAccount] = useState<boolean | null>(null);
+const StripeAccountForm: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
-  const [error, setError] = useState('');
-  const [existingAccount, setExistingAccount] = useState<StripeAccount | null>(null);
+  const [error, setError] = useState("");
+  const [stripeAccount, setStripeAccount] = useState<StripeAccount | null>(
+    null
+  );
   const [checkingAccount, setCheckingAccount] = useState(true);
   const { toast } = useToast();
   const { user } = useAppContext();
+
+  const checkExistingStripeAccount = useCallback(async () => {
+    try {
+      setCheckingAccount(true);
+      const { data, error } = await supabase
+        .from("host_stripe_accounts")
+        .select("*")
+        .eq("user_id", user?.id)
+        .single();
+
+      if (error && error.code !== "PGRST116") {
+        console.log("no record found");
+        return;
+      }
+
+      // if any record exist
+      if (data) {
+        console.log("record found");
+        // if onboarding is completed
+        if (data.onboarding_completed) {
+          // Account is fully set up
+          console.log("onboarding completed");
+          setStripeAccount(data);
+          toast({
+            title: "Account Setup Complete",
+            description: "Your Stripe account is now ready for payments!",
+          });
+        } else {
+          // if onboarding is not completed
+          console.log("onboarding not completed, checking latest from stripe");
+          checkStripeAccountStatus();
+        }
+      }
+    } catch (err) {
+      console.error("Error checking existing account:", err);
+    } finally {
+      setCheckingAccount(false);
+    }
+  }, [user]);
 
   useEffect(() => {
     if (user) {
       checkExistingStripeAccount();
     }
-  }, [user]);
-
-  const checkExistingStripeAccount = async () => {
-    try {
-      setCheckingAccount(true);
-      const { data, error } = await supabase
-        .from('host_stripe_accounts')
-        .select('*')
-        .eq('user_id', user?.id)
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        throw error;
-      }
-
-      if (data) {
-        setExistingAccount(data);
-        if (data.onboarding_completed && data.payouts_enabled) {
-          // Account is fully set up, trigger completion
-          onAccountLinked();
-        }
-      }
-    } catch (err) {
-      console.error('Error checking existing account:', err);
-    } finally {
-      setCheckingAccount(false);
-    }
-  };
+  }, [user, checkExistingStripeAccount]);
 
   const handleCreateStripeAccount = async () => {
     setLoading(true);
-    setError('');
-    
+    setError("");
+
     try {
-      const { data, error } = await supabase.functions.invoke('create-stripe-express-account', {
-        body: { 
-          email: user?.email,
-          firstName: user?.user_metadata?.first_name || '',
-          lastName: user?.user_metadata?.last_name || ''
+      const { data, error } = await supabase.functions.invoke(
+        "create-stripe-express-account",
+        {
+          body: {
+            email: user?.email,
+            firstName: user?.user_metadata?.first_name || "",
+            lastName: user?.user_metadata?.last_name || "",
+          },
         }
-      });
-      
+      );
+
       if (error) throw error;
-      
+
       if (data.url) {
         // Redirect to Stripe onboarding
-        window.open(data.url, '_blank');
-        
+        window.open(data.url, "_blank");
+
         toast({
-          title: 'Redirecting to Stripe',
-          description: 'Complete your account setup in the new window.',
+          title: "Redirecting to Stripe",
+          description: "Complete your account setup in the new window.",
         });
 
         // Start polling for account status
-        pollAccountStatus(data.accountId);
+        // pollAccountStatus(data.accountId);
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to create Stripe account. Please try again.');
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Failed to create Stripe account. Please try again.";
+      setError(errorMessage);
       toast({
-        title: 'Error',
-        description: 'Failed to create Stripe account',
-        variant: 'destructive'
+        title: "Error",
+        description: "Failed to create Stripe account",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const pollAccountStatus = async (accountId: string) => {
-    const maxAttempts = 30; // Poll for 5 minutes
-    let attempts = 0;
+  // const pollAccountStatus = async (accountId: string) => {
+  //   const maxAttempts = 30; // Poll for 5 minutes
+  //   let attempts = 0;
 
-    const poll = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('host_stripe_accounts')
-          .select('*')
-          .eq('stripe_account_id', accountId)
-          .single();
+  //   const poll = async () => {
+  //     try {
+  //       const { data, error } = await supabase
+  //         .from("host_stripe_accounts")
+  //         .select("*")
+  //         .eq("stripe_account_id", accountId)
+  //         .single();
 
-        if (error) throw error;
+  //       if (error) throw error;
 
-        setExistingAccount(data);
+  //       setStripeAccount(data);
 
-        if (data.onboarding_completed && data.payouts_enabled) {
-          toast({
-            title: 'Account Setup Complete',
-            description: 'Your Stripe account is now ready for payments!',
-          });
-          onAccountLinked();
-          return;
-        }
+  //       if (data.onboarding_completed && data.payouts_enabled) {
+  //         toast({
+  //           title: "Account Setup Complete",
+  //           description: "Your Stripe account is now ready for payments!",
+  //         });
 
-        attempts++;
-        if (attempts < maxAttempts) {
-          setTimeout(poll, 10000); // Poll every 10 seconds
-        }
-      } catch (err) {
-        console.error('Error polling account status:', err);
-      }
-    };
+  //         return;
+  //       }
 
-    poll();
-  };
+  //       attempts++;
+  //       if (attempts < maxAttempts) {
+  //         setTimeout(poll, 10000); // Poll every 10 seconds
+  //       }
+  //     } catch (err) {
+  //       console.error("Error polling account status:", err);
+  //     }
+  //   };
+
+  //   poll();
+  // };
 
   const checkStripeAccountStatus = async () => {
-    if (!existingAccount) return;
-    
+    // if (!stripeAccount) return;
+
     setIsCheckingStatus(true);
     try {
-      const { data, error } = await supabase.functions.invoke("check-stripe-account-status");
-      
+      const { data, error } = await supabase.functions.invoke(
+        "check-stripe-account-status"
+      );
+
       if (error) throw error;
 
       // Refresh account data
-      await checkExistingStripeAccount();
-      
-      toast({
-        title: "Status Updated",
-        description: `Account status: ${data.accountStatus}`,
-      });
+      // await checkExistingStripeAccount();
 
-      if (data.accountStatus === "active") {
-        onAccountLinked();
-      }
-    } catch (error) {
+      // toast({
+      //   title: "Status Updated",
+      //   description: `Account status: ${data.accountStatus}`,
+      // // });
+
+      // if (data.accountStatus === "active") {
+      //   //set active
+      // }
+    } catch (error: unknown) {
       console.error("Error checking account status:", error);
       toast({
         title: "Error",
@@ -175,14 +197,14 @@ const StripeAccountForm: React.FC<StripeAccountFormProps> = ({ onAccountLinked }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'active':
+      case "active":
         return (
           <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
             <CheckCircle className="h-3 w-3 mr-1" />
             Active
           </span>
         );
-      case 'pending':
+      case "pending":
         return (
           <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
             <Loader2 className="h-3 w-3 mr-1 animate-spin" />
@@ -213,7 +235,7 @@ const StripeAccountForm: React.FC<StripeAccountFormProps> = ({ onAccountLinked }
   }
 
   // Show existing account status if available
-  if (existingAccount) {
+  if (stripeAccount) {
     return (
       <Card>
         <CardHeader>
@@ -227,131 +249,50 @@ const StripeAccountForm: React.FC<StripeAccountFormProps> = ({ onAccountLinked }
             <div>
               <h3 className="font-medium">Account Status</h3>
               <p className="text-sm text-muted-foreground">
-                Account ID: {existingAccount.stripe_account_id}
+                Account ID: {stripeAccount.stripe_account_id}
               </p>
             </div>
-            {getStatusBadge(existingAccount.account_status)}
+            {getStatusBadge(stripeAccount.account_status)}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex items-center space-x-2">
-              {existingAccount.onboarding_completed ? (
-                <CheckCircle className="h-4 w-4 text-green-600" />
-              ) : (
-                <AlertCircle className="h-4 w-4 text-yellow-600" />
-              )}
-              <span className="text-sm">
-                Onboarding {existingAccount.onboarding_completed ? 'Complete' : 'Pending'}
-              </span>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              {existingAccount.payouts_enabled ? (
-                <CheckCircle className="h-4 w-4 text-green-600" />
-              ) : (
-                <AlertCircle className="h-4 w-4 text-yellow-600" />
-              )}
-              <span className="text-sm">
-                Payouts {existingAccount.payouts_enabled ? 'Enabled' : 'Disabled'}
-              </span>
-            </div>
-          </div>
-
-          {existingAccount.onboarding_completed && existingAccount.payouts_enabled ? (
-            <Alert>
-              <CheckCircle className="h-4 w-4" />
-              <AlertDescription>
-                Your Stripe account is fully set up and ready to receive payments!
-              </AlertDescription>
-            </Alert>
-          ) : (
-            <div className="space-y-4">
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  Complete your Stripe account setup to start receiving payments.
-                </AlertDescription>
-              </Alert>
-              
-              <div className="space-y-2">
-                {!existingAccount.onboarding_completed && (
-                  <Button
-                    onClick={handleCreateStripeAccount}
-                    disabled={loading}
-                    className="w-full"
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Redirecting...
-                      </>
-                    ) : (
-                      <>
-                        <ExternalLink className="mr-2 h-4 w-4" />
-                        Continue Setup
-                      </>
-                    )}
-                  </Button>
-                )}
-                
-                <Button 
-                  onClick={checkStripeAccountStatus} 
-                  disabled={isCheckingStatus}
-                  variant="outline"
-                  className="w-full"
-                >
-                  {isCheckingStatus ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Checking Status...
-                    </>
-                  ) : (
-                    <>
-                      <RefreshCw className="mr-2 h-4 w-4" />
-                      Check Account Status
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // Initial setup flow
-  if (hasStripeAccount === null) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <CreditCard className="h-5 w-5 mr-2" />
-            Stripe Account Setup
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
           <Alert>
             <AlertDescription>
-              To collect payments for your events, you need a Stripe account. Do you already have one?
+              {stripeAccount.onboarding_completed &&
+              stripeAccount.payouts_enabled
+                ? "Your Stripe account is fully set up and ready to receive payments!"
+                : "Complete your Stripe account setup to start receiving payments."}
             </AlertDescription>
           </Alert>
-          
-          <div className="flex space-x-4">
-            <Button onClick={() => setHasStripeAccount(false)} disabled={loading}>
-              Create New Account
-            </Button>
-            <Button variant="outline" onClick={() => setHasStripeAccount(true)} disabled={loading}>
-              I Have an Account
-            </Button>
-          </div>
-          
+
+          <Button
+            onClick={() =>
+              window.open(`https://dashboard.stripe.com/express/`, "_blank")
+            }
+            className="w-full"
+          >
+            <ExternalLink className="h-4 w-4 mr-2" />
+            Login to Stripe
+          </Button>
+
+          <Button
+            onClick={checkStripeAccountStatus}
+            disabled={isCheckingStatus}
+            variant="outline"
+            className="w-full"
+          >
+            {isCheckingStatus ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Checking Status...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Refresh Account Status
+              </>
+            )}
+          </Button>
+
           {error && (
             <Alert variant="destructive">
               <AlertDescription>{error}</AlertDescription>
@@ -362,53 +303,36 @@ const StripeAccountForm: React.FC<StripeAccountFormProps> = ({ onAccountLinked }
     );
   }
 
+  // If no account exists, show the simple setup button
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center">
           <CreditCard className="h-5 w-5 mr-2" />
-          {hasStripeAccount ? 'Link Existing Stripe Account' : 'Create Stripe Account'}
+          Stripe Account Setup
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {hasStripeAccount ? (
-          <>
-            <Alert>
-              <AlertDescription>
-                You'll be redirected to Stripe to securely link your existing account.
-              </AlertDescription>
-            </Alert>
-            <Button onClick={handleCreateStripeAccount} disabled={loading} className="w-full">
-              {loading ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <ExternalLink className="h-4 w-4 mr-2" />
-              )}
-              Link Existing Stripe Account
-            </Button>
-          </>
-        ) : (
-          <>
-            <Alert>
-              <AlertDescription>
-                You'll be redirected to Stripe to create and verify your new account.
-              </AlertDescription>
-            </Alert>
-            <Button onClick={handleCreateStripeAccount} disabled={loading} className="w-full">
-              {loading ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <ExternalLink className="h-4 w-4 mr-2" />
-              )}
-              Create Stripe Account
-            </Button>
-          </>
-        )}
-        
-        <Button variant="ghost" onClick={() => setHasStripeAccount(null)} disabled={loading}>
-          Back
+        <Alert>
+          <AlertDescription>
+            To collect payments for your events, you need to set up a Stripe
+            account.
+          </AlertDescription>
+        </Alert>
+
+        <Button
+          onClick={handleCreateStripeAccount}
+          disabled={loading}
+          className="w-full"
+        >
+          {loading ? (
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          ) : (
+            <ExternalLink className="h-4 w-4 mr-2" />
+          )}
+          Start Setup
         </Button>
-        
+
         {error && (
           <Alert variant="destructive">
             <AlertDescription>{error}</AlertDescription>

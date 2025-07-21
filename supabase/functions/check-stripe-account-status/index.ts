@@ -4,7 +4,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 serve(async (req) => {
@@ -36,17 +37,33 @@ serve(async (req) => {
       .eq("user_id", user.id)
       .single();
 
-    if (fetchError || !stripeAccount) {
-      throw new Error("No Stripe account found for user", { cause: fetchError });
+    if (fetchError) {
+      throw new Error("Failed to fetch Stripe account");
+    }
+    if (!stripeAccount) {
+      return new Response(
+        JSON.stringify({
+          accountStatus: "not_found",
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        }
+      );
     }
 
     // Initialize Stripe
-    const stripe = new Stripe("sk_test_51RjhRTCREXNJuBpe8mOvq9rUOic9YNvoFUgX24EfJXHvFQQDScvj6Jl5XlKBHuki5DvNDVo855BsPGtIiln9wdoE00fQF8wFLA", {
-      apiVersion: "2023-10-16",
-    });
+    const stripe = new Stripe(
+      "sk_test_51RjhRTCREXNJuBpe8mOvq9rUOic9YNvoFUgX24EfJXHvFQQDScvj6Jl5XlKBHuki5DvNDVo855BsPGtIiln9wdoE00fQF8wFLA",
+      {
+        apiVersion: "2023-10-16",
+      }
+    );
 
     // Get account details from Stripe
-    const account = await stripe.accounts.retrieve(stripeAccount.stripe_account_id);
+    const account = await stripe.accounts.retrieve(
+      stripeAccount.stripe_account_id
+    );
 
     // Determine account status
     const onboardingCompleted = account.details_submitted;
@@ -66,12 +83,21 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    await supabaseService.rpc("update_stripe_account_status", {
-      account_id: stripeAccount.stripe_account_id,
-      new_status: accountStatus,
-      onboarding_completed: onboardingCompleted,
-      payouts_enabled: payoutsEnabled,
-    });
+    // await supabaseService.rpc("update_stripe_account_status", {
+    //   account_id: stripeAccount.stripe_account_id,
+    //   new_status: accountStatus,
+    //   onboarding_completed: onboardingCompleted,
+    //   payouts_enabled: payoutsEnabled,
+    // });
+
+    await supabaseClient
+      .from("host_stripe_accounts")
+      .update({
+        account_status: accountStatus,
+        onboarding_completed: onboardingCompleted,
+        payouts_enabled: payoutsEnabled,
+      })
+      .eq("user_id", user.id);
 
     return new Response(
       JSON.stringify({
@@ -87,12 +113,9 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error("Error checking Stripe account status:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 500,
-      }
-    );
+    return new Response(JSON.stringify({ error: error.message }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
+    });
   }
 });

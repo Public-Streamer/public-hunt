@@ -4,7 +4,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 serve(async (req) => {
@@ -29,7 +30,10 @@ serve(async (req) => {
       }
     );
 
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
     if (userError || !user) {
       throw new Error("User not authenticated");
     }
@@ -53,18 +57,25 @@ serve(async (req) => {
 
     if (existingAccount) {
       // Return existing account's onboarding link if not completed
-      const account = await stripe.accounts.retrieve(existingAccount.stripe_account_id);
-      
+      const account = await stripe.accounts.retrieve(
+        existingAccount.stripe_account_id
+      );
+
       if (!account.details_submitted) {
         const accountLink = await stripe.accountLinks.create({
           account: existingAccount.stripe_account_id,
-          refresh_url: `${req.headers.get("origin")}/payment-setup?refresh=true`,
+          refresh_url: `${req.headers.get(
+            "origin"
+          )}/payment-setup?refresh=true`,
           return_url: `${req.headers.get("origin")}/payment-setup?success=true`,
           type: "account_onboarding",
         });
 
         return new Response(
-          JSON.stringify({ url: accountLink.url, accountId: existingAccount.stripe_account_id }),
+          JSON.stringify({
+            url: accountLink.url,
+            accountId: existingAccount.stripe_account_id,
+          }),
           {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
             status: 200,
@@ -73,9 +84,9 @@ serve(async (req) => {
       }
 
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           message: "Account already exists and is active",
-          accountId: existingAccount.stripe_account_id 
+          accountId: existingAccount.stripe_account_id,
         }),
         {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -129,9 +140,9 @@ serve(async (req) => {
     console.log("Express account created:", account.id);
 
     return new Response(
-      JSON.stringify({ 
-        url: accountLink.url, 
-        accountId: account.id 
+      JSON.stringify({
+        url: accountLink.url,
+        accountId: account.id,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -140,12 +151,9 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error("Express account creation error:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 500,
-      }
-    );
+    return new Response(JSON.stringify({ error: error.message }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
+    });
   }
 });
