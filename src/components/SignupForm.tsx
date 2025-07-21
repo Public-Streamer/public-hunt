@@ -135,10 +135,16 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
 
   // Helper function to check if field is required
   const isFieldRequired = (fieldName: string) => {
-    const requiredFields = ['email', 'password', 'confirmPassword', 'firstName', 'lastName', 'birthDate', 'phone'];
+    const requiredFields = ['email', 'password', 'confirmPassword', 'phone'];
+    
+    if (signupData.accountType === 'individual') {
+      requiredFields.push('firstName', 'lastName', 'birthDate');
+    }
+    
     if (signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') {
       requiredFields.push('companyName', 'companyExecutorFirstName', 'companyExecutorLastName');
     }
+    
     return requiredFields.includes(fieldName);
   };
 
@@ -208,18 +214,21 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
     if (signupData.password !== signupData.confirmPassword) {
       return 'Passwords do not match';
     }
-    if (!signupData.firstName) {
-      return 'Please enter your first name';
-    }
-    if (!signupData.lastName) {
-      return 'Please enter your last name';
-    }
-    if (!signupData.birthDate) {
-      return 'Please enter your birth date';
-    }
-    const age = calculateAge(signupData.birthDate);
-    if (age < 18) {
-      return 'You must be 18 years or older to join';
+    
+    if (signupData.accountType === 'individual') {
+      if (!signupData.firstName) {
+        return 'Please enter your first name';
+      }
+      if (!signupData.lastName) {
+        return 'Please enter your last name';
+      }
+      if (!signupData.birthDate) {
+        return 'Please enter your birth date';
+      }
+      const age = calculateAge(signupData.birthDate);
+      if (age < 18) {
+        return 'You must be 18 years or older to join';
+      }
     }
     if (!signupData.phone) {
       return 'Please enter your cell phone number';
@@ -245,12 +254,6 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
       }
       if (!signupData.companyAccountMaster) {
         return 'Please select an Account Master';
-      }
-      if (emailVerification !== signupData.email) {
-        return 'Email verification does not match';
-      }
-      if (passwordVerification !== signupData.password) {
-        return 'Password verification does not match';
       }
     }
 
@@ -602,14 +605,17 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
             </div>
           )}
 
-          <div className="space-y-1">
-            <Label htmlFor="birthDate" className="text-sm">Birth Date</Label>
-            <BirthdaySelector
-              value={signupData.birthDate}
-              onChange={(date) => setSignupData(prev => ({ ...prev, birthDate: date }))}
-              className={getFieldErrorClass('birthDate')}
-            />
-          </div>
+          {/* Only show birth date for individual accounts */}
+          {signupData.accountType === 'individual' && (
+            <div className="space-y-1">
+              <Label htmlFor="birthDate" className="text-sm">Birth Date</Label>
+              <BirthdaySelector
+                value={signupData.birthDate}
+                onChange={(date) => setSignupData(prev => ({ ...prev, birthDate: date }))}
+                className={getFieldErrorClass('birthDate')}
+              />
+            </div>
+          )}
 
           <div className="space-y-1">
             <TooltipWrapper 
@@ -654,43 +660,6 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
           </div>
         </div>
 
-        {/* Verification Section (for business/organization and group/team) */}
-        {(signupData.accountType === 'business/organization' || signupData.accountType === 'group/team') && (
-          <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
-            <h3 className="text-lg font-semibold">
-              Verify {signupData.accountType === 'business/organization' ? 'Business/Organization' : 'Group/Team'} Account Master
-            </h3>
-            {signupData.companyAccountMasterName && (
-              <p className="text-sm text-muted-foreground">
-                Account Master: <span className="font-medium">{signupData.companyAccountMasterName}</span>
-              </p>
-            )}
-            
-            <div className="space-y-1">
-              <Label htmlFor="emailVerification" className="text-sm">Re-enter Email Address</Label>
-              <Input
-                id="emailVerification"
-                type="email"
-                value={emailVerification}
-                onChange={(e) => setEmailVerification(e.target.value)}
-                placeholder="Confirm email address"
-                className="h-8 text-sm"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <Label htmlFor="passwordVerification" className="text-sm">Re-enter Password</Label>
-              <Input
-                id="passwordVerification"
-                type="password"
-                value={passwordVerification}
-                onChange={(e) => setPasswordVerification(e.target.value)}
-                placeholder="Confirm password"
-                className="h-8 text-sm"
-              />
-            </div>
-          </div>
-        )}
 
         {/* Legal Agreement Section */}
         <div className="space-y-4">
