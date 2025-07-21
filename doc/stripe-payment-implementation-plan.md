@@ -34,7 +34,9 @@ User Purchase → Stripe Connect → Host Account (90%) + Platform Account (10%)
 
 **Tasks**:
 - Configure Stripe Connect platform settings in Stripe Dashboard
-- Set up Express Connect accounts for simplified host onboarding
+
+- Set up Express Connect accounts for simplified host onboarding ; See Docs: https://docs.stripe.com/connect/express-accounts.md
+
 - Configure platform fee structure (10% automatic deduction)
 
 **Deliverables**:
