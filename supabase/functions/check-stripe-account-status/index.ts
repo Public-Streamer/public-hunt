@@ -41,7 +41,7 @@ serve(async (req) => {
     }
 
     // Initialize Stripe
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+    const stripe = new Stripe("sk_test_51RjhRTCREXNJuBpe8mOvq9rUOic9YNvoFUgX24EfJXHvFQQDScvj6Jl5XlKBHuki5DvNDVo855BsPGtIiln9wdoE00fQF8wFLA", {
       apiVersion: "2023-10-16",
     });
 
