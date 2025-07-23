@@ -1636,33 +1636,86 @@ export type Database = {
           },
         ]
       }
+      user_post_tags: {
+        Row: {
+          created_at: string | null
+          id: string
+          post_id: string
+          tagged_by: string
+          tagged_user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          post_id: string
+          tagged_by: string
+          tagged_user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          post_id?: string
+          tagged_by?: string
+          tagged_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_post_tags_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "user_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_posts: {
         Row: {
+          channel_id: string | null
           comments: number | null
           content: string
           created_at: string | null
+          event_id: string | null
           id: string
           likes: number | null
+          location: string | null
+          media_type: string | null
+          media_url: string | null
+          metadata: Json | null
+          post_type: string | null
           updated_at: string | null
           user_id: string
           user_name: string
         }
         Insert: {
+          channel_id?: string | null
           comments?: number | null
           content: string
           created_at?: string | null
+          event_id?: string | null
           id?: string
           likes?: number | null
+          location?: string | null
+          media_type?: string | null
+          media_url?: string | null
+          metadata?: Json | null
+          post_type?: string | null
           updated_at?: string | null
           user_id: string
           user_name: string
         }
         Update: {
+          channel_id?: string | null
           comments?: number | null
           content?: string
           created_at?: string | null
+          event_id?: string | null
           id?: string
           likes?: number | null
+          location?: string | null
+          media_type?: string | null
+          media_url?: string | null
+          metadata?: Json | null
+          post_type?: string | null
           updated_at?: string | null
           user_id?: string
           user_name?: string
