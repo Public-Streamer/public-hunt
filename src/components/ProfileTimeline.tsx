@@ -100,8 +100,6 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
   const [selectedEvents, setSelectedEvents] = useState<any[]>([]);
   const [channelOpen, setChannelOpen] = useState(false);
   const [eventOpen, setEventOpen] = useState(false);
-  const [postsCache, setPostsCache] = useState<TimelinePost[]>([]);
-  const [persistedPosts, setPersistedPosts] = useState<TimelinePost[]>([]);
   const [channelInput, setChannelInput] = useState<string>('');
   const [eventInput, setEventInput] = useState<string>('');
   const [taggedUsers, setTaggedUsers] = useState<any[]>([]);
@@ -157,19 +155,22 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
     }
 
     try {
-      // Mock user search - in real app, search from user_profiles table
-      const mockUsers = [
-        { id: 'user-1', username: 'sarah_j', display_name: 'Sarah Johnson', profile_picture_url: '/placeholder.svg' },
-        { id: 'user-2', username: 'mike_chen', display_name: 'Mike Chen', profile_picture_url: '/placeholder.svg' },
-        { id: 'user-3', username: 'emma_w', display_name: 'Emma Wilson', profile_picture_url: '/placeholder.svg' },
-        { id: 'user-4', username: 'john_doe', display_name: 'John Doe', profile_picture_url: '/placeholder.svg' },
-        { id: 'user-5', username: 'jane_smith', display_name: 'Jane Smith', profile_picture_url: '/placeholder.svg' }
-      ];
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('id, user_id, username, display_name, profile_picture_url')
+        .or(`username.ilike.%${query}%,display_name.ilike.%${query}%`)
+        .limit(10);
 
-      const results = mockUsers.filter(user =>
-        user.username.toLowerCase().includes(query.toLowerCase()) ||
-        user.display_name.toLowerCase().includes(query.toLowerCase())
-      ).filter(user => !taggedUsers.find(taggedUser => taggedUser.id === user.id));
+      if (error) throw error;
+
+      const results = (data || [])
+        .filter(user => !taggedUsers.find(taggedUser => taggedUser.id === user.user_id))
+        .map(user => ({
+          id: user.user_id,
+          username: user.username,
+          display_name: user.display_name,
+          profile_picture_url: user.profile_picture_url
+        }));
 
       setUserSearchResults(results);
     } catch (error) {
@@ -248,120 +249,91 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
 
   const fetchPosts = async () => {
     try {
-      // Check if we have cached posts first
-      if (persistedPosts.length > 0) {
-        setPosts(persistedPosts);
-        setLoading(false);
-        return;
-      }
+      setLoading(true);
 
-      // Mock timeline posts with different types
-      const mockPosts: TimelinePost[] = [
-        {
-          id: '1',
-          content: 'Just finished an amazing livestream session! Thank you to everyone who joined. The energy was incredible! 🎉',
-          media_url: '/placeholder.svg',
-          media_type: 'image',
-          created_at: new Date(Date.now() - 3600000).toISOString(),
-          user_id: userId,
-          user_profile: {
-            id: profileData.id,
-            display_name: profileData.display_name,
-            username: profileData.username,
-            profile_picture_url: profileData.profile_picture_url
-          },
-          likes_count: 42,
-          comments_count: 8,
-          shares_count: 3,
-          is_liked: false,
-          is_bookmarked: false,
-          type: 'post'
-        },
-        {
-          id: '2',
-          content: 'Excited to announce my upcoming event! Join me for an exclusive workshop on content creation.',
-          created_at: new Date(Date.now() - 7200000).toISOString(),
-          user_id: userId,
-          user_profile: {
-            id: profileData.id,
-            display_name: profileData.display_name,
-            username: profileData.username,
-            profile_picture_url: profileData.profile_picture_url
-          },
-          likes_count: 67,
-          comments_count: 15,
-          shares_count: 12,
-          is_liked: true,
-          is_bookmarked: false,
-          type: 'event',
-          metadata: {
-            event_id: 'event-1',
-            location: 'San Francisco, CA',
-            attendees: 150
-          },
-          event: {
-            id: 'event-1',
-            name: 'Content Creation Workshop'
+      // Fetch posts from the database with user profiles and additional data
+      const { data: postsData, error: postsError } = await supabase
+        .from('user_posts')
+        .select(`
+          *,
+          user_profiles!inner(id, user_id, username, display_name, profile_picture_url)
+        `)
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (postsError) throw postsError;
+
+      // Transform the data to match our interface
+      const transformedPosts: TimelinePost[] = await Promise.all(
+        (postsData || []).map(async (post) => {
+          // Get tagged users for this post
+          const { data: taggedData } = await supabase
+            .from('user_post_tags')
+            .select(`
+              tagged_user_id,
+              user_profiles!tagged_user_id(username, display_name)
+            `)
+            .eq('post_id', post.id);
+
+          // Get channel info if linked
+          let channelData = null;
+          if (post.channel_id) {
+            const { data: channel } = await supabase
+              .from('channels')
+              .select('id, name')
+              .eq('id', post.channel_id)
+              .single();
+            channelData = channel;
           }
-        },
-        {
-          id: '3',
-          content: 'Behind the scenes of today\'s photo shoot! Creating content is so much fun when you have the right team.',
-          media_url: '/placeholder.svg',
-          media_type: 'video',
-          created_at: new Date(Date.now() - 14400000).toISOString(),
-          user_id: userId,
-          user_profile: {
-            id: profileData.id,
-            display_name: profileData.display_name,
-            username: profileData.username,
-            profile_picture_url: profileData.profile_picture_url
-          },
-          likes_count: 89,
-          comments_count: 23,
-          shares_count: 7,
-          is_liked: false,
-          is_bookmarked: true,
-          type: 'post',
-          channel: {
-            id: 'channel-1',
-            name: 'Photography Channel'
+
+          // Get event info if linked
+          let eventData = null;
+          if (post.event_id) {
+            const { data: event } = await supabase
+              .from('events')
+              .select('id, name')
+              .eq('id', post.event_id)
+              .single();
+            eventData = event;
           }
-        },
-        {
-          id: '4',
-          content: '🎉 Milestone achieved! Just reached 10,000 followers! Thank you all for your amazing support.',
-          created_at: new Date(Date.now() - 86400000).toISOString(),
-          user_id: userId,
-          user_profile: {
-            id: profileData.id,
-            display_name: profileData.display_name,
-            username: profileData.username,
-            profile_picture_url: profileData.profile_picture_url
-          },
-          likes_count: 234,
-          comments_count: 45,
-          shares_count: 18,
-          is_liked: true,
-          is_bookmarked: false,
-          type: 'milestone',
-          taggedUsers: [
-            {
-              id: 'user-1',
-              name: 'John Doe',
-              username: 'johndoe'
+
+          return {
+            id: post.id,
+            content: post.content,
+            media_url: post.media_url,
+            media_type: post.media_type as 'image' | 'video' | undefined,
+            created_at: post.created_at,
+            user_id: post.user_id,
+            user_profile: {
+              id: post.user_profiles.id,
+              username: post.user_profiles.username,
+              display_name: post.user_profiles.display_name,
+              profile_picture_url: post.user_profiles.profile_picture_url || '/placeholder.svg'
             },
-            {
-              id: 'user-2',
-              name: 'Jane Smith',
-              username: 'janesmith'
-            }
-          ]
-        }
-      ];
-      
-      setPosts(mockPosts);
-      setPersistedPosts(mockPosts); // Cache the posts
+            likes_count: post.likes_count || 0,
+            comments_count: post.comments_count || 0,
+            shares_count: post.shares_count || 0,
+            is_liked: false, // TODO: Implement user interactions
+            is_bookmarked: false, // TODO: Implement bookmarking
+            type: (post.post_type as 'post' | 'event' | 'channel' | 'milestone') || 'post',
+            metadata: {
+              ...(post.location && { location: post.location }),
+              ...(post.channel_id && { channel_id: post.channel_id }),
+              ...(post.event_id && { event_id: post.event_id }),
+              ...post.metadata
+            },
+            channel: channelData,
+            event: eventData,
+            taggedUsers: (taggedData || []).map((tag: any) => ({
+              id: tag.tagged_user_id,
+              name: tag.user_profiles?.display_name || '',
+              username: tag.user_profiles?.username || ''
+            }))
+          };
+        })
+      );
+
+      setPosts(transformedPosts);
     } catch (error) {
       console.error('Error fetching posts:', error);
       toast({
@@ -375,36 +347,37 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
   };
 
   const fetchComments = async (postId: string) => {
-    // Mock comments
-    const mockComments: Comment[] = [
-      {
-        id: '1',
-        content: 'Amazing content! Keep up the great work!',
+    try {
+      const { data: commentsData, error } = await supabase
+        .from('comments')
+        .select(`
+          *,
+          user_profiles!user_profile_id(id, username, display_name, profile_picture_url)
+        `)
+        .eq('post_id', postId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const transformedComments: Comment[] = (commentsData || []).map(comment => ({
+        id: comment.id,
+        content: comment.content,
         user_profile: {
-          id: 'user-sarah',
-          display_name: 'Sarah Johnson',
-          username: 'sarah_j',
-          profile_picture_url: '/placeholder.svg'
+          id: comment.user_profiles?.id || '',
+          username: comment.user_profiles?.username || '',
+          display_name: comment.user_profiles?.display_name || '',
+          profile_picture_url: comment.user_profiles?.profile_picture_url || '/placeholder.svg'
         },
-        created_at: new Date(Date.now() - 1800000).toISOString(),
-        likes_count: 5,
-        is_liked: false
-      },
-      {
-        id: '2',
-        content: 'This is so inspiring! Thank you for sharing.',
-        user_profile: {
-          id: 'user-mike',
-          display_name: 'Mike Chen',
-          username: 'mike_chen',
-          profile_picture_url: '/placeholder.svg'
-        },
-        created_at: new Date(Date.now() - 900000).toISOString(),
-        likes_count: 3,
-        is_liked: true
-      }
-    ];
-    setComments(mockComments);
+        created_at: comment.created_at,
+        likes_count: comment.likes_count || 0,
+        is_liked: false // TODO: Implement user interactions
+      }));
+
+      setComments(transformedComments);
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+      setComments([]);
+    }
   };
 
   const handleCreatePost = async () => {
@@ -415,13 +388,72 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
       let mediaUrl: string | undefined;
       let mediaType: 'image' | 'video' | undefined;
 
+      // Upload media to Supabase storage if provided
       if (selectedMedia) {
-        // Mock upload - in real app, upload to Supabase storage
-        mediaUrl = URL.createObjectURL(selectedMedia);
+        const fileExt = selectedMedia.name.split('.').pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `posts/${userId}/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('media')
+          .upload(filePath, selectedMedia);
+
+        if (uploadError) throw uploadError;
+
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('media')
+          .getPublicUrl(filePath);
+
+        mediaUrl = publicUrl;
         mediaType = selectedMedia.type.startsWith('image/') ? 'image' : 'video';
       }
 
-      // Get full channel and event objects
+      // Determine post type
+      const postType = selectedChannels && selectedChannels.length > 0 
+        ? 'channel' 
+        : selectedEvents && selectedEvents.length > 0 
+        ? 'event' 
+        : 'post';
+
+      // Create post in database
+      const { data: postData, error: postError } = await supabase
+        .from('user_posts')
+        .insert({
+          content: newPost,
+          user_id: userId,
+          media_url: mediaUrl,
+          media_type: mediaType,
+          location: selectedLocation || null,
+          post_type: postType,
+          channel_id: selectedChannels && selectedChannels[0] ? selectedChannels[0].id : null,
+          event_id: selectedEvents && selectedEvents[0] ? selectedEvents[0].id : null,
+          metadata: {
+            ...(selectedChannels && selectedChannels[0] && { channel_id: selectedChannels[0].id }),
+            ...(selectedEvents && selectedEvents[0] && { event_id: selectedEvents[0].id })
+          }
+        })
+        .select()
+        .single();
+
+      if (postError) throw postError;
+
+      // Create user tags if any
+      if (taggedUsers.length > 0) {
+        const tagInserts = taggedUsers.map(user => ({
+          post_id: postData.id,
+          tagged_user_id: user.id,
+          tagged_by: userId
+        }));
+
+        const { error: tagError } = await supabase
+          .from('user_post_tags')
+          .insert(tagInserts);
+
+        if (tagError) console.error('Error creating tags:', tagError);
+      }
+
+      // Get channel and event data for display
       const selectedChannelData = selectedChannels && selectedChannels[0] ? 
         (userChannels.find(c => c.id === selectedChannels[0].id) || allChannels.find(c => c.id === selectedChannels[0].id)) : 
         undefined;
@@ -430,13 +462,14 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
         (userEvents.find(e => e.id === selectedEvents[0].id) || allEvents.find(e => e.id === selectedEvents[0].id)) : 
         undefined;
 
+      // Create display post object
       const newPostData: TimelinePost = {
-        id: Date.now().toString(),
-        content: newPost,
-        media_url: mediaUrl,
-        media_type: mediaType,
-        created_at: new Date().toISOString(),
-        user_id: userId,
+        id: postData.id,
+        content: postData.content,
+        media_url: postData.media_url,
+        media_type: postData.media_type as 'image' | 'video' | undefined,
+        created_at: postData.created_at,
+        user_id: postData.user_id,
         user_profile: {
           id: profileData.id,
           display_name: profileData.display_name,
@@ -448,13 +481,8 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
         shares_count: 0,
         is_liked: false,
         is_bookmarked: false,
-        type: selectedChannels && selectedChannels.length > 0 ? 'channel' : selectedEvents && selectedEvents.length > 0 ? 'event' : 'post',
-        metadata: {
-          ...(selectedLocation && { location: selectedLocation }),
-          ...(selectedChannels && selectedChannels[0] && { channel_id: selectedChannels[0].id }),
-          ...(selectedEvents && selectedEvents[0] && { event_id: selectedEvents[0].id })
-        },
-        // Add structured data for SocialPost component
+        type: (postData.post_type as 'post' | 'event' | 'channel' | 'milestone') || 'post',
+        metadata: postData.metadata,
         channel: selectedChannelData ? {
           id: selectedChannelData.id,
           name: selectedChannelData.name
@@ -470,9 +498,10 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
         }))
       };
 
-      const updatedPosts = [newPostData, ...posts];
-      setPosts(updatedPosts);
-      setPersistedPosts(updatedPosts); // Update cache
+      // Update local state
+      setPosts(prev => [newPostData, ...prev]);
+
+      // Reset form
       setNewPost('');
       setSelectedMedia(null);
       setMediaPreview(null);
@@ -656,7 +685,6 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
     );
     
     setPosts(updatePost);
-    setPersistedPosts(updatePost);
   };
 
   const handleBookmark = async (postId: string) => {
@@ -667,7 +695,6 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
     );
     
     setPosts(updatePost);
-    setPersistedPosts(updatePost);
   };
 
   const handleViewComments = (post: TimelinePost) => {
@@ -679,43 +706,84 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
   const handleAddComment = async () => {
     if (!newComment.trim() || !selectedPost) return;
 
-    const comment: Comment = {
-      id: Date.now().toString(),
-      content: newComment,
-      user_profile: {
-        id: profileData.id,
-        display_name: profileData.display_name,
-        username: profileData.username,
-        profile_picture_url: profileData.profile_picture_url
-      },
-      created_at: new Date().toISOString(),
-      likes_count: 0,
-      is_liked: false
-    };
+    try {
+      // Get current user's profile info
+      const { data: userProfileData } = await supabase
+        .from('user_profiles')
+        .select('id, username, display_name, profile_picture_url')
+        .eq('user_id', userId)
+        .single();
 
-    setComments(prev => [...prev, comment]);
-    setNewComment('');
-    
-    // Update comment count
-    const updatePost = (prev: TimelinePost[]) => prev.map(post => 
-      post.id === selectedPost.id 
-        ? { ...post, comments_count: post.comments_count + 1 }
-        : post
-    );
-    
-    setPosts(updatePost);
-    setPersistedPosts(updatePost);
+      // Create comment in database
+      const { data: commentData, error: commentError } = await supabase
+        .from('comments')
+        .insert({
+          content: newComment,
+          post_id: selectedPost.id,
+          user_profile_id: userProfileData?.id,
+          author_name: userProfileData?.display_name || profileData.display_name,
+          author_username: userProfileData?.username || profileData.username,
+          author_avatar: userProfileData?.profile_picture_url || profileData.profile_picture_url
+        })
+        .select()
+        .single();
+
+      if (commentError) throw commentError;
+
+      // Create comment object for local state
+      const comment: Comment = {
+        id: commentData.id,
+        content: commentData.content,
+        user_profile: {
+          id: userProfileData?.id || profileData.id,
+          display_name: userProfileData?.display_name || profileData.display_name,
+          username: userProfileData?.username || profileData.username,
+          profile_picture_url: userProfileData?.profile_picture_url || profileData.profile_picture_url
+        },
+        created_at: commentData.created_at,
+        likes_count: 0,
+        is_liked: false
+      };
+
+      setComments(prev => [...prev, comment]);
+      setNewComment('');
+      
+      // Update comment count in posts
+      setPosts(prev => prev.map(post => 
+        post.id === selectedPost.id 
+          ? { ...post, comments_count: post.comments_count + 1 }
+          : post
+      ));
+
+      // Update the comment count in the database
+      await supabase
+        .from('user_posts')
+        .update({ comments_count: selectedPost.comments_count + 1 })
+        .eq('id', selectedPost.id);
+
+    } catch (error) {
+      console.error('Error adding comment:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to add comment',
+        variant: 'destructive'
+      });
+    }
   };
 
   const handleDeletePost = async (postId: string) => {
     try {
-      // For mock posts, skip database deletion
-      // In a real app, you would delete from the database here
-      
+      // Delete the post from the database
+      const { error } = await supabase
+        .from('user_posts')
+        .delete()
+        .eq('id', postId)
+        .eq('user_id', userId); // Only allow deletion of own posts
+
+      if (error) throw error;
+
       // Update the local state
-      const updatePost = (prev: TimelinePost[]) => prev.filter(post => post.id !== postId);
-      setPosts(updatePost);
-      setPersistedPosts(updatePost);
+      setPosts(prev => prev.filter(post => post.id !== postId));
 
       toast({
         title: 'Success',
@@ -777,7 +845,6 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
       );
       
       setPosts(updatePost);
-      setPersistedPosts(updatePost);
 
       toast({
         title: 'Success',
