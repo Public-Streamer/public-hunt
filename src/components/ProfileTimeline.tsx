@@ -422,6 +422,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
         .insert({
           content: newPost,
           user_id: userId,
+          user_name: profileData.username,
           media_url: mediaUrl,
           media_type: mediaType,
           location: selectedLocation || null,
