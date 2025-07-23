@@ -13,9 +13,10 @@ import TooltipWrapper from '@/components/ui/tooltip-wrapper';
 
 interface LoginFormProps {
   onClose: () => void;
+  redirectUrl?: string | null;
 }
 
-const LoginForm: React.FC<LoginFormProps> = ({ onClose }) => {
+const LoginForm: React.FC<LoginFormProps> = ({ onClose, redirectUrl }) => {
   const { signIn } = useAppContext();
   const navigate = useNavigate();
   const location = useLocation();
@@ -71,7 +72,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose }) => {
       } else {
         // Regular individual login
         onClose();
-        navigate('/');
+        const targetUrl = redirectUrl && redirectUrl.startsWith('/') ? redirectUrl : '/';
+        navigate(targetUrl);
       }
     } catch (error) {
       setError('An unexpected error occurred');
@@ -81,7 +83,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose }) => {
 
   const handleSignupSuccess = () => {
     onClose();
-    navigate('/');
+    const targetUrl = redirectUrl && redirectUrl.startsWith('/') ? redirectUrl : '/';
+    navigate(targetUrl);
   };
 
   const handleAccountSelection = async (type: 'individual' | 'company', companyId?: string) => {
@@ -97,7 +100,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose }) => {
     
     setShowAccountSelector(false);
     onClose();
-    navigate('/');
+    const targetUrl = redirectUrl && redirectUrl.startsWith('/') ? redirectUrl : '/';
+    navigate(targetUrl);
   };
 
   const handleAccountSelectorCancel = async () => {
