@@ -698,10 +698,11 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
     setPosts(updatePost);
   };
 
-  const handleViewComments = (post: TimelinePost) => {
+  const handleViewComments = async (post: TimelinePost) => {
     setSelectedPost(post);
-    fetchComments(post.id);
     setShowComments(true);
+    // Always fetch fresh comments when opening the dialog
+    await fetchComments(post.id);
   };
 
   const handleAddComment = async () => {
@@ -1502,29 +1503,36 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
             <DialogTitle>Comments</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            {comments.map((comment) => (
-              <div key={comment.id} className="flex space-x-3">
-                <Avatar className="w-8 h-8">
-                  <AvatarImage src={comment.user_profile.profile_picture_url} />
-                  <AvatarFallback>{comment.user_profile.display_name[0]}</AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <div className="bg-muted p-3 rounded-lg">
-                    <h5 className="font-semibold text-sm">{comment.user_profile.display_name}</h5>
-                    <p className="text-sm">{comment.content}</p>
-                  </div>
-                  <div className="flex items-center space-x-4 mt-1">
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(comment.created_at).toLocaleTimeString()}
-                    </span>
-                    <Button variant="ghost" size="sm" className="text-xs">
-                      <Heart className="w-3 h-3 mr-1" />
-                      {comment.likes_count}
-                    </Button>
+            {comments.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <MessageCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                <p>No comments yet. Be the first to comment!</p>
+              </div>
+            ) : (
+              comments.map((comment) => (
+                <div key={comment.id} className="flex space-x-3">
+                  <Avatar className="w-8 h-8">
+                    <AvatarImage src={comment.user_profile.profile_picture_url} />
+                    <AvatarFallback>{comment.user_profile.display_name?.[0] || comment.user_profile.username?.[0] || '?'}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <div className="bg-muted p-3 rounded-lg">
+                      <h5 className="font-semibold text-sm">{comment.user_profile.display_name || comment.user_profile.username}</h5>
+                      <p className="text-sm">{comment.content}</p>
+                    </div>
+                    <div className="flex items-center space-x-4 mt-1">
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(comment.created_at).toLocaleTimeString()}
+                      </span>
+                      <Button variant="ghost" size="sm" className="text-xs">
+                        <Heart className="w-3 h-3 mr-1" />
+                        {comment.likes_count}
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
             
             <div className="flex space-x-3 mt-4">
               <Avatar className="w-8 h-8">
