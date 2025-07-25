@@ -487,12 +487,63 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
         }
         onClose();
       } else {
+        // Handle specific Supabase auth errors
+        let errorMessage = result.error || 'Failed to create account. Please try again.';
+        let errorTitle = 'Signup Error';
+        
+        // Parse common Supabase auth error messages
+        if (result.error) {
+          if (result.error.includes('User already registered') || result.error.includes('already exists')) {
+            errorMessage = 'An account with this email address already exists. Please try logging in instead, or use a different email address.';
+            errorTitle = 'Email Already Registered';
+          } else if (result.error.includes('Invalid email')) {
+            errorMessage = 'Please enter a valid email address.';
+            errorTitle = 'Invalid Email';
+          } else if (result.error.includes('Password should be at least')) {
+            errorMessage = 'Password must be at least 6 characters long.';
+            errorTitle = 'Password Too Short';
+          } else if (result.error.includes('Signup is disabled')) {
+            errorMessage = 'Account registration is currently disabled. Please contact support.';
+            errorTitle = 'Registration Disabled';
+          } else if (result.error.includes('Email not confirmed')) {
+            errorMessage = 'Please check your email and click the confirmation link before signing in.';
+            errorTitle = 'Email Confirmation Required';
+          }
+        }
+        
         console.error('Signup failed:', result.error);
-        setError(result.error || 'Failed to create account. Please try again.');
+        
+        // Show error in dialog instead of just setting error state
+        setErrorDialogConfig({
+          title: errorTitle,
+          message: errorMessage
+        });
+        setShowErrorDialog(true);
       }
     } catch (error: any) {
       console.error('Signup error:', error);
-      setError(error.message || 'An unexpected error occurred. Please try again.');
+      
+      let errorMessage = 'An unexpected error occurred. Please try again.';
+      let errorTitle = 'Signup Error';
+      
+      // Handle network and other errors
+      if (error.message) {
+        if (error.message.includes('User already registered') || error.message.includes('already exists')) {
+          errorMessage = 'An account with this email address already exists. Please try logging in instead, or use a different email address.';
+          errorTitle = 'Email Already Registered';
+        } else if (error.message.includes('Failed to fetch') || error.message.includes('Network')) {
+          errorMessage = 'Network error. Please check your internet connection and try again.';
+          errorTitle = 'Connection Error';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      setErrorDialogConfig({
+        title: errorTitle,
+        message: errorMessage
+      });
+      setShowErrorDialog(true);
     } finally {
       setLoading(false);
     }
