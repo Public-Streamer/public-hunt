@@ -4,7 +4,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "lucide-react";
-import TooltipWrapper from "@/components/ui/tooltip-wrapper";
 import MediaUploader from "@/components/MediaUploader";
 import StreamerSelector from "@/components/StreamerSelector";
 import PriceSlider from "@/components/PriceSlider";

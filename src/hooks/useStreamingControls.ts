@@ -394,89 +394,21 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
         } = await supabase.auth.getSession();
         if (sessionError || !session) return;
 
-        let anyoneInLive = false;
-
-        const { data: eventStatus, error: eventError } = await supabase
-          .from("events")
-          .select("is_live")
-          .eq("id", eventId)
-          .single();
-
-        const { data: participantStatuses, error: participantError } =
-          await supabase
-            .from("event_participants")
-            .select("is_live, role, user_id")
-            .eq("event_id", eventId)
-            .in("role", ["host", "streamer"]);
-        // Now you can work with the results
-
-        if (participantStatuses && participantStatuses.length > 0) {
-          // Check if any host or streamer is live
-
-          anyoneInLive = participantStatuses.some(
-            (participant) => participant.is_live === true
-          );
-          console.log("Anyone in live:", anyoneInLive);
-
-          // Group by role
-
-          // const hostParticipants = participantStatuses.filter(
-          //   (p) => p.role === "host"
-          // );
-
-          // const streamerParticipants = participantStatuses.filter(
-          //   (p) => p.role === "streamer"
-          // );
-
-          // // Count live participants by role
-
-          // const liveHosts = hostParticipants.filter((p) => p.is_live).length;
-
-          // const liveStreamers = streamerParticipants.filter(
-          //   (p) => p.is_live
-          // ).length;
-        }
-
-        if (eventError || !eventStatus) {
-          console.error("Event not found", eventError);
-          return false;
-        }
-
-        if (anyoneInLive && eventStatus.is_live === true) {
-          console.log("Someone in live and event is live, return");
-          return false;
-        } else if (!anyoneInLive && eventStatus.is_live === true) {
-          console.log("No one in live, updating event live status to false");
-          const { error } = await supabase
-            .from("events")
-            .update({ is_live: false })
-            .match({
-              id: eventId,
-            });
-
-          if (error) {
-            console.error("Error updating event live status:", error);
+        // Use a database transaction with advisory lock to prevent race conditions
+        const { data, error } = await supabase.rpc(
+          "update_event_live_status_atomic",
+          {
+            p_event_id: eventId,
           }
-          return true;
-        } else if (anyoneInLive && eventStatus.is_live === false) {
-          console.log(
-            "Someone in live and event is not live, updating event live status to true"
-          );
-          const { error } = await supabase
-            .from("events")
-            .update({ is_live: true })
-            .match({
-              id: eventId,
-            });
+        );
 
-          if (error) {
-            console.error("Error updating event live status:", error);
-          }
-          return false;
-        } else if (!anyoneInLive && eventStatus.is_live === false) {
-          console.log("No one in live and event is not live, return");
+        if (error) {
+          console.error("Error in atomic live status update:", error);
           return false;
         }
+
+        // data.should_close_room indicates if room should be closed
+        return data.should_close_room;
       } catch (error) {
         console.error("Error updating event live status:", error);
         return false;
@@ -637,7 +569,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   }, [
     eventId,
     checkAndUpdateLiveStatus,
-  updateParticipantLiveStatus,
+    updateParticipantLiveStatus,
     toggleVideoLiveButton,
     isVideoEnabled,
   ]);
