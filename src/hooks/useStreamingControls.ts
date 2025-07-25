@@ -9,6 +9,13 @@ import { Track } from "livekit-client";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+// Temporary type for the new database function until Supabase types sync
+interface LiveStatusResult {
+  should_close_room: boolean;
+  event_was_live: boolean;
+  live_participants_count: number;
+}
+
 export interface StreamingControls {
   isVideoEnabled: boolean;
   isAudioEnabled: boolean;
@@ -385,35 +392,35 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   //   [eventId]
   // );
 
-  const checkAndUpdateLiveStatus: () => Promise<boolean | void> =
-    useCallback(async () => {
-      try {
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession();
-        if (sessionError || !session) return;
+  const checkAndUpdateLiveStatus = useCallback(async (): Promise<LiveStatusResult | null> => {
+    try {
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+      if (sessionError || !session) return null;
 
-        // Use a database transaction with advisory lock to prevent race conditions
-        const { data, error } = await supabase.rpc(
-          "update_event_live_status_atomic",
-          {
-            p_event_id: eventId,
-          }
-        );
-
-        if (error) {
-          console.error("Error in atomic live status update:", error);
-          return false;
+      // Use a database transaction with advisory lock to prevent race conditions
+      const { data, error } = await supabase.rpc(
+        "update_event_live_status_atomic" as any,
+        {
+          p_event_id: eventId,
         }
+      );
 
-        // data.should_close_room indicates if room should be closed
-        return data.should_close_room;
-      } catch (error) {
-        console.error("Error updating event live status:", error);
-        return false;
+      if (error) {
+        console.error("Error in atomic live status update:", error);
+        return null;
       }
-    }, [eventId]);
+
+      // Extract the result from the returned data
+      const result = Array.isArray(data) ? data[0] : data;
+      return result as LiveStatusResult;
+    } catch (error) {
+      console.error("Error updating event live status:", error);
+      return null;
+    }
+  }, [eventId]);
 
   // Safety check for room context
   if (!room || !localParticipant) {
