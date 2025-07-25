@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Upload, Camera, Info, AlertTriangle, X } from 'lucide-react';
+import { Upload, Camera, Info, AlertTriangle, X, Eye, EyeOff } from 'lucide-react';
 import TooltipWrapper from '@/components/ui/tooltip-wrapper';
 import LiveStreamLogo from '@/components/ui/live-stream-logo';
 import { useToast } from "@/hooks/use-toast";
@@ -22,6 +22,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import ErrorDialog from './ErrorDialog';
 import UserSearchBox from './UserSearchBox';
 import { BirthdaySelector } from './BirthdaySelector';
+import ValidationMessage from './ValidationMessage';
+import { useFormValidation, validationRules } from '@/hooks/useFormValidation';
 
 interface SignupFormProps {
   onClose: () => void;
@@ -33,8 +35,11 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
   const { signUp } = useAppContext();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { validateField, getFieldValidation, isFormValid } = useFormValidation({ realTime: true });
   
   const popupWindowRef = useRef<Window | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Listen for messages from popup window
   useEffect(() => {
@@ -115,6 +120,95 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
   });
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
+  // Real-time validation functions
+  const validateFieldRealTime = useCallback((fieldName: string, value: any) => {
+    switch (fieldName) {
+      case 'email':
+        validateField('email', value, [
+          validationRules.required('Email address is required'),
+          validationRules.email()
+        ]);
+        break;
+      case 'password':
+        validateField('password', value, [
+          validationRules.required('Password is required'),
+          validationRules.minLength(8, 'Password must be at least 8 characters')
+        ]);
+        // Also revalidate confirm password if it exists
+        if (signupData.confirmPassword) {
+          validateField('confirmPassword', signupData.confirmPassword, [
+            validationRules.required('Please confirm your password'),
+            validationRules.passwordMatch(value, 'Passwords do not match')
+          ]);
+        }
+        break;
+      case 'confirmPassword':
+        validateField('confirmPassword', value, [
+          validationRules.required('Please confirm your password'),
+          validationRules.passwordMatch(signupData.password, 'Passwords do not match')
+        ]);
+        break;
+      case 'firstName':
+        validateField('firstName', value, [
+          validationRules.required('First name is required')
+        ]);
+        break;
+      case 'lastName':
+        validateField('lastName', value, [
+          validationRules.required('Last name is required')
+        ]);
+        break;
+      case 'phone':
+        validateField('phone', value, [
+          validationRules.required('Phone number is required'),
+          validationRules.phone()
+        ]);
+        break;
+      case 'birthDate':
+        validateField('birthDate', value, [
+          validationRules.required('Birth date is required'),
+          validationRules.age(18, value, 'You must be 18 or older to create an account')
+        ]);
+        break;
+      case 'companyName':
+        validateField('companyName', value, [
+          validationRules.required(`${signupData.accountType === 'business/organization' ? 'Business/organization' : 'Group/team'} name is required`)
+        ]);
+        break;
+      case 'companyExecutorFirstName':
+        validateField('companyExecutorFirstName', value, [
+          validationRules.required('Executor first name is required')
+        ]);
+        break;
+      case 'companyExecutorLastName':
+        validateField('companyExecutorLastName', value, [
+          validationRules.required('Executor last name is required')
+        ]);
+        break;
+      case 'legalSignature':
+        const expectedName = signupData.accountType === 'individual' 
+          ? `${signupData.firstName} ${signupData.lastName}`
+          : `${signupData.companyExecutorFirstName} ${signupData.companyExecutorLastName}`;
+        validateField('legalSignature', value, [
+          validationRules.required('Electronic signature is required'),
+          validationRules.exactMatch(expectedName.trim(), `Must match exactly: ${expectedName}`)
+        ]);
+        break;
+    }
+  }, [signupData, validateField]);
+
+  // Update validation when field values change
+  const handleFieldChange = useCallback((fieldName: string, value: any) => {
+    setSignupData(prev => ({ ...prev, [fieldName]: value }));
+    
+    // Add a small delay for real-time validation to avoid excessive calls
+    setTimeout(() => {
+      if (value !== '' || getFieldValidation(fieldName)) {
+        validateFieldRealTime(fieldName, value);
+      }
+    }, 300);
+  }, [validateFieldRealTime, getFieldValidation]);
 
   const calculateAge = (birthDate: string): number => {
     const today = new Date();
@@ -438,39 +532,57 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
               {signupData.accountType === 'business/organization' ? 'Business/Organization Information' : 'Group/Team Information'}
             </h3>
             
-            <div className="space-y-1">
+            <div className="space-y-2">
               <Label htmlFor="companyName" className="text-sm">
                 {signupData.accountType === 'business/organization' ? 'Business/Organization Name' : 'Group/Team Name'}
               </Label>
               <Input
                 id="companyName"
                 value={signupData.companyName}
-                onChange={(e) => setSignupData(prev => ({ ...prev, companyName: e.target.value }))}
+                onChange={(e) => handleFieldChange('companyName', e.target.value)}
                 placeholder={signupData.accountType === 'business/organization' ? 'Enter business/organization name' : 'Enter group/team name'}
                 className={`h-8 text-sm ${getFieldErrorClass('companyName')}`}
               />
+              {getFieldValidation('companyName') && (
+                <ValidationMessage
+                  type={getFieldValidation('companyName').type}
+                  message={getFieldValidation('companyName').message}
+                />
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
+              <div className="space-y-2">
                 <Label htmlFor="companyExecutorFirstName" className="text-sm">Executor First Name</Label>
                 <Input
                   id="companyExecutorFirstName"
                   value={signupData.companyExecutorFirstName}
-                  onChange={(e) => setSignupData(prev => ({ ...prev, companyExecutorFirstName: e.target.value }))}
+                  onChange={(e) => handleFieldChange('companyExecutorFirstName', e.target.value)}
                   placeholder="First Name"
                   className={`h-8 text-sm ${getFieldErrorClass('companyExecutorFirstName')}`}
                 />
+                {getFieldValidation('companyExecutorFirstName') && (
+                  <ValidationMessage
+                    type={getFieldValidation('companyExecutorFirstName').type}
+                    message={getFieldValidation('companyExecutorFirstName').message}
+                  />
+                )}
               </div>
-              <div className="space-y-1">
+              <div className="space-y-2">
                 <Label htmlFor="companyExecutorLastName" className="text-sm">Executor Last Name</Label>
                 <Input
                   id="companyExecutorLastName"
                   value={signupData.companyExecutorLastName}
-                  onChange={(e) => setSignupData(prev => ({ ...prev, companyExecutorLastName: e.target.value }))}
+                  onChange={(e) => handleFieldChange('companyExecutorLastName', e.target.value)}
                   placeholder="Last Name"
                   className={`h-8 text-sm ${getFieldErrorClass('companyExecutorLastName')}`}
                 />
+                {getFieldValidation('companyExecutorLastName') && (
+                  <ValidationMessage
+                    type={getFieldValidation('companyExecutorLastName').type}
+                    message={getFieldValidation('companyExecutorLastName').message}
+                  />
+                )}
               </div>
             </div>
 
@@ -508,43 +620,82 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
         )}
 
         {/* Basic Account Information */}
-        <div className="space-y-4">
+          <div className="space-y-4">
           <h3 className="text-lg font-semibold">Account Information</h3>
           
-          <div className="space-y-1">
+          <div className="space-y-2">
             <Label htmlFor="email" className="text-sm">Email Address</Label>
             <Input
               id="email"
               type="email"
               value={signupData.email}
-              onChange={(e) => setSignupData(prev => ({ ...prev, email: e.target.value }))}
-              placeholder="Enter your email"
+              onChange={(e) => handleFieldChange('email', e.target.value)}
+              placeholder="Enter your email (e.g., user@example.com)"
               className={`h-8 text-sm ${getFieldErrorClass('email')}`}
             />
+            {getFieldValidation('email') && (
+              <ValidationMessage
+                type={getFieldValidation('email').type}
+                message={getFieldValidation('email').message}
+              />
+            )}
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="space-y-2">
               <Label htmlFor="password" className="text-sm">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={signupData.password}
-                onChange={(e) => setSignupData(prev => ({ ...prev, password: e.target.value }))}
-                placeholder="Enter password"
-                className={`h-8 text-sm ${getFieldErrorClass('password')}`}
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={signupData.password}
+                  onChange={(e) => handleFieldChange('password', e.target.value)}
+                  placeholder="Enter password"
+                  className={`h-8 text-sm pr-10 ${getFieldErrorClass('password')}`}
+                />
+                <button
+                  type="button"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              {getFieldValidation('password') && (
+                <ValidationMessage
+                  type={getFieldValidation('password').type}
+                  message={getFieldValidation('password').message}
+                />
+              )}
+              {!getFieldValidation('password') && signupData.password === '' && (
+                <div className="text-xs text-gray-500">Must be at least 8 characters</div>
+              )}
             </div>
-            <div className="space-y-1">
+            <div className="space-y-2">
               <Label htmlFor="confirmPassword" className="text-sm">Confirm Password</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                value={signupData.confirmPassword}
-                onChange={(e) => setSignupData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                placeholder="Confirm password"
-                className={`h-8 text-sm ${getFieldErrorClass('confirmPassword')}`}
-              />
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={signupData.confirmPassword}
+                  onChange={(e) => handleFieldChange('confirmPassword', e.target.value)}
+                  placeholder="Confirm password"
+                  className={`h-8 text-sm pr-10 ${getFieldErrorClass('confirmPassword')}`}
+                />
+                <button
+                  type="button"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              {getFieldValidation('confirmPassword') && (
+                <ValidationMessage
+                  type={getFieldValidation('confirmPassword').type}
+                  message={getFieldValidation('confirmPassword').message}
+                />
+              )}
             </div>
           </div>
         </div>
@@ -582,59 +733,92 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
           {/* Only show first/last name for individual accounts since business accounts use executor fields */}
           {signupData.accountType === 'individual' && (
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
+              <div className="space-y-2">
                 <Label htmlFor="firstName" className="text-sm">First Name</Label>
                 <Input
                   id="firstName"
                   value={signupData.firstName}
-                  onChange={(e) => setSignupData(prev => ({ ...prev, firstName: e.target.value }))}
+                  onChange={(e) => handleFieldChange('firstName', e.target.value)}
                   placeholder="First Name"
                   className={`h-8 text-sm ${getFieldErrorClass('firstName')}`}
                 />
+                {getFieldValidation('firstName') && (
+                  <ValidationMessage
+                    type={getFieldValidation('firstName').type}
+                    message={getFieldValidation('firstName').message}
+                  />
+                )}
               </div>
-              <div className="space-y-1">
+              <div className="space-y-2">
                 <Label htmlFor="lastName" className="text-sm">Last Name</Label>
                 <Input
                   id="lastName"
                   value={signupData.lastName}
-                  onChange={(e) => setSignupData(prev => ({ ...prev, lastName: e.target.value }))}
+                  onChange={(e) => handleFieldChange('lastName', e.target.value)}
                   placeholder="Last Name"
                   className={`h-8 text-sm ${getFieldErrorClass('lastName')}`}
                 />
+                {getFieldValidation('lastName') && (
+                  <ValidationMessage
+                    type={getFieldValidation('lastName').type}
+                    message={getFieldValidation('lastName').message}
+                  />
+                )}
               </div>
             </div>
           )}
 
           {/* Only show birth date for individual accounts */}
           {signupData.accountType === 'individual' && (
-            <div className="space-y-1">
+            <div className="space-y-2">
               <Label htmlFor="birthDate" className="text-sm">Birth Date</Label>
               <BirthdaySelector
                 value={signupData.birthDate}
-                onChange={(date) => setSignupData(prev => ({ ...prev, birthDate: date }))}
+                onChange={(date) => handleFieldChange('birthDate', date)}
                 className={getFieldErrorClass('birthDate')}
               />
+              {getFieldValidation('birthDate') && (
+                <ValidationMessage
+                  type={getFieldValidation('birthDate').type}
+                  message={getFieldValidation('birthDate').message}
+                />
+              )}
+              {signupData.birthDate && !getFieldValidation('birthDate') && (
+                <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-200">
+                  Age: {calculateAge(signupData.birthDate)} years old
+                </div>
+              )}
             </div>
           )}
 
-          <div className="space-y-1">
-            <TooltipWrapper 
-              content={validationErrors.phone || "Enter your cell phone number"}
-              disabled={!validationErrors.phone}
-            >
-              <Label htmlFor="phone" className="text-sm">
-                {signupData.accountType === 'business/organization' ? 'Business/Organization Cell Phone Number' : 
-                 signupData.accountType === 'group/team' ? 'Group/Team Cell Phone Number' : 'Cell Phone Number'}
-              </Label>
-            </TooltipWrapper>
+          <div className="space-y-2">
+            <Label htmlFor="phone" className="text-sm">
+              {signupData.accountType === 'business/organization' ? 'Business/Organization Cell Phone Number' : 
+               signupData.accountType === 'group/team' ? 'Group/Team Cell Phone Number' : 'Cell Phone Number'}
+            </Label>
             <Input
               id="phone"
               type="tel"
               value={signupData.phone}
-              onChange={handlePhoneChange}
+              onChange={(e) => {
+                handlePhoneChange(e);
+                // Validate with a slight delay to allow formatting to complete
+                setTimeout(() => {
+                  handleFieldChange('phone', e.target.value);
+                }, 100);
+              }}
               placeholder="XXX-XXX-XXXX"
               className={`h-8 text-sm ${getFieldErrorClass('phone')}`}
             />
+            {getFieldValidation('phone') && (
+              <ValidationMessage
+                type={getFieldValidation('phone').type}
+                message={getFieldValidation('phone').message}
+              />
+            )}
+            {!getFieldValidation('phone') && signupData.phone === '' && (
+              <div className="text-xs text-gray-500">Format: XXX-XXX-XXXX (10 digits)</div>
+            )}
           </div>
           
           <div className="space-y-1">
@@ -775,16 +959,20 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                     <Input
                       id="legalSignature"
                       value={legalSignature}
-                      onChange={(e) => setLegalSignature(e.target.value)}
+                      onChange={(e) => {
+                        setLegalSignature(e.target.value);
+                        handleFieldChange('legalSignature', e.target.value);
+                      }}
                       placeholder={userFullName ? `Type: ${userFullName}` : "Type your full legal name"}
                       className={`h-8 text-sm ${
                         legalSignature.trim() && !isValidLegalSignature ? 'border-red-500 bg-red-50' : ''
                       }`}
                     />
-                    {legalSignature.trim() && !isValidLegalSignature && userFullName && (
-                      <p className="text-red-500 text-xs">
-                        Signature must match exactly: {userFullName}
-                      </p>
+                    {getFieldValidation('legalSignature') && (
+                      <ValidationMessage
+                        type={getFieldValidation('legalSignature').type}
+                        message={getFieldValidation('legalSignature').message}
+                      />
                     )}
                   </div>
 
@@ -814,18 +1002,21 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
 
         {/* Submit Button */}
         <div className="pt-4 space-y-3">
-          <TooltipWrapper 
-            content={getFormValidationError() || "Create your account"}
-            disabled={!getFormValidationError()}
+          {getFormValidationError() && (
+            <ValidationMessage
+              type="error"
+              message={getFormValidationError()!}
+              className="w-full"
+            />
+          )}
+          
+          <Button 
+            type="submit" 
+            disabled={loading || !!getFormValidationError()}
+            className="w-full h-10"
           >
-            <Button 
-              type="submit" 
-              disabled={loading || !!getFormValidationError()}
-              className="w-full h-10"
-            >
-              {loading ? 'Creating Account...' : 'Create Account'}
-            </Button>
-          </TooltipWrapper>
+            {loading ? 'Creating Account...' : 'Create Account'}
+          </Button>
           
           {/* Cancel Button */}
           <Button 
