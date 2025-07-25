@@ -299,6 +299,7 @@ serve(async (req) => {
       livekit_token: token,
       token_expires_at: expiresAt.toISOString(),
       last_seen: new Date().toISOString(),
+      // is_live: true,
     });
 
     const response: CreateTokenResponse = {

@@ -353,8 +353,40 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   );
 
   // Helper function to create event participant record
-  const createEventParticipant = useCallback(
-    async (role: "host" | "streamer" | "viewer") => {
+  // const createEventParticipant = useCallback(
+  //   async (role: "host" | "streamer" | "viewer") => {
+  //     try {
+  //       const {
+  //         data: { session },
+  //         error: sessionError,
+  //       } = await supabase.auth.getSession();
+  //       if (sessionError || !session) return;
+
+  //       const { error } = await supabase.from("event_participants").upsert(
+  //         {
+  //           event_id: eventId,
+  //           user_id: session.user.id,
+  //           role: role,
+  //           is_active: true,
+  //           is_live: true,
+  //         },
+  //         {
+  //           onConflict: "event_id,user_id",
+  //         }
+  //       );
+
+  //       if (error) {
+  //         console.error("Error creating event participant:", error);
+  //       }
+  //     } catch (error) {
+  //       console.error("Error creating event participant:", error);
+  //     }
+  //   },
+  //   [eventId]
+  // );
+
+  const updateLiveStatus = useCallback(
+    async (status: boolean) => {
       try {
         const {
           data: { session },
@@ -362,23 +394,18 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
         } = await supabase.auth.getSession();
         if (sessionError || !session) return;
 
-        const { error } = await supabase.from("event_participants").upsert(
-          {
-            event_id: eventId,
-            user_id: session.user.id,
-            role: role,
-            is_active: true,
-          },
-          {
-            onConflict: "event_id,user_id",
-          }
-        );
+        const { error } = await supabase
+          .from("events")
+          .update({ is_live: status })
+          .match({
+            id: eventId,
+          });
 
         if (error) {
-          console.error("Error creating event participant:", error);
+          console.error("Error updating event live status:", error);
         }
       } catch (error) {
-        console.error("Error creating event participant:", error);
+        console.error("Error updating event live status:", error);
       }
     },
     [eventId]
@@ -474,6 +501,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   }, [localParticipant, isScreenSharing]);
 
   const startStream = useCallback(async () => {
+    //TODO: actually it's doing nothing
     try {
       setIsStreaming(true);
       setGoLive(true);
@@ -486,9 +514,9 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       }
 
       // Create event participant record
-      await createEventParticipant("host");
+      // await createEventParticipant("host"); //TODO : it's not only the host; can be streamer as well
 
-      // Set participant as live
+      // // Set participant as live
       await updateParticipantLiveStatus(true);
 
       // Create event stream record
@@ -506,7 +534,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       toast.error("Failed to start stream");
       console.error("Start stream error:", error);
     }
-  }, [eventId, createEventParticipant, updateParticipantLiveStatus]);
+  }, [eventId]);
 
   const stopStream = useCallback(async () => {
     try {

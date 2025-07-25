@@ -471,7 +471,6 @@ const EventPage: React.FC = () => {
                   options={{
                     adaptiveStream: true,
                     dynacast: true,
-                    
                   }}
                   connect={true}
                 >
