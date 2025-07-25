@@ -637,7 +637,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   }, [
     eventId,
     checkAndUpdateLiveStatus,
-    updateParticipantLiveStatus,
+  updateParticipantLiveStatus,
     toggleVideoLiveButton,
     isVideoEnabled,
   ]);
