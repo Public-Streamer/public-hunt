@@ -385,8 +385,8 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   //   [eventId]
   // );
 
-  const updateLiveStatus = useCallback(
-    async (status: boolean) => {
+  const checkAndUpdateLiveStatus: () => Promise<boolean | void> =
+    useCallback(async () => {
       try {
         const {
           data: { session },
@@ -394,22 +394,94 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
         } = await supabase.auth.getSession();
         if (sessionError || !session) return;
 
-        const { error } = await supabase
-          .from("events")
-          .update({ is_live: status })
-          .match({
-            id: eventId,
-          });
+        let anyoneInLive = false;
 
-        if (error) {
-          console.error("Error updating event live status:", error);
+        const { data: eventStatus, error: eventError } = await supabase
+          .from("events")
+          .select("is_live")
+          .eq("id", eventId)
+          .single();
+
+        const { data: participantStatuses, error: participantError } =
+          await supabase
+            .from("event_participants")
+            .select("is_live, role, user_id")
+            .eq("event_id", eventId)
+            .in("role", ["host", "streamer"]);
+        // Now you can work with the results
+
+        if (participantStatuses && participantStatuses.length > 0) {
+          // Check if any host or streamer is live
+
+          anyoneInLive = participantStatuses.some(
+            (participant) => participant.is_live === true
+          );
+          console.log("Anyone in live:", anyoneInLive);
+
+          // Group by role
+
+          // const hostParticipants = participantStatuses.filter(
+          //   (p) => p.role === "host"
+          // );
+
+          // const streamerParticipants = participantStatuses.filter(
+          //   (p) => p.role === "streamer"
+          // );
+
+          // // Count live participants by role
+
+          // const liveHosts = hostParticipants.filter((p) => p.is_live).length;
+
+          // const liveStreamers = streamerParticipants.filter(
+          //   (p) => p.is_live
+          // ).length;
+        }
+
+        if (eventError || !eventStatus) {
+          console.error("Event not found", eventError);
+          return false;
+        }
+
+        if (anyoneInLive && eventStatus.is_live === true) {
+          console.log("Someone in live and event is live, return");
+          return false;
+        } else if (!anyoneInLive && eventStatus.is_live === true) {
+          console.log("No one in live, updating event live status to false");
+          const { error } = await supabase
+            .from("events")
+            .update({ is_live: false })
+            .match({
+              id: eventId,
+            });
+
+          if (error) {
+            console.error("Error updating event live status:", error);
+          }
+          return true;
+        } else if (anyoneInLive && eventStatus.is_live === false) {
+          console.log(
+            "Someone in live and event is not live, updating event live status to true"
+          );
+          const { error } = await supabase
+            .from("events")
+            .update({ is_live: true })
+            .match({
+              id: eventId,
+            });
+
+          if (error) {
+            console.error("Error updating event live status:", error);
+          }
+          return false;
+        } else if (!anyoneInLive && eventStatus.is_live === false) {
+          console.log("No one in live and event is not live, return");
+          return false;
         }
       } catch (error) {
         console.error("Error updating event live status:", error);
+        return false;
       }
-    },
-    [eventId]
-  );
+    }, [eventId]);
 
   // Safety check for room context
   if (!room || !localParticipant) {
@@ -517,7 +589,12 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       // await createEventParticipant("host"); //TODO : it's not only the host; can be streamer as well
 
       // // Set participant as live
-      await updateParticipantLiveStatus(true);
+
+      await updateParticipantLiveStatus(true); // NOTE: make sure this runs first
+
+      setTimeout(async () => {
+        await checkAndUpdateLiveStatus();
+      }, 10);
 
       // Create event stream record
       await supabase.from("event_streams").insert({
@@ -534,7 +611,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       toast.error("Failed to start stream");
       console.error("Start stream error:", error);
     }
-  }, [eventId]);
+  }, [eventId, checkAndUpdateLiveStatus, updateParticipantLiveStatus]);
 
   const stopStream = useCallback(async () => {
     try {
@@ -550,54 +627,35 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
 
       // Set participant as not live
       await updateParticipantLiveStatus(false);
-
-      // Deactivate event participant
-      // await supabase
-      //   .from("event_participants")
-      //   .update({ is_active: false, is_live: false })
-      //   .eq("event_id", eventId)
-      //   .eq("user_id", session.user.id);
-
-      // Deactivate event streams
       await supabase
         .from("event_streams")
         .update({ is_active: false })
         .eq("event_id", eventId)
         .eq("streamer_id", session.user.id);
 
-      const { data: event, error } = await supabase
-        .from("events")
-        .select("*")
-        .eq("id", eventId)
-        .single();
+      setTimeout(async () => {
+        const shouldCloseRoom = await checkAndUpdateLiveStatus();
+        if (shouldCloseRoom === true) {
+          await supabase.functions.invoke("manage-livekit-room", {
+            body: {
+              action: "close",
+              eventId,
+            },
+            headers: {
+              Authorization: `Bearer ${session.access_token}`,
+            },
+          });
 
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      if (event?.is_live === false) {
-        console.log(
-          `event is not live anymore , so closing room for event: ${eventId}`
-        );
-        await supabase.functions.invoke("manage-livekit-room", {
-          body: {
-            action: "close",
-            eventId,
-          },
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-          },
-        });
-
-        console.log(`room closed for event: ${eventId}`);
-      }
+          console.log(`room closed for event: ${eventId}`);
+        }
+      }, 10);
 
       toast.success("Stream stopped");
     } catch (error) {
       toast.error("Failed to stop stream");
       console.error("Stop stream error:", error);
     }
-  }, [eventId, updateParticipantLiveStatus]);
+  }, [eventId, updateParticipantLiveStatus, checkAndUpdateLiveStatus]);
 
   return {
     isVideoEnabled,
