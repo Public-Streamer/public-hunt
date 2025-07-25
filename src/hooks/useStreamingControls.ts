@@ -514,6 +514,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
 
     try {
       const enabled = !isVideoEnabled;
+
       await localParticipant.setCameraEnabled(enabled);
       setIsVideoEnabled(enabled);
 
@@ -527,6 +528,30 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       console.error("Toggle video error:", error);
     }
   }, [localParticipant, isVideoEnabled]);
+
+  const toggleVideoLiveButton = useCallback(
+    async (enabled: boolean) => {
+      if (!localParticipant) {
+        toast.error("Not connected to room");
+        return;
+      }
+
+      try {
+        await localParticipant.setCameraEnabled(enabled);
+        setIsVideoEnabled(enabled);
+
+        if (enabled) {
+          toast.success("Camera turned on");
+        } else {
+          toast.info("Camera turned off");
+        }
+      } catch (error) {
+        toast.error("Failed to toggle camera");
+        console.error("Toggle video error:", error);
+      }
+    },
+    [localParticipant, isVideoEnabled]
+  );
 
   const toggleAudio = useCallback(async () => {
     if (!localParticipant) {
@@ -585,12 +610,10 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
         throw new Error("Please log in to access this stream");
       }
 
-      // Create event participant record
-      // await createEventParticipant("host"); //TODO : it's not only the host; can be streamer as well
-
-      // // Set participant as live
-
       await updateParticipantLiveStatus(true); // NOTE: make sure this runs first
+      if (!isVideoEnabled) {
+        toggleVideoLiveButton(true);
+      }
 
       setTimeout(async () => {
         await checkAndUpdateLiveStatus();
@@ -611,7 +634,13 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       toast.error("Failed to start stream");
       console.error("Start stream error:", error);
     }
-  }, [eventId, checkAndUpdateLiveStatus, updateParticipantLiveStatus]);
+  }, [
+    eventId,
+    checkAndUpdateLiveStatus,
+    updateParticipantLiveStatus,
+    toggleVideoLiveButton,
+    isVideoEnabled,
+  ]);
 
   const stopStream = useCallback(async () => {
     try {
@@ -627,6 +656,9 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
 
       // Set participant as not live
       await updateParticipantLiveStatus(false);
+      if (isVideoEnabled) {
+        toggleVideoLiveButton(false);
+      }
       await supabase
         .from("event_streams")
         .update({ is_active: false })
@@ -655,7 +687,13 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       toast.error("Failed to stop stream");
       console.error("Stop stream error:", error);
     }
-  }, [eventId, updateParticipantLiveStatus, checkAndUpdateLiveStatus]);
+  }, [
+    eventId,
+    updateParticipantLiveStatus,
+    checkAndUpdateLiveStatus,
+    toggleVideoLiveButton,
+    isVideoEnabled,
+  ]);
 
   return {
     isVideoEnabled,
