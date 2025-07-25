@@ -326,7 +326,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
 
   // Helper function to update participant live status
   const updateParticipantLiveStatus = useCallback(
-    async (isLive: boolean) => {
+    async (status: boolean) => {
       try {
         const {
           data: { session },
@@ -336,7 +336,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
 
         const { error } = await supabase
           .from("event_participants")
-          .update({ is_live: isLive })
+          .update({ is_live: status, is_active: status })
           .match({
             event_id: eventId,
             user_id: session.user.id,
@@ -524,11 +524,11 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       await updateParticipantLiveStatus(false);
 
       // Deactivate event participant
-      await supabase
-        .from("event_participants")
-        .update({ is_active: false, is_live: false })
-        .eq("event_id", eventId)
-        .eq("user_id", session.user.id);
+      // await supabase
+      //   .from("event_participants")
+      //   .update({ is_active: false, is_live: false })
+      //   .eq("event_id", eventId)
+      //   .eq("user_id", session.user.id);
 
       // Deactivate event streams
       await supabase

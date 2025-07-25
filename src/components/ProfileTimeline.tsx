@@ -594,7 +594,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({ userId, isOwnProfile,
         category: 'Live Stream',
         ticket_price: ticketPrice,
         media_urls: selectedMedia ? [URL.createObjectURL(selectedMedia)] : [],
-        is_live: true,
+        is_live: true, // TODO: this should not be true until we start streaming with the token
         created_by: userData.user.id,
         channel_id: selectedChannels && selectedChannels[0] ? selectedChannels[0].id : null
       };
