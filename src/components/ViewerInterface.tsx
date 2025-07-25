@@ -21,7 +21,7 @@ import {
 } from "@livekit/components-react";
 import { Track } from "livekit-client";
 import MultiCameraGrid from "./MultiCameraGrid";
-import BigScreenView from "./BigScreenView";
+
 import StreamSelector from "./StreamSelector";
 import TicketVerification from "./TicketVerification";
 
@@ -30,6 +30,7 @@ interface ViewerInterfaceProps {
   hasAccess: boolean;
   onUpgrade?: () => void;
   showUpgradePrompt?: boolean;
+  onTrackSelect?: (trackId: string | null) => void;
 }
 
 interface ViewerControlsProps {
@@ -110,11 +111,12 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
   hasAccess,
   onUpgrade,
   showUpgradePrompt = true,
+  onTrackSelect,
 }) => {
   const [selectedTrack, setSelectedTrack] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-  const [viewMode, setViewMode] = useState<"grid" | "single" | "big-screen">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "single">("grid");
   const [currentQuality, setCurrentQuality] = useState("Auto");
 
   const room = useRoomContext();
@@ -194,6 +196,7 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
 
   const handleTrackSelect = (trackId: string | null) => {
     setSelectedTrack(trackId);
+    onTrackSelect?.(trackId);
     setViewMode(trackId ? "single" : "grid");
   };
 
@@ -222,6 +225,7 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
                 onClick={() => {
                   setViewMode("grid");
                   setSelectedTrack(null);
+                  onTrackSelect?.(null);
                 }}
               >
                 Grid
@@ -234,27 +238,13 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
               >
                 Single
               </Button>
-              <Button
-                variant={viewMode === "big-screen" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setViewMode("big-screen")}
-              >
-                Big Screen
-              </Button>
             </div>
           </div>
 
           {/* Main Video Display */}
           <div className="relative bg-black rounded-lg overflow-hidden mb-4">
-            <div className={viewMode === "big-screen" ? "h-[70vh]" : "aspect-video"}>
-              {viewMode === "big-screen" ? (
-                <BigScreenView
-                  tracks={tracks}
-                  selectedTrack={selectedTrack}
-                  onTrackSelect={handleTrackSelect}
-                  onSwitchToGrid={() => setViewMode("grid")}
-                />
-              ) : viewMode === "grid" || !selectedTrack ? (
+            <div className="aspect-video">
+              {viewMode === "grid" || !selectedTrack ? (
                 <MultiCameraGrid
                   tracks={tracks}
                   onTrackSelect={handleTrackSelect}
@@ -284,22 +274,20 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
               )}
             </div>
 
-            {/* Overlay Controls - only show for non-big-screen modes */}
-            {viewMode !== "big-screen" && (
-              <div className="absolute bottom-4 right-4">
-                <ViewerControls
-                  onFullscreen={handleFullscreen}
-                  onQualityChange={handleQualityChange}
-                  onVolumeToggle={handleVolumeToggle}
-                  isMuted={isMuted}
-                  isFullscreen={isFullscreen}
-                />
-              </div>
-            )}
+            {/* Overlay Controls */}
+            <div className="absolute bottom-4 right-4">
+              <ViewerControls
+                onFullscreen={handleFullscreen}
+                onQualityChange={handleQualityChange}
+                onVolumeToggle={handleVolumeToggle}
+                isMuted={isMuted}
+                isFullscreen={isFullscreen}
+              />
+            </div>
           </div>
 
-          {/* Camera Selector - only show for non-big-screen modes */}
-          {tracks.length > 1 && viewMode !== "big-screen" && (
+          {/* Camera Selector */}
+          {tracks.length > 1 && (
             <StreamSelector
               tracks={tracks}
               selectedTrack={selectedTrack}
