@@ -65,7 +65,7 @@ const BigScreenView: React.FC<BigScreenViewProps> = ({
             className="bg-black/70 text-white hover:bg-black/90 border-white/20"
           >
             <Grid3X3 className="h-4 w-4 mr-2" />
-            Multi-camera
+            {tracks.length > 1 ? 'Multi-camera' : 'Back to Grid'}
           </Button>
         </div>
 
@@ -101,7 +101,7 @@ const BigScreenView: React.FC<BigScreenViewProps> = ({
         </Badge>
       </div>
 
-      {/* Track Thumbnails Row */}
+      {/* Track Thumbnails Row - only show if more than one track */}
       {tracks.length > 1 && (
         <div className="flex gap-2 overflow-x-auto pb-2">
           {tracks.map((track) => (
