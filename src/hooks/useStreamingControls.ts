@@ -598,7 +598,9 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
         .eq("streamer_id", session.user.id);
 
       setTimeout(async () => {
-        const shouldCloseRoom = await checkAndUpdateLiveStatus();
+        const result = await checkAndUpdateLiveStatus();
+        const shouldCloseRoom = result?.should_close_room === true;
+
         if (shouldCloseRoom === true) {
           await supabase.functions.invoke("manage-livekit-room", {
             body: {
