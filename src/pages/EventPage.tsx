@@ -13,7 +13,7 @@ import {
   ArrowLeft,
   Loader2,
 } from "lucide-react";
-import { LiveKitRoom } from "@livekit/components-react";
+import { LiveKitRoom, RoomAudioRenderer } from "@livekit/components-react";
 import "@livekit/components-styles";
 import SocialMediaSection from "@/components/SocialMediaSection";
 import MediaDisplay from "@/components/MediaDisplay";
@@ -467,9 +467,11 @@ const EventPage: React.FC = () => {
                 <LiveKitRoom
                   token={livekitToken}
                   serverUrl={serverUrl}
+                  // audio={true}
                   options={{
                     adaptiveStream: true,
                     dynacast: true,
+                    
                   }}
                   connect={true}
                 >
@@ -479,6 +481,7 @@ const EventPage: React.FC = () => {
                     onUpgrade={handlePayment}
                     showUpgradePrompt={!hasTicket && !canEnterStage}
                   />
+                  <RoomAudioRenderer />
                 </LiveKitRoom>
               </div>
             ) : eventData.is_live && eventData.livekit_room_name ? (
