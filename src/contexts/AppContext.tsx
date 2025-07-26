@@ -23,7 +23,7 @@ interface AppContextType {
   toggleSidebar: () => void;
   user: User | null;
   userProfile: UserProfile | null;
-  signIn: (email: string, password: string) => Promise<{error?: string}>;
+  signIn: (email: string, password: string, redirectUrl?: string) => Promise<{error?: string}>;
   signUp: (email: string, password: string, userData: Omit<UserProfile, 'id' | 'email'>) => Promise<{error?: string}>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
@@ -36,7 +36,7 @@ interface AppContextType {
   toggleSidebar: () => void;
   user: User | null;
   userProfile: UserProfile | null;
-  signIn: (email: string, password: string) => Promise<{error?: string}>;
+  signIn: (email: string, password: string, redirectUrl?: string) => Promise<{error?: string}>;
   signUp: (email: string, password: string, userData: Omit<UserProfile, 'id' | 'email'>) => Promise<{error?: string}>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
@@ -75,7 +75,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setSidebarOpen(prev => !prev);
   };
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string, redirectUrl?: string) => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -90,6 +90,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         title: 'Welcome back!',
         description: 'You have successfully signed in.',
       });
+
+      // Handle redirect after successful login
+      if (redirectUrl) {
+        setTimeout(() => {
+          window.location.href = redirectUrl;
+        }, 100);
+      }
 
       return {};
     } catch (error) {

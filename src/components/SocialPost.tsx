@@ -34,6 +34,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useAppContext } from "@/contexts/AppContext";
 import CommentSection from "./CommentSection";
 
 interface SocialPostProps {
@@ -110,8 +111,14 @@ const SocialPost: React.FC<SocialPostProps> = ({
   const [showDeleteMedia, setShowDeleteMedia] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { isAuthenticated } = useAppContext();
 
   const handleLike = () => {
+    if (!isAuthenticated) {
+      const currentUrl = window.location.pathname + window.location.search;
+      navigate(`/login?redirect=${encodeURIComponent(currentUrl)}`);
+      return;
+    }
     setLiked(!liked);
     setLikeCount(liked ? likeCount - 1 : likeCount + 1);
     onLike?.(postId);
@@ -120,6 +127,11 @@ const SocialPost: React.FC<SocialPostProps> = ({
   const [commentCount, setCommentCount] = useState(comments);
 
   const handleComment = async (postId: string, comment: string) => {
+    if (!isAuthenticated) {
+      const currentUrl = window.location.pathname + window.location.search;
+      navigate(`/login?redirect=${encodeURIComponent(currentUrl)}`);
+      return;
+    }
     if (comment.trim()) {
       // Update comments count locally for immediate feedback
       setCommentCount((prev) => prev + 1);
@@ -130,6 +142,11 @@ const SocialPost: React.FC<SocialPostProps> = ({
   };
 
   const handleShare = async (postId: string) => {
+    if (!isAuthenticated) {
+      const currentUrl = window.location.pathname + window.location.search;
+      navigate(`/login?redirect=${encodeURIComponent(currentUrl)}`);
+      return;
+    }
     // Handle share functionality
     const postUrl = `${window.location.origin}/post/${postId}`;
 

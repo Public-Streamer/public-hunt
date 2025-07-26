@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/lib/supabase';
 import { Heart, MessageCircle, Share2, Calendar, Users, Play } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { useAppContext } from '@/contexts/AppContext';
 import CommentSection from './CommentSection';
 
 interface UserPostData {
@@ -32,6 +33,8 @@ const ProfileNewsfeed: React.FC = () => {
   const [posts, setPosts] = useState<UserPostData[]>([]);
   const [loading, setLoading] = useState(true);
   const [showComments, setShowComments] = useState<{[key: string]: boolean}>({});
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAppContext();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -60,6 +63,11 @@ const ProfileNewsfeed: React.FC = () => {
   };
 
   const handleLike = async (postId: string) => {
+    if (!isAuthenticated) {
+      const currentUrl = window.location.pathname + window.location.search;
+      navigate(`/login?redirect=${encodeURIComponent(currentUrl)}`);
+      return;
+    }
     setPosts(prev => prev.map(post => 
       post.id === postId 
         ? { ...post, likes: post.likes + 1 }
@@ -68,6 +76,11 @@ const ProfileNewsfeed: React.FC = () => {
   };
 
   const handleComment = async (postId: string, comment: string) => {
+    if (!isAuthenticated) {
+      const currentUrl = window.location.pathname + window.location.search;
+      navigate(`/login?redirect=${encodeURIComponent(currentUrl)}`);
+      return;
+    }
     // Update comment count in local state
     setPosts(prev => prev.map(post => 
       post.id === postId 
@@ -79,6 +92,11 @@ const ProfileNewsfeed: React.FC = () => {
   };
 
   const handleShare = async (postId: string) => {
+    if (!isAuthenticated) {
+      const currentUrl = window.location.pathname + window.location.search;
+      navigate(`/login?redirect=${encodeURIComponent(currentUrl)}`);
+      return;
+    }
     const postUrl = `${window.location.origin}/post/${postId}`;
 
     try {

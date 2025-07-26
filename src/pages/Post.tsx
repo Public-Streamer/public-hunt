@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import SocialPost from "@/components/SocialPost";
 import { useToast } from "@/hooks/use-toast";
+import { useAppContext } from "@/contexts/AppContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -31,6 +32,7 @@ const Post: React.FC = () => {
   const { postId } = useParams<{ postId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { isAuthenticated } = useAppContext();
   const [post, setPost] = useState<UserPost | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -73,6 +75,11 @@ const Post: React.FC = () => {
   }, [postId]);
 
   const handleLike = async (postId: string) => {
+    if (!isAuthenticated) {
+      const currentUrl = window.location.pathname + window.location.search;
+      navigate(`/login?redirect=${encodeURIComponent(currentUrl)}`);
+      return;
+    }
     // Handle like functionality
     toast({
       title: "Like updated",
@@ -81,6 +88,11 @@ const Post: React.FC = () => {
   };
 
   const handleComment = async (postId: string, comment: string) => {
+    if (!isAuthenticated) {
+      const currentUrl = window.location.pathname + window.location.search;
+      navigate(`/login?redirect=${encodeURIComponent(currentUrl)}`);
+      return;
+    }
     try {
       // Get current user profile for comment creation
       const { data: { user } } = await supabase.auth.getUser();
@@ -150,6 +162,11 @@ const Post: React.FC = () => {
   };
 
   const handleShare = async (postId: string) => {
+    if (!isAuthenticated) {
+      const currentUrl = window.location.pathname + window.location.search;
+      navigate(`/login?redirect=${encodeURIComponent(currentUrl)}`);
+      return;
+    }
     // Handle share functionality
     const postUrl = `${window.location.origin}/post/${postId}`;
 

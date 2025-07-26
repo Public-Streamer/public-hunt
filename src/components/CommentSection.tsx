@@ -6,6 +6,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { ThumbsUp, ThumbsDown, MessageCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAppContext } from '@/contexts/AppContext';
 import TooltipWrapper from '@/components/ui/tooltip-wrapper';
 
 // UUID validation helper
@@ -40,6 +42,8 @@ const CommentSection: React.FC<CommentSectionProps> = ({ entityId, entityType, o
   const [loading, setLoading] = useState(false);
   const [currentUserProfile, setCurrentUserProfile] = useState<any>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAppContext();
 
   useEffect(() => {
     fetchComments();
@@ -148,6 +152,11 @@ const CommentSection: React.FC<CommentSectionProps> = ({ entityId, entityType, o
   };
 
   const handleLike = async (commentId: string, isLike: boolean) => {
+    if (!isAuthenticated) {
+      const currentUrl = window.location.pathname + window.location.search;
+      navigate(`/login?redirect=${encodeURIComponent(currentUrl)}`);
+      return;
+    }
     if (!currentUserProfile) return;
 
     try {
@@ -179,8 +188,9 @@ const CommentSection: React.FC<CommentSectionProps> = ({ entityId, entityType, o
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {currentUserProfile && (
-          <form onSubmit={handleSubmitComment} className="space-y-3">
+        {isAuthenticated ? (
+          currentUserProfile && (
+            <form onSubmit={handleSubmitComment} className="space-y-3">
             <div className="flex space-x-3">
               <Avatar className="w-8 h-8">
                 <AvatarImage src={currentUserProfile.profile_picture_url} />
@@ -206,6 +216,23 @@ const CommentSection: React.FC<CommentSectionProps> = ({ entityId, entityType, o
               </TooltipWrapper>
             </div>
           </form>
+          )
+        ) : (
+          <div className="text-center py-4 border rounded-lg bg-muted/50">
+            <p className="text-muted-foreground">
+              <Button 
+                variant="link" 
+                onClick={() => {
+                  const currentUrl = window.location.pathname + window.location.search;
+                  navigate(`/login?redirect=${encodeURIComponent(currentUrl)}`);
+                }}
+                className="p-0 h-auto font-normal"
+              >
+                Sign in
+              </Button>
+              {" "}to join the conversation
+            </p>
+          </div>
         )}
 
         <div className="space-y-4">
@@ -228,30 +255,32 @@ const CommentSection: React.FC<CommentSectionProps> = ({ entityId, entityType, o
                 </div>
                 <p className="text-sm mt-1">{comment.content}</p>
                 
-                <div className="flex items-center space-x-4 mt-2">
-                  <TooltipWrapper content="Like this comment">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleLike(comment.id, true)}
-                      className="flex items-center space-x-1 text-xs"
-                    >
-                      <ThumbsUp className="w-3 h-3" />
-                      <span>{comment.likes_count}</span>
-                    </Button>
-                  </TooltipWrapper>
-                  <TooltipWrapper content="Dislike this comment">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleLike(comment.id, false)}
-                      className="flex items-center space-x-1 text-xs"
-                    >
-                      <ThumbsDown className="w-3 h-3" />
-                      <span>{comment.dislikes_count}</span>
-                    </Button>
-                  </TooltipWrapper>
-                </div>
+                {isAuthenticated && (
+                  <div className="flex items-center space-x-4 mt-2">
+                    <TooltipWrapper content="Like this comment">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleLike(comment.id, true)}
+                        className="flex items-center space-x-1 text-xs"
+                      >
+                        <ThumbsUp className="w-3 h-3" />
+                        <span>{comment.likes_count}</span>
+                      </Button>
+                    </TooltipWrapper>
+                    <TooltipWrapper content="Dislike this comment">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleLike(comment.id, false)}
+                        className="flex items-center space-x-1 text-xs"
+                        >
+                        <ThumbsDown className="w-3 h-3" />
+                        <span>{comment.dislikes_count}</span>
+                      </Button>
+                    </TooltipWrapper>
+                  </div>
+                )}
               </div>
             </div>
           ))}
