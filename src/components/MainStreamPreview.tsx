@@ -11,7 +11,7 @@ import {
   TrackReferencePlaceholder,
 } from "@livekit/components-core";
 import { Badge } from "@/components/ui/badge";
-import { Video, Mic, MicOff, VolumeX, Volume2, Send } from "lucide-react";
+import { Video, Mic, MicOff, VolumeX, Volume2, Send, MessageCircle, X } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 
@@ -36,6 +36,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [visibleMessages, setVisibleMessages] = useState<any[]>([]);
   const [chatMessage, setChatMessage] = useState("");
+  const [isChatVisible, setIsChatVisible] = useState(true);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -125,48 +126,62 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
           Multi-camera
         </div>
 
-        {/* Chat Messages Overlay */}
-        {visibleMessages.length > 0 && (
+        {/* Chat Visibility Toggle (Audience Only) */}
+        <Button
+          onClick={() => setIsChatVisible(!isChatVisible)}
+          size="sm"
+          variant="outline"
+          className="absolute top-2 right-20 sm:top-4 sm:right-24 bg-black/70 border-white/30 text-white hover:bg-black/80 h-8 px-2"
+        >
+          {isChatVisible ? <X className="h-3 w-3" /> : <MessageCircle className="h-3 w-3" />}
+        </Button>
+
+        {/* Chat Messages Overlay - Facebook Live Style */}
+        {isChatVisible && visibleMessages.length > 0 && (
           <div
             ref={chatContainerRef}
-            className="absolute bottom-16 left-2 right-2 max-h-48 overflow-y-auto space-y-1 pointer-events-none"
+            className="absolute bottom-16 left-2 right-2 max-h-64 overflow-y-auto space-y-2 pointer-events-none"
           >
             {visibleMessages.map((message, index) => (
               <div
                 key={`${message.id}-${index}`}
-                className="bg-black/60 backdrop-blur-sm text-white px-3 py-2 rounded-lg max-w-xs animate-fade-in"
+                className="bg-black/75 backdrop-blur-sm text-white px-3 py-2 rounded-2xl max-w-80 shadow-lg animate-in slide-in-from-bottom-2 duration-300"
                 style={{
                   wordWrap: "break-word",
                   hyphens: "auto",
                 }}
               >
-                <span className="font-semibold text-blue-300">
-                  {message.from?.name || message.from?.identity || "Anonymous"}:
-                </span>{" "}
-                <span className="text-white">{message.message}</span>
+                <div className="flex flex-col">
+                  <span className="font-semibold text-blue-200 text-sm leading-tight">
+                    {message.from?.name || message.from?.identity || "Anonymous"}
+                  </span>
+                  <span className="text-white text-sm leading-relaxed">{message.message}</span>
+                </div>
               </div>
             ))}
           </div>
         )}
 
-        {/* Chat Input Overlay */}
-        <div className="absolute bottom-2 left-2 right-2 flex items-center gap-2">
-          <Input
-            value={chatMessage}
-            onChange={(e) => setChatMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Say something..."
-            className="flex-1 bg-black/60 border-white/20 text-white placeholder:text-white/60 h-8 text-sm"
-          />
-          <Button
-            onClick={handleSendMessage}
-            disabled={!chatMessage.trim()}
-            size="sm"
-            className="h-8 px-3 bg-primary hover:bg-primary/80"
-          >
-            <Send className="h-3 w-3" />
-          </Button>
-        </div>
+        {/* Chat Input Overlay - Facebook Live Style */}
+        {isChatVisible && (
+          <div className="absolute bottom-2 left-2 right-2 flex items-center gap-2 bg-black/40 backdrop-blur-sm rounded-full p-1">
+            <Input
+              value={chatMessage}
+              onChange={(e) => setChatMessage(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Write a comment..."
+              className="flex-1 bg-white/10 border-none text-white placeholder:text-white/70 h-10 text-sm rounded-full px-4 focus-visible:ring-1 focus-visible:ring-white/50 focus-visible:ring-offset-0"
+            />
+            <Button
+              onClick={handleSendMessage}
+              disabled={!chatMessage.trim()}
+              size="sm"
+              className="h-10 w-10 rounded-full bg-primary hover:bg-primary/80 flex-shrink-0"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
 
         {/* Participant info */}
         <div className="absolute top-12 left-2 bg-black/70 text-white px-3 py-1 rounded">
