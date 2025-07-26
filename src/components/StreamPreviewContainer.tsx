@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { useTracks } from "@livekit/components-react";
+import { useTracks, RoomAudioRenderer } from "@livekit/components-react";
 import { Track } from "livekit-client";
 import { TrackReference } from "@livekit/components-core";
 import MainStreamPreview from "./MainStreamPreview";
@@ -103,7 +103,9 @@ const StreamPreviewContainer: React.FC<StreamPreviewContainerProps> = ({
         track={selectedTrack}
         eventName={eventName}
         isLive={isLive}
-        audioTracks={audioTracks.filter((track): track is TrackReference => track.publication !== undefined)}
+        audioTracks={audioTracks.filter(
+          (track): track is TrackReference => track.publication !== undefined
+        )}
       />
 
       {/* Streamer grid - only show if there are multiple streamers */}

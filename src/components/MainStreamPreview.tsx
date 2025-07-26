@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { useTracks, VideoTrack } from "@livekit/components-react";
+import {
+  useTracks,
+  VideoTrack,
+  RoomAudioRenderer,
+} from "@livekit/components-react";
 import {
   TrackReference,
   TrackReferencePlaceholder,
@@ -66,46 +70,49 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
   };
 
   return (
-    <div className="aspect-video relative bg-black">
-      <VideoTrack trackRef={track} className="w-full h-full object-cover" />
+    <>
+      <RoomAudioRenderer />
+      <div className="aspect-video relative bg-black">
+        <VideoTrack trackRef={track} className="w-full h-full object-cover" />
 
-      {/* Live badge */}
-      <Badge className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-red-600 text-white text-xs">
-        <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full mr-1 animate-pulse" />
-        LIVE
-      </Badge>
+        {/* Live badge */}
+        <Badge className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-red-600 text-white text-xs">
+          <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full mr-1 animate-pulse" />
+          LIVE
+        </Badge>
 
-      {/* Multi-camera indicator */}
-      <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-black/70 text-white px-2 py-1 rounded text-xs sm:text-sm">
-        Multi-camera
-      </div>
+        {/* Multi-camera indicator */}
+        <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-black/70 text-white px-2 py-1 rounded text-xs sm:text-sm">
+          Multi-camera
+        </div>
 
-      {/* Audio indicator */}
-      <div className="absolute bottom-2 right-2 bg-black/70 text-white p-2 rounded flex items-center gap-2">
-        <button onClick={handleVolumeToggle}>
-          {!isMuted ? (
-            <Volume2 className="h-4 w-4" />
-          ) : (
-            <VolumeX className="h-4 w-4" />
-          )}
-        </button>
+        {/* Audio indicator */}
+        <div className="absolute bottom-2 right-2 bg-black/70 text-white p-2 rounded flex items-center gap-2">
+          <button onClick={handleVolumeToggle}>
+            {!isMuted ? (
+              <Volume2 className="h-4 w-4" />
+            ) : (
+              <VolumeX className="h-4 w-4" />
+            )}
+          </button>
 
-        <div>
-          {isAudioEnabled ? (
-            <Mic className="h-4 w-4" />
-          ) : (
-            <MicOff className="h-4 w-4" />
-          )}
+          <div>
+            {isAudioEnabled ? (
+              <Mic className="h-4 w-4" />
+            ) : (
+              <MicOff className="h-4 w-4" />
+            )}
+          </div>
+        </div>
+
+        {/* Participant info */}
+        <div className="absolute bottom-2 left-2 bg-black/70 text-white px-3 py-1 rounded">
+          <p className="text-sm font-medium">
+            {participant?.name || participant?.identity}
+          </p>
         </div>
       </div>
-
-      {/* Participant info */}
-      <div className="absolute bottom-2 left-2 bg-black/70 text-white px-3 py-1 rounded">
-        <p className="text-sm font-medium">
-          {participant?.name || participant?.identity}
-        </p>
-      </div>
-    </div>
+    </>
   );
 };
 

@@ -13,7 +13,7 @@ import {
   ArrowLeft,
   Loader2,
 } from "lucide-react";
-import { LiveKitRoom, RoomAudioRenderer } from "@livekit/components-react";
+import { LiveKitRoom } from "@livekit/components-react";
 import "@livekit/components-styles";
 import SocialMediaSection from "@/components/SocialMediaSection";
 import MediaDisplay from "@/components/MediaDisplay";
@@ -255,7 +255,9 @@ const EventPage: React.FC = () => {
         description: "Please sign in to purchase tickets",
         variant: "destructive",
       });
-      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+      navigate(
+        `/login?redirect=${encodeURIComponent(window.location.pathname)}`
+      );
       return;
     }
     setShowPurchaseModal(true);
@@ -263,7 +265,9 @@ const EventPage: React.FC = () => {
 
   const handleWatchNow = () => {
     if (!currentUser) {
-      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+      navigate(
+        `/login?redirect=${encodeURIComponent(window.location.pathname)}`
+      );
       return;
     }
     // User is logged in but may need to purchase ticket
@@ -448,7 +452,6 @@ const EventPage: React.FC = () => {
                       />
                     </div>
                   )} */}
-                  <RoomAudioRenderer />
                 </LiveKitRoom>
               ) : (
                 <div className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100 relative">
