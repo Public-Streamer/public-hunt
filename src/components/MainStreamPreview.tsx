@@ -11,7 +11,7 @@ import {
   TrackReferencePlaceholder,
 } from "@livekit/components-core";
 import { Badge } from "@/components/ui/badge";
-import { Video, Mic, MicOff, VolumeX, Volume2, Send, MessageCircle, X } from "lucide-react";
+import { Video, Mic, MicOff, VolumeX, Volume2, Send, MessageCircle, X, Plane } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 
@@ -140,7 +140,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
         {isChatVisible && visibleMessages.length > 0 && (
           <div
             ref={chatContainerRef}
-            className="absolute bottom-16 left-2 right-2 max-h-64 overflow-y-scroll space-y-2 pointer-events-auto"
+            className="absolute bottom-20 left-2 right-2 max-h-64 overflow-y-scroll space-y-2 pointer-events-auto"
             style={{ 
               scrollBehavior: "smooth",
               scrollbarWidth: "thin",
@@ -187,7 +187,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
               size="sm"
               className="h-10 w-10 rounded-full bg-primary hover:bg-primary/80 flex-shrink-0"
             >
-              <Send className="h-4 w-4" />
+              <Plane className="h-4 w-4 text-white" />
             </Button>
           </div>
         )}
