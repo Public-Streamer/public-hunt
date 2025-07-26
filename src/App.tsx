@@ -30,6 +30,7 @@ import AdvertiserDashboard from "./pages/AdvertiserDashboard";
 import MasterAdmin from "./pages/MasterAdmin";
 import NotFound from "./pages/NotFound";
 import LegalDocumentPage from "./pages/LegalDocument";
+import Post from "./pages/Post";
 
 const queryClient = new QueryClient();
 
@@ -69,6 +70,7 @@ const App = () => (
                 <Route path="/master-admin" element={<MasterAdmin />} />
                 <Route path="/qa" element={<QA />} />
                 <Route path="/legal" element={<LegalDocumentPage />} />
+                <Route path="/post/:postId" element={<Post />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Layout>
