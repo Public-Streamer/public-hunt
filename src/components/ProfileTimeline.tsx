@@ -669,6 +669,30 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
       const currentTime = now.toTimeString().slice(0, 5);
       const location = selectedLocation || (await getCurrentLocation());
 
+      let mediaUrl: string | undefined;
+      let mediaType: "image" | "video" | undefined;
+
+      // Upload media to Supabase storage if provided
+      if (selectedMedia) {
+        const fileExt = selectedMedia.name.split(".").pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `posts/${userId}/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("media")
+          .upload(filePath, selectedMedia);
+
+        if (uploadError) throw uploadError;
+
+        // Get public URL
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from("media").getPublicUrl(filePath);
+
+        mediaUrl = publicUrl;
+        mediaType = selectedMedia.type.startsWith("image/") ? "image" : "video";
+      }
+
       // Auto-populate event data
       const eventData = {
         name: `${profileData.display_name}'s Live Stream`,
@@ -680,7 +704,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
         location: location,
         category: "Live Stream",
         ticket_price: ticketPrice,
-        media_urls: selectedMedia ? [URL.createObjectURL(selectedMedia)] : [],
+        media_urls: mediaUrl ? [mediaUrl] : [],
         is_live: false, // TODO: this should not be true until we start streaming with the token
         created_by: userData.user.id,
         channel_id:
@@ -698,17 +722,64 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
 
       if (eventError) throw eventError;
 
-      // Create a corresponding post about the live event
-      const livePost = {
-        content: newPost || `🔴 LIVE NOW: ${eventData.name}`,
-        media_url: selectedMedia
-          ? URL.createObjectURL(selectedMedia)
-          : undefined,
-        media_type: selectedMedia?.type.startsWith("image/")
-          ? ("image" as const)
-          : ("video" as const),
-        created_at: new Date().toISOString(),
-        user_id: userId,
+      // Create post in database
+      const { data: postData, error: postError } = await supabase
+        .from("user_posts")
+        .insert({
+          content: newPost || `🔴 LIVE NOW: ${eventData.name}`,
+          user_id: userId,
+          user_name: profileData.username,
+          media_url: mediaUrl,
+          media_type: mediaType,
+          location: location,
+          post_type: "event",
+          channel_id:
+            selectedChannels && selectedChannels[0]
+              ? selectedChannels[0].id
+              : null,
+          event_id: eventResult.id,
+          metadata: {
+            event_id: eventResult.id,
+            location: location,
+            ...(selectedChannels &&
+              selectedChannels[0] && { channel_id: selectedChannels[0].id }),
+          },
+        })
+        .select()
+        .single();
+
+      if (postError) throw postError;
+
+      // Create user tags if any
+      if (taggedUsers.length > 0) {
+        const tagInserts = taggedUsers.map((user) => ({
+          post_id: postData.id,
+          tagged_user_id: user.id,
+          tagged_by: userId,
+        }));
+
+        const { error: tagError } = await supabase
+          .from("user_post_tags")
+          .insert(tagInserts);
+
+        if (tagError) console.error("Error creating tags:", tagError);
+      }
+
+      // Get channel data for display
+      const selectedChannelData =
+        selectedChannels && selectedChannels[0]
+          ? userChannels.find((c) => c.id === selectedChannels[0].id) ||
+            allChannels.find((c) => c.id === selectedChannels[0].id)
+          : undefined;
+
+      // Create display post object
+      const newPostData: TimelinePost = {
+        id: postData.id,
+        content: postData.content,
+        media_url: postData.media_url,
+        media_type: postData.media_type as "image" | "video" | undefined,
+        created_at: postData.created_at,
+        user_id: postData.user_id,
         user_profile: {
           id: profileData.id,
           display_name: profileData.display_name,
@@ -721,22 +792,26 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
         is_liked: false,
         is_bookmarked: false,
         type: "event" as const,
-        metadata: {
-          event_id: eventResult.id,
-          location: location,
-          ...(selectedChannels &&
-            selectedChannels[0] && { channel_id: selectedChannels[0].id }),
+        metadata: postData.metadata,
+        channel: selectedChannelData
+          ? {
+              id: selectedChannelData.id,
+              name: selectedChannelData.name,
+            }
+          : undefined,
+        event: {
+          id: eventResult.id,
+          name: eventResult.name,
         },
+        taggedUsers: taggedUsers.map((user) => ({
+          id: user.id,
+          name: user.display_name,
+          username: user.username,
+        })),
       };
 
       // Add the live post to the timeline
-      setPosts((prev) => [
-        {
-          ...livePost,
-          id: (Date.now() + 1).toString(),
-        },
-        ...prev,
-      ]);
+      setPosts((prev) => [newPostData, ...prev]);
 
       // Clear the post form
       setNewPost("");
