@@ -403,14 +403,12 @@ const EventPage: React.FC = () => {
           Back to Events
         </Button>
       </div>
-
       {/* Page Title */}
       <div className="mb-4 sm:mb-6">
         <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-center px-2">
           {eventData.name}
         </h1>
       </div>
-
       {/* Responsive Layout */}
       <div className="space-y-4 sm:space-y-6">
         {/* Admission Button Section */}
@@ -443,8 +441,7 @@ const EventPage: React.FC = () => {
 
                   {/* Show full viewer interface below if user has access */}
                   {/* {(hasTicket || canEnterStage) && (
-               
-                     <div className="mt-6">
+                    <div className="mt-6">
                       <ViewerInterface
                         eventId={eventData.id}
                         hasAccess={true}
@@ -452,7 +449,6 @@ const EventPage: React.FC = () => {
                         showUpgradePrompt={false}
                       />
                     </div>
-                  
                   )} */}
                 </LiveKitRoom>
               ) : (
@@ -624,7 +620,6 @@ const EventPage: React.FC = () => {
           </div>
         </div>
       </div>
-
       {eventData && (
         <TicketPurchaseModal
           isOpen={showPurchaseModal}
@@ -634,7 +629,8 @@ const EventPage: React.FC = () => {
           price={eventData.ticket_price}
           onPurchaseSuccess={handlePurchaseSuccess}
         />
-      )}0
+      )}
+      0
     </div>
   );
 };

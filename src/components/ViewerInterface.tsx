@@ -123,7 +123,9 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
   const room = useRoomContext();
   const participants = useParticipants();
   const tracks = useTracks([Track.Source.Camera], { onlySubscribed: true });
-  const audioTracks = useTracks([Track.Source.Microphone], { onlySubscribed: true });
+  const audioTracks = useTracks([Track.Source.Microphone], {
+    onlySubscribed: true,
+  });
 
   // Ensure only selected camera's audio is unmuted in single view, all muted in grid
   useEffect(() => {
@@ -158,7 +160,6 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
       });
     }
   }, [audioTracks, tracks, selectedTrack, viewMode, isMuted]);
-
 
   // Check if we're properly connected to the room
   const isConnected = room && room.state === "connected";
@@ -222,7 +223,6 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
     // Actual muting is handled in useEffect above
   };
 
-
   const handleTrackSelect = (trackId: string | null) => {
     setSelectedTrack(trackId);
     setViewMode(trackId ? "single" : "grid");
@@ -271,15 +271,12 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
           {/* Main Video Display */}
           <div className="relative bg-black rounded-lg overflow-hidden mb-4">
             <div className="aspect-video">
-          
-
               {viewMode === "grid" || !selectedTrack ? (
                 <MultiCameraGrid
                   tracks={tracks}
                   onTrackSelect={handleTrackSelect}
                   selectedTrack={selectedTrack}
                 />
-                
               ) : (
                 <div className="w-full h-full relative">
                   {/* Single track view */}
@@ -293,13 +290,14 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
                           <Camera className="h-12 w-12 text-white/50" />
                         </div>
                       );
-                      return (
-                        <div>
-                        <AudioTrack trackRef={audioTracks.find((t) => t.publication.trackSid === selectedTrack)}/>
+                    return (
+                      <div>
+                        {/* <AudioTrack trackRef={audioTracks.find((t) => t.publication.trackSid === selectedTrack)}/> */}
+                        <RoomAudioRenderer />
                         <VideoTrack
-                        trackRef={track}
-                        className="w-full h-full object-cover"
-                      />
+                          trackRef={track}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
                     );
                   })()}
@@ -318,7 +316,6 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
               />
             </div>
           </div>
-      
 
           {/* Camera Selector */}
           {tracks.length > 1 && (

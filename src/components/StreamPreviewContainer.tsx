@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useTracks, RoomAudioRenderer } from "@livekit/components-react";
 import { Track } from "livekit-client";
 import { TrackReference } from "@livekit/components-core";
@@ -19,6 +19,7 @@ const StreamPreviewContainer: React.FC<StreamPreviewContainerProps> = ({
   isLoggedIn,
 }) => {
   const [selectedTrackIndex, setSelectedTrackIndex] = useState<number>(0);
+  const [isMuted, setIsMuted] = useState(false);
 
   // Get all video tracks from participants
   const tracks = useTracks(
@@ -48,7 +49,7 @@ const StreamPreviewContainer: React.FC<StreamPreviewContainerProps> = ({
   }, [tracks]);
 
   // Get the currently selected track
-  const selectedTrack = videoTracks[selectedTrackIndex] || videoTracks[0];
+  const selectedVideoTrack = videoTracks[selectedTrackIndex] || videoTracks[0];
 
   const audioTracks = useTracks(
     [{ source: Track.Source.Microphone, withPlaceholder: false }],
@@ -56,6 +57,39 @@ const StreamPreviewContainer: React.FC<StreamPreviewContainerProps> = ({
       onlySubscribed: false,
     }
   );
+
+  useEffect(() => {
+    if (!audioTracks) return;
+    if (selectedVideoTrack) {
+      audioTracks.forEach((trackRef) => {
+        // const videoTrack = tracks.find(
+        //   (t) => t.publication.trackSid === selectedTrack
+        // );
+        const videoParticipant = selectedVideoTrack?.participant.identity;
+        const audioParticipant = trackRef.participant.identity;
+        if (
+          videoParticipant &&
+          audioParticipant &&
+          videoParticipant === audioParticipant
+        ) {
+          if (trackRef.publication.track) {
+            trackRef.publication.track.mediaStreamTrack.enabled = !isMuted;
+          }
+        } else {
+          if (trackRef.publication.track) {
+            trackRef.publication.track.mediaStreamTrack.enabled = false;
+          }
+        }
+      });
+    } else {
+      // In grid mode, mute all
+      audioTracks.forEach((trackRef) => {
+        if (trackRef.publication.track) {
+          trackRef.publication.track.mediaStreamTrack.enabled = false;
+        }
+      });
+    }
+  }, [audioTracks, tracks, selectedVideoTrack]);
 
   // If user is not logged in, show blurred preview
   if (!isLoggedIn) {
@@ -100,12 +134,11 @@ const StreamPreviewContainer: React.FC<StreamPreviewContainerProps> = ({
     <div className="space-y-4">
       {/* Main preview area */}
       <MainStreamPreview
-        track={selectedTrack}
+        track={selectedVideoTrack}
         eventName={eventName}
         isLive={isLive}
-        audioTracks={audioTracks.filter(
-          (track): track is TrackReference => track.publication !== undefined
-        )}
+        setIsMuted={setIsMuted}
+        isMuted={isMuted}
       />
 
       {/* Streamer grid - only show if there are multiple streamers */}

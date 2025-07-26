@@ -17,16 +17,17 @@ interface MainStreamPreviewProps {
   track?: TrackReference;
   eventName: string;
   isLive: boolean;
-  audioTracks?: TrackReference[];
+  setIsMuted: any;
+  isMuted: boolean;
 }
 
 const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
   track,
   eventName,
   isLive,
-  audioTracks,
+  setIsMuted,
+  isMuted,
 }) => {
-  const [isMuted, setIsMuted] = useState(false);
   if (!track) {
     return (
       <div className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100 relative">
@@ -48,33 +49,33 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
 
   const participant = track.participant;
 
-  const isAudioEnabled =
-    audioTracks
-      ?.map((trackRef) => {
-        if (trackRef.publication?.track) {
-          return trackRef.publication.track.mediaStreamTrack.enabled;
-        }
-        return false;
-      })
-      ?.includes(true) ?? false;
+  // const isAudioEnabled =
+  //   audioTracks
+  //     ?.map((trackRef) => {
+  //       if (trackRef.publication?.track) {
+  //         return trackRef.publication.track.mediaStreamTrack.enabled;
+  //       }
+  //       return false;
+  //     })
+  //     ?.includes(true) ?? false;
 
-  console.log(isAudioEnabled);
+  // console.log(isAudioEnabled);
 
-  const handleVolumeToggle = () => {
-    setIsMuted(!isMuted);
-    // Mute/unmute audio tracks
-    audioTracks?.forEach((trackRef) => {
-      if (trackRef.publication?.track) {
-        trackRef.publication.track.mediaStreamTrack.enabled = isMuted;
-      }
-    });
-  };
+  // const handleVolumeToggle = () => {
+  //   setIsMuted(!isMuted);
+  //   // Mute/unmute audio tracks
+  //   audioTracks?.forEach((trackRef) => {
+  //     if (trackRef.publication?.track) {
+  //       trackRef.publication.track.mediaStreamTrack.enabled = isMuted;
+  //     }
+  //   });
+  // };
 
   return (
     <>
-      
       <div className="aspect-video relative bg-black">
         <VideoTrack trackRef={track} className="w-full h-full object-cover" />
+        <RoomAudioRenderer />
         {/* <AudioTrack trackRef={audioTracks[0]}/> */}
 
         {/* Live badge */}
@@ -89,7 +90,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
         </div>
 
         {/* Audio indicator */}
-        <div className="absolute bottom-2 right-2 bg-black/70 text-white p-2 rounded flex items-center gap-2">
+        {/* <div className="absolute bottom-2 right-2 bg-black/70 text-white p-2 rounded flex items-center gap-2">
           <button onClick={handleVolumeToggle}>
             {!isMuted ? (
               <Volume2 className="h-4 w-4" />
@@ -105,7 +106,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
               <MicOff className="h-4 w-4" />
             )}
           </div>
-        </div>
+        </div> */}
 
         {/* Participant info */}
         <div className="absolute bottom-2 left-2 bg-black/70 text-white px-3 py-1 rounded">
