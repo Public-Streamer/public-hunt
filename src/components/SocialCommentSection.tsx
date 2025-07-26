@@ -62,6 +62,8 @@ const SocialCommentSection: React.FC<SocialCommentSectionProps> = ({
 
   const fetchComments = async () => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
       const { data, error } = await supabase
         .from('comments')
         .select(`
@@ -71,13 +73,46 @@ const SocialCommentSection: React.FC<SocialCommentSectionProps> = ({
             username,
             display_name,
             profile_picture_url
+          ),
+          comment_likes(
+            is_like,
+            user_profile_id
           )
         `)
         .eq('post_id', entityId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setComments(data || []);
+
+      // Process comments to calculate likes/dislikes and user interaction state
+      const processedComments = data?.map(comment => {
+        const likes = comment.comment_likes?.filter(like => like.is_like === true) || [];
+        const dislikes = comment.comment_likes?.filter(like => like.is_like === false) || [];
+        
+        let userLiked = false;
+        let userDisliked = false;
+        
+        if (user && currentUserProfile) {
+          const userLike = comment.comment_likes?.find(like => 
+            like.user_profile_id === currentUserProfile.id
+          );
+          if (userLike) {
+            userLiked = userLike.is_like === true;
+            userDisliked = userLike.is_like === false;
+          }
+        }
+
+        return {
+          ...comment,
+          likes_count: likes.length,
+          dislikes_count: dislikes.length,
+          user_liked: userLiked,
+          user_disliked: userDisliked,
+          comment_likes: undefined // Remove this from the final object
+        };
+      }) || [];
+
+      setComments(processedComments);
     } catch (error) {
       console.error('Error fetching comments:', error);
     }
