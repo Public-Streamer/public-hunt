@@ -9,6 +9,7 @@ import { ThumbsUp, ThumbsDown, MessageCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '@/contexts/AppContext';
 import TooltipWrapper from '@/components/ui/tooltip-wrapper';
+import { formatDistanceToNow } from 'date-fns';
 
 // UUID validation helper
 const isValidUUID = (str: string): boolean => {
@@ -250,7 +251,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ entityId, entityType, o
                     {comment.user_profile.display_name || comment.user_profile.username}
                   </span>
                   <span className="text-xs text-gray-500">
-                    {new Date(comment.created_at).toLocaleDateString()}
+                    {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
                   </span>
                 </div>
                 <p className="text-sm mt-1">{comment.content}</p>

@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { ThumbsUp, ThumbsDown, MessageCircle, MoreHorizontal } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { formatDistanceToNow } from 'date-fns';
 
 interface Comment {
   id: string;
@@ -213,7 +214,7 @@ const SocialCommentSection: React.FC<SocialCommentSectionProps> = ({
                     {comment.user_profile.display_name || comment.user_profile.username}
                   </span>
                   <span className="text-xs text-gray-500">
-                    {new Date(comment.created_at).toLocaleDateString()}
+                    {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
                   </span>
                 </div>
                 <p className="text-sm mt-1">{comment.content}</p>
