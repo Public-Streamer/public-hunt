@@ -78,7 +78,7 @@ const LiveEventSpotlight: React.FC = () => {
   };
 
   const handleWatchNow = (eventId: string) => {
-    navigate(`/events/${eventId}`);
+    navigate(`/event/${eventId}`);
   };
 
   if (loading) {
