@@ -139,6 +139,11 @@ const SocialPost: React.FC<SocialPostProps> = ({
 
     try {
       await navigator.clipboard.writeText(postUrl);
+      
+      // Update local share count immediately for better UX
+      setShareCount((prev) => prev + 1);
+      onShare?.(postId);
+      
       toast({
         title: "Link copied",
         description: "Post link copied to clipboard!",
