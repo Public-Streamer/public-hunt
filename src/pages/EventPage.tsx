@@ -21,6 +21,7 @@ import ViewerInterface from "@/components/ViewerInterface";
 import OfflineStreamSection from "@/components/OfflineStreamSection";
 import SocialShareMenu from "@/components/SocialShareMenu";
 import TicketPurchaseModal from "@/components/TicketPurchaseModal";
+import StreamPreviewContainer from "@/components/StreamPreviewContainer";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 
@@ -396,20 +397,38 @@ const EventPage: React.FC = () => {
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             {/* Event Preview Card */}
             <Card className="overflow-hidden">
-              <div className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100 relative">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Video className="h-12 w-12 sm:h-16 sm:w-16 lg:h-24 lg:w-24 text-purple-500" />
+              {eventData.is_live && roomName && livekitToken && serverUrl ? (
+                <LiveKitRoom
+                  token={livekitToken}
+                  serverUrl={serverUrl}
+                  options={{
+                    adaptiveStream: true,
+                    dynacast: true,
+                  }}
+                  connect={true}
+                >
+                  <StreamPreviewContainer
+                    eventName={eventData.name}
+                    isLive={eventData.is_live}
+                    hasAccess={hasTicket || canEnterStage}
+                  />
+                </LiveKitRoom>
+              ) : (
+                <div className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100 relative">
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Video className="h-12 w-12 sm:h-16 sm:w-16 lg:h-24 lg:w-24 text-purple-500" />
+                  </div>
+                  {eventData.is_live && (
+                    <Badge className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-red-600 text-white text-xs">
+                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full mr-1 animate-pulse" />
+                      LIVE
+                    </Badge>
+                  )}
+                  <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-black/70 text-white px-2 py-1 rounded text-xs sm:text-sm">
+                    Multi-camera
+                  </div>
                 </div>
-                {eventData.is_live && (
-                  <Badge className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-red-600 text-white text-xs">
-                    <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full mr-1 animate-pulse" />
-                    LIVE
-                  </Badge>
-                )}
-                <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-black/70 text-white px-2 py-1 rounded text-xs sm:text-sm">
-                  Multi-camera
-                </div>
-              </div>
+              )}
 
               <CardHeader className="p-3 sm:p-6">
                 <CardTitle className="text-lg sm:text-xl lg:text-2xl font-bold break-words">

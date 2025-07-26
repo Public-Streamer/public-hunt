@@ -394,21 +394,29 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
         } = await supabase.auth.getSession();
         if (sessionError || !session) return;
 
-        // Use a database transaction with advisory lock to prevent race conditions
-        const { data, error } = await supabase.rpc(
-          "update_event_live_status_atomic",
-          {
-            p_event_id: eventId,
-          }
-        );
+        // Update event live status based on participants
+        const { data: liveParticipants, error } = await supabase
+          .from("event_participants")
+          .select("*")
+          .eq("event_id", eventId)
+          .eq("is_live", true)
+          .in("role", ["host", "streamer"]);
 
         if (error) {
-          console.error("Error in atomic live status update:", error);
+          console.error("Error checking live participants:", error);
           return false;
         }
 
-        // data.should_close_room indicates if room should be closed
-        return data.should_close_room;
+        const hasLiveParticipants = liveParticipants && liveParticipants.length > 0;
+        
+        // Update event live status
+        await supabase
+          .from("events")
+          .update({ is_live: hasLiveParticipants })
+          .eq("id", eventId);
+
+        // Return true if room should be closed (no live participants)
+        return !hasLiveParticipants;
       } catch (error) {
         console.error("Error updating event live status:", error);
         return false;
@@ -598,8 +606,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
         .eq("streamer_id", session.user.id);
 
       setTimeout(async () => {
-        const result = await checkAndUpdateLiveStatus();
-        const shouldCloseRoom = result?.should_close_room === true;
+        const shouldCloseRoom = await checkAndUpdateLiveStatus();
 
         if (shouldCloseRoom === true) {
           await supabase.functions.invoke("manage-livekit-room", {
