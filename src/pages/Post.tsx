@@ -47,7 +47,7 @@ const Post: React.FC = () => {
           .from("user_posts")
           .select("*")
           .eq("id", postId)
-          .single();
+          .maybeSingle();
 
         if (error) {
           if (error.code === "PGRST116") {
@@ -150,6 +150,8 @@ const Post: React.FC = () => {
         likes={post.likes}
         comments={post.comments}
         shares={0}
+        media_url={post.media_url}
+        media_type={post.media_type as "image" | "video"}
         isOwnPost={false} // Individual post view doesn't allow editing
         onLike={handleLike}
         onComment={handleComment}

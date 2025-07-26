@@ -7,32 +7,26 @@ import { supabase } from '@/lib/supabase';
 import { Heart, MessageCircle, Share2, Calendar, Users, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-interface NewsfeedItem {
+interface UserPostData {
   id: string;
-  type: 'event' | 'channel' | 'comment';
-  title: string;
   content: string;
-  author: {
-    name: string;
-    avatar: string;
-    username: string;
-  };
-  timestamp: string;
+  user_name: string;
+  user_id: string;
   likes: number;
   comments: number;
-  shares: number;
-  isLiked: boolean;
-  metadata?: {
-    eventId?: string;
-    channelId?: string;
-    category?: string;
-    price?: number;
-    attendees?: number;
-  };
+  created_at: string;
+  post_type: string;
+  event_id: string | null;
+  channel_id: string | null;
+  media_url: string | null;
+  media_type: string | null;
+  location: string | null;
+  updated_at: string;
+  metadata: any;
 }
 
 const ProfileNewsfeed: React.FC = () => {
-  const [feedItems, setFeedItems] = useState<NewsfeedItem[]>([]);
+  const [posts, setPosts] = useState<UserPostData[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -41,68 +35,18 @@ const ProfileNewsfeed: React.FC = () => {
 
   const fetchNewsfeed = async () => {
     try {
-      // Mock trending data - replace with actual Supabase queries
-      const mockFeed: NewsfeedItem[] = [
-        {
-          id: '1',
-          type: 'event',
-          title: 'Epic Gaming Tournament Starting Soon!',
-          content: 'Join us for the biggest gaming event of the month. Prize pool of $10,000!',
-          author: {
-            name: 'GameMaster Pro',
-            avatar: '/placeholder.svg',
-            username: 'gamemaster_pro'
-          },
-          timestamp: '2024-03-15T14:30:00Z',
-          likes: 234,
-          comments: 45,
-          shares: 12,
-          isLiked: false,
-          metadata: {
-            eventId: '1',
-            category: 'Gaming',
-            price: 5.99,
-            attendees: 156
-          }
-        },
-        {
-          id: '2',
-          type: 'channel',
-          title: 'New Music Channel Launched!',
-          content: 'Discover amazing live music performances from indie artists around the world.',
-          author: {
-            name: 'Melody Streams',
-            avatar: '/placeholder.svg',
-            username: 'melody_streams'
-          },
-          timestamp: '2024-03-15T12:15:00Z',
-          likes: 89,
-          comments: 23,
-          shares: 8,
-          isLiked: true,
-          metadata: {
-            channelId: '2',
-            category: 'Music'
-          }
-        },
-        {
-          id: '3',
-          type: 'comment',
-          title: 'Amazing performance last night!',
-          content: 'The acoustic session was absolutely incredible. Thank you for such a beautiful evening of music.',
-          author: {
-            name: 'Music Lover',
-            avatar: '/placeholder.svg',
-            username: 'music_lover_42'
-          },
-          timestamp: '2024-03-15T09:45:00Z',
-          likes: 67,
-          comments: 12,
-          shares: 3,
-          isLiked: false
-        }
-      ];
-      setFeedItems(mockFeed);
+      const { data, error } = await supabase
+        .from('user_posts')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (error) {
+        console.error('Error fetching posts:', error);
+        return;
+      }
+
+      setPosts(data || []);
     } catch (error) {
       console.error('Error fetching newsfeed:', error);
     } finally {
@@ -110,30 +54,20 @@ const ProfileNewsfeed: React.FC = () => {
     }
   };
 
-  const handleLike = async (itemId: string) => {
-    setFeedItems(prev => prev.map(item => 
-      item.id === itemId 
-        ? { ...item, isLiked: !item.isLiked, likes: item.isLiked ? item.likes - 1 : item.likes + 1 }
-        : item
+  const handleLike = async (postId: string) => {
+    setPosts(prev => prev.map(post => 
+      post.id === postId 
+        ? { ...post, likes: post.likes + 1 }
+        : post
     ));
   };
 
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'event': return <Calendar className="w-4 h-4" />;
-      case 'channel': return <Play className="w-4 h-4" />;
-      case 'comment': return <MessageCircle className="w-4 h-4" />;
-      default: return null;
-    }
+  const handleComment = async (postId: string, comment: string) => {
+    console.log('Comment on post:', postId, comment);
   };
 
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case 'event': return 'bg-blue-500';
-      case 'channel': return 'bg-purple-500';
-      case 'comment': return 'bg-green-500';
-      default: return 'bg-gray-500';
-    }
+  const handleShare = async (postId: string) => {
+    console.log('Share post:', postId);
   };
 
   if (loading) {
@@ -142,82 +76,64 @@ const ProfileNewsfeed: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <h3 className="text-xl font-semibold">Trending Newsfeed</h3>
+      <h3 className="text-xl font-semibold">Recent Posts</h3>
       <div className="space-y-4">
-        {feedItems.map((item) => (
-          <Card key={item.id} className="hover:shadow-md transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="flex items-start space-x-3">
-                <Avatar className="w-10 h-10">
-                  <AvatarImage src={item.author.avatar} />
-                  <AvatarFallback>{item.author.name[0]}</AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2">
-                    <h4 className="font-semibold">{item.author.name}</h4>
-                    <span className="text-sm text-gray-500">@{item.author.username}</span>
-                    <Badge className={`text-white ${getTypeColor(item.type)}`}>
-                      {getTypeIcon(item.type)}
-                      <span className="ml-1 capitalize">{item.type}</span>
-                    </Badge>
+        {posts.map((post) => (
+          <Card key={post.id} className="hover:shadow-md transition-shadow">
+            <CardContent className="p-0">
+              <div className="p-6">
+                <div className="flex items-start space-x-3 mb-4">
+                  <Avatar className="w-10 h-10">
+                    <AvatarFallback>{post.user_name[0]}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-2">
+                      <h4 className="font-semibold">{post.user_name}</h4>
+                      <span className="text-sm text-gray-500">@{post.user_name}</span>
+                    </div>
+                    <p className="text-sm text-gray-500">{new Date(post.created_at).toLocaleString()}</p>
                   </div>
-                  <p className="text-sm text-gray-500">{new Date(item.timestamp).toLocaleString()}</p>
                 </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <h5 className="font-semibold mb-2">{item.title}</h5>
-              <p className="text-gray-700 mb-4">{item.content}</p>
-              
-              {item.metadata && (
-                <div className="flex items-center space-x-4 mb-4 text-sm text-gray-600">
-                  {item.metadata.category && (
-                    <Badge variant="outline">{item.metadata.category}</Badge>
-                  )}
-                  {item.metadata.price && (
-                    <span className="flex items-center">
-                      <span className="font-semibold">${item.metadata.price}</span>
-                    </span>
-                  )}
-                  {item.metadata.attendees && (
-                    <span className="flex items-center space-x-1">
-                      <Users className="w-4 h-4" />
-                      <span>{item.metadata.attendees} attending</span>
-                    </span>
-                  )}
-                </div>
-              )}
-              
-              <div className="flex items-center justify-between pt-4 border-t">
-                <div className="flex items-center space-x-6">
+                
+                <p className="text-gray-700 mb-4">{post.content}</p>
+                
+                {post.media_url && (
+                  <div className="mb-4 rounded-lg overflow-hidden">
+                    {post.media_type === "video" ? (
+                      <video
+                        src={post.media_url}
+                        controls
+                        className="w-full max-h-96 object-cover"
+                      />
+                    ) : (
+                      <img
+                        src={post.media_url}
+                        alt="Post media"
+                        className="w-full max-h-96 object-cover"
+                      />
+                    )}
+                  </div>
+                )}
+                
+                <div className="flex items-center space-x-6 pt-4 border-t">
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    onClick={() => handleLike(item.id)}
-                    className={item.isLiked ? 'text-red-500' : ''}
+                    onClick={() => handleLike(post.id)}
+                    className="text-gray-500"
                   >
-                    <Heart className={`w-4 h-4 mr-1 ${item.isLiked ? 'fill-current' : ''}`} />
-                    {item.likes}
+                    <Heart className="w-4 h-4 mr-1" />
+                    {post.likes}
                   </Button>
-                  <Button variant="ghost" size="sm">
+                  <Button variant="ghost" size="sm" className="text-gray-500">
                     <MessageCircle className="w-4 h-4 mr-1" />
-                    {item.comments}
+                    {post.comments}
                   </Button>
-                  <Button variant="ghost" size="sm">
+                  <Button variant="ghost" size="sm" className="text-gray-500">
                     <Share2 className="w-4 h-4 mr-1" />
-                    {item.shares}
+                    Share
                   </Button>
                 </div>
-                {item.metadata?.eventId && (
-                  <Link to={`/events/${item.metadata.eventId}`}>
-                    <Button size="sm">View Event</Button>
-                  </Link>
-                )}
-                {item.metadata?.channelId && (
-                  <Link to={`/channels/${item.metadata.channelId}`}>
-                    <Button size="sm">View Channel</Button>
-                  </Link>
-                )}
               </div>
             </CardContent>
           </Card>
