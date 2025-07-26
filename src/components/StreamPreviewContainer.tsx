@@ -73,7 +73,7 @@ const StreamPreviewContainer: React.FC<StreamPreviewContainerProps> = ({
           videoParticipant === audioParticipant
         ) {
           if (trackRef.publication.track) {
-            trackRef.publication.track.mediaStreamTrack.enabled = !isMuted;
+            trackRef.publication.track.mediaStreamTrack.enabled = true
           }
         } else {
           if (trackRef.publication.track) {
