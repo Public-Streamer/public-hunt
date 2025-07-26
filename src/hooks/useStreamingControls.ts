@@ -659,6 +659,8 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
         } else {
           navigate(`/event/${eventId}`);
         }
+
+        // Modify your code at line 663 to this:
       }, 10);
 
       toast.success("Stream stopped");
