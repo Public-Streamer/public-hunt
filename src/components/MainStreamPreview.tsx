@@ -131,7 +131,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
           onClick={() => setIsChatVisible(!isChatVisible)}
           size="sm"
           variant="outline"
-          className="absolute top-2 right-20 sm:top-4 sm:right-24 bg-black/70 border-white/30 text-white hover:bg-black/80 h-8 px-2"
+          className="absolute top-2 right-20 sm:top-4 sm:right-24 bg-black/80 border-white/40 text-white hover:bg-black/90 h-8 px-2 shadow-2xl backdrop-blur-sm"
         >
           {isChatVisible ? <X className="h-3 w-3" /> : <MessageCircle className="h-3 w-3" />}
         </Button>
@@ -140,12 +140,13 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
         {isChatVisible && visibleMessages.length > 0 && (
           <div
             ref={chatContainerRef}
-            className="absolute bottom-16 left-2 right-2 max-h-64 overflow-y-auto space-y-2 pointer-events-none"
+            className="absolute bottom-16 left-2 right-2 max-h-64 overflow-y-scroll scrollbar-hide space-y-2 pointer-events-auto"
+            style={{ scrollBehavior: "smooth" }}
           >
             {visibleMessages.map((message, index) => (
               <div
                 key={`${message.id}-${index}`}
-                className="bg-black/75 backdrop-blur-sm text-white px-3 py-2 rounded-2xl max-w-80 shadow-lg animate-in slide-in-from-bottom-2 duration-300"
+                className="bg-black/75 backdrop-blur-sm text-white px-3 py-2 rounded-2xl max-w-80 shadow-lg animate-fade-in"
                 style={{
                   wordWrap: "break-word",
                   hyphens: "auto",
