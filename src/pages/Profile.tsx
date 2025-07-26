@@ -37,7 +37,7 @@ interface UserProfile {
 }
 
 const Profile: React.FC = () => {
-  const { username } = useParams<{ username?: string }>();
+  const { userId } = useParams<{ userId?: string }>();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isOwnProfile, setIsOwnProfile] = useState(false);
@@ -56,19 +56,18 @@ const Profile: React.FC = () => {
       return;
     }
     loadProfile();
-  }, [username, user, isAuthenticated]);
+  }, [userId, user, isAuthenticated]);
 
   const loadProfile = async () => {
     try {
       if (!user) return;
       
-      const targetUsername = username || user.email?.split('@')[0] || 'user';
-      const currentUserUsername = user.email?.split('@')[0] || 'user';
-      setIsOwnProfile(targetUsername === currentUserUsername);
+      const targetUserId = userId || user.id;
+      setIsOwnProfile(targetUserId === user.id);
       
       const mockProfile: UserProfile = {
-        id: user.id,
-        username: targetUsername,
+        id: targetUserId,
+        username: user.email?.split('@')[0] || 'user',
         display_name: userProfile ? `${userProfile.firstName} ${userProfile.lastName}` : 'User',
         bio: userProfile?.bio || 'Welcome to my profile! I love creating amazing content and connecting with the community.',
         profile_picture_url: userProfile?.profilePhoto || '/placeholder.svg',
