@@ -11,7 +11,7 @@ import {
   TrackReferencePlaceholder,
 } from "@livekit/components-core";
 import { Badge } from "@/components/ui/badge";
-import { Video, Mic, MicOff, VolumeX, Volume2, Send, MessageCircle, X, Plane } from "lucide-react";
+import { Video, Mic, MicOff, VolumeX, Volume2, Send, MessageCircle, X, Plane, Maximize, Minimize } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 
@@ -34,9 +34,13 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
   console.log("Chat messages received:", chatMessages);
   console.log("Chat send function:", send);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const videoContainerRef = useRef<HTMLDivElement>(null);
   const [visibleMessages, setVisibleMessages] = useState<any[]>([]);
   const [chatMessage, setChatMessage] = useState("");
   const [isChatVisible, setIsChatVisible] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showControls, setShowControls] = useState(true);
+  const hideControlsTimer = useRef<NodeJS.Timeout | null>(null);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -63,6 +67,84 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
     if (e.key === "Enter") {
       e.preventDefault();
       handleSendMessage();
+    }
+  };
+
+  // Fullscreen functionality
+  const handleFullscreenToggle = () => {
+    if (!videoContainerRef.current) return;
+
+    if (!isFullscreen) {
+      // Enter fullscreen
+      if (videoContainerRef.current.requestFullscreen) {
+        videoContainerRef.current.requestFullscreen();
+      } else if ((videoContainerRef.current as any).webkitRequestFullscreen) {
+        (videoContainerRef.current as any).webkitRequestFullscreen();
+      } else if ((videoContainerRef.current as any).msRequestFullscreen) {
+        (videoContainerRef.current as any).msRequestFullscreen();
+      }
+    } else {
+      // Exit fullscreen
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if ((document as any).webkitExitFullscreen) {
+        (document as any).webkitExitFullscreen();
+      } else if ((document as any).msExitFullscreen) {
+        (document as any).msExitFullscreen();
+      }
+    }
+  };
+
+  // Auto-hide controls in fullscreen
+  const resetHideTimer = () => {
+    setShowControls(true);
+    if (hideControlsTimer.current) {
+      clearTimeout(hideControlsTimer.current);
+    }
+    if (isFullscreen) {
+      hideControlsTimer.current = setTimeout(() => {
+        setShowControls(false);
+      }, 3000);
+    }
+  };
+
+  // Handle fullscreen change events
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const isCurrentlyFullscreen = !!(
+        document.fullscreenElement ||
+        (document as any).webkitFullscreenElement ||
+        (document as any).msFullscreenElement
+      );
+      setIsFullscreen(isCurrentlyFullscreen);
+      if (!isCurrentlyFullscreen) {
+        setShowControls(true);
+        if (hideControlsTimer.current) {
+          clearTimeout(hideControlsTimer.current);
+        }
+      } else {
+        resetHideTimer();
+      }
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('msfullscreenchange', handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('msfullscreenchange', handleFullscreenChange);
+      if (hideControlsTimer.current) {
+        clearTimeout(hideControlsTimer.current);
+      }
+    };
+  }, [isFullscreen]);
+
+  // Mouse movement handler for auto-hide
+  const handleMouseMove = () => {
+    if (isFullscreen) {
+      resetHideTimer();
     }
   };
   if (!track) {
@@ -110,28 +192,43 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
 
   return (
     <>
-      <div className="aspect-video relative bg-black">
+      <div 
+        ref={videoContainerRef}
+        className={`aspect-video relative bg-black ${isFullscreen ? 'fixed inset-0 z-50 aspect-auto' : ''}`}
+        onMouseMove={handleMouseMove}
+        onTouchStart={handleMouseMove}
+      >
         <VideoTrack trackRef={track} className="w-full h-full object-cover" />
 
         {/* <AudioTrack trackRef={audioTracks[0]}/> */}
 
         {/* Live badge */}
-        <Badge className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-red-600 text-white text-xs">
+        <Badge className={`absolute top-2 left-2 sm:top-4 sm:left-4 bg-red-600 text-white text-xs transition-opacity duration-300 ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100'}`}>
           <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full mr-1 animate-pulse" />
           LIVE
         </Badge>
 
         {/* Multi-camera indicator */}
-        <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-black/70 text-white px-2 py-1 rounded text-xs sm:text-sm">
+        <div className={`absolute top-2 right-2 sm:top-4 sm:right-4 bg-black/70 text-white px-2 py-1 rounded text-xs sm:text-sm transition-opacity duration-300 ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100'}`}>
           Multi-camera
         </div>
+
+        {/* Fullscreen Toggle Button */}
+        <Button
+          onClick={handleFullscreenToggle}
+          size="sm"
+          variant="outline"
+          className={`absolute bottom-2 right-2 sm:bottom-4 sm:right-4 bg-black/80 border-white/40 text-white hover:bg-black/90 h-8 w-8 px-0 shadow-2xl backdrop-blur-sm transition-opacity duration-300 ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100'}`}
+        >
+          {isFullscreen ? <Minimize className="h-3 w-3" /> : <Maximize className="h-3 w-3" />}
+        </Button>
 
         {/* Chat Visibility Toggle (Audience Only) */}
         <Button
           onClick={() => setIsChatVisible(!isChatVisible)}
           size="sm"
           variant="outline"
-          className="absolute top-2 right-20 sm:top-4 sm:right-24 bg-black/80 border-white/40 text-white hover:bg-black/90 h-8 px-2 shadow-2xl backdrop-blur-sm"
+          className={`absolute top-2 right-20 sm:top-4 sm:right-24 bg-black/80 border-white/40 text-white hover:bg-black/90 h-8 px-2 shadow-2xl backdrop-blur-sm transition-opacity duration-300 ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100'}`}
         >
           {isChatVisible ? <X className="h-3 w-3" /> : <MessageCircle className="h-3 w-3" />}
         </Button>
@@ -140,7 +237,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
         {isChatVisible && visibleMessages.length > 0 && (
           <div
             ref={chatContainerRef}
-            className="absolute bottom-20 left-2 right-2 max-h-64 overflow-y-scroll space-y-2 pointer-events-auto"
+            className={`absolute bottom-20 left-2 right-2 max-h-64 overflow-y-scroll space-y-2 pointer-events-auto transition-opacity duration-300 ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100'}`}
             style={{ 
               scrollBehavior: "smooth",
               scrollbarWidth: "thin",
@@ -173,7 +270,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
 
         {/* Chat Input Overlay - Integrated Style */}
         {isChatVisible && (
-          <div className="absolute bottom-2 left-2 right-2">
+          <div className={`absolute bottom-2 left-2 right-2 transition-opacity duration-300 ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100'}`}>
             <div className="relative bg-black/80 backdrop-blur-sm rounded-full border border-white/20">
               <Input
                 value={chatMessage}
