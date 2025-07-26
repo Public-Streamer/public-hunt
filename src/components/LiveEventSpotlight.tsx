@@ -4,6 +4,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Eye, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { LiveKitRoom, useTracks } from '@livekit/components-react';
+import { Track } from 'livekit-client';
+import MainStreamPreview from '@/components/MainStreamPreview';
 
 interface LiveEvent {
   id: string;
@@ -13,6 +16,97 @@ interface LiveEvent {
   timeRemaining?: string;
   thumbnail: string;
 }
+
+interface StreamPreviewProps {
+  eventId: string;
+  eventName: string;
+  fallbackImage: string;
+}
+
+const StreamPreview: React.FC<StreamPreviewProps> = ({ eventId, eventName, fallbackImage }) => {
+  const [token, setToken] = useState<string | null>(null);
+  const [serverUrl, setServerUrl] = useState<string>('');
+
+  useEffect(() => {
+    const fetchToken = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('create-livekit-token', {
+          body: {
+            eventId,
+            userRole: 'viewer',
+            permissions: {
+              canPublish: false,
+              canSubscribe: true,
+              canPublishData: false
+            }
+          }
+        });
+
+        if (error) {
+          console.error('Error fetching token:', error);
+          return;
+        }
+
+        setToken(data.token);
+        setServerUrl(data.serverUrl);
+      } catch (error) {
+        console.error('Error creating LiveKit token:', error);
+      }
+    };
+
+    fetchToken();
+  }, [eventId]);
+
+  if (!token || !serverUrl) {
+    return (
+      <img 
+        src={fallbackImage} 
+        alt={eventName}
+        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+      />
+    );
+  }
+
+  return (
+    <LiveKitRoom 
+      token={token} 
+      serverUrl={serverUrl}
+      connect={true}
+      className="w-full h-full"
+    >
+      <StreamContent eventName={eventName} fallbackImage={fallbackImage} />
+    </LiveKitRoom>
+  );
+};
+
+const StreamContent: React.FC<{ eventName: string; fallbackImage: string }> = ({ eventName, fallbackImage }) => {
+  const videoTracks = useTracks([Track.Source.Camera, Track.Source.ScreenShare], {
+    updateOnlyOn: [],
+    onlySubscribed: false,
+  });
+
+  const activeVideoTracks = videoTracks.filter(
+    (track) => track.publication && track.participant.identity !== 'viewer'
+  );
+
+  if (activeVideoTracks.length === 0) {
+    return (
+      <img 
+        src={fallbackImage} 
+        alt={eventName}
+        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+      />
+    );
+  }
+
+  return (
+    <MainStreamPreview 
+      track={activeVideoTracks[0]} 
+      eventName={eventName} 
+      isLive={true}
+    />
+  );
+};
 
 const LiveEventSpotlight: React.FC = () => {
   const navigate = useNavigate();
@@ -118,10 +212,10 @@ const LiveEventSpotlight: React.FC = () => {
           {liveEvents.map((event) => (
             <div key={event.id} className="relative group cursor-pointer">
               <div className="aspect-video bg-gradient-to-br from-primary/20 to-secondary/20 rounded-lg overflow-hidden">
-                <img 
-                  src={event.thumbnail} 
-                  alt={event.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                <StreamPreview 
+                  eventId={event.id}
+                  eventName={event.title}
+                  fallbackImage={event.thumbnail}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 
