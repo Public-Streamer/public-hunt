@@ -77,25 +77,22 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
       </div>
 
       {/* Audio indicator */}
-      <div className="absolute bottom-2 right-2 bg-black/70 text-white p-2 rounded">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleVolumeToggle}
-          className="text-white hover:bg-white/20"
-        >
+      <div className="absolute bottom-2 right-2 bg-black/70 text-white p-2 rounded flex items-center gap-2">
+        <button onClick={handleVolumeToggle}>
           {!isMuted ? (
             <Volume2 className="h-4 w-4" />
           ) : (
             <VolumeX className="h-4 w-4" />
           )}
-        </Button>
+        </button>
 
-        {isAudioEnabled ? (
-          <Mic className="h-4 w-4" />
-        ) : (
-          <MicOff className="h-4 w-4" />
-        )}
+        <div>
+          {isAudioEnabled ? (
+            <Mic className="h-4 w-4" />
+          ) : (
+            <MicOff className="h-4 w-4" />
+          )}
+        </div>
       </div>
 
       {/* Participant info */}
