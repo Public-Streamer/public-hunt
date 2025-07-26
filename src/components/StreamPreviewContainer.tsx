@@ -1,5 +1,9 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { useTracks, RoomAudioRenderer } from "@livekit/components-react";
+import {
+  useTracks,
+  RoomAudioRenderer,
+  StartAudio,
+} from "@livekit/components-react";
 import { Track } from "livekit-client";
 import { TrackReference } from "@livekit/components-core";
 import MainStreamPreview from "./MainStreamPreview";
@@ -73,7 +77,7 @@ const StreamPreviewContainer: React.FC<StreamPreviewContainerProps> = ({
           videoParticipant === audioParticipant
         ) {
           if (trackRef.publication.track) {
-            trackRef.publication.track.mediaStreamTrack.enabled = true
+            trackRef.publication.track.mediaStreamTrack.enabled = true;
           }
         } else {
           if (trackRef.publication.track) {
@@ -139,7 +143,9 @@ const StreamPreviewContainer: React.FC<StreamPreviewContainerProps> = ({
         setIsMuted={setIsMuted}
         isMuted={isMuted}
       />
-
+      <button className="m-2 bg-black text-white p-2">
+        <StartAudio label="Start Audio" />
+      </button>
       {/* Streamer grid - only show if there are multiple streamers */}
       {videoTracks.length > 1 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 p-2">
