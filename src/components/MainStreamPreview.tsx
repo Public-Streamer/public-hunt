@@ -213,31 +213,12 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
           Multi-camera
         </div>
 
-        {/* Fullscreen Toggle Button */}
-        <Button
-          onClick={handleFullscreenToggle}
-          size="sm"
-          variant="outline"
-          className={`absolute bottom-2 right-2 sm:bottom-4 sm:right-4 bg-black/80 border-white/40 text-white hover:bg-black/90 h-8 w-8 px-0 shadow-2xl backdrop-blur-sm transition-opacity duration-300 ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100'}`}
-        >
-          {isFullscreen ? <Minimize className="h-3 w-3" /> : <Maximize className="h-3 w-3" />}
-        </Button>
-
-        {/* Chat Visibility Toggle (Audience Only) */}
-        <Button
-          onClick={() => setIsChatVisible(!isChatVisible)}
-          size="sm"
-          variant="outline"
-          className={`absolute top-2 right-20 sm:top-4 sm:right-24 bg-black/80 border-white/40 text-white hover:bg-black/90 h-8 px-2 shadow-2xl backdrop-blur-sm transition-opacity duration-300 ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100'}`}
-        >
-          {isChatVisible ? <X className="h-3 w-3" /> : <MessageCircle className="h-3 w-3" />}
-        </Button>
 
         {/* Chat Messages Overlay - Facebook Live Style */}
         {isChatVisible && visibleMessages.length > 0 && (
           <div
             ref={chatContainerRef}
-            className={`absolute bottom-20 left-2 right-2 max-h-64 overflow-y-scroll space-y-2 pointer-events-auto transition-opacity duration-300 ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100'}`}
+            className={`absolute bottom-16 left-2 right-2 max-h-64 overflow-y-scroll space-y-2 pointer-events-auto transition-opacity duration-300 ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100'}`}
             style={{ 
               scrollBehavior: "smooth",
               scrollbarWidth: "thin",
@@ -268,28 +249,57 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
           </div>
         )}
 
-        {/* Chat Input Overlay - Integrated Style */}
-        {isChatVisible && (
-          <div className={`absolute bottom-2 left-2 right-2 transition-opacity duration-300 ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100'}`}>
-            <div className="relative bg-black/80 backdrop-blur-sm rounded-full border border-white/20">
-              <Input
-                value={chatMessage}
-                onChange={(e) => setChatMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Send Message"
-                className="w-full bg-transparent border-none text-white placeholder:text-white/60 h-12 text-sm rounded-full pl-5 pr-14 focus-visible:ring-0 focus-visible:ring-offset-0"
-              />
+        {/* Unified Bottom Control Bar */}
+        <div className={`absolute bottom-2 left-2 right-2 transition-opacity duration-300 ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100'}`}>
+          <div className="flex items-center gap-2 bg-black/80 backdrop-blur-sm rounded-lg p-2 shadow-lg">
+            {/* Chat Input - Left Side */}
+            {isChatVisible && (
+              <div className="flex-1 relative">
+                <Input
+                  value={chatMessage}
+                  onChange={(e) => setChatMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Send Message"
+                  className="w-full bg-transparent border border-white/20 text-white placeholder:text-white/60 h-10 text-sm rounded-lg pl-4 pr-10 focus-visible:ring-1 focus-visible:ring-white/40 focus-visible:ring-offset-0 focus-visible:border-white/40"
+                />
+                <Button
+                  onClick={handleSendMessage}
+                  disabled={!chatMessage.trim()}
+                  size="sm"
+                  className="absolute right-1 top-1 h-8 w-8 rounded-md bg-white/20 hover:bg-white/30 transition-all duration-200 border-none p-0"
+                >
+                  <Plane className="h-4 w-4 text-white rotate-45" />
+                </Button>
+              </div>
+            )}
+            
+            {/* Control Buttons - Right Side */}
+            <div className={`flex items-center gap-2 ${!isChatVisible ? 'flex-1 justify-start' : ''}`}>
+              {/* Chat Toggle Button */}
               <Button
-                onClick={handleSendMessage}
-                disabled={!chatMessage.trim()}
+                onClick={() => setIsChatVisible(!isChatVisible)}
                 size="sm"
-                className="absolute right-1 top-1 h-10 w-10 rounded-full bg-white/20 hover:bg-white/30 transition-all duration-200 border-none"
+                variant="outline"
+                className="bg-black/60 border-white/40 text-white hover:bg-black/80 h-10 px-3 shadow-lg backdrop-blur-sm"
               >
-                <Plane className="h-5 w-5 text-white rotate-45 transform transition-transform hover:scale-110" />
+                {isChatVisible ? <X className="h-4 w-4 mr-1" /> : <MessageCircle className="h-4 w-4 mr-1" />}
+                <span className="text-xs hidden sm:inline">
+                  {isChatVisible ? 'Hide Chat' : 'Show Chat'}
+                </span>
+              </Button>
+
+              {/* Fullscreen Toggle Button */}
+              <Button
+                onClick={handleFullscreenToggle}
+                size="sm"
+                variant="outline"
+                className="bg-black/60 border-white/40 text-white hover:bg-black/80 h-10 w-10 px-0 shadow-lg backdrop-blur-sm"
+              >
+                {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
               </Button>
             </div>
           </div>
-        )}
+        </div>
 
         {/* Participant info */}
         <div className="absolute top-12 left-2 bg-black/70 text-white px-3 py-1 rounded">
