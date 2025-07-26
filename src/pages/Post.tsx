@@ -81,11 +81,72 @@ const Post: React.FC = () => {
   };
 
   const handleComment = async (postId: string, comment: string) => {
-    // Handle comment functionality
-    toast({
-      title: "Comment added",
-      description: "Your comment has been posted.",
-    });
+    try {
+      // Get current user profile for comment creation
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Authentication required",
+          description: "Please log in to comment.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!profile) {
+        toast({
+          title: "Profile not found",
+          description: "User profile is required to comment.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Insert comment into database
+      const { error } = await supabase
+        .from('comments')
+        .insert({
+          content: comment,
+          post_id: postId,
+          user_profile_id: profile.id,
+          author_name: profile.display_name || profile.username,
+          author_username: profile.username,
+          author_avatar: profile.profile_picture_url
+        });
+
+      if (error) {
+        console.error("Error adding comment:", error);
+        toast({
+          title: "Failed to add comment",
+          description: "There was an error posting your comment.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Update comment count in post
+      if (post) {
+        setPost(prev => prev ? { ...prev, comments: prev.comments + 1 } : null);
+      }
+
+      toast({
+        title: "Comment added",
+        description: "Your comment has been posted.",
+      });
+    } catch (error) {
+      console.error("Error in handleComment:", error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleShare = async (postId: string) => {
