@@ -13,7 +13,11 @@ import {
   ArrowLeft,
   Loader2,
 } from "lucide-react";
-import { LiveKitRoom, RoomAudioRenderer } from "@livekit/components-react";
+import {
+  LiveKitRoom,
+  RoomAudioRenderer,
+  StartAudio,
+} from "@livekit/components-react";
 import "@livekit/components-styles";
 import SocialMediaSection from "@/components/SocialMediaSection";
 import MediaDisplay from "@/components/MediaDisplay";
@@ -438,6 +442,7 @@ const EventPage: React.FC = () => {
                     hasAccess={hasTicket || canEnterStage}
                     isLoggedIn={!!currentUser}
                   />
+                  <StartAudio label="Start Audio" />
                   <RoomAudioRenderer />
 
                   {/* Show full viewer interface below if user has access */}
