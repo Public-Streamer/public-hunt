@@ -80,11 +80,73 @@ const Post: React.FC = () => {
       navigate(`/login?redirect=${encodeURIComponent(currentUrl)}`);
       return;
     }
-    // Handle like functionality
-    toast({
-      title: "Like updated",
-      description: "Post like status updated successfully.",
-    });
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Check if user has already liked this post
+      const { data: existingLike } = await supabase
+        .from('post_interactions')
+        .select('id')
+        .eq('post_id', postId)
+        .eq('user_id', user.id)
+        .eq('interaction_type', 'like')
+        .single();
+
+      if (existingLike) {
+        // Unlike the post
+        const { error } = await supabase
+          .from('post_interactions')
+          .delete()
+          .eq('post_id', postId)
+          .eq('user_id', user.id)
+          .eq('interaction_type', 'like');
+
+        if (error) throw error;
+
+        // Update post count in database and local state
+        const newLikeCount = Math.max(0, (post?.likes || 0) - 1);
+        await supabase
+          .from('user_posts')
+          .update({ likes: newLikeCount })
+          .eq('id', postId);
+
+        setPost(prev => prev ? { ...prev, likes: newLikeCount } : null);
+      } else {
+        // Like the post
+        const { error } = await supabase
+          .from('post_interactions')
+          .insert({
+            post_id: postId,
+            user_id: user.id,
+            interaction_type: 'like'
+          });
+
+        if (error) throw error;
+
+        // Update post count in database and local state
+        const newLikeCount = (post?.likes || 0) + 1;
+        await supabase
+          .from('user_posts')
+          .update({ likes: newLikeCount })
+          .eq('id', postId);
+
+        setPost(prev => prev ? { ...prev, likes: newLikeCount } : null);
+      }
+
+      toast({
+        title: "Success",
+        description: "Post like status updated.",
+      });
+    } catch (error) {
+      console.error('Error handling like:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update like status.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleComment = async (postId: string, comment: string) => {
