@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/lib/supabase';
 import { Heart, MessageCircle, Share2, Calendar, Users, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 interface UserPostData {
   id: string;
@@ -14,6 +15,7 @@ interface UserPostData {
   user_id: string;
   likes: number;
   comments: number;
+  shares: number;
   created_at: string;
   post_type: string;
   event_id: string | null;
@@ -28,6 +30,7 @@ interface UserPostData {
 const ProfileNewsfeed: React.FC = () => {
   const [posts, setPosts] = useState<UserPostData[]>([]);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchNewsfeed();
@@ -67,7 +70,48 @@ const ProfileNewsfeed: React.FC = () => {
   };
 
   const handleShare = async (postId: string) => {
-    console.log('Share post:', postId);
+    const postUrl = `${window.location.origin}/post/${postId}`;
+
+    try {
+      await navigator.clipboard.writeText(postUrl);
+      
+      // Update database with incremented share count
+      const currentPost = posts.find(post => post.id === postId);
+      const newShareCount = (currentPost?.shares || 0) + 1;
+      
+      const { error } = await supabase
+        .from("user_posts")
+        .update({ shares: newShareCount })
+        .eq("id", postId);
+
+      if (error) {
+        console.error("Error updating shares count:", error);
+        toast({
+          title: "Share failed",
+          description: "Could not update share count.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Update local state after successful database update
+      setPosts(prev => prev.map(post => 
+        post.id === postId 
+          ? { ...post, shares: newShareCount }
+          : post
+      ));
+      
+      toast({
+        title: "Link copied",
+        description: "Post link copied to clipboard!",
+      });
+    } catch (err) {
+      toast({
+        title: "Share failed",
+        description: "Could not copy link to clipboard.",
+        variant: "destructive",
+      });
+    }
   };
 
   if (loading) {
@@ -129,9 +173,14 @@ const ProfileNewsfeed: React.FC = () => {
                     <MessageCircle className="w-4 h-4 mr-1" />
                     {post.comments}
                   </Button>
-                  <Button variant="ghost" size="sm" className="text-gray-500">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => handleShare(post.id)}
+                    className="text-gray-500"
+                  >
                     <Share2 className="w-4 h-4 mr-1" />
-                    Share
+                    {post.shares || 0}
                   </Button>
                 </div>
               </div>
