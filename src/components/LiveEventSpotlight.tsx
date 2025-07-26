@@ -109,6 +109,7 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({ eventId, eventName, fallb
 };
 
 const StreamContent: React.FC<{ eventName: string; fallbackImage: string; isBlurred: boolean }> = ({ eventName, fallbackImage, isBlurred }) => {
+  const [isMuted, setIsMuted] = useState(false);
   const videoTracks = useTracks([Track.Source.Camera, Track.Source.ScreenShare], {
     updateOnlyOn: [],
     onlySubscribed: false,
@@ -134,6 +135,8 @@ const StreamContent: React.FC<{ eventName: string; fallbackImage: string; isBlur
         track={activeVideoTracks[0]} 
         eventName={eventName} 
         isLive={true}
+        isMuted={isMuted}
+        setIsMuted={setIsMuted}
       />
     </div>
   );
