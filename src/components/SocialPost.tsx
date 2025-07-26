@@ -322,7 +322,7 @@ const SocialPost: React.FC<SocialPostProps> = ({
                   e.preventDefault();
                   e.stopPropagation();
                   // Open in new tab to preserve post visibility
-                  window.open(`/channels?channel=${channel.id}`, '_blank');
+                  window.open(`/channel/${channel.id}`, '_blank');
                 }}
               >
                 <Hash className="h-3 w-3" />
@@ -338,7 +338,7 @@ const SocialPost: React.FC<SocialPostProps> = ({
                   e.preventDefault();
                   e.stopPropagation();
                   // Open in new tab to preserve post visibility
-                  window.open(`/events?event=${event.id}`, '_blank');
+                  window.open(`/event/${event.id}`, '_blank');
                 }}
               >
                 <Calendar className="h-3 w-3" />
