@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   useTracks,
   VideoTrack,
   RoomAudioRenderer,
   AudioTrack,
+  useChat,
 } from "@livekit/components-react";
 import {
   TrackReference,
@@ -28,6 +29,22 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
   setIsMuted,
   isMuted,
 }) => {
+  const { chatMessages } = useChat();
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const [visibleMessages, setVisibleMessages] = useState<any[]>([]);
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, [chatMessages]);
+
+  // Show only the latest 5 messages for better readability
+  useEffect(() => {
+    const latest = chatMessages.slice(-5);
+    setVisibleMessages(latest);
+  }, [chatMessages]);
   if (!track) {
     return (
       <div className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100 relative">
@@ -107,6 +124,32 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
             )}
           </div>
         </div> */}
+
+        {/* Chat Messages Overlay */}
+        {visibleMessages.length > 0 && (
+          <div 
+            ref={chatContainerRef}
+            className="absolute bottom-16 left-2 right-2 max-h-48 overflow-y-auto space-y-1 pointer-events-none"
+          >
+            {visibleMessages.map((message, index) => (
+              <div
+                key={`${message.id}-${index}`}
+                className="bg-black/60 backdrop-blur-sm text-white px-3 py-2 rounded-lg max-w-xs animate-fade-in"
+                style={{
+                  wordWrap: 'break-word',
+                  hyphens: 'auto'
+                }}
+              >
+                <span className="font-semibold text-blue-300">
+                  {message.from?.name || message.from?.identity || 'Anonymous'}:
+                </span>{' '}
+                <span className="text-white">
+                  {message.message}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Participant info */}
         <div className="absolute bottom-2 left-2 bg-black/70 text-white px-3 py-1 rounded">
