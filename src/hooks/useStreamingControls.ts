@@ -407,8 +407,9 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
           return false;
         }
 
-        const hasLiveParticipants = liveParticipants && liveParticipants.length > 0;
-        
+        const hasLiveParticipants =
+          liveParticipants && liveParticipants.length > 0;
+
         // Update event live status
         await supabase
           .from("events")
@@ -515,6 +516,30 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
     }
   }, [localParticipant, isAudioEnabled]);
 
+  const toggleAudioLiveButton = useCallback(
+    async (enabled: boolean) => {
+      if (!localParticipant) {
+        toast.error("Not connected to room");
+        return;
+      }
+
+      try {
+        await localParticipant.setMicrophoneEnabled(enabled);
+        setIsAudioEnabled(enabled);
+
+        if (enabled) {
+          toast.success("Microphone turned on");
+        } else {
+          toast.info("Microphone muted");
+        }
+      } catch (error) {
+        toast.error("Failed to toggle microphone");
+        console.error("Toggle audio error:", error);
+      }
+    },
+    [localParticipant, isAudioEnabled]
+  );
+
   const toggleScreenShare = useCallback(async () => {
     if (!localParticipant) {
       toast.error("Not connected to room");
@@ -554,6 +579,9 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       if (!isVideoEnabled) {
         toggleVideoLiveButton(true);
       }
+      if (!isAudioEnabled) {
+        toggleAudioLiveButton(true);
+      }
 
       setTimeout(async () => {
         await checkAndUpdateLiveStatus();
@@ -579,7 +607,9 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
     checkAndUpdateLiveStatus,
     updateParticipantLiveStatus,
     toggleVideoLiveButton,
+    toggleAudioLiveButton,
     isVideoEnabled,
+    isAudioEnabled,
   ]);
 
   const stopStream = useCallback(async () => {
@@ -598,6 +628,9 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       await updateParticipantLiveStatus(false);
       if (isVideoEnabled) {
         toggleVideoLiveButton(false);
+      }
+      if (isAudioEnabled) {
+        toggleAudioLiveButton(false);
       }
       await supabase
         .from("event_streams")
@@ -633,7 +666,9 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
     updateParticipantLiveStatus,
     checkAndUpdateLiveStatus,
     toggleVideoLiveButton,
+    toggleAudioLiveButton,
     isVideoEnabled,
+    isAudioEnabled,
   ]);
 
   return {
