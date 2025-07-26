@@ -31,9 +31,10 @@ interface Comment {
 interface CommentSectionProps {
   entityId: string;
   entityType: 'event' | 'channel' | 'post';
+  onCommentAdded?: () => void;
 }
 
-const CommentSection: React.FC<CommentSectionProps> = ({ entityId, entityType }) => {
+const CommentSection: React.FC<CommentSectionProps> = ({ entityId, entityType, onCommentAdded }) => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(false);
@@ -110,8 +111,24 @@ const CommentSection: React.FC<CommentSectionProps> = ({ entityId, entityType })
 
       if (error) throw error;
 
+      // Update the comment count in the user_posts table
+      if (entityType === 'post') {
+        const { error: updateError } = await supabase
+          .from('user_posts')
+          .update({ comments: comments.length + 1 })
+          .eq('id', entityId);
+        
+        if (updateError) {
+          console.error('Error updating comment count:', updateError);
+        }
+      }
+
       setNewComment('');
       fetchComments();
+      
+      // Notify parent component that a comment was added
+      onCommentAdded?.();
+      
       toast({
         title: 'Comment posted',
         description: 'Your comment has been posted successfully'

@@ -34,6 +34,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import CommentSection from "./CommentSection";
 
 interface SocialPostProps {
   postId: string;
@@ -118,19 +119,13 @@ const SocialPost: React.FC<SocialPostProps> = ({
 
   const [commentCount, setCommentCount] = useState(comments);
 
-  const handleComment = () => {
-    if (newComment.trim()) {
-      // Call the parent component's comment handler
-      onComment?.(postId, newComment);
-
-      // Immediately close comment input (will be shown again if user clicks comments button)
-      // This fixes the issue where comment input closes without saving
-
+  const handleComment = async (postId: string, comment: string) => {
+    if (comment.trim()) {
       // Update comments count locally for immediate feedback
       setCommentCount((prev) => prev + 1);
-
-      // Reset the input
-      setNewComment("");
+      
+      // Call the parent component's comment handler if provided
+      onComment?.(postId, comment);
     }
   };
 
@@ -510,29 +505,12 @@ const SocialPost: React.FC<SocialPostProps> = ({
         </div>
 
         {showComments && (
-          <div className="mt-4 border-t pt-4 w-full overflow-hidden">
-            <div className="flex space-x-3 w-full">
-              <Avatar className="h-8 w-8 flex-shrink-0">
-                <AvatarFallback>U</AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0 w-full overflow-hidden">
-                <Textarea
-                  placeholder="Write a comment..."
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  className="min-h-[60px] w-full max-w-full resize-none"
-                />
-                <Button
-                  onClick={handleComment}
-                  size="sm"
-                  className="mt-2"
-                  disabled={!newComment.trim()}
-                >
-                  <Send className="h-4 w-4 mr-2" />
-                  Post
-                </Button>
-              </div>
-            </div>
+          <div className="mt-4 border-t pt-4">
+            <CommentSection 
+              entityId={postId} 
+              entityType="post" 
+              onCommentAdded={() => setCommentCount(prev => prev + 1)}
+            />
           </div>
         )}
       </CardContent>

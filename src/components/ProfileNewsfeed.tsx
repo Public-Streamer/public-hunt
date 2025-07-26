@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { Heart, MessageCircle, Share2, Calendar, Users, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import CommentSection from './CommentSection';
 
 interface UserPostData {
   id: string;
@@ -30,6 +31,7 @@ interface UserPostData {
 const ProfileNewsfeed: React.FC = () => {
   const [posts, setPosts] = useState<UserPostData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showComments, setShowComments] = useState<{[key: string]: boolean}>({});
   const { toast } = useToast();
 
   useEffect(() => {
@@ -66,6 +68,13 @@ const ProfileNewsfeed: React.FC = () => {
   };
 
   const handleComment = async (postId: string, comment: string) => {
+    // Update comment count in local state
+    setPosts(prev => prev.map(post => 
+      post.id === postId 
+        ? { ...post, comments: post.comments + 1 }
+        : post
+    ));
+    
     console.log('Comment on post:', postId, comment);
   };
 
@@ -169,7 +178,15 @@ const ProfileNewsfeed: React.FC = () => {
                     <Heart className="w-4 h-4 mr-1" />
                     {post.likes}
                   </Button>
-                  <Button variant="ghost" size="sm" className="text-gray-500">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setShowComments(prev => ({
+                      ...prev,
+                      [post.id]: !prev[post.id]
+                    }))}
+                    className="text-gray-500"
+                  >
                     <MessageCircle className="w-4 h-4 mr-1" />
                     {post.comments}
                   </Button>
@@ -183,6 +200,20 @@ const ProfileNewsfeed: React.FC = () => {
                     {post.shares || 0}
                   </Button>
                 </div>
+                
+                {showComments[post.id] && (
+                  <div className="mt-4 border-t pt-4">
+                    <CommentSection 
+                      entityId={post.id} 
+                      entityType="post" 
+                      onCommentAdded={() => setPosts(prev => prev.map(p => 
+                        p.id === post.id 
+                          ? { ...p, comments: p.comments + 1 }
+                          : p
+                      ))}
+                    />
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
