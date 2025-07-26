@@ -154,7 +154,7 @@ const LiveEventSpotlight: React.FC = () => {
         .from('events')
         .select('*')
         .eq('is_live', true)
-        .order('viewer_count', { ascending: true })
+        .order('viewer_count', { ascending: false })
         .limit(6);
 
       if (error) {
