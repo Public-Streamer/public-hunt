@@ -21,7 +21,6 @@ import {
 } from "@livekit/components-react";
 import { Track } from "livekit-client";
 import MultiCameraGrid from "./MultiCameraGrid";
-
 import StreamSelector from "./StreamSelector";
 import TicketVerification from "./TicketVerification";
 
@@ -30,7 +29,6 @@ interface ViewerInterfaceProps {
   hasAccess: boolean;
   onUpgrade?: () => void;
   showUpgradePrompt?: boolean;
-  onTrackSelect?: (trackId: string | null) => void;
 }
 
 interface ViewerControlsProps {
@@ -111,7 +109,6 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
   hasAccess,
   onUpgrade,
   showUpgradePrompt = true,
-  onTrackSelect,
 }) => {
   const [selectedTrack, setSelectedTrack] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -196,7 +193,6 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
 
   const handleTrackSelect = (trackId: string | null) => {
     setSelectedTrack(trackId);
-    onTrackSelect?.(trackId);
     setViewMode(trackId ? "single" : "grid");
   };
 
@@ -225,7 +221,6 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
                 onClick={() => {
                   setViewMode("grid");
                   setSelectedTrack(null);
-                  onTrackSelect?.(null);
                 }}
               >
                 Grid

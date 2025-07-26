@@ -21,7 +21,6 @@ import ViewerInterface from "@/components/ViewerInterface";
 import OfflineStreamSection from "@/components/OfflineStreamSection";
 import SocialShareMenu from "@/components/SocialShareMenu";
 import TicketPurchaseModal from "@/components/TicketPurchaseModal";
-import { SelectedTrackDisplay } from "@/components/SelectedTrackDisplay";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 
@@ -58,7 +57,6 @@ const EventPage: React.FC = () => {
   const [roomName, setRoomName] = useState<string | null>(null);
   const [serverUrl, setServerUrl] = useState<string | null>(null);
   const [isStreamer, setIsStreamer] = useState(false);
-  const [selectedTrackId, setSelectedTrackId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!eventId) return;
@@ -396,37 +394,21 @@ const EventPage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {/* Left Column - Main Event Content */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-            {/* Selected Track Preview Card */}
+            {/* Event Preview Card */}
             <Card className="overflow-hidden">
               <div className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100 relative">
-                {eventData.is_live && selectedTrackId && livekitToken && roomName ? (
-                  <LiveKitRoom
-                    token={livekitToken}
-                    serverUrl={serverUrl!}
-                    options={{
-                      adaptiveStream: true,
-                      dynacast: true,
-                    }}
-                    connect={true}
-                  >
-                     <SelectedTrackDisplay trackId={selectedTrackId} />
-                  </LiveKitRoom>
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Video className="h-12 w-12 sm:h-16 sm:w-16 lg:h-24 lg:w-24 text-purple-500" />
-                  </div>
-                )}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Video className="h-12 w-12 sm:h-16 sm:w-16 lg:h-24 lg:w-24 text-purple-500" />
+                </div>
                 {eventData.is_live && (
                   <Badge className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-red-600 text-white text-xs">
                     <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full mr-1 animate-pulse" />
                     LIVE
                   </Badge>
                 )}
-                {selectedTrackId && (
-                  <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-black/70 text-white px-2 py-1 rounded text-xs sm:text-sm">
-                    Selected Camera
-                  </div>
-                )}
+                <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-black/70 text-white px-2 py-1 rounded text-xs sm:text-sm">
+                  Multi-camera
+                </div>
               </div>
 
               <CardHeader className="p-3 sm:p-6">
@@ -497,7 +479,6 @@ const EventPage: React.FC = () => {
                     hasAccess={hasTicket || canEnterStage}
                     onUpgrade={handlePayment}
                     showUpgradePrompt={!hasTicket && !canEnterStage}
-                    onTrackSelect={setSelectedTrackId}
                   />
                   <RoomAudioRenderer />
                 </LiveKitRoom>
