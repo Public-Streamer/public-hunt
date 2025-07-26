@@ -407,12 +407,13 @@ const EventPage: React.FC = () => {
                   }}
                   connect={true}
                 >
+                  
                   <StreamPreviewContainer
                     eventName={eventData.name}
                     isLive={eventData.is_live}
                     hasAccess={hasTicket || canEnterStage}
                   />
-                  
+                 
                   {/* Show full viewer interface below if user has access */}
                   {/* {(hasTicket || canEnterStage) && (
                     <div className="mt-6">
