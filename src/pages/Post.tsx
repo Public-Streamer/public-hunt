@@ -8,26 +8,29 @@ import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 
-// interface UserPost {
-//   id: string;
-//   content: string;
-//   author_name: string;
-//   author_username: string;
-//   author_avatar: string | null;
-//   likes_count: number;
-//   comments_count: number;
-//   shares_count: number;
-//   created_at: string;
-//   post_type: string;
-//   event_id: string | null;
-//   channel_id: string | null;
-// }
+interface UserPost {
+  id: string;
+  content: string;
+  user_name: string;
+  user_id: string;
+  likes: number;
+  comments: number;
+  created_at: string;
+  post_type: string;
+  event_id: string | null;
+  channel_id: string | null;
+  media_url: string;
+  media_type: string;
+  location: string;
+  updated_at: string;
+  metadata: any;
+}
 
 const Post: React.FC = () => {
   const { postId } = useParams<{ postId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [post, setPost] = useState(null);
+  const [post, setPost] = useState<UserPost | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -136,15 +139,15 @@ const Post: React.FC = () => {
       <SocialPost
         postId={post.id}
         author={{
-          name: post.author_name,
-          avatar: post.author_avatar || undefined,
-          username: post.author_username,
+          name: post.user_name,
+          avatar: undefined,
+          username: post.user_name,
         }}
         content={post.content}
         timestamp={new Date(post.created_at).toLocaleDateString()}
-        likes={post.likes_count}
-        comments={post.comments_count}
-        shares={post.shares_count}
+        likes={post.likes}
+        comments={post.comments}
+        shares={0}
         isOwnPost={false} // Individual post view doesn't allow editing
         onLike={handleLike}
         onComment={handleComment}
