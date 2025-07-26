@@ -140,26 +140,34 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
         {isChatVisible && visibleMessages.length > 0 && (
           <div
             ref={chatContainerRef}
-            className="absolute bottom-16 left-2 right-2 max-h-64 overflow-y-scroll scrollbar-hide space-y-2 pointer-events-auto"
-            style={{ scrollBehavior: "smooth" }}
+            className="absolute bottom-16 left-2 right-2 max-h-64 overflow-y-scroll space-y-2 pointer-events-auto"
+            style={{ 
+              scrollBehavior: "smooth",
+              scrollbarWidth: "thin",
+              scrollbarColor: "rgba(255, 255, 255, 0.3) transparent"
+            }}
           >
-            {visibleMessages.map((message, index) => (
-              <div
-                key={`${message.id}-${index}`}
-                className="bg-black/75 backdrop-blur-sm text-white px-3 py-2 rounded-2xl max-w-80 shadow-lg animate-fade-in"
-                style={{
-                  wordWrap: "break-word",
-                  hyphens: "auto",
-                }}
-              >
-                <div className="flex flex-col">
-                  <span className="font-semibold text-blue-200 text-sm leading-tight">
-                    {message.from?.name || message.from?.identity || "Anonymous"}
-                  </span>
-                  <span className="text-white text-sm leading-relaxed">{message.message}</span>
+            {visibleMessages.map((message, index) => {
+              const opacity = Math.max(0.4, 1 - (visibleMessages.length - 1 - index) * 0.15);
+              return (
+                <div
+                  key={`${message.id}-${index}`}
+                  className="bg-black/75 backdrop-blur-sm text-white px-3 py-2 rounded-2xl max-w-80 shadow-lg animate-fade-in transition-opacity duration-300"
+                  style={{
+                    wordWrap: "break-word",
+                    hyphens: "auto",
+                    opacity: opacity,
+                  }}
+                >
+                  <div className="flex flex-col">
+                    <span className="font-semibold text-blue-200 text-sm leading-tight">
+                      {message.from?.name || message.from?.identity || "Anonymous"}
+                    </span>
+                    <span className="text-white text-sm leading-relaxed">{message.message}</span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
