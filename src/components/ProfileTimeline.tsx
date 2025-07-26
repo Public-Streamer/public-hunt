@@ -370,9 +370,9 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
               profile_picture_url:
                 post.user_profiles.profile_picture_url || "/placeholder.svg",
             },
-            likes_count: post.likes_count || 0,
-            comments_count: post.comments_count || 0,
-            shares_count: post.shares_count || 0,
+            likes_count: post.likes || 0,
+            comments_count: post.comments || 0,
+            shares_count: post.shares || 0,
             is_liked: false, // TODO: Implement user interactions
             is_bookmarked: false, // TODO: Implement bookmarking
             type:
@@ -910,22 +910,47 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
   };
 
   const handleShare = async (post: TimelinePost) => {
+    const postUrl = `${window.location.origin}/post/${post.id}`;
+    
     try {
-      if (navigator.share) {
-        await navigator.share({
-          title: `Post by ${post.user_profile.display_name}`,
-          text: post.content,
-          url: window.location.href,
-        });
-      } else {
-        navigator.clipboard.writeText(window.location.href);
+      await navigator.clipboard.writeText(postUrl);
+      
+      // Update database with incremented share count
+      const newShareCount = (post.shares_count || 0) + 1;
+      
+      const { error } = await supabase
+        .from("user_posts")
+        .update({ shares: newShareCount })
+        .eq("id", post.id);
+
+      if (error) {
+        console.error("Error updating shares count:", error);
         toast({
-          title: "Link copied",
-          description: "Post link copied to clipboard",
+          title: "Share failed",
+          description: "Could not update share count.",
+          variant: "destructive",
         });
+        return;
       }
+
+      // Update local state after successful database update
+      setPosts(prev => prev.map(p => 
+        p.id === post.id 
+          ? { ...p, shares_count: newShareCount }
+          : p
+      ));
+      
+      toast({
+        title: "Link copied",
+        description: "Post link copied to clipboard!",
+      });
     } catch (error) {
       console.error("Error sharing:", error);
+      toast({
+        title: "Share failed",
+        description: "Could not copy link to clipboard.",
+        variant: "destructive",
+      });
     }
   };
 
