@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Eye, Clock } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface LiveEvent {
   id: string;
@@ -13,33 +15,100 @@ interface LiveEvent {
 }
 
 const LiveEventSpotlight: React.FC = () => {
-  // Mock data for trending live events
-  const liveEvents: LiveEvent[] = [
-    {
-      id: '1',
-      title: 'Tech Conference 2025 Main Stage',
-      viewers: 12500,
-      location: 'Madison Square Garden',
-      timeRemaining: '18 minutes!',
-      thumbnail: '/placeholder.svg'
-    },
-    {
-      id: '2',
-      title: 'Gaming Championship Finals',
-      viewers: 8900,
-      location: 'Live from Tokyo',
-      timeRemaining: '45 minutes',
-      thumbnail: '/placeholder.svg'
-    },
-    {
-      id: '3',
-      title: 'Music Festival Live Stream',
-      viewers: 6700,
-      location: 'Central Park',
-      timeRemaining: '1 hour 12 min',
-      thumbnail: '/placeholder.svg'
+  const navigate = useNavigate();
+  const [liveEvents, setLiveEvents] = useState<LiveEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchLiveEvents();
+  }, []);
+
+  const fetchLiveEvents = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .eq('is_live', true)
+        .order('viewer_count', { ascending: false })
+        .limit(6);
+
+      if (error) {
+        console.error('Error fetching live events:', error);
+        return;
+      }
+
+      const formattedEvents: LiveEvent[] = data?.map(event => ({
+        id: event.id,
+        title: event.name,
+        viewers: event.viewer_count || 0,
+        location: event.location,
+        timeRemaining: calculateTimeRemaining(event.date, event.time),
+        thumbnail: event.media_urls?.[0] || '/placeholder.svg'
+      })) || [];
+
+      setLiveEvents(formattedEvents);
+    } catch (error) {
+      console.error('Error loading live events:', error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  const calculateTimeRemaining = (eventDate: string, eventTime: string) => {
+    if (!eventDate || !eventTime) return undefined;
+    
+    try {
+      const eventDateTime = new Date(`${eventDate}T${eventTime}`);
+      const now = new Date();
+      const diffMs = eventDateTime.getTime() - now.getTime();
+      
+      if (diffMs <= 0) return undefined;
+      
+      const hours = Math.floor(diffMs / (1000 * 60 * 60));
+      const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+      
+      if (hours > 0) {
+        return `${hours}h ${minutes}m`;
+      } else {
+        return `${minutes} minutes!`;
+      }
+    } catch (error) {
+      return undefined;
+    }
+  };
+
+  const handleWatchNow = (eventId: string) => {
+    navigate(`/events/${eventId}`);
+  };
+
+  if (loading) {
+    return (
+      <div className="py-8">
+        <div className="container mx-auto px-4">
+          <h2 className="text-2xl font-bold mb-6">🔥 Live Now - Trending</h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="aspect-video bg-muted rounded-lg animate-pulse" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (liveEvents.length === 0) {
+    return (
+      <div className="py-8">
+        <div className="container mx-auto px-4">
+          <h2 className="text-2xl font-bold mb-6">🔥 Live Now - Trending</h2>
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No live events at the moment.</p>
+            <p className="text-sm text-muted-foreground mt-2">Check back soon for live streaming events!</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="py-8">
@@ -82,7 +151,11 @@ const LiveEventSpotlight: React.FC = () => {
                     <p className="text-xs text-white/80 mb-3">{event.location}</p>
                   )}
                   
-                  <Button size="sm" className="w-full">
+                  <Button 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => handleWatchNow(event.id)}
+                  >
                     Watch Now
                   </Button>
                 </div>
