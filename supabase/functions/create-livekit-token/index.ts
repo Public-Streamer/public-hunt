@@ -224,7 +224,7 @@ serve(async (req) => {
             roomJoin: hasTicket,
             canPublish: false,
             canSubscribe: hasTicket,
-            canPublishData: false,
+            canPublishData: true, // Allow viewers to send chat messages
             hidden: false,
             recorder: false,
           };

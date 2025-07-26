@@ -31,7 +31,8 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
   isMuted,
 }) => {
   const { chatMessages, send } = useChat();
-  console.log(chatMessages);
+  console.log("Chat messages received:", chatMessages);
+  console.log("Chat send function:", send);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [visibleMessages, setVisibleMessages] = useState<any[]>([]);
   const [chatMessage, setChatMessage] = useState("");
