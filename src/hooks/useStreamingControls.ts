@@ -31,6 +31,12 @@ export interface StreamingControls {
   switchCamera: () => Promise<void>;
 }
 
+interface LiveStatusResult {
+  should_close_room: boolean;
+  event_was_live: boolean;
+  live_participants_count: number;
+}
+
 export const useStreamingControls = (eventId: string): StreamingControls => {
   const { localParticipant } = useLocalParticipant();
   const room = useRoomContext();
@@ -388,42 +394,34 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   //   [eventId]
   // );
 
-  const checkAndUpdateLiveStatus: () => Promise<boolean | void> =
-    useCallback(async () => {
+  const checkAndUpdateLiveStatus =
+    useCallback(async (): Promise<LiveStatusResult | null> => {
       try {
         const {
           data: { session },
           error: sessionError,
         } = await supabase.auth.getSession();
-        if (sessionError || !session) return;
+        if (sessionError || !session) return null;
 
-        // Update event live status based on participants
-        const { data: liveParticipants, error } = await supabase
-          .from("event_participants")
-          .select("*")
-          .eq("event_id", eventId)
-          .eq("is_live", true)
-          .in("role", ["host", "streamer"]);
+        // Use a database transaction with advisory lock to prevent race conditions
+        const { data, error } = await supabase.rpc(
+          "update_event_live_status_atomic" as any,
+          {
+            p_event_id: eventId,
+          }
+        );
 
         if (error) {
-          console.error("Error checking live participants:", error);
-          return false;
+          console.error("Error in atomic live status update:", error);
+          return null;
         }
 
-        const hasLiveParticipants =
-          liveParticipants && liveParticipants.length > 0;
-
-        // Update event live status
-        await supabase
-          .from("events")
-          .update({ is_live: hasLiveParticipants })
-          .eq("id", eventId);
-
-        // Return true if room should be closed (no live participants)
-        return !hasLiveParticipants;
+        // Extract the result from the returned data
+        const result = Array.isArray(data) ? data[0] : data;
+        return result as LiveStatusResult;
       } catch (error) {
         console.error("Error updating event live status:", error);
-        return false;
+        return null;
       }
     }, [eventId]);
 
@@ -642,9 +640,11 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
         .eq("streamer_id", session.user.id);
 
       setTimeout(async () => {
-        const shouldCloseRoom = await checkAndUpdateLiveStatus();
+        const result = await checkAndUpdateLiveStatus();
 
-        if (shouldCloseRoom === true) {
+        console.log({ result });
+
+        if (result.should_close_room) {
           await supabase.functions.invoke("manage-livekit-room", {
             body: {
               action: "close",
@@ -654,13 +654,14 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
               Authorization: `Bearer ${session.access_token}`,
             },
           });
-
+          navigate(`/event/${eventId}`);
           console.log(`room closed for event: ${eventId}`);
+        } else {
+          navigate(`/event/${eventId}`);
         }
       }, 10);
 
       toast.success("Stream stopped");
-      navigate(`/event/${eventId}`);
     } catch (error) {
       toast.error("Failed to stop stream");
       console.error("Stop stream error:", error);
