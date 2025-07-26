@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useTracks, VideoTrack } from "@livekit/components-react";
-import { TrackReference } from "@livekit/components-core";
+import {
+  TrackReference,
+  TrackReferencePlaceholder,
+} from "@livekit/components-core";
 import { Badge } from "@/components/ui/badge";
 import { Video, Mic, MicOff, VolumeX, Volume2 } from "lucide-react";
 import { Button } from "./ui/button";
@@ -9,7 +12,7 @@ interface MainStreamPreviewProps {
   track?: TrackReference;
   eventName: string;
   isLive: boolean;
-  audioTracks?: TrackReference[];
+  audioTracks?: TrackReferencePlaceholder[];
 }
 
 const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({

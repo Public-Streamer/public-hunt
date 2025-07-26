@@ -22,20 +22,17 @@ const StreamerPreview: React.FC<StreamerPreviewProps> = ({
   const isAudioEnabled = participant?.isMicrophoneEnabled ?? false;
 
   return (
-    <Card 
+    <Card
       className={`relative overflow-hidden cursor-pointer transition-all duration-200 ${
-        isSelected 
-          ? 'ring-2 ring-primary shadow-lg scale-105' 
-          : 'hover:shadow-md hover:scale-102'
+        isSelected
+          ? "ring-2 ring-primary shadow-lg scale-105"
+          : "hover:shadow-md hover:scale-102"
       } ${className}`}
       onClick={onClick}
     >
       <div className="aspect-video relative">
-        <VideoTrack 
-          trackRef={track} 
-          className="w-full h-full object-cover"
-        />
-        
+        <VideoTrack trackRef={track} className="w-full h-full object-cover" />
+
         {/* Live badge */}
         <Badge className="absolute top-2 left-2 bg-red-600 text-white text-xs">
           <div className="w-1.5 h-1.5 bg-white rounded-full mr-1 animate-pulse" />
