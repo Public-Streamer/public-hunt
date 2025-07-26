@@ -152,7 +152,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
               return (
                 <div
                   key={`${message.id}-${index}`}
-                  className="bg-black/75 backdrop-blur-sm text-white px-3 py-2 rounded-2xl max-w-80 shadow-lg animate-fade-in transition-opacity duration-300"
+                  className="bg-black/60 backdrop-blur-sm text-white px-3 py-2 rounded-lg max-w-80 shadow-lg animate-fade-in transition-opacity duration-300"
                   style={{
                     wordWrap: "break-word",
                     hyphens: "auto",
