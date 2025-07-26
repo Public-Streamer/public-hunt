@@ -1,13 +1,38 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Heart, MessageCircle, Share2, Send, Hash, Calendar, Users, Edit2, Trash2, MoreHorizontal, Check, X, Upload, Image as ImageIcon } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  Heart,
+  MessageCircle,
+  Share2,
+  Send,
+  Hash,
+  Calendar,
+  Users,
+  Edit2,
+  Trash2,
+  MoreHorizontal,
+  Check,
+  X,
+  Upload,
+  Image as ImageIcon,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 interface SocialPostProps {
   postId: string;
@@ -22,7 +47,7 @@ interface SocialPostProps {
   comments: number;
   shares: number;
   media_url?: string;
-  media_type?: 'image' | 'video';
+  media_type?: "image" | "video";
   channels?: {
     id: string;
     name: string;
@@ -41,7 +66,11 @@ interface SocialPostProps {
   onLike?: (postId: string) => void;
   onComment?: (postId: string, comment: string) => void;
   onShare?: (postId: string) => void;
-  onEdit?: (postId: string, newContent: string, mediaFile?: File | null) => void;
+  onEdit?: (
+    postId: string,
+    newContent: string,
+    mediaFile?: File | null
+  ) => void;
   onDelete?: (postId: string) => void;
 }
 
@@ -64,10 +93,10 @@ const SocialPost: React.FC<SocialPostProps> = ({
   onComment,
   onShare,
   onEdit,
-  onDelete
+  onDelete,
 }) => {
   const [showComments, setShowComments] = useState(false);
-  const [newComment, setNewComment] = useState('');
+  const [newComment, setNewComment] = useState("");
   const [liked, setLiked] = useState(isLiked);
   const [likeCount, setLikeCount] = useState(likes);
   const [shareCount, setShareCount] = useState(shares);
@@ -92,29 +121,30 @@ const SocialPost: React.FC<SocialPostProps> = ({
     if (newComment.trim()) {
       // Call the parent component's comment handler
       onComment?.(postId, newComment);
-      
+
       // Immediately close comment input (will be shown again if user clicks comments button)
       // This fixes the issue where comment input closes without saving
-      
+
       // Update comments count locally for immediate feedback
-      setCommentCount(prev => prev + 1);
-      
+      setCommentCount((prev) => prev + 1);
+
       // Reset the input
-      setNewComment('');
+      setNewComment("");
     }
   };
 
   const handleShare = () => {
     const postUrl = `${window.location.origin}/post/${postId}`;
-    
+
     if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(postUrl)
+      navigator.clipboard
+        .writeText(postUrl)
         .then(() => {
-          setShareCount(prev => prev + 1);
+          setShareCount((prev) => prev + 1);
           onShare?.(postId);
           toast({
-            title: 'Link copied to clipboard',
-            description: 'Post link has been copied successfully!',
+            title: "Link copied to clipboard",
+            description: "Post link has been copied successfully!",
           });
         })
         .catch(() => {
@@ -130,42 +160,43 @@ const SocialPost: React.FC<SocialPostProps> = ({
   const handleShareFallback = (postUrl: string) => {
     // Try native sharing if available
     if (navigator.share && navigator.canShare) {
-      const shareData = { 
-        url: postUrl, 
+      const shareData = {
+        url: postUrl,
         title: `Check out this post from ${author.name}`,
-        text: content.substring(0, 100) + (content.length > 100 ? '...' : '')
+        text: content.substring(0, 100) + (content.length > 100 ? "..." : ""),
       };
-      
+
       if (navigator.canShare(shareData)) {
-        navigator.share(shareData)
+        navigator
+          .share(shareData)
           .then(() => {
-            setShareCount(prev => prev + 1);
+            setShareCount((prev) => prev + 1);
             onShare?.(postId);
           })
-          .catch(err => console.error('Error sharing:', err));
+          .catch((err) => console.error("Error sharing:", err));
         return;
       }
     }
-    
+
     // Final fallback - create temporary textarea for copy
-    const textArea = document.createElement('textarea');
+    const textArea = document.createElement("textarea");
     textArea.value = postUrl;
     document.body.appendChild(textArea);
     textArea.select();
-    
+
     try {
-      document.execCommand('copy');
-      setShareCount(prev => prev + 1);
+      document.execCommand("copy");
+      setShareCount((prev) => prev + 1);
       onShare?.(postId);
       toast({
-        title: 'Link copied to clipboard',
-        description: 'Post link has been copied successfully!',
+        title: "Link copied to clipboard",
+        description: "Post link has been copied successfully!",
       });
     } catch (err) {
       toast({
-        title: 'Share failed',
-        description: 'Could not copy link. Please copy manually.',
-        variant: 'destructive',
+        title: "Share failed",
+        description: "Could not copy link. Please copy manually.",
+        variant: "destructive",
       });
     } finally {
       document.body.removeChild(textArea);
@@ -203,14 +234,16 @@ const SocialPost: React.FC<SocialPostProps> = ({
           <div className="flex items-center space-x-3">
             <Avatar className="h-10 w-10">
               <AvatarImage src={author.avatar} />
-              <AvatarFallback>{author.name.charAt(0)}</AvatarFallback>
+              <AvatarFallback>{author?.name?.charAt(0)}</AvatarFallback>
             </Avatar>
             <div>
               <p className="font-semibold">{author.name}</p>
-              <p className="text-sm text-gray-500">@{author.username} • {timestamp}</p>
+              <p className="text-sm text-gray-500">
+                @{author.username} • {timestamp}
+              </p>
             </div>
           </div>
-          
+
           {isOwnPost && (
             <div className="flex items-center space-x-2">
               {isEditing ? (
@@ -234,7 +267,11 @@ const SocialPost: React.FC<SocialPostProps> = ({
                   </Button>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button variant="ghost" size="sm" className="text-red-500">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-500"
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </AlertDialogTrigger>
@@ -242,12 +279,16 @@ const SocialPost: React.FC<SocialPostProps> = ({
                       <AlertDialogHeader>
                         <AlertDialogTitle>Delete Post</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Are you sure you want to delete this post? This action cannot be undone.
+                          Are you sure you want to delete this post? This action
+                          cannot be undone.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDelete} className="bg-red-500 hover:bg-red-600">
+                        <AlertDialogAction
+                          onClick={handleDelete}
+                          className="bg-red-500 hover:bg-red-600"
+                        >
                           Delete
                         </AlertDialogAction>
                       </AlertDialogFooter>
@@ -268,20 +309,24 @@ const SocialPost: React.FC<SocialPostProps> = ({
           )}
         </div>
       </CardHeader>
-      
+
       <CardContent className="pt-0">
         {isEditing ? (
           <div className="mb-4 space-y-3">
             {(mediaPreview || (media_url && !showDeleteMedia)) && (
               <div className="relative">
-                {media_type === 'video' ? (
+                {media_type === "video" ? (
                   <video
                     src={mediaPreview || media_url}
                     controls
                     className="max-w-full h-auto rounded-md"
                   />
                 ) : (
-                  <img src={mediaPreview || media_url} alt="Preview" className="max-w-full h-auto rounded-md" />
+                  <img
+                    src={mediaPreview || media_url}
+                    alt="Preview"
+                    className="max-w-full h-auto rounded-md"
+                  />
                 )}
                 <Button
                   variant="ghost"
@@ -333,7 +378,7 @@ const SocialPost: React.FC<SocialPostProps> = ({
           <div className="mb-4">
             {(mediaPreview || (media_url && !showDeleteMedia)) && (
               <div className="mb-4 rounded-lg overflow-hidden">
-                {media_type === 'video' ? (
+                {media_type === "video" ? (
                   <video
                     src={media_url}
                     controls
@@ -351,76 +396,81 @@ const SocialPost: React.FC<SocialPostProps> = ({
             <p className="mb-4">{content}</p>
           </div>
         )}
-        
+
         {/* Channel, Event, and Tagged Users Information */}
-        {((channels && channels.length > 0) || (events && events.length > 0) || (taggedUsers && taggedUsers.length > 0)) && (
+        {((channels && channels.length > 0) ||
+          (events && events.length > 0) ||
+          (taggedUsers && taggedUsers.length > 0)) && (
           <div className="flex flex-wrap gap-2 mb-4 pb-3 border-b">
-            {channels && channels.map((channel) => (
-              <Badge 
-                key={channel.id}
-                variant="secondary" 
-                className="flex items-center gap-1 cursor-pointer hover:bg-secondary/80"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  // Open in new tab to preserve post visibility
-                  window.open(`/channel/${channel.id}`, '_blank');
-                }}
-              >
-                <Hash className="h-3 w-3" />
-                {channel.name}
-              </Badge>
-            ))}
-            {events && events.map((event) => (
-              <Badge 
-                key={event.id}
-                variant="secondary" 
-                className="flex items-center gap-1 cursor-pointer hover:bg-secondary/80"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  // Open in new tab to preserve post visibility
-                  window.open(`/event/${event.id}`, '_blank');
-                }}
-              >
-                <Calendar className="h-3 w-3" />
-                {event.name}
-              </Badge>
-            ))}
+            {channels &&
+              channels.map((channel) => (
+                <Badge
+                  key={channel.id}
+                  variant="secondary"
+                  className="flex items-center gap-1 cursor-pointer hover:bg-secondary/80"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    // Open in new tab to preserve post visibility
+                    window.open(`/channel/${channel.id}`, "_blank");
+                  }}
+                >
+                  <Hash className="h-3 w-3" />
+                  {channel.name}
+                </Badge>
+              ))}
+            {events &&
+              events.map((event) => (
+                <Badge
+                  key={event.id}
+                  variant="secondary"
+                  className="flex items-center gap-1 cursor-pointer hover:bg-secondary/80"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    // Open in new tab to preserve post visibility
+                    window.open(`/event/${event.id}`, "_blank");
+                  }}
+                >
+                  <Calendar className="h-3 w-3" />
+                  {event.name}
+                </Badge>
+              ))}
             {taggedUsers && taggedUsers.length > 0 && (
               <div className="flex flex-wrap gap-1">
                 {taggedUsers.map((user) => (
-                  <Badge 
+                  <Badge
                     key={user.id}
-                    variant="secondary" 
+                    variant="secondary"
                     className="flex items-center gap-1 cursor-pointer hover:bg-secondary/80"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
                       // Open in new tab to preserve post visibility
-                      window.open(`/profile/${user.id}`, '_blank');
+                      window.open(`/profile/${user.id}`, "_blank");
                     }}
                   >
-                    <Users className="h-3 w-3" />
-                    @{user.username}
+                    <Users className="h-3 w-3" />@{user.username}
                   </Badge>
                 ))}
               </div>
             )}
           </div>
         )}
-        
+
         <div className="flex items-center justify-between border-t pt-3">
           <Button
             variant="ghost"
             size="sm"
             onClick={handleLike}
-            className={`flex items-center space-x-2 ${liked ? 'text-red-500' : 'text-gray-500'}`}
+            className={`flex items-center space-x-2 ${
+              liked ? "text-red-500" : "text-gray-500"
+            }`}
           >
-            <Heart className={`h-4 w-4 ${liked ? 'fill-current' : ''}`} />
+            <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} />
             <span>{likeCount}</span>
           </Button>
-          
+
           <Button
             variant="ghost"
             size="sm"
@@ -430,7 +480,7 @@ const SocialPost: React.FC<SocialPostProps> = ({
             <MessageCircle className="h-4 w-4" />
             <span>{commentCount}</span>
           </Button>
-          
+
           <Button
             variant="ghost"
             size="sm"
@@ -441,7 +491,7 @@ const SocialPost: React.FC<SocialPostProps> = ({
             <span>{shareCount}</span>
           </Button>
         </div>
-        
+
         {showComments && (
           <div className="mt-4 border-t pt-4 w-full overflow-hidden">
             <div className="flex space-x-3 w-full">
