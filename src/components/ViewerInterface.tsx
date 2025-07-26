@@ -20,6 +20,8 @@ import {
   useParticipants,
   useRoomContext,
   VideoTrack,
+  RoomAudioRenderer,
+  AudioTrack,
 } from "@livekit/components-react";
 import { Track } from "livekit-client";
 import MultiCameraGrid from "./MultiCameraGrid";
@@ -119,12 +121,44 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
   const [currentQuality, setCurrentQuality] = useState("Auto");
 
   const room = useRoomContext();
-  console.log("Rooms for viewer", room.name);
   const participants = useParticipants();
   const tracks = useTracks([Track.Source.Camera], { onlySubscribed: true });
-  const audioTracks = useTracks([Track.Source.Microphone], {
-    onlySubscribed: true,
-  });
+  const audioTracks = useTracks([Track.Source.Microphone], { onlySubscribed: true });
+
+  // Ensure only selected camera's audio is unmuted in single view, all muted in grid
+  useEffect(() => {
+    if (!audioTracks) return;
+    if (viewMode === "single" && selectedTrack) {
+      audioTracks.forEach((trackRef) => {
+        const videoTrack = tracks.find(
+          (t) => t.publication.trackSid === selectedTrack
+        );
+        const videoParticipant = videoTrack?.participant.identity;
+        const audioParticipant = trackRef.participant.identity;
+        if (
+          videoParticipant &&
+          audioParticipant &&
+          videoParticipant === audioParticipant
+        ) {
+          if (trackRef.publication.track) {
+            trackRef.publication.track.mediaStreamTrack.enabled = !isMuted;
+          }
+        } else {
+          if (trackRef.publication.track) {
+            trackRef.publication.track.mediaStreamTrack.enabled = false;
+          }
+        }
+      });
+    } else {
+      // In grid mode, mute all
+      audioTracks.forEach((trackRef) => {
+        if (trackRef.publication.track) {
+          trackRef.publication.track.mediaStreamTrack.enabled = false;
+        }
+      });
+    }
+  }, [audioTracks, tracks, selectedTrack, viewMode, isMuted]);
+
 
   // Check if we're properly connected to the room
   const isConnected = room && room.state === "connected";
@@ -184,14 +218,10 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
   };
 
   const handleVolumeToggle = () => {
-    setIsMuted(!isMuted);
-    // Mute/unmute audio tracks
-    audioTracks.forEach((trackRef) => {
-      if (trackRef.publication.track) {
-        trackRef.publication.track.mediaStreamTrack.enabled = isMuted;
-      }
-    });
+    setIsMuted((prev) => !prev);
+    // Actual muting is handled in useEffect above
   };
+
 
   const handleTrackSelect = (trackId: string | null) => {
     setSelectedTrack(trackId);
@@ -241,12 +271,15 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
           {/* Main Video Display */}
           <div className="relative bg-black rounded-lg overflow-hidden mb-4">
             <div className="aspect-video">
+          
+
               {viewMode === "grid" || !selectedTrack ? (
                 <MultiCameraGrid
                   tracks={tracks}
                   onTrackSelect={handleTrackSelect}
                   selectedTrack={selectedTrack}
                 />
+                
               ) : (
                 <div className="w-full h-full relative">
                   {/* Single track view */}
@@ -260,11 +293,14 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
                           <Camera className="h-12 w-12 text-white/50" />
                         </div>
                       );
-                    return (
-                      <VideoTrack
+                      return (
+                        <div>
+                        <AudioTrack trackRef={audioTracks.find((t) => t.publication.trackSid === selectedTrack)}/>
+                        <VideoTrack
                         trackRef={track}
                         className="w-full h-full object-cover"
                       />
+                      </div>
                     );
                   })()}
                 </div>
@@ -282,6 +318,7 @@ const ViewerInterface: React.FC<ViewerInterfaceProps> = ({
               />
             </div>
           </div>
+      
 
           {/* Camera Selector */}
           {tracks.length > 1 && (

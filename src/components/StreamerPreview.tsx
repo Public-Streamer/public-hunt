@@ -31,7 +31,7 @@ const StreamerPreview: React.FC<StreamerPreviewProps> = ({
       onClick={onClick}
     >
       <div className="aspect-video relative">
-        <VideoTrack trackRef={track} className="w-full h-full object-cover" muted={true} />
+        <VideoTrack trackRef={track} className="w-full h-full object-cover" />
 
         {/* Live badge */}
         <Badge className="absolute top-2 left-2 bg-red-600 text-white text-xs">

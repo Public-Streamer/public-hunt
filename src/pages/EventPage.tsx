@@ -13,7 +13,7 @@ import {
   ArrowLeft,
   Loader2,
 } from "lucide-react";
-import { LiveKitRoom } from "@livekit/components-react";
+import { LiveKitRoom, RoomAudioRenderer } from "@livekit/components-react";
 import "@livekit/components-styles";
 import SocialMediaSection from "@/components/SocialMediaSection";
 import MediaDisplay from "@/components/MediaDisplay";
@@ -443,7 +443,8 @@ const EventPage: React.FC = () => {
 
                   {/* Show full viewer interface below if user has access */}
                   {/* {(hasTicket || canEnterStage) && (
-                    <div className="mt-6">
+               
+                     <div className="mt-6">
                       <ViewerInterface
                         eventId={eventData.id}
                         hasAccess={true}
@@ -451,6 +452,7 @@ const EventPage: React.FC = () => {
                         showUpgradePrompt={false}
                       />
                     </div>
+                  
                   )} */}
                 </LiveKitRoom>
               ) : (
@@ -632,7 +634,7 @@ const EventPage: React.FC = () => {
           price={eventData.ticket_price}
           onPurchaseSuccess={handlePurchaseSuccess}
         />
-      )}
+      )}0
     </div>
   );
 };
