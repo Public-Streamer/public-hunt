@@ -26,6 +26,15 @@ interface UserPost {
   location: string;
   updated_at: string;
   metadata: any;
+  event?: {
+    id: string;
+    name: string;
+    is_live?: boolean;
+  };
+  channel?: {
+    id: string;
+    name: string;
+  };
 }
 
 const Post: React.FC = () => {
@@ -46,23 +55,63 @@ const Post: React.FC = () => {
       }
 
       try {
-        const { data, error } = await supabase
+        // First get the post
+        const { data: postData, error: postError } = await supabase
           .from("user_posts")
           .select("*")
           .eq("id", postId)
           .maybeSingle();
 
-        if (error) {
-          if (error.code === "PGRST116") {
-            setError("Post not found");
-          } else {
-            setError("Failed to load post");
-          }
+        if (postError) throw postError;
+        if (!postData) {
+          setError("Post not found");
           setLoading(false);
           return;
         }
 
-        setPost(data);
+        // Get event data if event_id exists
+        let eventData = null;
+        if (postData.event_id) {
+          const { data } = await supabase
+            .from("events")
+            .select("id, name, is_live")
+            .eq("id", postData.event_id)
+            .single();
+          eventData = data;
+        }
+
+        // Get channel data if channel_id exists  
+        let channelData = null;
+        if (postData.channel_id) {
+          const { data } = await supabase
+            .from("channels")
+            .select("id, name")
+            .eq("id", postData.channel_id)
+            .single();
+          channelData = data;
+        }
+
+        const data = { ...postData, events: eventData, channels: channelData };
+
+
+        // Transform the data to match our interface
+        if (data) {
+          const transformedPost: UserPost = {
+            ...data,
+            event: data.events ? {
+              id: data.events.id,
+              name: data.events.name,
+              is_live: data.events.is_live
+            } : undefined,
+            channel: data.channels ? {
+              id: data.channels.id,
+              name: data.channels.name
+            } : undefined
+          };
+          setPost(transformedPost);
+        } else {
+          setPost(data);
+        }
       } catch (err) {
         console.error("Error fetching post:", err);
         setError("Failed to load post");
@@ -311,6 +360,8 @@ const Post: React.FC = () => {
         onLike={handleLike}
         onComment={handleComment}
         onShare={handleShare}
+events={post.event ? [post.event] : []}
+        channels={post.channel ? [post.channel] : []}
       />
     </div>
   );
