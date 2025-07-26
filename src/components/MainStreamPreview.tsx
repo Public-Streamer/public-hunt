@@ -12,7 +12,7 @@ interface MainStreamPreviewProps {
   track?: TrackReference;
   eventName: string;
   isLive: boolean;
-  audioTracks?: TrackReferencePlaceholder[];
+  audioTracks?: TrackReference[];
 }
 
 const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
@@ -46,9 +46,10 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
   const isAudioEnabled =
     audioTracks
       ?.map((trackRef) => {
-        if (trackRef.publication.track) {
+        if (trackRef.publication?.track) {
           return trackRef.publication.track.mediaStreamTrack.enabled;
         }
+        return false;
       })
       ?.includes(true) ?? false;
 
@@ -58,7 +59,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
     setIsMuted(!isMuted);
     // Mute/unmute audio tracks
     audioTracks?.forEach((trackRef) => {
-      if (trackRef.publication.track) {
+      if (trackRef.publication?.track) {
         trackRef.publication.track.mediaStreamTrack.enabled = isMuted;
       }
     });
