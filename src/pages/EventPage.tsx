@@ -395,7 +395,7 @@ const EventPage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {/* Left Column - Main Event Content */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-            {/* Event Preview Card */}
+            {/* Event Preview Card - Always show StreamPreviewContainer in pink area */}
             <Card className="overflow-hidden">
               {eventData.is_live && roomName && livekitToken && serverUrl ? (
                 <LiveKitRoom
@@ -412,6 +412,19 @@ const EventPage: React.FC = () => {
                     isLive={eventData.is_live}
                     hasAccess={hasTicket || canEnterStage}
                   />
+                  
+                  {/* Show full viewer interface below if user has access */}
+                  {(hasTicket || canEnterStage) && (
+                    <div className="mt-6">
+                      <ViewerInterface
+                        eventId={eventData.id}
+                        hasAccess={true}
+                        onUpgrade={handlePayment}
+                        showUpgradePrompt={false}
+                      />
+                    </div>
+                  )}
+                  <RoomAudioRenderer />
                 </LiveKitRoom>
               ) : (
                 <div className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100 relative">
@@ -480,54 +493,6 @@ const EventPage: React.FC = () => {
               </CardContent>
             </Card>
 
-            {/* Live Streams Section */}
-            {eventData.is_live && roomName && livekitToken && serverUrl ? (
-              <div className="w-full">
-                <LiveKitRoom
-                  token={livekitToken}
-                  serverUrl={serverUrl}
-                  // audio={true}
-                  options={{
-                    adaptiveStream: true,
-                    dynacast: true,
-                  }}
-                  connect={true}
-                >
-                  <ViewerInterface
-                    eventId={eventData.id}
-                    hasAccess={hasTicket || canEnterStage}
-                    onUpgrade={handlePayment}
-                    showUpgradePrompt={!hasTicket && !canEnterStage}
-                  />
-                  <RoomAudioRenderer />
-                </LiveKitRoom>
-              </div>
-            ) : eventData.is_live && eventData.livekit_room_name ? (
-              <Card>
-                <CardContent className="p-4 sm:p-6 lg:p-8 text-center">
-                  <div className="animate-spin h-6 w-6 sm:h-8 sm:w-8 border-4 border-purple-500 border-t-transparent rounded-full mx-auto mb-3 sm:mb-4"></div>
-                  <h3 className="text-lg sm:text-xl font-semibold mb-2">
-                    Connecting to Live Stream
-                  </h3>
-                  <p className="text-gray-600 text-sm sm:text-base">
-                    Preparing your connection to the live event...
-                  </p>
-                </CardContent>
-              </Card>
-            ) : (
-              <Card>
-                <CardContent className="p-4 sm:p-6 lg:p-8 text-center">
-                  <Video className="h-12 w-12 sm:h-16 sm:w-16 mx-auto mb-3 sm:mb-4 text-gray-400" />
-                  <h3 className="text-lg sm:text-xl font-semibold mb-2">
-                    Event Not Live
-                  </h3>
-                  <p className="text-gray-600 text-sm sm:text-base">
-                    This event is not currently streaming. Check back at the
-                    scheduled time.
-                  </p>
-                </CardContent>
-              </Card>
-            )}
 
             {/* Promotional Media */}
             {mediaData.length > 0 && <MediaDisplay media={mediaData} />}
