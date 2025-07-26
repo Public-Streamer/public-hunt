@@ -213,25 +213,6 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
           Multi-camera
         </div>
 
-        {/* Fullscreen Toggle Button */}
-        <Button
-          onClick={handleFullscreenToggle}
-          size="sm"
-          variant="outline"
-          className={`absolute bottom-2 right-2 sm:bottom-4 sm:right-4 bg-black/80 border-white/40 text-white hover:bg-black/90 h-8 w-8 px-0 shadow-2xl backdrop-blur-sm transition-opacity duration-300 ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100'}`}
-        >
-          {isFullscreen ? <Minimize className="h-3 w-3" /> : <Maximize className="h-3 w-3" />}
-        </Button>
-
-        {/* Chat Visibility Toggle (Audience Only) */}
-        <Button
-          onClick={() => setIsChatVisible(!isChatVisible)}
-          size="sm"
-          variant="outline"
-          className={`absolute top-2 right-20 sm:top-4 sm:right-24 bg-black/80 border-white/40 text-white hover:bg-black/90 h-8 px-2 shadow-2xl backdrop-blur-sm transition-opacity duration-300 ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100'}`}
-        >
-          {isChatVisible ? <X className="h-3 w-3" /> : <MessageCircle className="h-3 w-3" />}
-        </Button>
 
         {/* Chat Messages Overlay - Facebook Live Style */}
         {isChatVisible && visibleMessages.length > 0 && (
@@ -268,28 +249,54 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
           </div>
         )}
 
-        {/* Chat Input Overlay - Integrated Style */}
-        {isChatVisible && (
-          <div className={`absolute bottom-2 left-2 right-2 transition-opacity duration-300 ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100'}`}>
-            <div className="relative bg-black/80 backdrop-blur-sm rounded-full border border-white/20">
-              <Input
-                value={chatMessage}
-                onChange={(e) => setChatMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Send Message"
-                className="w-full bg-transparent border-none text-white placeholder:text-white/60 h-12 text-sm rounded-full pl-5 pr-14 focus-visible:ring-0 focus-visible:ring-offset-0"
-              />
+        {/* Unified Bottom Control Bar - Facebook Live Style */}
+        <div className={`absolute bottom-2 left-2 right-2 transition-opacity duration-300 ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100'}`}>
+          <div className="flex items-center gap-2 bg-black/80 backdrop-blur-sm rounded-full border border-white/20 shadow-lg px-2 py-1">
+            {/* Chat Input - Left Aligned */}
+            {isChatVisible && (
+              <div className="flex-1 relative">
+                <Input
+                  value={chatMessage}
+                  onChange={(e) => setChatMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Send Message"
+                  className="w-full bg-transparent border-none text-white placeholder:text-white/60 h-10 text-sm rounded-full pl-4 pr-12 focus-visible:ring-0 focus-visible:ring-offset-0"
+                />
+                <Button
+                  onClick={handleSendMessage}
+                  disabled={!chatMessage.trim()}
+                  size="sm"
+                  className="absolute right-1 top-1 h-8 w-8 rounded-full bg-white/20 hover:bg-white/30 transition-all duration-200 border-none"
+                >
+                  <Plane className="h-4 w-4 text-white rotate-45 transform transition-transform hover:scale-110" />
+                </Button>
+              </div>
+            )}
+            
+            {/* Right-aligned Control Buttons */}
+            <div className="flex items-center gap-1">
+              {/* Chat Toggle Button */}
               <Button
-                onClick={handleSendMessage}
-                disabled={!chatMessage.trim()}
+                onClick={() => setIsChatVisible(!isChatVisible)}
                 size="sm"
-                className="absolute right-1 top-1 h-10 w-10 rounded-full bg-white/20 hover:bg-white/30 transition-all duration-200 border-none"
+                variant="outline"
+                className="bg-transparent border-white/30 text-white hover:bg-white/20 h-10 px-3 rounded-full"
               >
-                <Plane className="h-5 w-5 text-white rotate-45 transform transition-transform hover:scale-110" />
+                {isChatVisible ? <X className="h-4 w-4" /> : <MessageCircle className="h-4 w-4" />}
+              </Button>
+              
+              {/* Fullscreen Toggle Button */}
+              <Button
+                onClick={handleFullscreenToggle}
+                size="sm"
+                variant="outline"
+                className="bg-transparent border-white/30 text-white hover:bg-white/20 h-10 w-10 px-0 rounded-full"
+              >
+                {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
               </Button>
             </div>
           </div>
-        )}
+        </div>
 
         {/* Participant info */}
         <div className="absolute top-12 left-2 bg-black/70 text-white px-3 py-1 rounded">
