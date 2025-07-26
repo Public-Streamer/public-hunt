@@ -414,7 +414,7 @@ const EventPage: React.FC = () => {
                   />
                   
                   {/* Show full viewer interface below if user has access */}
-                  {(hasTicket || canEnterStage) && (
+                  {/* {(hasTicket || canEnterStage) && (
                     <div className="mt-6">
                       <ViewerInterface
                         eventId={eventData.id}
@@ -423,7 +423,7 @@ const EventPage: React.FC = () => {
                         showUpgradePrompt={false}
                       />
                     </div>
-                  )}
+                  )} */}
                   <RoomAudioRenderer />
                 </LiveKitRoom>
               ) : (
