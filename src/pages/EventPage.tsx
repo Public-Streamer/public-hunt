@@ -438,6 +438,7 @@ const EventPage: React.FC = () => {
                     hasAccess={hasTicket || canEnterStage}
                     isLoggedIn={!!currentUser}
                   />
+                  <RoomAudioRenderer />
 
                   {/* Show full viewer interface below if user has access */}
                   {/* {(hasTicket || canEnterStage) && (

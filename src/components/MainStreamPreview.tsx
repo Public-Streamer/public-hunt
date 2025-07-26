@@ -75,7 +75,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
     <>
       <div className="aspect-video relative bg-black">
         <VideoTrack trackRef={track} className="w-full h-full object-cover" />
-        <RoomAudioRenderer />
+       
         {/* <AudioTrack trackRef={audioTracks[0]}/> */}
 
         {/* Live badge */}
