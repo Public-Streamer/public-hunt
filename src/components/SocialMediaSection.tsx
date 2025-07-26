@@ -269,8 +269,8 @@ const SocialMediaSection: React.FC<SocialMediaSectionProps> = ({ eventId, channe
         
         <TabsContent value="comments" className="space-y-4">
           <CommentSection
-            entityId="social-feed"
-            entityType="post"
+            entityId={eventId || channelId || ""}
+            entityType={type}
           />
         </TabsContent>
       </Tabs>
