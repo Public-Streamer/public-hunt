@@ -142,7 +142,6 @@ const StreamPreviewContainer: React.FC<StreamPreviewContainerProps> = ({
         isLive={isLive}
         setIsMuted={setIsMuted}
         isMuted={isMuted}
-        s
       />
       <StartAudio label="Start Audio" />
       {/* Streamer grid - only show if there are multiple streamers */}
