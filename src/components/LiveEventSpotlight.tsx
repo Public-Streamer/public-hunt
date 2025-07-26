@@ -26,6 +26,8 @@ interface StreamPreviewProps {
 const StreamPreview: React.FC<StreamPreviewProps> = ({ eventId, eventName, fallbackImage }) => {
   const [token, setToken] = useState<string | null>(null);
   const [serverUrl, setServerUrl] = useState<string>('');
+  const [isBlurred, setIsBlurred] = useState(false);
+  const [showOverlay, setShowOverlay] = useState(false);
 
   useEffect(() => {
     const fetchToken = async () => {
@@ -57,6 +59,18 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({ eventId, eventName, fallb
     fetchToken();
   }, [eventId]);
 
+  // 5-second preview timer
+  useEffect(() => {
+    if (token && serverUrl) {
+      const timer = setTimeout(() => {
+        setIsBlurred(true);
+        setShowOverlay(true);
+      }, 5000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [token, serverUrl]);
+
   if (!token || !serverUrl) {
     return (
       <img 
@@ -68,18 +82,33 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({ eventId, eventName, fallb
   }
 
   return (
-    <LiveKitRoom 
-      token={token} 
-      serverUrl={serverUrl}
-      connect={true}
-      className="w-full h-full"
-    >
-      <StreamContent eventName={eventName} fallbackImage={fallbackImage} />
-    </LiveKitRoom>
+    <div className="relative w-full h-full">
+      <LiveKitRoom 
+        token={token} 
+        serverUrl={serverUrl}
+        connect={true}
+        className="w-full h-full"
+      >
+        <StreamContent 
+          eventName={eventName} 
+          fallbackImage={fallbackImage} 
+          isBlurred={isBlurred}
+        />
+      </LiveKitRoom>
+      
+      {showOverlay && (
+        <div className="absolute inset-0 bg-black/60 flex items-center justify-center transition-opacity duration-500">
+          <div className="text-center text-white p-4">
+            <div className="text-lg font-semibold mb-2">Preview Ended</div>
+            <div className="text-sm opacity-90">Click "Watch Now" to continue viewing</div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
-const StreamContent: React.FC<{ eventName: string; fallbackImage: string }> = ({ eventName, fallbackImage }) => {
+const StreamContent: React.FC<{ eventName: string; fallbackImage: string; isBlurred: boolean }> = ({ eventName, fallbackImage, isBlurred }) => {
   const videoTracks = useTracks([Track.Source.Camera, Track.Source.ScreenShare], {
     updateOnlyOn: [],
     onlySubscribed: false,
@@ -100,11 +129,13 @@ const StreamContent: React.FC<{ eventName: string; fallbackImage: string }> = ({
   }
 
   return (
-    <MainStreamPreview 
-      track={activeVideoTracks[0]} 
-      eventName={eventName} 
-      isLive={true}
-    />
+    <div className={`w-full h-full transition-all duration-500 ${isBlurred ? 'blur-md' : ''}`}>
+      <MainStreamPreview 
+        track={activeVideoTracks[0]} 
+        eventName={eventName} 
+        isLive={true}
+      />
+    </div>
   );
 };
 
