@@ -230,7 +230,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
               return (
                 <div
                   key={`${message.id}-${index}`}
-                  className="bg-black/60 backdrop-blur-sm text-white px-3 py-2 rounded-lg max-w-80 shadow-lg animate-fade-in transition-opacity duration-300"
+                  className="bg-black/40 backdrop-blur-sm text-white px-3 py-2 rounded-lg max-w-80 shadow-lg animate-fade-in transition-opacity duration-300"
                   style={{
                     wordWrap: "break-word",
                     hyphens: "auto",
@@ -250,17 +250,17 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
         )}
 
         {/* Unified Bottom Control Bar */}
-        <div className={`absolute bottom-2 left-2 right-2 transition-opacity duration-300 ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100'}`}>
-          <div className="flex items-center gap-2 bg-black/80 backdrop-blur-sm rounded-lg p-2 shadow-lg">
+        <div className={`absolute bottom-2 left-2 right-2 transition-opacity duration-300 mt-3 ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100'}`}>
+          <div className="flex items-center gap-2  backdrop-blur-sm rounded-lg p-2 shadow-lg">
             {/* Chat Input - Left Side */}
             {isChatVisible && (
-              <div className="flex-1 relative">
+              <div className="flex-1 relative ">
                 <Input
                   value={chatMessage}
                   onChange={(e) => setChatMessage(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="Send Message"
-                  className="w-full bg-transparent border border-white/20 text-white placeholder:text-white/60 h-10 text-sm rounded-lg pl-4 pr-10 focus-visible:ring-1 focus-visible:ring-white/40 focus-visible:ring-offset-0 focus-visible:border-white/40"
+                  className="w-full bg-black/40 border border-white/20 text-white placeholder:text-white/60 h-10 text-sm rounded-lg pl-4 pr-10 focus-visible:ring-1 focus-visible:ring-white/40 focus-visible:ring-offset-0 focus-visible:border-white/40"
                 />
                 <Button
                   onClick={handleSendMessage}
