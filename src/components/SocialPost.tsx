@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SocialPostProps {
   postId: string;
@@ -140,7 +141,23 @@ const SocialPost: React.FC<SocialPostProps> = ({
     try {
       await navigator.clipboard.writeText(postUrl);
       
-      // Update local share count immediately for better UX
+      // Update database with incremented share count
+      const { error } = await supabase
+        .from("user_posts")
+        .update({ shares: shareCount + 1 })
+        .eq("id", postId);
+
+      if (error) {
+        console.error("Error updating shares count:", error);
+        toast({
+          title: "Share failed",
+          description: "Could not update share count.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Update local share count after successful database update
       setShareCount((prev) => prev + 1);
       onShare?.(postId);
       
