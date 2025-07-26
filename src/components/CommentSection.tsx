@@ -106,7 +106,10 @@ const CommentSection: React.FC<CommentSectionProps> = ({ entityId, entityType, o
         .insert({
           content: newComment,
           post_id: entityId,
-          user_profile_id: currentUserProfile.id
+          user_profile_id: currentUserProfile.id,
+          author_name: currentUserProfile.display_name || currentUserProfile.username,
+          author_username: currentUserProfile.username,
+          author_avatar: currentUserProfile.profile_picture_url
         });
 
       if (error) throw error;
