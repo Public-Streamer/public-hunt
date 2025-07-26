@@ -255,10 +255,21 @@ const EventPage: React.FC = () => {
         description: "Please sign in to purchase tickets",
         variant: "destructive",
       });
-      navigate("/login");
+      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
       return;
     }
     setShowPurchaseModal(true);
+  };
+
+  const handleWatchNow = () => {
+    if (!currentUser) {
+      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+      return;
+    }
+    // User is logged in but may need to purchase ticket
+    if (!hasTicket && eventData?.ticket_price && eventData.ticket_price > 0) {
+      handlePayment();
+    }
   };
 
   const handlePurchaseSuccess = () => {
@@ -308,6 +319,18 @@ const EventPage: React.FC = () => {
           disabled={!eventData}
         >
           Buy Admission - ${eventData?.ticket_price || 0}
+        </Button>
+      );
+    }
+
+    // For non-logged users, show "Watch Now" button
+    if (!currentUser) {
+      return (
+        <Button
+          onClick={handleWatchNow}
+          className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-lg py-3"
+        >
+          Watch Now
         </Button>
       );
     }
@@ -411,6 +434,7 @@ const EventPage: React.FC = () => {
                     eventName={eventData.name}
                     isLive={eventData.is_live}
                     hasAccess={hasTicket || canEnterStage}
+                    isLoggedIn={!!currentUser}
                   />
 
                   {/* Show full viewer interface below if user has access */}
@@ -428,6 +452,18 @@ const EventPage: React.FC = () => {
                 </LiveKitRoom>
               ) : (
                 <div className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100 relative">
+                  {!currentUser && (
+                    <div className="absolute inset-0 backdrop-blur-md bg-black/20 flex items-center justify-center z-10">
+                      <div className="text-center bg-white/90 p-6 rounded-lg shadow-lg">
+                        <div className="text-lg font-semibold mb-2">
+                          Sign In to Watch Stream
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          Please sign in to access this event
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   <div className="absolute inset-0 flex items-center justify-center">
                     <Video className="h-12 w-12 sm:h-16 sm:w-16 lg:h-24 lg:w-24 text-purple-500" />
                   </div>

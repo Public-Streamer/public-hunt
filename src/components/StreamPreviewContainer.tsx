@@ -9,12 +9,14 @@ interface StreamPreviewContainerProps {
   eventName: string;
   isLive: boolean;
   hasAccess: boolean;
+  isLoggedIn: boolean;
 }
 
 const StreamPreviewContainer: React.FC<StreamPreviewContainerProps> = ({
   eventName,
   isLive,
   hasAccess,
+  isLoggedIn,
 }) => {
   const [selectedTrackIndex, setSelectedTrackIndex] = useState<number>(0);
 
@@ -55,6 +57,28 @@ const StreamPreviewContainer: React.FC<StreamPreviewContainerProps> = ({
     }
   );
 
+  // If user is not logged in, show blurred preview
+  if (!isLoggedIn) {
+    return (
+      <div className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100 relative">
+        <div className="absolute inset-0 backdrop-blur-md bg-black/20 flex items-center justify-center">
+          <div className="text-center bg-white/90 p-6 rounded-lg shadow-lg">
+            <div className="text-lg font-semibold mb-2">
+              Sign In to Watch Live Stream
+            </div>
+            <div className="text-sm text-gray-600">
+              Please sign in to access this live event
+            </div>
+          </div>
+        </div>
+        {/* Background content (blurred) */}
+        <div className="absolute inset-0 -z-10">
+          <div className="w-full h-full bg-gradient-to-br from-purple-200 to-pink-200 opacity-60" />
+        </div>
+      </div>
+    );
+  }
+
   if (!hasAccess) {
     return (
       <div className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100 relative">
@@ -79,7 +103,7 @@ const StreamPreviewContainer: React.FC<StreamPreviewContainerProps> = ({
         track={selectedTrack}
         eventName={eventName}
         isLive={isLive}
-        audioTracks={audioTracks}
+        audioTracks={audioTracks.filter((track): track is TrackReference => track.publication !== undefined)}
       />
 
       {/* Streamer grid - only show if there are multiple streamers */}
