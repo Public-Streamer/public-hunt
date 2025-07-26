@@ -726,7 +726,9 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
       const { data: postData, error: postError } = await supabase
         .from("user_posts")
         .insert({
-          content: newPost || `🔴 LIVE NOW: ${eventData.name}`,
+          content: newPost
+            ? `🔴 LIVE NOW: ${newPost}`
+            : `🔴 LIVE NOW: ${eventData.name}`,
           user_id: userId,
           user_name: profileData.username,
           media_url: mediaUrl,
@@ -986,13 +988,13 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
 
   const handleShare = async (post: TimelinePost) => {
     const postUrl = `${window.location.origin}/post/${post.id}`;
-    
+
     try {
       await navigator.clipboard.writeText(postUrl);
-      
+
       // Update database with incremented share count
       const newShareCount = (post.shares_count || 0) + 1;
-      
+
       const { error } = await supabase
         .from("user_posts")
         .update({ shares: newShareCount })
@@ -1009,12 +1011,12 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
       }
 
       // Update local state after successful database update
-      setPosts(prev => prev.map(p => 
-        p.id === post.id 
-          ? { ...p, shares_count: newShareCount }
-          : p
-      ));
-      
+      setPosts((prev) =>
+        prev.map((p) =>
+          p.id === post.id ? { ...p, shares_count: newShareCount } : p
+        )
+      );
+
       toast({
         title: "Link copied",
         description: "Post link copied to clipboard!",
