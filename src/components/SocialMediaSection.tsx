@@ -253,8 +253,7 @@ const SocialMediaSection: React.FC<SocialMediaSectionProps> = ({ eventId, channe
   return (
     <div className="space-y-6">
       <Tabs defaultValue="posts" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="posts">Posts & Updates</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-1">
           <TabsTrigger value="comments">Discussion</TabsTrigger>
         </TabsList>
         

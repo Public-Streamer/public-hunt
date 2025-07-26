@@ -17,6 +17,7 @@ import {
   LiveKitRoom,
   RoomAudioRenderer,
   StartAudio,
+  useChat
 } from "@livekit/components-react";
 import "@livekit/components-styles";
 import SocialMediaSection from "@/components/SocialMediaSection";
@@ -51,6 +52,8 @@ const EventPage: React.FC = () => {
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  
+  const { chatMessages, send } = useChat();
 
   const [eventData, setEventData] = useState<EventData | null>(null);
   const [loading, setLoading] = useState(true);
