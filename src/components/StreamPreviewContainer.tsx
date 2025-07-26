@@ -82,7 +82,6 @@ const StreamPreviewContainer: React.FC<StreamPreviewContainerProps> = ({
         }
       });
     } else {
-      // In grid mode, mute all
       audioTracks.forEach((trackRef) => {
         if (trackRef.publication.track) {
           trackRef.publication.track.mediaStreamTrack.enabled = false;
