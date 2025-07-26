@@ -31,6 +31,20 @@ interface AppContextType {
   adminRole: string | null;
 }
 
+interface AppContextType {
+  sidebarOpen: boolean;
+  toggleSidebar: () => void;
+  user: User | null;
+  userProfile: UserProfile | null;
+  signIn: (email: string, password: string) => Promise<{error?: string}>;
+  signUp: (email: string, password: string, userData: Omit<UserProfile, 'id' | 'email'>) => Promise<{error?: string}>;
+  logout: () => Promise<void>;
+  isAuthenticated: boolean;
+  isAdminUser: boolean;
+  adminRole: string | null;
+  authLoaded: boolean;
+}
+
 const defaultAppContext: AppContextType = {
   sidebarOpen: false,
   toggleSidebar: () => {},
@@ -42,6 +56,7 @@ const defaultAppContext: AppContextType = {
   isAuthenticated: false,
   isAdminUser: false,
   adminRole: null,
+  authLoaded: false,
 };
 
 const AppContext = createContext<AppContextType>(defaultAppContext);
@@ -54,6 +69,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [adminRole, setAdminRole] = useState<string | null>(null);
+  const [authLoaded, setAuthLoaded] = useState(false);
 
   const toggleSidebar = () => {
     setSidebarOpen(prev => !prev);
@@ -235,6 +251,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   useEffect(() => {
+    let initialSessionChecked = false;
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
@@ -269,6 +286,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           setIsAdminUser(false);
           setAdminRole(null);
         }
+        initialSessionChecked = true;
+        if (initialSessionChecked) {
+          setAuthLoaded(true);
+        }
       }
     );
 
@@ -300,6 +321,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           checkAdminRole(session.user.id, session.user.email || '');
         }, 500);
       }
+      if (initialSessionChecked) {
+        setAuthLoaded(true);
+      } else {
+        initialSessionChecked = true;
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -318,6 +344,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         isAuthenticated: !!user,
         isAdminUser,
         adminRole,
+        authLoaded,
       }}
     >
       {children}

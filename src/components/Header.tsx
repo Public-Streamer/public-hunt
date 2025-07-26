@@ -17,6 +17,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
   const isMobile = useIsMobile();
   const { user, userProfile, logout, isAuthenticated } = useAppContext();
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+ 
   
   // Animation cycling state (0: strobe triangle, 1: sparks, 2: lightning, 3: energy pulse)
   const [animationIndex, setAnimationIndex] = useState(0);
@@ -29,6 +30,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
     
     return () => clearInterval(interval);
   }, []);
+
   
   // Animation component that cycles between different effects
   const AnimatedConnector = ({ isMobile }: { isMobile: boolean }) => {
@@ -328,7 +330,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
               <div className="flex items-center space-x-2 lg:space-x-3 ml-2 lg:ml-8 flex-shrink-0">
                 {isAuthenticated && user && userProfile ? (
                   <>
-                    <Link to="/profile" className="flex items-center hover:bg-white/20 rounded-lg transition-colors space-x-2 p-2">
+                    <Link to={`/profile/${userProfile.id}`} className="flex items-center hover:bg-white/20 rounded-lg transition-colors space-x-2 p-2">
                       <Avatar className="h-8 w-8">
                         <AvatarImage src={userProfile.profilePhoto} />
                         <AvatarFallback className="bg-white text-purple-600 text-sm">
