@@ -31,14 +31,16 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
   isMuted,
 }) => {
   const { chatMessages, send } = useChat();
+  console.log(chatMessages);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [visibleMessages, setVisibleMessages] = useState<any[]>([]);
-  const [chatMessage, setChatMessage] = useState('');
+  const [chatMessage, setChatMessage] = useState("");
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+      chatContainerRef.current.scrollTop =
+        chatContainerRef.current.scrollHeight;
     }
   }, [chatMessages]);
 
@@ -51,12 +53,12 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
   const handleSendMessage = () => {
     if (chatMessage.trim() && send) {
       send(chatMessage.trim());
-      setChatMessage('');
+      setChatMessage("");
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.preventDefault();
       handleSendMessage();
     }
@@ -108,7 +110,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
     <>
       <div className="aspect-video relative bg-black">
         <VideoTrack trackRef={track} className="w-full h-full object-cover" />
-       
+
         {/* <AudioTrack trackRef={audioTracks[0]}/> */}
 
         {/* Live badge */}
@@ -124,7 +126,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
 
         {/* Chat Messages Overlay */}
         {visibleMessages.length > 0 && (
-          <div 
+          <div
             ref={chatContainerRef}
             className="absolute bottom-16 left-2 right-2 max-h-48 overflow-y-auto space-y-1 pointer-events-none"
           >
@@ -133,16 +135,14 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
                 key={`${message.id}-${index}`}
                 className="bg-black/60 backdrop-blur-sm text-white px-3 py-2 rounded-lg max-w-xs animate-fade-in"
                 style={{
-                  wordWrap: 'break-word',
-                  hyphens: 'auto'
+                  wordWrap: "break-word",
+                  hyphens: "auto",
                 }}
               >
                 <span className="font-semibold text-blue-300">
-                  {message.from?.name || message.from?.identity || 'Anonymous'}:
-                </span>{' '}
-                <span className="text-white">
-                  {message.message}
-                </span>
+                  {message.from?.name || message.from?.identity || "Anonymous"}:
+                </span>{" "}
+                <span className="text-white">{message.message}</span>
               </div>
             ))}
           </div>
