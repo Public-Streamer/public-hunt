@@ -503,13 +503,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "comments_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "posts"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "comments_user_profile_id_fkey"
             columns: ["user_profile_id"]
             isOneToOne: false
@@ -1386,62 +1379,6 @@ export type Database = {
           post_id?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "post_interactions_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "posts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      posts: {
-        Row: {
-          author_avatar: string | null
-          author_name: string
-          author_username: string
-          channel_id: string | null
-          comments_count: number | null
-          content: string
-          created_at: string | null
-          event_id: string | null
-          id: string
-          likes_count: number | null
-          post_type: string | null
-          shares_count: number | null
-          updated_at: string | null
-        }
-        Insert: {
-          author_avatar?: string | null
-          author_name: string
-          author_username: string
-          channel_id?: string | null
-          comments_count?: number | null
-          content: string
-          created_at?: string | null
-          event_id?: string | null
-          id?: string
-          likes_count?: number | null
-          post_type?: string | null
-          shares_count?: number | null
-          updated_at?: string | null
-        }
-        Update: {
-          author_avatar?: string | null
-          author_name?: string
-          author_username?: string
-          channel_id?: string | null
-          comments_count?: number | null
-          content?: string
-          created_at?: string | null
-          event_id?: string | null
-          id?: string
-          likes_count?: number | null
-          post_type?: string | null
-          shares_count?: number | null
-          updated_at?: string | null
-        }
         Relationships: []
       }
       stream_analytics: {
@@ -1682,6 +1619,7 @@ export type Database = {
           media_url: string | null
           metadata: Json | null
           post_type: string | null
+          shares: number
           updated_at: string | null
           user_id: string
           user_name: string
@@ -1699,6 +1637,7 @@ export type Database = {
           media_url?: string | null
           metadata?: Json | null
           post_type?: string | null
+          shares?: number
           updated_at?: string | null
           user_id: string
           user_name: string
@@ -1716,6 +1655,7 @@ export type Database = {
           media_url?: string | null
           metadata?: Json | null
           post_type?: string | null
+          shares?: number
           updated_at?: string | null
           user_id?: string
           user_name?: string
@@ -1841,6 +1781,14 @@ export type Database = {
       is_admin_user: {
         Args: { user_id: string }
         Returns: boolean
+      }
+      update_event_live_status_atomic: {
+        Args: { p_event_id: string }
+        Returns: {
+          should_close_room: boolean
+          event_was_live: boolean
+          live_participants_count: number
+        }[]
       }
       update_stripe_account_status: {
         Args: {

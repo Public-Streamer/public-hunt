@@ -15,6 +15,7 @@ interface UserPost {
   user_id: string;
   likes: number;
   comments: number;
+  shares: number;
   created_at: string;
   post_type: string;
   event_id: string | null;
@@ -93,6 +94,20 @@ const Post: React.FC = () => {
 
     try {
       await navigator.clipboard.writeText(postUrl);
+      
+      // Increment shares count in database
+      const { error } = await supabase
+        .from("user_posts")
+        .update({ shares: (post?.shares || 0) + 1 })
+        .eq("id", postId);
+
+      if (error) {
+        console.error("Error updating shares count:", error);
+      } else {
+        // Update local state to reflect the change
+        setPost(prev => prev ? { ...prev, shares: prev.shares + 1 } : null);
+      }
+      
       toast({
         title: "Link copied",
         description: "Post link copied to clipboard!",
@@ -149,7 +164,7 @@ const Post: React.FC = () => {
         timestamp={new Date(post.created_at).toLocaleDateString()}
         likes={post.likes}
         comments={post.comments}
-        shares={0}
+        shares={post.shares}
         media_url={post.media_url}
         media_type={post.media_type as "image" | "video"}
         isOwnPost={false} // Individual post view doesn't allow editing
