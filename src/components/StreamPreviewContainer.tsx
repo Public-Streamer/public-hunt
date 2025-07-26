@@ -142,10 +142,9 @@ const StreamPreviewContainer: React.FC<StreamPreviewContainerProps> = ({
         isLive={isLive}
         setIsMuted={setIsMuted}
         isMuted={isMuted}
+        s
       />
-      <button className="m-2 bg-black text-white p-2">
-        <StartAudio label="Start Audio" />
-      </button>
+      <StartAudio label="Start Audio" />
       {/* Streamer grid - only show if there are multiple streamers */}
       {videoTracks.length > 1 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 p-2">
