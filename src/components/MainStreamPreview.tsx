@@ -35,12 +35,21 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
   console.log("Chat send function:", send);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const videoContainerRef = useRef<HTMLDivElement>(null);
+  const videoElementRef = useRef<HTMLVideoElement>(null);
   const [visibleMessages, setVisibleMessages] = useState<any[]>([]);
   const [chatMessage, setChatMessage] = useState("");
   const [isChatVisible, setIsChatVisible] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const hideControlsTimer = useRef<NodeJS.Timeout | null>(null);
+
+  // Detect iOS Safari
+  const isIOSSafari = () => {
+    const userAgent = navigator.userAgent;
+    return /iPad|iPhone|iPod/.test(userAgent) && 
+           (/Safari/.test(userAgent) || /CriOS/.test(userAgent)) &&
+           !(window as any).MSStream;
+  };
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -70,21 +79,67 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
     }
   };
 
-  // Fullscreen functionality
+  // Enhanced fullscreen functionality with iOS Safari support
   const handleFullscreenToggle = () => {
-    if (!videoContainerRef.current) return;
+    // Find the actual video element within the VideoTrack component
+    const findVideoElement = () => {
+      if (videoElementRef.current) return videoElementRef.current;
+      
+      // Look for video element within the container
+      const container = videoContainerRef.current;
+      if (container) {
+        const videoEl = container.querySelector('video');
+        if (videoEl) {
+          videoElementRef.current = videoEl;
+          return videoEl;
+        }
+      }
+      return null;
+    };
 
+    const videoElement = findVideoElement();
+    
     if (!isFullscreen) {
       // Enter fullscreen
-      if (videoContainerRef.current.requestFullscreen) {
-        videoContainerRef.current.requestFullscreen();
-      } else if ((videoContainerRef.current as any).webkitRequestFullscreen) {
-        (videoContainerRef.current as any).webkitRequestFullscreen();
-      } else if ((videoContainerRef.current as any).msRequestFullscreen) {
-        (videoContainerRef.current as any).msRequestFullscreen();
+      if (isIOSSafari() && videoElement) {
+        // iOS Safari: Use video element's webkitEnterFullscreen
+        try {
+          if ((videoElement as any).webkitEnterFullscreen) {
+            (videoElement as any).webkitEnterFullscreen();
+            setIsFullscreen(true);
+            resetHideTimer();
+            return;
+          }
+        } catch (error) {
+          console.log('iOS video fullscreen failed, falling back to container');
+        }
+      }
+      
+      // Standard fullscreen API (works on Android Chrome and desktop)
+      const element = videoElement || videoContainerRef.current;
+      if (element) {
+        if (element.requestFullscreen) {
+          element.requestFullscreen();
+        } else if ((element as any).webkitRequestFullscreen) {
+          (element as any).webkitRequestFullscreen();
+        } else if ((element as any).msRequestFullscreen) {
+          (element as any).msRequestFullscreen();
+        }
       }
     } else {
       // Exit fullscreen
+      if (isIOSSafari() && videoElement && (videoElement as any).webkitExitFullscreen) {
+        try {
+          (videoElement as any).webkitExitFullscreen();
+          setIsFullscreen(false);
+          setShowControls(true);
+          return;
+        } catch (error) {
+          console.log('iOS video exit fullscreen failed');
+        }
+      }
+      
+      // Standard exit fullscreen
       if (document.exitFullscreen) {
         document.exitFullscreen();
       } else if ((document as any).webkitExitFullscreen) {
@@ -108,7 +163,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
     }
   };
 
-  // Handle fullscreen change events
+  // Handle fullscreen change events including iOS Safari video events
   useEffect(() => {
     const handleFullscreenChange = () => {
       const isCurrentlyFullscreen = !!(
@@ -127,14 +182,49 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
       }
     };
 
+    // iOS Safari video fullscreen events
+    const handleVideoFullscreenChange = () => {
+      const videoElement = videoElementRef.current || 
+        videoContainerRef.current?.querySelector('video');
+      
+      if (videoElement && isIOSSafari()) {
+        // Check if video is in fullscreen mode
+        const isVideoFullscreen = (videoElement as any).webkitDisplayingFullscreen;
+        setIsFullscreen(!!isVideoFullscreen);
+        
+        if (!isVideoFullscreen) {
+          setShowControls(true);
+          if (hideControlsTimer.current) {
+            clearTimeout(hideControlsTimer.current);
+          }
+        } else {
+          resetHideTimer();
+        }
+      }
+    };
+
+    // Standard fullscreen events
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
     document.addEventListener('msfullscreenchange', handleFullscreenChange);
+
+    // iOS video fullscreen events
+    const videoElement = videoContainerRef.current?.querySelector('video');
+    if (videoElement && isIOSSafari()) {
+      videoElement.addEventListener('webkitbeginfullscreen', handleVideoFullscreenChange);
+      videoElement.addEventListener('webkitendfullscreen', handleVideoFullscreenChange);
+    }
 
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
       document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
       document.removeEventListener('msfullscreenchange', handleFullscreenChange);
+      
+      if (videoElement && isIOSSafari()) {
+        videoElement.removeEventListener('webkitbeginfullscreen', handleVideoFullscreenChange);
+        videoElement.removeEventListener('webkitendfullscreen', handleVideoFullscreenChange);
+      }
+      
       if (hideControlsTimer.current) {
         clearTimeout(hideControlsTimer.current);
       }
