@@ -105,28 +105,70 @@ const SocialPost: React.FC<SocialPostProps> = ({
   };
 
   const handleShare = () => {
-    // Use proper SocialShareMenu like in other parts of the app
-    if (typeof window !== 'undefined') {
-      const url = window.location.href;
-      const title = `Check out this post from ${author.name}`;
-      const shareData = { url, title, text: content.substring(0, 100) };
+    const postUrl = `${window.location.origin}/post/${postId}`;
+    
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(postUrl)
+        .then(() => {
+          setShareCount(prev => prev + 1);
+          onShare?.(postId);
+          toast({
+            title: 'Link copied to clipboard',
+            description: 'Post link has been copied successfully!',
+          });
+        })
+        .catch(() => {
+          // Fallback for clipboard failure
+          handleShareFallback(postUrl);
+        });
+    } else {
+      // Fallback for browsers without clipboard API
+      handleShareFallback(postUrl);
+    }
+  };
+
+  const handleShareFallback = (postUrl: string) => {
+    // Try native sharing if available
+    if (navigator.share && navigator.canShare) {
+      const shareData = { 
+        url: postUrl, 
+        title: `Check out this post from ${author.name}`,
+        text: content.substring(0, 100) + (content.length > 100 ? '...' : '')
+      };
       
-      // Try native sharing if available
-      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+      if (navigator.canShare(shareData)) {
         navigator.share(shareData)
           .then(() => {
             setShareCount(prev => prev + 1);
+            onShare?.(postId);
           })
           .catch(err => console.error('Error sharing:', err));
-      } else {
-        // Fallback for browsers without native sharing
-        onShare?.(postId);
-        setShareCount(prev => prev + 1);
-        toast({
-          title: 'Post shared',
-          description: 'Post link copied to clipboard!'
-        });
+        return;
       }
+    }
+    
+    // Final fallback - create temporary textarea for copy
+    const textArea = document.createElement('textarea');
+    textArea.value = postUrl;
+    document.body.appendChild(textArea);
+    textArea.select();
+    
+    try {
+      document.execCommand('copy');
+      setShareCount(prev => prev + 1);
+      onShare?.(postId);
+      toast({
+        title: 'Link copied to clipboard',
+        description: 'Post link has been copied successfully!',
+      });
+    } catch (err) {
+      toast({
+        title: 'Share failed',
+        description: 'Could not copy link. Please copy manually.',
+        variant: 'destructive',
+      });
+    } finally {
+      document.body.removeChild(textArea);
     }
   };
 
