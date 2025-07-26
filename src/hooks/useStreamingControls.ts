@@ -8,6 +8,7 @@ import {
 import { Track } from "livekit-client";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 export interface StreamingControls {
   isVideoEnabled: boolean;
@@ -41,6 +42,8 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   const [isAudioEnabled, setIsAudioEnabled] = useState(false);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [goLive, setGoLive] = useState(false);
+
+  const navigate = useNavigate();
 
   // Use LiveKit's hooks for camera management
   const videoDevices = useMediaDevices({ kind: "videoinput" });
@@ -657,6 +660,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       }, 10);
 
       toast.success("Stream stopped");
+      navigate(`/event/${eventId}`);
     } catch (error) {
       toast.error("Failed to stop stream");
       console.error("Stop stream error:", error);
@@ -669,6 +673,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
     toggleAudioLiveButton,
     isVideoEnabled,
     isAudioEnabled,
+    navigate,
   ]);
 
   return {
