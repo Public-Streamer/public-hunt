@@ -18,6 +18,8 @@ interface Post {
   likes: number;
   comments: number;
   shares: number;
+  media_url?: string;
+  media_type?: "image" | "video";
   channels?: {
     id: string;
     name: string;
@@ -120,6 +122,8 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
             likes={post.likes}
             comments={post.comments}
             shares={post.shares}
+            media_url={post.media_url}
+            media_type={post.media_type}
             channels={post.channels}
             events={post.events}
             taggedUsers={post.taggedUsers}
