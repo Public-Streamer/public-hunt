@@ -133,27 +133,22 @@ const SocialPost: React.FC<SocialPostProps> = ({
     }
   };
 
-  const handleShare = () => {
+  const handleShare = async (postId: string) => {
+    // Handle share functionality
     const postUrl = `${window.location.origin}/post/${postId}`;
 
-    if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard
-        .writeText(postUrl)
-        .then(() => {
-          setShareCount((prev) => prev + 1);
-          onShare?.(postId);
-          toast({
-            title: "Link copied to clipboard",
-            description: "Post link has been copied successfully!",
-          });
-        })
-        .catch(() => {
-          // Fallback for clipboard failure
-          handleShareFallback(postUrl);
-        });
-    } else {
-      // Fallback for browsers without clipboard API
-      handleShareFallback(postUrl);
+    try {
+      await navigator.clipboard.writeText(postUrl);
+      toast({
+        title: "Link copied",
+        description: "Post link copied to clipboard!",
+      });
+    } catch (err) {
+      toast({
+        title: "Share failed",
+        description: "Could not copy link to clipboard.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -484,7 +479,7 @@ const SocialPost: React.FC<SocialPostProps> = ({
           <Button
             variant="ghost"
             size="sm"
-            onClick={handleShare}
+            onClick={() => handleShare(postId)}
             className="flex items-center space-x-2 text-gray-500"
           >
             <Share2 className="h-4 w-4" />
