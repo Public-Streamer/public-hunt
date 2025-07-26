@@ -1,20 +1,24 @@
-import React from "react";
-import { VideoTrack } from "@livekit/components-react";
+import React, { useEffect, useState } from "react";
+import { useTracks, VideoTrack } from "@livekit/components-react";
 import { TrackReference } from "@livekit/components-core";
 import { Badge } from "@/components/ui/badge";
-import { Video, Mic, MicOff } from "lucide-react";
+import { Video, Mic, MicOff, VolumeX, Volume2 } from "lucide-react";
+import { Button } from "./ui/button";
 
 interface MainStreamPreviewProps {
   track?: TrackReference;
   eventName: string;
   isLive: boolean;
+  audioTracks?: TrackReference[];
 }
 
 const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
   track,
   eventName,
   isLive,
+  audioTracks,
 }) => {
+  const [isMuted, setIsMuted] = useState(false);
   if (!track) {
     return (
       <div className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100 relative">
@@ -35,15 +39,32 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
   }
 
   const participant = track.participant;
-  const isAudioEnabled = participant?.isMicrophoneEnabled ?? false;
+
+  const isAudioEnabled =
+    audioTracks
+      ?.map((trackRef) => {
+        if (trackRef.publication.track) {
+          return trackRef.publication.track.mediaStreamTrack.enabled;
+        }
+      })
+      ?.includes(true) ?? false;
+
+  console.log(isAudioEnabled);
+
+  const handleVolumeToggle = () => {
+    setIsMuted(!isMuted);
+    // Mute/unmute audio tracks
+    audioTracks?.forEach((trackRef) => {
+      if (trackRef.publication.track) {
+        trackRef.publication.track.mediaStreamTrack.enabled = isMuted;
+      }
+    });
+  };
 
   return (
     <div className="aspect-video relative bg-black">
-      <VideoTrack 
-        trackRef={track} 
-        className="w-full h-full object-cover"
-      />
-      
+      <VideoTrack trackRef={track} className="w-full h-full object-cover" />
+
       {/* Live badge */}
       <Badge className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-red-600 text-white text-xs">
         <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full mr-1 animate-pulse" />
@@ -57,6 +78,19 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
 
       {/* Audio indicator */}
       <div className="absolute bottom-2 right-2 bg-black/70 text-white p-2 rounded">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleVolumeToggle}
+          className="text-white hover:bg-white/20"
+        >
+          {!isMuted ? (
+            <Volume2 className="h-4 w-4" />
+          ) : (
+            <VolumeX className="h-4 w-4" />
+          )}
+        </Button>
+
         {isAudioEnabled ? (
           <Mic className="h-4 w-4" />
         ) : (

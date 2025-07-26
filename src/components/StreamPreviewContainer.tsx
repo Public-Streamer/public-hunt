@@ -23,33 +23,57 @@ const StreamPreviewContainer: React.FC<StreamPreviewContainerProps> = ({
     [
       { source: Track.Source.Camera, withPlaceholder: false },
       { source: Track.Source.ScreenShare, withPlaceholder: false },
+      { source: Track.Source.Microphone, withPlaceholder: false },
     ],
-    { 
+    {
       onlySubscribed: false,
-      updateOnlyOn: []
+      updateOnlyOn: [],
     }
   );
 
   // Filter tracks to only include actual video tracks from participants
   const videoTracks = useMemo(() => {
-    return tracks.filter(track => 
-      track.publication && 
-      track.publication.track &&
-      track.publication.kind === 'video' &&
-      track.participant.identity !== 'viewer'
-    ).filter((track): track is TrackReference => track.publication !== undefined);
+    return tracks
+      .filter(
+        (track) =>
+          track.publication &&
+          track.publication.track &&
+          track.publication.kind === "video" &&
+          track.participant.identity !== "viewer"
+      )
+      .filter(
+        (track): track is TrackReference => track.publication !== undefined
+      );
   }, [tracks]);
 
   // Get the currently selected track
   const selectedTrack = videoTracks[selectedTrackIndex] || videoTracks[0];
+
+  const audioTracks = useMemo(() => {
+    return tracks
+      .filter(
+        (track) =>
+          track.publication &&
+          track.publication.track &&
+          track.publication.kind === "audio" &&
+          track.participant.identity !== "viewer"
+      )
+      .filter(
+        (track): track is TrackReference => track.publication !== undefined
+      );
+  }, [tracks]);
 
   if (!hasAccess) {
     return (
       <div className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100 relative">
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
-            <div className="text-lg font-semibold mb-2">Live Stream Access Required</div>
-            <div className="text-sm text-gray-600">Purchase a ticket to watch this live event</div>
+            <div className="text-lg font-semibold mb-2">
+              Live Stream Access Required
+            </div>
+            <div className="text-sm text-gray-600">
+              Purchase a ticket to watch this live event
+            </div>
           </div>
         </div>
       </div>
@@ -59,10 +83,11 @@ const StreamPreviewContainer: React.FC<StreamPreviewContainerProps> = ({
   return (
     <div className="space-y-4">
       {/* Main preview area */}
-      <MainStreamPreview 
+      <MainStreamPreview
         track={selectedTrack}
         eventName={eventName}
         isLive={isLive}
+        audioTracks={audioTracks}
       />
 
       {/* Streamer grid - only show if there are multiple streamers */}
