@@ -187,7 +187,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
               size="sm"
               className="h-10 w-10 rounded-full bg-primary hover:bg-primary/80 flex-shrink-0"
             >
-              <Plane className="h-4 w-4 text-white" />
+              <Plane className="h-5 w-5 text-white rotate-45 transform transition-transform hover:scale-110" />
             </Button>
           </div>
         )}
