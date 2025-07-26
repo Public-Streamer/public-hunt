@@ -23,7 +23,6 @@ const StreamPreviewContainer: React.FC<StreamPreviewContainerProps> = ({
     [
       { source: Track.Source.Camera, withPlaceholder: false },
       { source: Track.Source.ScreenShare, withPlaceholder: false },
-      { source: Track.Source.Microphone, withPlaceholder: false },
     ],
     {
       onlySubscribed: false,
@@ -49,19 +48,12 @@ const StreamPreviewContainer: React.FC<StreamPreviewContainerProps> = ({
   // Get the currently selected track
   const selectedTrack = videoTracks[selectedTrackIndex] || videoTracks[0];
 
-  const audioTracks = useMemo(() => {
-    return tracks
-      .filter(
-        (track) =>
-          track.publication &&
-          track.publication.track &&
-          track.publication.kind === "audio" &&
-          track.participant.identity !== "viewer"
-      )
-      .filter(
-        (track): track is TrackReference => track.publication !== undefined
-      );
-  }, [tracks]);
+  const audioTracks = useTracks(
+    [{ source: Track.Source.Microphone, withPlaceholder: false }],
+    {
+      onlySubscribed: false,
+    }
+  );
 
   if (!hasAccess) {
     return (

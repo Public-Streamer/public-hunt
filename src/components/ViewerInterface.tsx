@@ -1,3 +1,5 @@
+//NOTE: THIS COMPONENT IS NOT IN USE; DON'T REMOVE IT BUT DON"T WORK ON IT
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
