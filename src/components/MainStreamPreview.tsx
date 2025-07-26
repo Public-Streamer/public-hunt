@@ -11,8 +11,9 @@ import {
   TrackReferencePlaceholder,
 } from "@livekit/components-core";
 import { Badge } from "@/components/ui/badge";
-import { Video, Mic, MicOff, VolumeX, Volume2 } from "lucide-react";
+import { Video, Mic, MicOff, VolumeX, Volume2, Send } from "lucide-react";
 import { Button } from "./ui/button";
+import { Input } from "./ui/input";
 
 interface MainStreamPreviewProps {
   track?: TrackReference;
@@ -29,9 +30,10 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
   setIsMuted,
   isMuted,
 }) => {
-  const { chatMessages } = useChat();
+  const { chatMessages, send } = useChat();
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [visibleMessages, setVisibleMessages] = useState<any[]>([]);
+  const [chatMessage, setChatMessage] = useState('');
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -45,6 +47,20 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
     const latest = chatMessages.slice(-5);
     setVisibleMessages(latest);
   }, [chatMessages]);
+
+  const handleSendMessage = () => {
+    if (chatMessage.trim() && send) {
+      send(chatMessage.trim());
+      setChatMessage('');
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
   if (!track) {
     return (
       <div className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100 relative">
@@ -106,25 +122,6 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
           Multi-camera
         </div>
 
-        {/* Audio indicator */}
-        {/* <div className="absolute bottom-2 right-2 bg-black/70 text-white p-2 rounded flex items-center gap-2">
-          <button onClick={handleVolumeToggle}>
-            {!isMuted ? (
-              <Volume2 className="h-4 w-4" />
-            ) : (
-              <VolumeX className="h-4 w-4" />
-            )}
-          </button>
-
-          <div>
-            {isAudioEnabled ? (
-              <Mic className="h-4 w-4" />
-            ) : (
-              <MicOff className="h-4 w-4" />
-            )}
-          </div>
-        </div> */}
-
         {/* Chat Messages Overlay */}
         {visibleMessages.length > 0 && (
           <div 
@@ -151,8 +148,27 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
           </div>
         )}
 
+        {/* Chat Input Overlay */}
+        <div className="absolute bottom-2 left-2 right-2 flex items-center gap-2">
+          <Input
+            value={chatMessage}
+            onChange={(e) => setChatMessage(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder="Say something..."
+            className="flex-1 bg-black/60 border-white/20 text-white placeholder:text-white/60 h-8 text-sm"
+          />
+          <Button
+            onClick={handleSendMessage}
+            disabled={!chatMessage.trim()}
+            size="sm"
+            className="h-8 px-3 bg-primary hover:bg-primary/80"
+          >
+            <Send className="h-3 w-3" />
+          </Button>
+        </div>
+
         {/* Participant info */}
-        <div className="absolute bottom-2 left-2 bg-black/70 text-white px-3 py-1 rounded">
+        <div className="absolute top-12 left-2 bg-black/70 text-white px-3 py-1 rounded">
           <p className="text-sm font-medium">
             {participant?.name || participant?.identity}
           </p>
