@@ -1,11 +1,12 @@
 
+import React, { useState, useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/theme-provider";
-import { AppProvider } from "@/contexts/AppContext";
+import { AppProvider, useAppContext } from "@/contexts/AppContext";
 import Layout from "@/components/Layout";
 import Index from "./pages/Index";
 import Create from "./pages/Create";
@@ -33,50 +34,86 @@ import LegalDocumentPage from "./pages/LegalDocument";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <ThemeProvider defaultTheme="light">
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <AppProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Layout>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/create" element={<Create />} />
-                <Route path="/create-episode" element={<CreateEpisode />} />
-                <Route path="/channels" element={<Channels />} />
-                <Route path="/channel/:channelId" element={<ChannelPage />} />
-                <Route path="/events" element={<Events />} />
-                <Route path="/event/:eventId" element={<EventPage />} />
-                <Route path="/stage/:eventId" element={<StagePage />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/profile/:username" element={<Profile />} />
-                <Route
-                  path="/company/:companyId"
-                  element={<CompanyProfile />}
-                />
-                <Route path="/login" element={<Login />} />
-                <Route path="/payment-setup" element={<PaymentSetup />} />
-                <Route path="/past-events" element={<PastEvents />} />
-                <Route path="/my-ads" element={<MyAds />} />
-                <Route path="/advertisers" element={<Advertisers />} />
-                <Route path="/create-ad" element={<CreateAd />} />
-                <Route path="/ad-library" element={<AdLibrary />} />
-                <Route path="/advertiser-dashboard" element={<AdvertiserDashboard />} />
-                <Route path="/withdraw" element={<WithdrawFunds />} />
-                <Route path="/master-admin" element={<MasterAdmin />} />
-                <Route path="/qa" element={<QA />} />
-                <Route path="/legal" element={<LegalDocumentPage />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Layout>
-          </BrowserRouter>
-        </AppProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
-  </ThemeProvider>
-);
+const App = () => {
+  return (
+    <ThemeProvider defaultTheme="light">
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <AppProvider>
+            <AuthWrapper />
+          </AppProvider>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
+  );
+};
+
+const AuthWrapper = () => {
+  const { user, isAuthenticated } = useAppContext();
+  const [authLoading, setAuthLoading] = useState(true);
+  
+  useEffect(() => {
+    // Set a timeout to handle auth loading state
+    const timer = setTimeout(() => {
+      setAuthLoading(false);
+    }, 1000);
+    
+    // If user state changes, stop loading immediately
+    if (user !== null || isAuthenticated !== undefined) {
+      setAuthLoading(false);
+      clearTimeout(timer);
+    }
+    
+    return () => clearTimeout(timer);
+  }, [user, isAuthenticated]);
+  
+  if (authLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="text-lg">Loading...</div>
+      </div>
+    );
+  }
+  
+  return (
+    <>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/create" element={<Create />} />
+            <Route path="/create-episode" element={<CreateEpisode />} />
+            <Route path="/channels" element={<Channels />} />
+            <Route path="/channel/:channelId" element={<ChannelPage />} />
+            <Route path="/events" element={<Events />} />
+            <Route path="/event/:eventId" element={<EventPage />} />
+            <Route path="/stage/:eventId" element={<StagePage />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/profile/:username" element={<Profile />} />
+            <Route
+              path="/company/:companyId"
+              element={<CompanyProfile />}
+            />
+            <Route path="/login" element={<Login />} />
+            <Route path="/payment-setup" element={<PaymentSetup />} />
+            <Route path="/past-events" element={<PastEvents />} />
+            <Route path="/my-ads" element={<MyAds />} />
+            <Route path="/advertisers" element={<Advertisers />} />
+            <Route path="/create-ad" element={<CreateAd />} />
+            <Route path="/ad-library" element={<AdLibrary />} />
+            <Route path="/advertiser-dashboard" element={<AdvertiserDashboard />} />
+            <Route path="/withdraw" element={<WithdrawFunds />} />
+            <Route path="/master-admin" element={<MasterAdmin />} />
+            <Route path="/qa" element={<QA />} />
+            <Route path="/legal" element={<LegalDocumentPage />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Layout>
+      </BrowserRouter>
+    </>
+  );
+};
 
 export default App;
