@@ -171,24 +171,26 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
           </div>
         )}
 
-        {/* Chat Input Overlay - Facebook Live Style */}
+        {/* Chat Input Overlay - Integrated Style */}
         {isChatVisible && (
-          <div className="absolute bottom-2 left-2 right-2 flex items-center gap-2 bg-black/40 backdrop-blur-sm rounded-full p-1">
-            <Input
-              value={chatMessage}
-              onChange={(e) => setChatMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Write a comment..."
-              className="flex-1 bg-white/10 border-none text-white placeholder:text-white/70 h-10 text-sm rounded-full px-4 focus-visible:ring-1 focus-visible:ring-white/50 focus-visible:ring-offset-0"
-            />
-            <Button
-              onClick={handleSendMessage}
-              disabled={!chatMessage.trim()}
-              size="sm"
-              className="h-10 w-10 rounded-full bg-primary hover:bg-primary/80 flex-shrink-0"
-            >
-              <Plane className="h-5 w-5 text-white rotate-45 transform transition-transform hover:scale-110" />
-            </Button>
+          <div className="absolute bottom-2 left-2 right-2">
+            <div className="relative bg-black/80 backdrop-blur-sm rounded-full border border-white/20">
+              <Input
+                value={chatMessage}
+                onChange={(e) => setChatMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Send Message"
+                className="w-full bg-transparent border-none text-white placeholder:text-white/60 h-12 text-sm rounded-full pl-5 pr-14 focus-visible:ring-0 focus-visible:ring-offset-0"
+              />
+              <Button
+                onClick={handleSendMessage}
+                disabled={!chatMessage.trim()}
+                size="sm"
+                className="absolute right-1 top-1 h-10 w-10 rounded-full bg-white/20 hover:bg-white/30 transition-all duration-200 border-none"
+              >
+                <Plane className="h-5 w-5 text-white rotate-45 transform transition-transform hover:scale-110" />
+              </Button>
+            </div>
           </div>
         )}
 
