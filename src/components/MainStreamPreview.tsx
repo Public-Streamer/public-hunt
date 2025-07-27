@@ -308,7 +308,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
         {isChatVisible && visibleMessages.length > 0 && (
           <div
             ref={chatContainerRef}
-            className={`flex flex-col justify-end absolute bottom-0  h-full  w-xs  overflow-y-scroll space-y-1 sm:space-y-3 pointer-events-auto transition-opacity duration-300 bg-[linear-gradient(90deg,_rgba(0,60,84,1)_0%,_rgba(87,199,133,0)_99%)] ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100  z-0'}`}
+            className={`flex flex-col justify-end absolute bottom-0  h-full  w-2/4 overflow-y-scroll space-y-1 sm:space-y-3 pointer-events-auto transition-opacity duration-300 bg-[linear-gradient(90deg,_rgba(0,60,84,1)_0%,_rgba(87,199,133,0)_99%)] ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100  z-0'}`}
             style={{ 
               scrollBehavior: "smooth",
               scrollbarWidth: "thin",
