@@ -29,6 +29,7 @@ import TicketPurchaseModal from "@/components/TicketPurchaseModal";
 import StreamPreviewContainer from "@/components/StreamPreviewContainer";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
+import { useAppContext } from "@/contexts/AppContext";
 
 interface EventData {
   id: string;
@@ -52,44 +53,24 @@ const EventPage: React.FC = () => {
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user: currentUser, userProfile: currentUserProfile } = useAppContext();
 
   const [eventData, setEventData] = useState<EventData | null>(null);
   const [loading, setLoading] = useState(true);
   const [hasTicket, setHasTicket] = useState(false);
   const [checkingTicket, setCheckingTicket] = useState(false);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
-  const [currentUser, setCurrentUser] = useState<any>(null);
   const [livekitToken, setLivekitToken] = useState<string | null>(null);
   const [roomName, setRoomName] = useState<string | null>(null);
   const [serverUrl, setServerUrl] = useState<string | null>(null);
   const [isStreamer, setIsStreamer] = useState(false);
-  const [currentUserProfile, setCurrentUserProfile] = useState<any>(null);
 
   useEffect(() => {
     if (!eventId) return;
 
     fetchEventData();
-    getCurrentUser();
-    getCurrentUserProfile();
   }, [eventId]);
 
-  const getCurrentUserProfile = async () => {
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user) {
-        const { data: profile } = await supabase
-          .from("user_profiles")
-          .select("*")
-          .eq("user_id", user.id)
-          .single();
-        setCurrentUserProfile(profile);
-      }
-    } catch (error) {
-      console.error("Error getting user profile:", error);
-    }
-  };
 
   useEffect(() => {
     if (currentUser && eventData) {
@@ -142,16 +123,6 @@ const EventPage: React.FC = () => {
     }
   }, [currentUser, eventData, hasTicket, canEnterStage]);
 
-  const getCurrentUser = async () => {
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setCurrentUser(user);
-    } catch (error) {
-      console.error("Error getting current user:", error);
-    }
-  };
 
   const fetchEventData = async () => {
     try {
@@ -483,7 +454,14 @@ const EventPage: React.FC = () => {
                   {eventData.is_live &&
                     livekitToken &&
                     (hasTicket || canEnterStage) && (
-                      <LiveDiscussionSection userProfile={currentUserProfile} />
+                      <LiveDiscussionSection 
+                        userProfile={currentUserProfile ? {
+                          id: currentUserProfile.id,
+                          username: currentUserProfile.firstName || 'User',
+                          display_name: `${currentUserProfile.firstName} ${currentUserProfile.lastName}`,
+                          profile_picture_url: currentUserProfile.profilePhoto || ''
+                        } : undefined}
+                      />
                     )}
                 </LiveKitRoom>
               ) : (
