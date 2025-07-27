@@ -31,6 +31,7 @@ import { useScreenSize } from "@/hooks/use-mobile";
 import LiveStreamLogo from "@/components/ui/live-stream-logo";
 import CameraSwitchButton from "@/components/CameraSwitchButton";
 import LiveChatSection from "@/components/LiveChatSection";
+import { useMobileMediaPermissions } from "@/hooks/useMobileMediaPermissions";
 
 interface StreamerInterfaceProps {
   eventId: string;
@@ -51,6 +52,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   const participants = useParticipants();
   const controls = useStreamingControls(eventId);
   const screenSize = useScreenSize();
+  const { checkScreenShareSupport } = useMobileMediaPermissions();
 
   // Get local camera track
   const localCameraTracks = useTracks([Track.Source.Camera], {
@@ -304,28 +306,31 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                     />
                   )}
 
-                  <Button
-                    onClick={controls.toggleScreenShare}
-                    variant={controls.isScreenSharing ? "default" : "secondary"}
-                    className={`w-full text-xs sm:text-sm ${
-                      screenSize === "mobile" ? "col-span-1" : ""
-                    }`}
-                    size={screenSize === "mobile" ? "sm" : "default"}
-                  >
-                    {controls.isScreenSharing ? (
-                      <>
-                        <Monitor className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                        {screenSize === "mobile"
-                          ? "Stop Share"
-                          : "Stop Sharing"}
-                      </>
-                    ) : (
-                      <>
-                        <MonitorOff className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                        {screenSize === "mobile" ? "Share" : "Share Screen"}
-                      </>
-                    )}
-                  </Button>
+                  {/* Screen Share Button - Only show if supported */}
+                  {checkScreenShareSupport() && (
+                    <Button
+                      onClick={controls.toggleScreenShare}
+                      variant={controls.isScreenSharing ? "default" : "secondary"}
+                      className={`w-full text-xs sm:text-sm ${
+                        screenSize === "mobile" ? "col-span-1" : ""
+                      }`}
+                      size={screenSize === "mobile" ? "sm" : "default"}
+                    >
+                      {controls.isScreenSharing ? (
+                        <>
+                          <Monitor className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                          {screenSize === "mobile"
+                            ? "Stop Share"
+                            : "Stop Sharing"}
+                        </>
+                      ) : (
+                        <>
+                          <MonitorOff className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                          {screenSize === "mobile" ? "Share" : "Share Screen"}
+                        </>
+                      )}
+                    </Button>
+                  )}
                 </div>
 
                 {/* Camera Switch Button - Show in desktop layout */}

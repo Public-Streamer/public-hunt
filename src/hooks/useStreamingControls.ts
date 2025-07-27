@@ -9,6 +9,7 @@ import { Track } from "livekit-client";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { useMobileMediaPermissions } from "./useMobileMediaPermissions";
 
 export interface StreamingControls {
   isVideoEnabled: boolean;
@@ -50,6 +51,16 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   const [goLive, setGoLive] = useState(false);
 
   const navigate = useNavigate();
+
+  // Mobile media permissions handler
+  const {
+    permissionStatus,
+    requestCameraPermission,
+    requestMicrophonePermission,
+    requestBothPermissions,
+    checkScreenShareSupport,
+    requestScreenShare,
+  } = useMobileMediaPermissions();
 
   // Use LiveKit's hooks for camera management
   const videoDevices = useMediaDevices({ kind: "videoinput" });
@@ -457,6 +468,16 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
     try {
       const enabled = !isVideoEnabled;
 
+      // If enabling camera, first request permission on mobile
+      if (enabled) {
+        console.log("📱 MOBILE DEBUG - Requesting camera permission before enabling");
+        const hasPermission = await requestCameraPermission(currentFacingMode);
+        if (!hasPermission) {
+          console.log("📱 MOBILE DEBUG - Camera permission denied, aborting toggle");
+          return;
+        }
+      }
+
       await localParticipant.setCameraEnabled(enabled);
       setIsVideoEnabled(enabled);
 
@@ -467,9 +488,9 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       }
     } catch (error) {
       toast.error("Failed to toggle camera");
-      console.error("Toggle video error:", error);
+      console.error("📱 MOBILE DEBUG - Toggle video error:", error);
     }
-  }, [localParticipant, isVideoEnabled]);
+  }, [localParticipant, isVideoEnabled, requestCameraPermission, currentFacingMode]);
 
   const toggleVideoLiveButton = useCallback(
     async (enabled: boolean) => {
@@ -503,6 +524,17 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
 
     try {
       const enabled = !isAudioEnabled;
+      
+      // If enabling microphone, first request permission on mobile
+      if (enabled) {
+        console.log("📱 MOBILE DEBUG - Requesting microphone permission before enabling");
+        const hasPermission = await requestMicrophonePermission();
+        if (!hasPermission) {
+          console.log("📱 MOBILE DEBUG - Microphone permission denied, aborting toggle");
+          return;
+        }
+      }
+
       await localParticipant.setMicrophoneEnabled(enabled);
       setIsAudioEnabled(enabled);
 
@@ -513,9 +545,9 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       }
     } catch (error) {
       toast.error("Failed to toggle microphone");
-      console.error("Toggle audio error:", error);
+      console.error("📱 MOBILE DEBUG - Toggle audio error:", error);
     }
-  }, [localParticipant, isAudioEnabled]);
+  }, [localParticipant, isAudioEnabled, requestMicrophonePermission]);
 
   const toggleAudioLiveButton = useCallback(
     async (enabled: boolean) => {
@@ -547,8 +579,25 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       return;
     }
 
+    // Check if screen share is supported (fails gracefully on mobile)
+    if (!checkScreenShareSupport()) {
+      console.log("📱 MOBILE DEBUG - Screen share not supported, failing gracefully");
+      return;
+    }
+
     try {
       const enabled = !isScreenSharing;
+      
+      // If enabling screen share, first request permission
+      if (enabled) {
+        console.log("📱 MOBILE DEBUG - Requesting screen share permission before enabling");
+        const hasPermission = await requestScreenShare();
+        if (!hasPermission) {
+          console.log("📱 MOBILE DEBUG - Screen share permission denied, aborting toggle");
+          return;
+        }
+      }
+
       await localParticipant.setScreenShareEnabled(enabled);
       setIsScreenSharing(enabled);
 
@@ -559,9 +608,9 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       }
     } catch (error) {
       toast.error("Failed to toggle screen share");
-      console.error("Toggle screen share error:", error);
+      console.error("📱 MOBILE DEBUG - Toggle screen share error:", error);
     }
-  }, [localParticipant, isScreenSharing]);
+  }, [localParticipant, isScreenSharing, checkScreenShareSupport, requestScreenShare]);
 
   const startStream = useCallback(async () => {
     //TODO: actually it's doing nothing
@@ -577,11 +626,28 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       }
 
       await updateParticipantLiveStatus(true); // NOTE: make sure this runs first
-      if (!isVideoEnabled) {
+      
+      // Request media permissions before going live
+      console.log("📱 MOBILE DEBUG - Requesting media permissions for going live");
+      const permissions = await requestBothPermissions(currentFacingMode);
+      
+      if (permissions.camera && !isVideoEnabled) {
         toggleVideoLiveButton(true);
       }
-      if (!isAudioEnabled) {
+      if (permissions.microphone && !isAudioEnabled) {
         toggleAudioLiveButton(true);
+      }
+      
+      // Warn if permissions were denied
+      if (!permissions.camera && !permissions.microphone) {
+        toast.error("Camera and microphone access required to go live");
+        setIsStreaming(false);
+        setGoLive(false);
+        return;
+      } else if (!permissions.camera) {
+        toast.error("Camera access denied - going live with audio only");
+      } else if (!permissions.microphone) {
+        toast.error("Microphone access denied - going live with video only");
       }
 
       setTimeout(async () => {
@@ -611,6 +677,8 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
     toggleAudioLiveButton,
     isVideoEnabled,
     isAudioEnabled,
+    requestBothPermissions,
+    currentFacingMode,
   ]);
 
   const stopStream = useCallback(async () => {
