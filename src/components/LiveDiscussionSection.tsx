@@ -1,19 +1,18 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { MessageCircle, Send } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useAppContext } from '@/contexts/AppContext';
-import TooltipWrapper from '@/components/ui/tooltip-wrapper';
-import { formatDistanceToNow } from 'date-fns';
-import { ReceivedChatMessage } from '@livekit/components-core';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import React, { useState, useRef, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { MessageCircle, Send } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAppContext } from "@/contexts/AppContext";
+import TooltipWrapper from "@/components/ui/tooltip-wrapper";
+import { formatDistanceToNow } from "date-fns";
+import { ReceivedChatMessage } from "@livekit/components-core";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useChat } from "@livekit/components-react";
 
 interface LiveDiscussionSectionProps {
-  chatMessages: ReceivedChatMessage[];
-  onSendMessage: (message: string) => void;
   userProfile?: {
     id: string;
     username: string;
@@ -23,11 +22,11 @@ interface LiveDiscussionSectionProps {
 }
 
 const LiveDiscussionSection: React.FC<LiveDiscussionSectionProps> = ({
-  chatMessages,
-  onSendMessage,
-  userProfile
+  userProfile,
 }) => {
-  const [newMessage, setNewMessage] = useState('');
+  const { chatMessages, send } = useChat();
+
+  const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { isAuthenticated } = useAppContext();
@@ -37,7 +36,7 @@ const LiveDiscussionSection: React.FC<LiveDiscussionSectionProps> = ({
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [chatMessages]);
 
@@ -47,28 +46,33 @@ const LiveDiscussionSection: React.FC<LiveDiscussionSectionProps> = ({
 
     setLoading(true);
     try {
-      await onSendMessage(newMessage);
-      setNewMessage('');
+      await send(newMessage);
+      setNewMessage("");
     } catch (error) {
-      console.error('Failed to send message:', error);
+      console.error("Failed to send message:", error);
     } finally {
       setLoading(false);
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSubmitMessage(e);
     }
   };
 
   const getDisplayName = (message: ReceivedChatMessage) => {
-    return message.from?.name || message.from?.identity || 'Anonymous';
+    return message.from?.name || message.from?.identity || "Anonymous";
   };
 
   const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .substring(0, 2)
+      .toUpperCase();
   };
 
   return (
@@ -103,13 +107,13 @@ const LiveDiscussionSection: React.FC<LiveDiscussionSectionProps> = ({
               </div>
               <div className="flex justify-end">
                 <TooltipWrapper content="Send message to live discussion">
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     disabled={loading || !newMessage.trim()}
                     className="flex items-center space-x-2"
                   >
                     <Send className="w-4 h-4" />
-                    <span>{loading ? 'Sending...' : 'Send'}</span>
+                    <span>{loading ? "Sending..." : "Send"}</span>
                   </Button>
                 </TooltipWrapper>
               </div>
@@ -118,17 +122,18 @@ const LiveDiscussionSection: React.FC<LiveDiscussionSectionProps> = ({
         ) : (
           <div className="text-center py-4 border rounded-lg bg-muted/50">
             <p className="text-muted-foreground">
-              <Button 
-                variant="link" 
+              <Button
+                variant="link"
                 onClick={() => {
-                  const currentUrl = window.location.pathname + window.location.search;
+                  const currentUrl =
+                    window.location.pathname + window.location.search;
                   navigate(`/login?redirect=${encodeURIComponent(currentUrl)}`);
                 }}
                 className="p-0 h-auto font-normal"
               >
                 Sign in
-              </Button>
-              {" "}to join the live discussion
+              </Button>{" "}
+              to join the live discussion
             </p>
           </div>
         )}
@@ -144,7 +149,10 @@ const LiveDiscussionSection: React.FC<LiveDiscussionSectionProps> = ({
             <ScrollArea className="h-64 w-full pr-4" ref={scrollAreaRef}>
               <div className="space-y-3">
                 {chatMessages.map((message, index) => (
-                  <div key={`${message.timestamp}-${index}`} className="flex space-x-3 p-3 border rounded-lg">
+                  <div
+                    key={`${message.timestamp}-${index}`}
+                    className="flex space-x-3 p-3 border rounded-lg"
+                  >
                     <Avatar className="w-8 h-8">
                       <AvatarFallback>
                         {getInitials(getDisplayName(message))}
@@ -156,10 +164,14 @@ const LiveDiscussionSection: React.FC<LiveDiscussionSectionProps> = ({
                           {getDisplayName(message)}
                         </span>
                         <span className="text-xs text-muted-foreground">
-                          {formatDistanceToNow(new Date(message.timestamp), { addSuffix: true })}
+                          {formatDistanceToNow(new Date(message.timestamp), {
+                            addSuffix: true,
+                          })}
                         </span>
                       </div>
-                      <p className="text-sm mt-1 break-words">{message.message}</p>
+                      <p className="text-sm mt-1 break-words">
+                        {message.message}
+                      </p>
                     </div>
                   </div>
                 ))}

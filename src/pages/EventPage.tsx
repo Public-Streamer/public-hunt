@@ -53,8 +53,6 @@ const EventPage: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const { chatMessages, send } = useChat();
-
   const [eventData, setEventData] = useState<EventData | null>(null);
   const [loading, setLoading] = useState(true);
   const [hasTicket, setHasTicket] = useState(false);
@@ -77,17 +75,19 @@ const EventPage: React.FC = () => {
 
   const getCurrentUserProfile = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user) {
         const { data: profile } = await supabase
-          .from('user_profiles')
-          .select('*')
-          .eq('user_id', user.id)
+          .from("user_profiles")
+          .select("*")
+          .eq("user_id", user.id)
           .single();
         setCurrentUserProfile(profile);
       }
     } catch (error) {
-      console.error('Error getting user profile:', error);
+      console.error("Error getting user profile:", error);
     }
   };
 
@@ -476,6 +476,12 @@ const EventPage: React.FC = () => {
                       />
                     </div>
                   )} */}
+                  {/* Live Discussion Section */}
+                  {eventData.is_live &&
+                    livekitToken &&
+                    (hasTicket || canEnterStage) && (
+                      <LiveDiscussionSection userProfile={currentUserProfile} />
+                    )}
                 </LiveKitRoom>
               ) : (
                 <div className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100 relative">
@@ -564,15 +570,6 @@ const EventPage: React.FC = () => {
               <OfflineStreamSection
                 eventId={eventData.id}
                 hasPaid={hasTicket || canEnterStage}
-              />
-            )}
-
-            {/* Live Discussion Section */}
-            {eventData.is_live && livekitToken && (hasTicket || canEnterStage) && (
-              <LiveDiscussionSection
-                chatMessages={chatMessages}
-                onSendMessage={send}
-                userProfile={currentUserProfile}
               />
             )}
           </div>
