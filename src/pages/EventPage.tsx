@@ -477,11 +477,11 @@ const EventPage: React.FC = () => {
                     </div>
                   )} */}
                   {/* Live Discussion Section */}
-                  {eventData.is_live &&
+                  {/* {eventData.is_live &&
                     livekitToken &&
                     (hasTicket || canEnterStage) && (
                       <LiveDiscussionSection userProfile={currentUserProfile} />
-                    )}
+                    )} */}
                 </LiveKitRoom>
               ) : (
                 <div className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100 relative">
