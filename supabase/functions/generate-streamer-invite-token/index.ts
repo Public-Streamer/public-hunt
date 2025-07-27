@@ -76,10 +76,6 @@ serve(async (req) => {
       canPublish: true,
       canSubscribe: true,
       canPublishData: true,
-      // Add specific source permissions for camera, microphone, and screen share
-      canPublishSources: ['camera', 'microphone', 'screen_share'],
-      hidden: false,
-      recorder: false,
     });
 
     const inviteToken = await at.toJwt();

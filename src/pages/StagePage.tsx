@@ -134,18 +134,41 @@ const StagePage: React.FC = () => {
               throw new Error("Invalid invite token format");
             }
 
-            // Decode the JWT payload to get server URL directly from the token
+            // Decode the JWT payload to get server URL (without verification)
             const payload = JSON.parse(atob(jwtParts[1]));
             console.log("Invite token payload:", payload);
 
-            // Extract server URL from environment variables directly
-            // This ensures we use the same server URL that was used to generate the token
-            const livekitWsUrl = "wss://zmfugicftfwvuudensdo-zmfugicftfwvuudensdo.livekit.cloud";
+            // Get server URL from regular token generation to ensure consistency
+            const {
+              data: { session },
+              error: sessionError,
+            } = await supabase.auth.getSession();
+
+            if (sessionError || !session) {
+              throw new Error("Please log in to use invite token");
+            }
+
+            const { data: tokenData, error: tokenError } = await supabase.functions.invoke(
+              "create-livekit-token",
+              {
+                body: {
+                  eventId,
+                  userRole: "viewer", // Get server URL only
+                },
+                headers: {
+                  Authorization: `Bearer ${session.access_token}`,
+                },
+              }
+            );
+
+            if (tokenError || !tokenData?.serverUrl) {
+              throw new Error("Failed to get server URL");
+            }
 
             setToken(inviteToken);
-            setServerUrl(livekitWsUrl);
+            setServerUrl(tokenData.serverUrl);
             tokenGenerated.current = true;
-            console.log("Using invite token successfully with hardcoded server URL:", livekitWsUrl);
+            console.log("Using invite token successfully with server URL:", tokenData.serverUrl);
             return;
           } catch (err) {
             console.error("Invite token validation failed:", err);
