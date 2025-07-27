@@ -10,6 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 const StagePage: React.FC = () => {
   const { eventId } = useParams<{ eventId: string }>();
   const [searchParams] = useSearchParams();
+
   const [event, setEvent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState<"host" | "streamer" | null>(null);
@@ -276,11 +277,15 @@ const StagePage: React.FC = () => {
   }
 
   if (!user) {
+    const redirectUrl = window.location.pathname + window.location.search;
+  
+    const redirectWithToken = inviteToken 
+      ? `${redirectUrl}${redirectUrl.includes('?') ? '&' : '?'}token=${inviteToken}`
+      : redirectUrl;
+    
     return (
       <Navigate
-        to={`/login?redirect=${encodeURIComponent(
-          window.location.pathname + inviteToken ? `&token=${inviteToken}` : ""
-        )}`}
+        to={`/login?redirect=${encodeURIComponent(redirectWithToken)}`}
         replace
       />
     );
