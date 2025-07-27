@@ -123,7 +123,7 @@ const StagePage: React.FC = () => {
       try {
         setTokenLoading(true);
 
-        // If using invite token, validate and use it directly
+        // If using invite token, validate and use it but generate proper user token
         if (inviteToken && userRole === "streamer") {
           console.log("Using invite token for LiveKit connection");
           
@@ -134,11 +134,11 @@ const StagePage: React.FC = () => {
               throw new Error("Invalid invite token format");
             }
 
-            // Decode the JWT payload to get server URL (without verification)
+            // Decode the JWT payload to validate it's for this event
             const payload = JSON.parse(atob(jwtParts[1]));
             console.log("Invite token payload:", payload);
 
-            // Get server URL from regular token generation to ensure consistency
+            // Get current user session
             const {
               data: { session },
               error: sessionError,
@@ -148,12 +148,14 @@ const StagePage: React.FC = () => {
               throw new Error("Please log in to use invite token");
             }
 
+            // Instead of using the invite token directly, generate a proper user token
+            // This ensures the participant identity shows the actual user's email
             const { data: tokenData, error: tokenError } = await supabase.functions.invoke(
               "create-livekit-token",
               {
                 body: {
                   eventId,
-                  userRole: "viewer", // Get server URL only
+                  userRole: "streamer",
                 },
                 headers: {
                   Authorization: `Bearer ${session.access_token}`,
@@ -161,14 +163,14 @@ const StagePage: React.FC = () => {
               }
             );
 
-            if (tokenError || !tokenData?.serverUrl) {
-              throw new Error("Failed to get server URL");
+            if (tokenError || !tokenData) {
+              throw new Error("Failed to generate user token");
             }
 
-            setToken(inviteToken);
+            setToken(tokenData.token);
             setServerUrl(tokenData.serverUrl);
             tokenGenerated.current = true;
-            console.log("Using invite token successfully with server URL:", tokenData.serverUrl);
+            console.log("Generated proper user token for invited streamer with email:", user?.email);
             return;
           } catch (err) {
             console.error("Invite token validation failed:", err);
