@@ -38,7 +38,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
   const videoElementRef = useRef<HTMLVideoElement>(null);
   const [visibleMessages, setVisibleMessages] = useState<any[]>([]);
   const [chatMessage, setChatMessage] = useState("");
-  const [isChatVisible, setIsChatVisible] = useState(true);
+  const [isChatVisible, setIsChatVisible] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const hideControlsTimer = useRef<NodeJS.Timeout | null>(null);
@@ -293,7 +293,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
         {/* <AudioTrack trackRef={audioTracks[0]}/> */}
 
         {/* Live badge */}
-        <Badge className={`absolute top-2 left-2 sm:top-4 sm:left-4 bg-red-600 text-white text-xs transition-opacity duration-300 ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100'}`}>
+        <Badge className={`absolute top-2 left-2 sm:top-4 sm:left-4 bg-red-600 text-white text-xs transition-opacity duration-300 z-50 ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100'}`}>
           <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full mr-1 animate-pulse" />
           LIVE
         </Badge>
@@ -308,19 +308,20 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
         {isChatVisible && visibleMessages.length > 0 && (
           <div
             ref={chatContainerRef}
-            className={`absolute bottom-16 left-2 right-2 max-h-64 overflow-y-scroll space-y-2 pointer-events-auto transition-opacity duration-300 ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100'}`}
+            className={`flex flex-col justify-end absolute bottom-0  h-full  w-xs  overflow-y-scroll space-y-1 sm:space-y-3 pointer-events-auto transition-opacity duration-300 bg-[linear-gradient(90deg,_rgba(0,60,84,1)_0%,_rgba(87,199,133,0)_99%)] ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100  z-0'}`}
             style={{ 
               scrollBehavior: "smooth",
               scrollbarWidth: "thin",
               scrollbarColor: "rgba(255, 255, 255, 0.3) transparent"
             }}
           >
+            <div className="pb-16">
             {visibleMessages.map((message, index) => {
               const opacity = Math.max(0.4, 1 - (visibleMessages.length - 1 - index) * 0.15);
               return (
                 <div
                   key={`${message.id}-${index}`}
-                  className="bg-black/40 backdrop-blur-sm text-white px-3 py-2 rounded-lg max-w-80 shadow-lg animate-fade-in transition-opacity duration-300"
+                  className=" py-2  text-white px-2  sm:px-3  rounded-lg max-w-[45vw] sm:max-w-xs md:max-w-sm shadow-lg animate-fade-in transition-opacity duration-300 "
                   style={{
                     wordWrap: "break-word",
                     hyphens: "auto",
@@ -328,29 +329,32 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
                   }}
                 >
                   <div className="flex flex-col">
-                    <span className="font-semibold text-blue-200 text-sm leading-tight">
+                    <span className="font-semibold text-blue-200 text-xs sm:text-sm leading-tight truncate max-w-full">
                       {message.from?.name || message.from?.identity || "Anonymous"}
                     </span>
-                    <span className="text-white text-sm leading-relaxed">{message.message}</span>
+                    <span className="text-white text-xs sm:text-sm leading-relaxed break-words">
+                      {message.message}
+                    </span>
                   </div>
                 </div>
               );
             })}
+            </div>
           </div>
         )}
 
         {/* Unified Bottom Control Bar */}
-        <div className={`absolute bottom-2 left-2 right-2 transition-opacity duration-300 mt-3 ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100'}`}>
-          <div className="flex items-center gap-2  backdrop-blur-sm rounded-lg p-2 shadow-lg">
+        <div className={`absolute bottom-0 left-0 right-0 transition-opacity duration-300 mt-3 ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100'}`}>
+          <div className="flex items-center gap-2  rounded-lg p-2 shadow-lg">
             {/* Chat Input - Left Side */}
             {isChatVisible && (
-              <div className="flex-1 relative ">
+              <div className="flex-1 relative max-w-xs ">
                 <Input
                   value={chatMessage}
                   onChange={(e) => setChatMessage(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="Send Message"
-                  className="w-full bg-black/40 border border-white/20 text-white placeholder:text-white/60 h-10 text-sm rounded-lg pl-4 pr-10 focus-visible:ring-1 focus-visible:ring-white/40 focus-visible:ring-offset-0 focus-visible:border-white/40"
+                  className="w-full bg-black/20 backdrop-blur-sm    text-white placeholder:text-white/80 h-2 md:h-10 text-xs rounded-lg pl-4 pr-10 focus-visible:ring-1 focus-visible:ring-white/40 focus-visible:ring-offset-0 focus-visible:border-white/40"
                 />
                 <Button
                   onClick={handleSendMessage}
@@ -364,13 +368,14 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
             )}
             
             {/* Control Buttons - Right Side */}
-            <div className={`flex items-center gap-2 ${!isChatVisible ? 'flex-1 justify-start' : ''}`}>
+            <div className={`flex items-center gap-2 
+               ${!isChatVisible ? 'flex-1 justify-start' : ''}`}>
               {/* Chat Toggle Button */}
               <Button
                 onClick={() => setIsChatVisible(!isChatVisible)}
                 size="sm"
                 variant="outline"
-                className="bg-black/60 border-white/40 text-white hover:bg-black/80 h-10 px-3 shadow-lg backdrop-blur-sm"
+                className="bg-black/60 border-white/40 text-white hover:bg-black/80 h-5 px-3 shadow-lg backdrop-blur-sm"
               >
                 {isChatVisible ? <X className="h-4 w-4 mr-1" /> : <MessageCircle className="h-4 w-4 mr-1" />}
                 <span className="text-xs hidden sm:inline">
@@ -383,7 +388,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
                 onClick={handleFullscreenToggle}
                 size="sm"
                 variant="outline"
-                className="bg-black/60 border-white/40 text-white hover:bg-black/80 h-10 w-10 px-0 shadow-lg backdrop-blur-sm"
+                className="bg-black/60 border-white/40 text-white hover:bg-black/80 h-5 w-10 px-0 shadow-lg backdrop-blur-sm"
               >
                 {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
               </Button>
@@ -392,8 +397,9 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
         </div>
 
         {/* Participant info */}
-        <div className="absolute top-12 left-2 bg-black/70 text-white px-3 py-1 rounded">
-          <p className="text-xs md:text-sm font-medium">
+        <div className="absolute top-12 right-2 max-w-[150px]">
+          <p className="text-xs md:text-sm text-white text-shadow-lg
+           truncate font-medium">
             {participant?.name || participant?.identity}
           </p>
         </div>
