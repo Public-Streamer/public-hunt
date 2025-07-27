@@ -127,17 +127,53 @@ const StagePage: React.FC = () => {
         if (inviteToken && userRole === "streamer") {
           console.log("Using invite token for LiveKit connection");
           
-          // Basic validation that it looks like a JWT
-          const jwtParts = inviteToken.split('.');
-          if (jwtParts.length !== 3) {
-            throw new Error("Invalid invite token format");
-          }
+          try {
+            // Basic validation that it looks like a JWT
+            const jwtParts = inviteToken.split('.');
+            if (jwtParts.length !== 3) {
+              throw new Error("Invalid invite token format");
+            }
 
-          setToken(inviteToken);
-          setServerUrl('wss://lovable-stream-zmfugicftfwvuudensdo.livekit.cloud');
-          tokenGenerated.current = true;
-          console.log("Using invite token successfully");
-          return;
+            // Decode the JWT payload to get server URL (without verification)
+            const payload = JSON.parse(atob(jwtParts[1]));
+            console.log("Invite token payload:", payload);
+
+            // Get server URL from regular token generation to ensure consistency
+            const {
+              data: { session },
+              error: sessionError,
+            } = await supabase.auth.getSession();
+
+            if (sessionError || !session) {
+              throw new Error("Please log in to use invite token");
+            }
+
+            const { data: tokenData, error: tokenError } = await supabase.functions.invoke(
+              "create-livekit-token",
+              {
+                body: {
+                  eventId,
+                  userRole: "viewer", // Get server URL only
+                },
+                headers: {
+                  Authorization: `Bearer ${session.access_token}`,
+                },
+              }
+            );
+
+            if (tokenError || !tokenData?.serverUrl) {
+              throw new Error("Failed to get server URL");
+            }
+
+            setToken(inviteToken);
+            setServerUrl(tokenData.serverUrl);
+            tokenGenerated.current = true;
+            console.log("Using invite token successfully with server URL:", tokenData.serverUrl);
+            return;
+          } catch (err) {
+            console.error("Invite token validation failed:", err);
+            throw new Error("Invalid or expired invite token");
+          }
         }
 
         // Generate token through regular flow for hosts and assigned streamers
