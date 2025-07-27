@@ -279,7 +279,7 @@ const StagePage: React.FC = () => {
     return (
       <Navigate
         to={`/login?redirect=${encodeURIComponent(window.location.pathname)} ${
-          inviteToken ? `?token=${inviteToken}` : ""
+          inviteToken ? `&token=${inviteToken}` : ""
         }`}
         replace
       />
