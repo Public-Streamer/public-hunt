@@ -54,7 +54,12 @@ const StageShareMenu: React.FC<StageShareMenuProps> = ({
   };
 
   const stageUrl = `${window.location.origin}/stage/${eventId}`;
-  const shareMessage = `Join me for a live streaming event: "${eventTitle}"\n\n${eventDescription ? eventDescription + '\n\n' : ''}Access the stage here: ${stageUrl}`;
+  
+  // Create secure share message function that generates token for each use
+  const createSecureShareMessage = async (): Promise<string> => {
+    const secureUrl = await generateSecureInviteLink();
+    return `Join me for a live streaming event: "${eventTitle}"\n\n${eventDescription ? eventDescription + '\n\n' : ''}Access the stage here: ${secureUrl}`;
+  };
 
   const shareOptions = [
     {
@@ -62,10 +67,11 @@ const StageShareMenu: React.FC<StageShareMenuProps> = ({
       name: 'WhatsApp',
       icon: MessageCircle,
       color: 'bg-green-500',
-      action: () => {
-        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareMessage)}`;
+      action: async () => {
+        const secureMessage = await createSecureShareMessage();
+        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(secureMessage)}`;
         window.open(whatsappUrl, '_blank');
-        toast.success('WhatsApp opened with stage invitation');
+        toast.success('WhatsApp opened with secure stage invitation');
       }
     },
     {
@@ -73,10 +79,11 @@ const StageShareMenu: React.FC<StageShareMenuProps> = ({
       name: 'Facebook Messenger',
       icon: Facebook,
       color: 'bg-blue-600',
-      action: () => {
-        const messengerUrl = `https://m.me/?text=${encodeURIComponent(shareMessage)}`;
+      action: async () => {
+        const secureMessage = await createSecureShareMessage();
+        const messengerUrl = `https://m.me/?text=${encodeURIComponent(secureMessage)}`;
         window.open(messengerUrl, '_blank');
-        toast.success('Facebook Messenger opened with stage invitation');
+        toast.success('Facebook Messenger opened with secure stage invitation');
       }
     },
     {
@@ -84,10 +91,11 @@ const StageShareMenu: React.FC<StageShareMenuProps> = ({
       name: 'Instagram',
       icon: Share2,
       color: 'bg-gradient-to-r from-purple-500 to-pink-500',
-      action: () => {
-        navigator.clipboard.writeText(shareMessage).then(() => {
+      action: async () => {
+        const secureMessage = await createSecureShareMessage();
+        navigator.clipboard.writeText(secureMessage).then(() => {
           window.open('https://www.instagram.com/direct/inbox/', '_blank');
-          toast.success('Message copied! Paste in Instagram DM');
+          toast.success('Secure invitation message copied! Paste in Instagram DM');
         });
       }
     },
@@ -96,10 +104,11 @@ const StageShareMenu: React.FC<StageShareMenuProps> = ({
       name: 'TikTok',
       icon: MessageCircle,
       color: 'bg-black',
-      action: () => {
-        navigator.clipboard.writeText(shareMessage).then(() => {
+      action: async () => {
+        const secureMessage = await createSecureShareMessage();
+        navigator.clipboard.writeText(secureMessage).then(() => {
           window.open('https://www.tiktok.com/messages', '_blank');
-          toast.success('Message copied! Paste in TikTok DM');
+          toast.success('Secure invitation message copied! Paste in TikTok DM');
         });
       }
     },
@@ -108,10 +117,11 @@ const StageShareMenu: React.FC<StageShareMenuProps> = ({
       name: 'X (Twitter)',
       icon: MessageCircle,
       color: 'bg-black',
-      action: () => {
-        const twitterUrl = `https://twitter.com/messages/compose?text=${encodeURIComponent(shareMessage)}`;
+      action: async () => {
+        const secureMessage = await createSecureShareMessage();
+        const twitterUrl = `https://twitter.com/messages/compose?text=${encodeURIComponent(secureMessage)}`;
         window.open(twitterUrl, '_blank');
-        toast.success('X opened with stage invitation');
+        toast.success('X opened with secure stage invitation');
       }
     },
     {
@@ -149,24 +159,25 @@ const StageShareMenu: React.FC<StageShareMenuProps> = ({
       name: 'Copy Message',
       icon: copiedStates['copy-message'] ? Check : Copy,
       color: copiedStates['copy-message'] ? 'bg-green-600' : 'bg-purple-600',
-      action: () => {
-        navigator.clipboard.writeText(shareMessage).then(() => {
+      action: async () => {
+        const secureMessage = await createSecureShareMessage();
+        navigator.clipboard.writeText(secureMessage).then(() => {
           setCopiedStates(prev => ({ ...prev, 'copy-message': true }));
-          toast.success('Full invitation message copied');
+          toast.success('Secure invitation message copied');
           setTimeout(() => {
             setCopiedStates(prev => ({ ...prev, 'copy-message': false }));
           }, 2000);
         }).catch(() => {
           // Fallback for older browsers
           const textArea = document.createElement('textarea');
-          textArea.value = shareMessage;
+          textArea.value = secureMessage;
           document.body.appendChild(textArea);
           textArea.select();
           document.execCommand('copy');
           document.body.removeChild(textArea);
           
           setCopiedStates(prev => ({ ...prev, 'copy-message': true }));
-          toast.success('Full invitation message copied');
+          toast.success('Secure invitation message copied');
           setTimeout(() => {
             setCopiedStates(prev => ({ ...prev, 'copy-message': false }));
           }, 2000);
