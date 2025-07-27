@@ -613,10 +613,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   }, [localParticipant, isScreenSharing, checkScreenShareSupport, requestScreenShare]);
 
   const startStream = useCallback(async () => {
-    //TODO: actually it's doing nothing
     try {
-      setIsStreaming(true);
-      setGoLive(true);
       const {
         data: { session },
         error: sessionError,
@@ -625,12 +622,24 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
         throw new Error("Please log in to access this stream");
       }
 
-      await updateParticipantLiveStatus(true); // NOTE: make sure this runs first
-      
-      // Request media permissions before going live
+      // Request media permissions FIRST before changing any state
+      // This ensures the browser permission popup shows on mobile
       console.log("📱 MOBILE DEBUG - Requesting media permissions for going live");
       const permissions = await requestBothPermissions(currentFacingMode);
       
+      // Check if at least one permission was granted
+      if (!permissions.camera && !permissions.microphone) {
+        toast.error("Camera and microphone access is required to start streaming. Please enable permissions and try again.");
+        return;
+      }
+      
+      // Now set streaming state after successful permission check
+      setIsStreaming(true);
+      setGoLive(true);
+
+      await updateParticipantLiveStatus(true);
+      
+      // Enable the granted permissions
       if (permissions.camera && !isVideoEnabled) {
         toggleVideoLiveButton(true);
       }
@@ -638,16 +647,13 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
         toggleAudioLiveButton(true);
       }
       
-      // Warn if permissions were denied
-      if (!permissions.camera && !permissions.microphone) {
-        toast.error("Camera and microphone access required to go live");
-        setIsStreaming(false);
-        setGoLive(false);
-        return;
-      } else if (!permissions.camera) {
-        toast.error("Camera access denied - going live with audio only");
+      // Provide feedback about partial permissions
+      if (!permissions.camera) {
+        toast.warning("Camera access denied - streaming with audio only");
       } else if (!permissions.microphone) {
-        toast.error("Microphone access denied - going live with video only");
+        toast.warning("Microphone access denied - streaming with video only");
+      } else {
+        toast.success("Camera and microphone ready!");
       }
 
       setTimeout(async () => {
