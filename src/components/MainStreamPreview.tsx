@@ -397,7 +397,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
         </div>
 
         {/* Participant info */}
-        <div className="flex justify-end items-start">
+        <div className="absolute bottom-2 right-2 flex justify-end items-start">
           <p className="flex-1 text-xs md:text-sm text-white text-shadow-lg
            truncate font-medium bg-black/20 px-2 py-1 rounded backdrop-blur-sm max-w-[150px]">
             {participant?.name || participant?.identity}
