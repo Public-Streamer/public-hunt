@@ -19,11 +19,11 @@ const LiveChatSection: React.FC<LiveChatSectionProps> = ({ className }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom when new messages arrive
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [chatMessages]);
+  // useEffect(() => {
+  //   if (messagesEndRef.current) {
+  //     messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+  //   }
+  // }, [chatMessages]);
 
   const handleSubmitMessage = async (e: React.FormEvent) => {
     e.preventDefault();
