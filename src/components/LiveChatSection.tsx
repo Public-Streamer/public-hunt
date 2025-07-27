@@ -16,7 +16,7 @@ const LiveChatSection: React.FC<LiveChatSectionProps> = ({ className }) => {
   const { chatMessages, send } = useChat();
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+
 
   // Auto-scroll to bottom when new messages arrive
   // useEffect(() => {
@@ -101,7 +101,7 @@ const LiveChatSection: React.FC<LiveChatSectionProps> = ({ className }) => {
                     </div>
                   </div>
                 ))}
-                <div ref={messagesEndRef} />
+                <div />
               </div>
             </ScrollArea>
           )}
