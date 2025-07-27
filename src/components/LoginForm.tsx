@@ -124,7 +124,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose, redirectUrl }) => {
   if (showSignup) {
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 auth-template">
-        <Card className="w-full max-w-md max-h-[95vh] sm:max-h-[90vh] auth-template">
+        <Card className="w-full  max-h-[95vh] sm:max-h-[90vh] auth-template">
           <CardHeader className="pb-3 sm:pb-6">
             <CardTitle className="text-2xl sm:text-3xl font-bold">Create Account</CardTitle>
             <CardDescription className="text-lg sm:text-xl font-semibold">Join Public Streamer today</CardDescription>
