@@ -234,7 +234,15 @@ serve(async (req) => {
       }
     };
 
-    const tokenPermissions = getPermissions(actualRole, hasTicket);
+    // Use explicit permissions if provided (for invited streamers), otherwise use role-based permissions
+    const tokenPermissions = permissions ? {
+      roomJoin: true,
+      canPublish: permissions.canPublish ?? false,
+      canSubscribe: permissions.canSubscribe ?? true,
+      canPublishData: permissions.canPublishData ?? true,
+      hidden: false,
+      recorder: false,
+    } : getPermissions(actualRole, hasTicket);
 
     if (!tokenPermissions.roomJoin) {
       return new Response("Access denied - ticket required", {
