@@ -468,8 +468,11 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
     try {
       const enabled = !isVideoEnabled;
 
-      // If enabling camera, request permission directly on mobile
-      if (enabled) {
+      // Only do direct permission check on mobile browsers to fix mobile prompting
+      // Let desktop browsers use the normal LiveKit flow
+      const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+      if (enabled && isMobile) {
         console.log("📱 MOBILE DEBUG - Requesting camera permission before enabling (direct approach)");
         
         try {
@@ -550,8 +553,11 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
     try {
       const enabled = !isAudioEnabled;
       
-      // If enabling microphone, request permission directly on mobile
-      if (enabled) {
+      // Only do direct permission check on mobile browsers to fix mobile prompting
+      // Let desktop browsers use the normal LiveKit flow
+      const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
+      if (enabled && isMobile) {
         console.log("📱 MOBILE DEBUG - Requesting microphone permission before enabling (direct approach)");
         
         try {
