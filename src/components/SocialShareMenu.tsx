@@ -26,16 +26,21 @@ const SocialShareMenu: React.FC<SocialShareMenuProps> = ({ title, url, descripti
   ];
 
   const createShareMessage = (platform: string): string => {
-    const baseMessage = `🎉 Check out this amazing event: ${title}`;
+    const baseMessage = `🚀 Join me for an exciting live event: "${title}"!`;
+    const callToAction = `✨ Don't miss out - join the live experience now!`;
     const fullMessage = description 
-      ? `${baseMessage}\n\n${description}\n\n🔗 ${url}`
-      : `${baseMessage}\n\n🔗 ${url}`;
+      ? `${baseMessage}\n\n📍 ${description}\n\n${callToAction}\n\n🔗 ${url}`
+      : `${baseMessage}\n\n${callToAction}\n\n🔗 ${url}`;
     
     switch (platform) {
       case 'x':
-        return `${baseMessage} ${url}`.substring(0, 280); // Twitter character limit
+        return `${baseMessage} ${callToAction} ${url}`.substring(0, 280); // Twitter character limit
       case 'sms':
-        return `${baseMessage} ${url}`.substring(0, 160); // SMS character limit
+        return `${baseMessage} Join here: ${url}`.substring(0, 160); // SMS character limit
+      case 'whatsapp':
+        return `🎯 *${title}* - Live Event Invitation!\n\n${description ? `📋 ${description}\n\n` : ''}🌟 You're invited to join this amazing live streaming event!\n\n🎥 Experience real-time interaction and engagement\n\n🔗 Join now: ${url}`;
+      case 'email':
+        return fullMessage;
       default:
         return fullMessage;
     }
