@@ -115,6 +115,9 @@ const StagePage: React.FC = () => {
     checkAuthAndAssignRole();
   }, [eventId, event, inviteToken]);
 
+
+  console.log({user, userRole, event, inviteToken})
+
   // Generate LiveKit token when event and user role are available
   useEffect(() => {
     const generateToken = async () => {
