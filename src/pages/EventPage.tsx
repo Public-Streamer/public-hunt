@@ -17,7 +17,7 @@ import {
   LiveKitRoom,
   RoomAudioRenderer,
   StartAudio,
-  useChat
+  useChat,
 } from "@livekit/components-react";
 import "@livekit/components-styles";
 import SocialMediaSection from "@/components/SocialMediaSection";
@@ -52,7 +52,7 @@ const EventPage: React.FC = () => {
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  
+
   const { chatMessages, send } = useChat();
 
   const [eventData, setEventData] = useState<EventData | null>(null);
@@ -549,8 +549,8 @@ const EventPage: React.FC = () => {
               />
             )}
 
-            {/* Social Media Section */}
-            <SocialMediaSection eventId={eventData.id} type="event" />
+            {/* Chat Section */}
+            {/* Add the Chat Component from useChat() here; Follow the CommentSection.tsx for inspiration */}
           </div>
 
           {/* Right Column - Event Details and Actions */}

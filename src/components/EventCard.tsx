@@ -142,11 +142,11 @@ const EventCard: React.FC<EventCardProps> = ({ event, onPurchase, onWatch }) => 
         </CardContent>
       </Card>
       
-      {showSocial && (
+      {/* {showSocial && (
         <div className="mt-4">
           <SocialMediaSection eventId={event.id} type="event" />
         </div>
-      )}
+      )} */}
       
       <TicketPurchaseModal
         isOpen={showPurchaseModal}
