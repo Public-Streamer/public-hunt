@@ -77,7 +77,7 @@ const LiveChatSection: React.FC<LiveChatSectionProps> = ({ className }) => {
               <p className="text-xs sm:text-sm">No messages yet</p>
             </div>
           ) : (
-            <ScrollArea className="h-32 sm:h-48 w-full">
+            <ScrollArea className="h-32 sm:h-48 w-full scroll-y-auto">
               <div className="space-y-2 pr-2">
                 {chatMessages.map((message, index) => (
                   <div
