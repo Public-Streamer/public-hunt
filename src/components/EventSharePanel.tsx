@@ -22,7 +22,25 @@ const EventSharePanel: React.FC<EventSharePanelProps> = ({
   const screenSize = useScreenSize();
 
   const eventUrl = `${window.location.origin}/event/${eventId}`;
-  const shareMessage = `Check out this live event: "${eventTitle}"\n\n${eventDescription ? eventDescription + '\n\n' : ''}Join here: ${eventUrl}`;
+  
+  const createShareMessage = (platform: string): string => {
+    const baseMessage = `🚀 Join me for an exciting live event: "${eventTitle}"!`;
+    const callToAction = `✨ Don't miss out - join the live experience now!`;
+    const fullMessage = eventDescription 
+      ? `${baseMessage}\n\n📍 ${eventDescription}\n\n${callToAction}\n\n🔗 ${eventUrl}`
+      : `${baseMessage}\n\n${callToAction}\n\n🔗 ${eventUrl}`;
+    
+    switch (platform) {
+      case 'twitter':
+        return `${baseMessage} ${callToAction} ${eventUrl}`.substring(0, 280); // Twitter character limit
+      case 'whatsapp':
+        return `🎯 *${eventTitle}* - Live Event Invitation!\n\n${eventDescription ? `📋 ${eventDescription}\n\n` : ''}🌟 You're invited to join this amazing live streaming event!\n\n🎥 Experience real-time interaction and engagement\n\n🔗 Join now: ${eventUrl}`;
+      case 'email':
+        return fullMessage;
+      default:
+        return fullMessage;
+    }
+  };
 
   const shareOptions = [
     {
@@ -31,7 +49,7 @@ const EventSharePanel: React.FC<EventSharePanelProps> = ({
       icon: MessageCircle,
       color: 'bg-green-500',
       action: () => {
-        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareMessage)}`;
+        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(createShareMessage('whatsapp'))}`;
         window.open(whatsappUrl, '_blank');
         toast.success('WhatsApp opened with event link');
       }
@@ -42,7 +60,7 @@ const EventSharePanel: React.FC<EventSharePanelProps> = ({
       icon: Facebook,
       color: 'bg-blue-600',
       action: () => {
-        const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(eventUrl)}&quote=${encodeURIComponent(shareMessage)}`;
+        const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(eventUrl)}&quote=${encodeURIComponent(createShareMessage('facebook'))}`;
         window.open(facebookUrl, '_blank');
         toast.success('Facebook post dialog opened');
       }
@@ -53,7 +71,7 @@ const EventSharePanel: React.FC<EventSharePanelProps> = ({
       icon: Share2,
       color: 'bg-gradient-to-r from-purple-500 to-pink-500',
       action: () => {
-        navigator.clipboard.writeText(shareMessage).then(() => {
+        navigator.clipboard.writeText(createShareMessage('instagram')).then(() => {
           window.open('https://www.instagram.com/', '_blank');
           toast.success('Message copied! Create Instagram post or story');
         });
@@ -65,7 +83,7 @@ const EventSharePanel: React.FC<EventSharePanelProps> = ({
       icon: MessageCircle,
       color: 'bg-black',
       action: () => {
-        navigator.clipboard.writeText(shareMessage).then(() => {
+        navigator.clipboard.writeText(createShareMessage('tiktok')).then(() => {
           window.open('https://www.tiktok.com/upload', '_blank');
           toast.success('Message copied! Create TikTok video');
         });
@@ -77,7 +95,7 @@ const EventSharePanel: React.FC<EventSharePanelProps> = ({
       icon: MessageCircle,
       color: 'bg-black',
       action: () => {
-        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareMessage)}`;
+        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(createShareMessage('twitter'))}`;
         window.open(twitterUrl, '_blank');
         toast.success('X opened with event post');
       }
@@ -104,12 +122,12 @@ const EventSharePanel: React.FC<EventSharePanelProps> = ({
     
     try {
       // Copy message to clipboard first
-      await navigator.clipboard.writeText(shareMessage);
+      await navigator.clipboard.writeText(createShareMessage('default'));
       
       // Open all social media platforms
       const platforms = [
-        { url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(eventUrl)}&quote=${encodeURIComponent(shareMessage)}`, name: 'Facebook' },
-        { url: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareMessage)}`, name: 'Twitter' },
+        { url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(eventUrl)}&quote=${encodeURIComponent(createShareMessage('facebook'))}`, name: 'Facebook' },
+        { url: `https://twitter.com/intent/tweet?text=${encodeURIComponent(createShareMessage('twitter'))}`, name: 'Twitter' },
         { url: 'https://www.instagram.com/', name: 'Instagram' },
         { url: 'https://www.tiktok.com/upload', name: 'TikTok' }
       ];
