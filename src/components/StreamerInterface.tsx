@@ -30,6 +30,7 @@ import EventSharePanel from "@/components/EventSharePanel";
 import { useScreenSize } from "@/hooks/use-mobile";
 import LiveStreamLogo from "@/components/ui/live-stream-logo";
 import CameraSwitchButton from "@/components/CameraSwitchButton";
+import LiveChatSection from "@/components/LiveChatSection";
 
 interface StreamerInterfaceProps {
   eventId: string;
@@ -384,6 +385,9 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                 )}
               </CardContent>
             </Card>
+
+            {/* Live Chat */}
+            <LiveChatSection />
 
             {/* Stage Share Menu - Only for hosts */}
             {userRole === "host" && (
