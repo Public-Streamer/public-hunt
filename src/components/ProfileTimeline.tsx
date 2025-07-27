@@ -1125,7 +1125,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
       {isOwnProfile && (
         <Card>
           <CardContent className="pt-6">
-            <div className="flex space-x-4">
+            <div className="flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0 w-full">
               <Avatar>
                 <AvatarImage src={profileData.profile_picture_url} />
                 <AvatarFallback>{profileData.display_name[0]}</AvatarFallback>
@@ -1146,13 +1146,13 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
                       <img
                         src={mediaPreview}
                         alt="Preview"
-                        className="w-full max-h-64 object-cover rounded-lg"
+                        className="w-full max-h-48 sm:max-h-64 object-cover rounded-lg"
                       />
                     ) : (
                       <video
                         src={mediaPreview}
                         controls
-                        className="w-full max-h-64 object-cover rounded-lg"
+                        className="w-full max-h-48 sm:max-h-64 object-cover rounded-lg"
                       />
                     )}
                   </div>
@@ -1170,9 +1170,9 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
 
                 {/* Expanded Post Creation Template */}
                 {expandedPost && (
-                  <div className="mt-4 space-y-4">
+                  <div className="mt-4 space-y-4 w-full">
                     {/* Selection Displays */}
-                    <div className="space-y-2">
+                    <div className="space-y-2 w-full">
                       {selectedLocation && (
                         <div className="flex items-center text-sm text-muted-foreground bg-muted p-2 rounded">
                           <MapPin className="w-4 h-4 mr-2" />
@@ -1249,7 +1249,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
 
                     {/* Tagged Users Display */}
                     {taggedUsers.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mb-4">
+                      <div className="flex flex-wrap gap-2 mb-4 w-full">
                         {taggedUsers.map((user) => (
                           <Badge
                             key={user.id}
@@ -1272,7 +1272,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
                     )}
 
                     {/* Action Buttons */}
-                    <div className="flex flex-wrap gap-2 p-4 bg-muted/50 rounded-lg">
+                    <div className="flex flex-wrap gap-2 p-2 sm:p-4 bg-muted/50 rounded-lg w-full">
                       {/* Photo Upload */}
                       <div>
                         <Input
@@ -1773,7 +1773,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
                 )}
 
                 {/* Post Button */}
-                <div className="flex justify-between items-center mt-4">
+                <div className="flex flex-col sm:flex-row justify-between items-center mt-4 gap-2 w-full">
                   {expandedPost && (
                     <Button
                       variant="ghost"
@@ -1797,7 +1797,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
                   <Button
                     onClick={handleCreatePost}
                     disabled={(!newPost.trim() && !selectedMedia) || uploading}
-                    className="ml-auto"
+                    className="ml-0 sm:ml-auto w-full sm:w-auto"
                   >
                     {uploading ? (
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -1814,6 +1814,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
       )}
 
       {/* Timeline Posts */}
+      <div className="flex flex-col gap-4 w-full">
       {posts.map((post) => (
         <SocialPost
           key={post.id}
@@ -1855,6 +1856,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
           onDelete={handleDeletePost}
         />
       ))}
+    </div>
 
       {/* Comments Dialog */}
       <Dialog open={showComments} onOpenChange={setShowComments}>

@@ -393,7 +393,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
 
         {/* Participant info */}
         <div className="absolute top-12 left-2 bg-black/70 text-white px-3 py-1 rounded">
-          <p className="text-sm font-medium">
+          <p className="text-xs md:text-sm font-medium">
             {participant?.name || participant?.identity}
           </p>
         </div>
