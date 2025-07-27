@@ -3,6 +3,9 @@ project_id = "zmfugicftfwvuudensdo"
 [functions.create-livekit-token]
 verify_jwt = true
 
+[functions.generate-streamer-invite-token]
+verify_jwt = true
+
 [functions.manage-livekit-room]
 verify_jwt = true
 

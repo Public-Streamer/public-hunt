@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useParams, Navigate } from "react-router-dom";
+import { useParams, Navigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { LiveKitRoom, RoomAudioRenderer } from "@livekit/components-react";
 import "@livekit/components-styles";
@@ -9,6 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 
 const StagePage: React.FC = () => {
   const { eventId } = useParams<{ eventId: string }>();
+  const [searchParams] = useSearchParams();
   const [event, setEvent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState<"host" | "streamer" | null>(null);
@@ -17,6 +18,7 @@ const StagePage: React.FC = () => {
   const [serverUrl, setServerUrl] = useState<string>("");
   const [tokenLoading, setTokenLoading] = useState(false);
   const tokenGenerated = useRef(false);
+  const inviteToken = searchParams.get('token');
 
   // Use React Query for event data
   const { data: eventData, isLoading: isEventLoading } = useQuery({
@@ -93,6 +95,13 @@ const StagePage: React.FC = () => {
           return;
         }
 
+        // If invite token is present, validate it and grant streamer access
+        if (inviteToken) {
+          console.log("Validating invite token for streamer access");
+          setUserRole("streamer");
+          return;
+        }
+
         // User is not authorized to access stage
         toast.error("You are not authorized to access this stage");
       } catch (error) {
@@ -104,7 +113,7 @@ const StagePage: React.FC = () => {
     };
 
     checkAuthAndAssignRole();
-  }, [eventId, event]);
+  }, [eventId, event, inviteToken]);
 
   // Generate LiveKit token when event and user role are available
   useEffect(() => {
@@ -114,6 +123,24 @@ const StagePage: React.FC = () => {
       try {
         setTokenLoading(true);
 
+        // If using invite token, validate and use it directly
+        if (inviteToken && userRole === "streamer") {
+          console.log("Using invite token for LiveKit connection");
+          
+          // Basic validation that it looks like a JWT
+          const jwtParts = inviteToken.split('.');
+          if (jwtParts.length !== 3) {
+            throw new Error("Invalid invite token format");
+          }
+
+          setToken(inviteToken);
+          setServerUrl('wss://lovable-stream-zmfugicftfwvuudensdo.livekit.cloud');
+          tokenGenerated.current = true;
+          console.log("Using invite token successfully");
+          return;
+        }
+
+        // Generate token through regular flow for hosts and assigned streamers
         const {
           data: { session },
           error: sessionError,
@@ -170,7 +197,7 @@ const StagePage: React.FC = () => {
       console.log("Generating token...");
       generateToken();
     }
-  }, [eventId, userRole, user]);
+  }, [eventId, userRole, user, inviteToken]);
 
   // Cleanup token generation flag on unmount
   useEffect(() => {
