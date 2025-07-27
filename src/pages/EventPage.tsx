@@ -20,7 +20,7 @@ import {
   useChat,
 } from "@livekit/components-react";
 import "@livekit/components-styles";
-import SocialMediaSection from "@/components/SocialMediaSection";
+import LiveDiscussionSection from "@/components/LiveDiscussionSection";
 import MediaDisplay from "@/components/MediaDisplay";
 import ViewerInterface from "@/components/ViewerInterface";
 import OfflineStreamSection from "@/components/OfflineStreamSection";
@@ -65,13 +65,31 @@ const EventPage: React.FC = () => {
   const [roomName, setRoomName] = useState<string | null>(null);
   const [serverUrl, setServerUrl] = useState<string | null>(null);
   const [isStreamer, setIsStreamer] = useState(false);
+  const [currentUserProfile, setCurrentUserProfile] = useState<any>(null);
 
   useEffect(() => {
     if (!eventId) return;
 
     fetchEventData();
     getCurrentUser();
+    getCurrentUserProfile();
   }, [eventId]);
+
+  const getCurrentUserProfile = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+        setCurrentUserProfile(profile);
+      }
+    } catch (error) {
+      console.error('Error getting user profile:', error);
+    }
+  };
 
   useEffect(() => {
     if (currentUser && eventData) {
@@ -549,8 +567,14 @@ const EventPage: React.FC = () => {
               />
             )}
 
-            {/* Chat Section */}
-            {/* Add the Chat Component from useChat() here; Follow the CommentSection.tsx for inspiration */}
+            {/* Live Discussion Section */}
+            {eventData.is_live && livekitToken && (hasTicket || canEnterStage) && (
+              <LiveDiscussionSection
+                chatMessages={chatMessages}
+                onSendMessage={send}
+                userProfile={currentUserProfile}
+              />
+            )}
           </div>
 
           {/* Right Column - Event Details and Actions */}
@@ -638,7 +662,6 @@ const EventPage: React.FC = () => {
           onPurchaseSuccess={handlePurchaseSuccess}
         />
       )}
-      0
     </div>
   );
 };
