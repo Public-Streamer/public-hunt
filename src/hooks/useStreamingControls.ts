@@ -468,12 +468,37 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
     try {
       const enabled = !isVideoEnabled;
 
-      // If enabling camera, first request permission on mobile
+      // If enabling camera, request permission directly on mobile
       if (enabled) {
-        console.log("📱 MOBILE DEBUG - Requesting camera permission before enabling");
-        const hasPermission = await requestCameraPermission(currentFacingMode);
-        if (!hasPermission) {
-          console.log("📱 MOBILE DEBUG - Camera permission denied, aborting toggle");
+        console.log("📱 MOBILE DEBUG - Requesting camera permission before enabling (direct approach)");
+        
+        try {
+          // Direct getUserMedia call for camera in user interaction context
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: { ideal: currentFacingMode },
+              width: { ideal: 1280, max: 1920 },
+              height: { ideal: 720, max: 1080 }
+            },
+            audio: false
+          });
+          
+          console.log("📱 MOBILE DEBUG - Direct camera permission granted");
+          // Stop the test stream immediately
+          stream.getTracks().forEach(track => track.stop());
+          
+        } catch (permissionError) {
+          console.log("📱 MOBILE DEBUG - Direct camera permission failed:", permissionError);
+          
+          if (permissionError instanceof Error) {
+            if (permissionError.name === "NotAllowedError" || permissionError.name === "PermissionDeniedError") {
+              toast.error("Camera access denied. Please tap 'Allow' when prompted, or enable camera permissions in your browser settings.");
+            } else if (permissionError.name === "NotFoundError") {
+              toast.error("No camera found on this device.");
+            } else {
+              toast.error("Camera error. Please try again.");
+            }
+          }
           return;
         }
       }
@@ -490,7 +515,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       toast.error("Failed to toggle camera");
       console.error("📱 MOBILE DEBUG - Toggle video error:", error);
     }
-  }, [localParticipant, isVideoEnabled, requestCameraPermission, currentFacingMode]);
+  }, [localParticipant, isVideoEnabled, currentFacingMode]);
 
   const toggleVideoLiveButton = useCallback(
     async (enabled: boolean) => {
@@ -525,12 +550,38 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
     try {
       const enabled = !isAudioEnabled;
       
-      // If enabling microphone, first request permission on mobile
+      // If enabling microphone, request permission directly on mobile
       if (enabled) {
-        console.log("📱 MOBILE DEBUG - Requesting microphone permission before enabling");
-        const hasPermission = await requestMicrophonePermission();
-        if (!hasPermission) {
-          console.log("📱 MOBILE DEBUG - Microphone permission denied, aborting toggle");
+        console.log("📱 MOBILE DEBUG - Requesting microphone permission before enabling (direct approach)");
+        
+        try {
+          // Direct getUserMedia call for microphone in user interaction context
+          const stream = await navigator.mediaDevices.getUserMedia({
+            audio: {
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true,
+              sampleRate: 44100
+            },
+            video: false
+          });
+          
+          console.log("📱 MOBILE DEBUG - Direct microphone permission granted");
+          // Stop the test stream immediately
+          stream.getTracks().forEach(track => track.stop());
+          
+        } catch (permissionError) {
+          console.log("📱 MOBILE DEBUG - Direct microphone permission failed:", permissionError);
+          
+          if (permissionError instanceof Error) {
+            if (permissionError.name === "NotAllowedError" || permissionError.name === "PermissionDeniedError") {
+              toast.error("Microphone access denied. Please tap 'Allow' when prompted, or enable microphone permissions in your browser settings.");
+            } else if (permissionError.name === "NotFoundError") {
+              toast.error("No microphone found on this device.");
+            } else {
+              toast.error("Microphone error. Please try again.");
+            }
+          }
           return;
         }
       }
@@ -547,7 +598,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       toast.error("Failed to toggle microphone");
       console.error("📱 MOBILE DEBUG - Toggle audio error:", error);
     }
-  }, [localParticipant, isAudioEnabled, requestMicrophonePermission]);
+  }, [localParticipant, isAudioEnabled]);
 
   const toggleAudioLiveButton = useCallback(
     async (enabled: boolean) => {
