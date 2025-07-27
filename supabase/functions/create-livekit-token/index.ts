@@ -277,7 +277,7 @@ serve(async (req) => {
 
       const { error } = await supabase
         .from("events")
-        .upsert({
+        .update({
           livekit_room_name: `event-${eventId}`,
         })
         .eq("id", eventId);
