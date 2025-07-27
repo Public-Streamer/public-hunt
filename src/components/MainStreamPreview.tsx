@@ -344,7 +344,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
         )}
 
         {/* Unified Bottom Control Bar */}
-        <div className={`absolute bottom-0 left-0 right-0 transition-opacity duration-300 mt-3 ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100'}`}>
+        <div className={`absolute bottom-0 left-0 right-0 transition-opacity duration-300 mt-3 z-20 ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100'}`}>
           <div className="flex items-center gap-2  rounded-lg p-2 shadow-lg">
             {/* Chat Input - Left Side */}
             {isChatVisible && (
@@ -397,7 +397,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
         </div>
 
         {/* Participant info */}
-        <div className="absolute bottom-2 right-2 flex justify-end items-start">
+        <div className="absolute bottom-2 right-2 flex justify-end items-start z-10">
           <p className="flex-1 text-xs md:text-sm text-white text-shadow-lg
            truncate font-medium bg-black/20 px-2 py-1 rounded backdrop-blur-sm max-w-[150px]">
             {participant?.name || participant?.identity}
