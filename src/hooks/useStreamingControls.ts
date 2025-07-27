@@ -613,7 +613,68 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   }, [localParticipant, isScreenSharing, checkScreenShareSupport, requestScreenShare]);
 
   const startStream = useCallback(async () => {
+    console.log("📱 MOBILE DEBUG - Start stream button clicked - beginning permission flow");
+    
     try {
+      // Step 1: Immediate permission request in user interaction context
+      console.log("📱 MOBILE DEBUG - Step 1: Requesting permissions immediately in click handler");
+      
+      // Use a more direct approach - request permissions using native getUserMedia
+      // This bypasses any potential issues with the custom permission hook
+      let cameraGranted = false;
+      let microphoneGranted = false;
+      
+      try {
+        console.log("📱 MOBILE DEBUG - Attempting direct getUserMedia call for both camera and mic");
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: currentFacingMode },
+            width: { ideal: 1280, max: 1920 },
+            height: { ideal: 720, max: 1080 }
+          },
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          }
+        });
+        
+        // Check what we got
+        const videoTracks = stream.getVideoTracks();
+        const audioTracks = stream.getAudioTracks();
+        
+        cameraGranted = videoTracks.length > 0;
+        microphoneGranted = audioTracks.length > 0;
+        
+        console.log("📱 MOBILE DEBUG - Direct getUserMedia success:", {
+          cameraGranted,
+          microphoneGranted,
+          videoTracks: videoTracks.length,
+          audioTracks: audioTracks.length
+        });
+        
+        // Stop the test stream immediately
+        stream.getTracks().forEach(track => track.stop());
+        
+      } catch (directError) {
+        console.log("📱 MOBILE DEBUG - Direct getUserMedia failed, falling back to individual requests:", directError);
+        
+        // Fallback: try individual permission requests
+        const permissions = await requestBothPermissions(currentFacingMode);
+        cameraGranted = permissions.camera;
+        microphoneGranted = permissions.microphone;
+      }
+      
+      // Step 2: Check if at least one permission was granted
+      if (!cameraGranted && !microphoneGranted) {
+        console.log("📱 MOBILE DEBUG - No permissions granted, aborting stream start");
+        toast.error("Camera and microphone access is required to start streaming. Please tap 'Allow' when prompted, or enable permissions in your browser settings.");
+        return;
+      }
+      
+      console.log("📱 MOBILE DEBUG - Step 2: Permissions granted, proceeding with stream setup");
+      
+      // Step 3: Check authentication
       const {
         data: { session },
         error: sessionError,
@@ -622,35 +683,27 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
         throw new Error("Please log in to access this stream");
       }
 
-      // Request media permissions FIRST before changing any state
-      // This ensures the browser permission popup shows on mobile
-      console.log("📱 MOBILE DEBUG - Requesting media permissions for going live");
-      const permissions = await requestBothPermissions(currentFacingMode);
-      
-      // Check if at least one permission was granted
-      if (!permissions.camera && !permissions.microphone) {
-        toast.error("Camera and microphone access is required to start streaming. Please enable permissions and try again.");
-        return;
-      }
-      
-      // Now set streaming state after successful permission check
+      // Step 4: Set streaming state after successful permission check
+      console.log("📱 MOBILE DEBUG - Step 4: Setting streaming state");
       setIsStreaming(true);
       setGoLive(true);
 
       await updateParticipantLiveStatus(true);
       
-      // Enable the granted permissions
-      if (permissions.camera && !isVideoEnabled) {
+      // Step 5: Enable the granted permissions
+      if (cameraGranted && !isVideoEnabled) {
+        console.log("📱 MOBILE DEBUG - Enabling camera");
         toggleVideoLiveButton(true);
       }
-      if (permissions.microphone && !isAudioEnabled) {
+      if (microphoneGranted && !isAudioEnabled) {
+        console.log("📱 MOBILE DEBUG - Enabling microphone");
         toggleAudioLiveButton(true);
       }
       
-      // Provide feedback about partial permissions
-      if (!permissions.camera) {
+      // Step 6: Provide feedback about permissions
+      if (!cameraGranted) {
         toast.warning("Camera access denied - streaming with audio only");
-      } else if (!permissions.microphone) {
+      } else if (!microphoneGranted) {
         toast.warning("Microphone access denied - streaming with video only");
       } else {
         toast.success("Camera and microphone ready!");
