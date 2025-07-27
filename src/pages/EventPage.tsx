@@ -447,6 +447,9 @@ const EventPage: React.FC = () => {
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             {/* Event Preview Card - Always show StreamPreviewContainer in pink area */}
             <Card className="overflow-hidden">
+
+
+
               {eventData.is_live && roomName && livekitToken && serverUrl ? (
                 <LiveKitRoom
                   token={livekitToken}
@@ -477,11 +480,11 @@ const EventPage: React.FC = () => {
                     </div>
                   )} */}
                   {/* Live Discussion Section */}
-                  {/* {eventData.is_live &&
+                  {eventData.is_live &&
                     livekitToken &&
                     (hasTicket || canEnterStage) && (
                       <LiveDiscussionSection userProfile={currentUserProfile} />
-                    )} */}
+                    )}
                 </LiveKitRoom>
               ) : (
                 <div className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100 relative">
@@ -512,7 +515,25 @@ const EventPage: React.FC = () => {
                 </div>
               )}
 
-              <CardHeader className="p-3 sm:p-6">
+              
+            </Card>
+
+            {/* Promotional Media */}
+            {mediaData.length > 0 && <MediaDisplay media={mediaData} />}
+
+            {/* Offline Streams */}
+            {!eventData.is_live && (
+              <OfflineStreamSection
+                eventId={eventData.id}
+                hasPaid={hasTicket || canEnterStage}
+              />
+            )}
+          </div>
+
+          {/* Right Column - Event Details and Actions */}
+          <div className="space-y-4 sm:space-y-6">
+          <Card>
+          <CardHeader className="p-3 sm:p-6">
                 <CardTitle className="text-lg sm:text-xl lg:text-2xl font-bold break-words">
                   {eventData.name}
                 </CardTitle>
@@ -560,22 +581,7 @@ const EventPage: React.FC = () => {
                   </div>
                 </div>
               </CardContent>
-            </Card>
-
-            {/* Promotional Media */}
-            {mediaData.length > 0 && <MediaDisplay media={mediaData} />}
-
-            {/* Offline Streams */}
-            {!eventData.is_live && (
-              <OfflineStreamSection
-                eventId={eventData.id}
-                hasPaid={hasTicket || canEnterStage}
-              />
-            )}
-          </div>
-
-          {/* Right Column - Event Details and Actions */}
-          <div className="space-y-4 sm:space-y-6">
+          </Card>
             {/* Event Details Card */}
             <Card>
               <CardHeader className="p-3 sm:p-6">

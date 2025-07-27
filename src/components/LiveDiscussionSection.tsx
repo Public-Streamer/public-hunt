@@ -76,7 +76,7 @@ const LiveDiscussionSection: React.FC<LiveDiscussionSectionProps> = ({
   };
 
   return (
-    <Card>
+    <Card className="mx-2 my-2 border-0 shadow-none hover:shadow-none">
       <CardHeader>
         <CardTitle className="flex items-center space-x-2">
           <MessageCircle className="w-5 h-5" />
@@ -175,7 +175,7 @@ const LiveDiscussionSection: React.FC<LiveDiscussionSectionProps> = ({
                     </div>
                   </div>
                 ))}
-                <div ref={messagesEndRef} />
+                <div  />
               </div>
             </ScrollArea>
           )}
