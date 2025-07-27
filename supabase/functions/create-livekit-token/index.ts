@@ -70,8 +70,8 @@ serve(async (req) => {
       });
     }
 
-    // Create Supabase client with service role for admin operations
-    const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!, {
+    // Create Supabase client for user authentication
+    const userSupabase = createClient(SUPABASE_URL!, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: {
         headers: {
           Authorization: authHeader,
@@ -79,11 +79,14 @@ serve(async (req) => {
       },
     });
 
+    // Create admin client for database operations
+    const adminSupabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
+
     console.log("Attempting to verify user with token...");
     const {
       data: { user },
       error: userError,
-    } = await supabase.auth.getUser();
+    } = await userSupabase.auth.getUser();
 
     if (userError) {
       console.error("User verification error:", userError);
@@ -118,7 +121,7 @@ serve(async (req) => {
     }
 
     // Get event details
-    const { data: event, error: eventError } = await supabase
+    const { data: event, error: eventError } = await adminSupabase
       .from("events")
       .select("*, livekit_room_name")
       .eq("id", eventId)
@@ -146,7 +149,7 @@ serve(async (req) => {
       console.log("User is event host");
     } else {
       // Check if user is assigned as streamer
-      const { data: streamerData } = await supabase
+      const { data: streamerData } = await adminSupabase
         .from("event_streamers")
         .select("*")
         .eq("event_id", eventId)
@@ -181,7 +184,7 @@ serve(async (req) => {
       event.ticket_price > 0 &&
       actualRole === "viewer"
     ) {
-      const { data: ticket } = await supabase
+      const { data: ticket } = await adminSupabase
         .from("tickets")
         .select("id")
         .eq("event_id", eventId)
@@ -283,7 +286,7 @@ serve(async (req) => {
         room: `event-${eventId}`,
       });
 
-      const { error } = await supabase
+      const { error } = await adminSupabase
         .from("events")
         .update({
           livekit_room_name: `event-${eventId}`,
@@ -299,7 +302,7 @@ serve(async (req) => {
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
     // Store/update participant information for tracking
-    await supabase.from("event_participants").upsert({
+    await adminSupabase.from("event_participants").upsert({
       event_id: eventId,
       user_id: user.id,
       role: actualRole,
