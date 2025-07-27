@@ -210,7 +210,7 @@ const LiveDiscussionSection: React.FC<LiveDiscussionSectionProps> = ({
               <p>No messages yet. Be the first to start the discussion!</p>
             </div>
           ) : (
-            <ScrollArea className="h-64 w-full pr-0 sm:pr-4" ref={scrollAreaRef}>
+            <ScrollArea className="h-64 w-full pr-0 sm:pr-4" >
               <div className="space-y-3 w-full">
                 {chatMessages.map((message, index) => (
                   <div
