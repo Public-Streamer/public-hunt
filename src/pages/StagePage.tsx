@@ -18,7 +18,7 @@ const StagePage: React.FC = () => {
   const [serverUrl, setServerUrl] = useState<string>("");
   const [tokenLoading, setTokenLoading] = useState(false);
   const tokenGenerated = useRef(false);
-  const inviteToken = searchParams.get('token');
+  const inviteToken = searchParams.get("token");
 
   // Use React Query for event data
   const { data: eventData, isLoading: isEventLoading } = useQuery({
@@ -115,8 +115,7 @@ const StagePage: React.FC = () => {
     checkAuthAndAssignRole();
   }, [eventId, event, inviteToken]);
 
-
-  console.log({user, userRole, event, inviteToken})
+  console.log({ user, userRole, event, inviteToken });
 
   // Generate LiveKit token when event and user role are available
   useEffect(() => {
@@ -129,10 +128,10 @@ const StagePage: React.FC = () => {
         // If using invite token, validate it and create a proper user token with streamer permissions
         if (inviteToken && userRole === "streamer") {
           console.log("Using invite token for LiveKit connection");
-          
+
           try {
             // Basic validation that it looks like a JWT
-            const jwtParts = inviteToken.split('.');
+            const jwtParts = inviteToken.split(".");
             if (jwtParts.length !== 3) {
               throw new Error("Invalid invite token format");
             }
@@ -152,9 +151,8 @@ const StagePage: React.FC = () => {
             }
 
             // Create a new edge function call to generate a user-specific streamer token
-            const { data: tokenData, error: tokenError } = await supabase.functions.invoke(
-              "create-livekit-token",
-              {
+            const { data: tokenData, error: tokenError } =
+              await supabase.functions.invoke("create-livekit-token", {
                 body: {
                   eventId,
                   userRole: "streamer",
@@ -164,17 +162,19 @@ const StagePage: React.FC = () => {
                     canSubscribe: true,
                     canPublishData: true,
                     hidden: false,
-                    recorder: false
-                  }
+                    recorder: false,
+                  },
                 },
                 headers: {
                   Authorization: `Bearer ${session.access_token}`,
                 },
-              }
-            );
+              });
 
             if (tokenError || !tokenData) {
-              console.error("Failed to generate streamer token, falling back to invite token:", tokenError);
+              console.error(
+                "Failed to generate streamer token, falling back to invite token:",
+                tokenError
+              );
               // Fallback to using the invite token directly
               setToken(inviteToken);
               setServerUrl(payload.iss || "wss://localhost:7880"); // Use server from payload or default
@@ -183,9 +183,12 @@ const StagePage: React.FC = () => {
               setToken(tokenData.token);
               setServerUrl(tokenData.serverUrl);
             }
-            
+
             tokenGenerated.current = true;
-            console.log("Generated streamer token for invited user:", user?.email);
+            console.log(
+              "Generated streamer token for invited user:",
+              user?.email
+            );
             return;
           } catch (err) {
             console.error("Invite token validation failed:", err);
@@ -273,7 +276,14 @@ const StagePage: React.FC = () => {
   }
 
   if (!user) {
-    return <Navigate to={`/login?redirect=${encodeURIComponent(window.location.pathname)}`} replace />;
+    return (
+      <Navigate
+        to={`/login?redirect=${encodeURIComponent(window.location.pathname)} ${
+          inviteToken ? `?token=${inviteToken}` : ""
+        }`}
+        replace
+      />
+    );
   }
 
   if (!event || !userRole) {
