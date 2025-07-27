@@ -28,7 +28,7 @@ const MobileNav: React.FC<MobileNavProps> = ({ isOpen, onClose, onLoginClick }) 
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="left" className="w-80 px-6">
+      <SheetContent side="left" className="w-80 px-6 overflow-y-auto">
         <SheetHeader className="pb-6">
           <SheetTitle className="text-lg font-semibold">Menu</SheetTitle>
         </SheetHeader>
@@ -50,7 +50,7 @@ const MobileNav: React.FC<MobileNavProps> = ({ isOpen, onClose, onLoginClick }) 
           </div>
         )}
         
-        <nav className="space-y-1">
+        <nav className="space-y-1 overflow-y-auto">
           <Link to="/" onClick={onClose} className="flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-gray-100 transition-colors">
             <Home className="h-5 w-5 text-gray-600" />
             <span className="font-medium">Home</span>

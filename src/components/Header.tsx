@@ -118,13 +118,13 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
   
   return (
     <>
-      <header className="bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg sticky top-0 z-40">
+      <header className="bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg sticky top-0 z-40 w-full">
         <div className="container mx-auto px-4 py-4">
           {isMobile ? (
             // Mobile layout: Logo left, Menu center, Login right
             <div className="flex items-center justify-between gap-2">
               {/* Left: Large Logo that scales down proportionally */}
-              <Link to="/" className="flex items-center space-x-2 flex-shrink-0 min-w-0 max-w-[75%]">
+              <Link to="/" className="flex items-center space-x-2 flex-shrink-0 min-w-0 max-w-[65%]">
                 <div className="relative bg-gradient-to-br from-white/30 to-white/10 backdrop-blur-sm rounded-xl border border-white/40 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 group p-3 w-14 h-14 flex-shrink-0" style={{ filter: 'drop-shadow(3px 3px 6px rgba(0,0,0,0.6))' }}>
                   {/* Main Play Button with flanking icons - keep desktop proportions */}
                   <div className="relative z-10 flex items-center justify-center h-full">
@@ -169,7 +169,9 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                 </div>
               </Link>
               
-              {/* Center: Mobile Menu Button */}
+              {/* Right: Login/Profile */}
+             
+              <div className="flex items-center space-x-1">
               <Button 
                 variant="ghost" 
                 size="sm" 
@@ -178,9 +180,6 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
               >
                 <Menu className="h-5 w-5" />
               </Button>
-              
-              {/* Right: Login/Profile */}
-              <div className="flex items-center space-x-1">
                 {isAuthenticated && user && userProfile ? (
                   <>
                     <Link to="/profile" className="flex items-center hover:bg-white/20 rounded-lg transition-colors space-x-1 p-1">
@@ -191,11 +190,11 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                         </AvatarFallback>
                       </Avatar>
                     </Link>
-                    <TooltipWrapper content="Sign out of your account">
+                    {/* <TooltipWrapper content="Sign out of your account">
                       <Button onClick={logout} variant="ghost" size="sm" className="text-white hover:bg-white/20 bg-black/20 backdrop-blur-sm border border-white/30">
                         <LogOut className="h-4 w-4" />
                       </Button>
-                    </TooltipWrapper>
+                    </TooltipWrapper> */}
                   </>
                 ) : (
                   <TooltipWrapper content="Sign in to your account or create a new one">
@@ -205,7 +204,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                       style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}
                     >
                       <User className="h-4 w-4 mr-1" />
-                      <span className="font-medium">Login</span>
+                      {/* <span className="font-medium">Login</span> */}
                     </Button>
                   </TooltipWrapper>
                 )}
@@ -337,7 +336,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                           {userProfile.firstName[0]}{userProfile.lastName[0]}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="hidden sm:inline text-sm">{userProfile.firstName}</span>
+                      <span className="hidden lg:flex text-sm">{userProfile.firstName}</span>
                     </Link>
                     <TooltipWrapper content="Sign out of your account">
                       <Button onClick={logout} variant="ghost" size="sm" className="text-white hover:bg-white/20 bg-black/20 backdrop-blur-sm border border-white/30">
@@ -353,7 +352,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                       style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}
                     >
                       <User className="h-4 w-4 mr-1" />
-                      <span className="font-medium">Login</span>
+                      <span className=" font-medium">Login</span>
                     </Button>
                   </TooltipWrapper>
                 )}
