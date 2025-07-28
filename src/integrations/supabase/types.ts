@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          operationName?: string
+          query?: string
+          variables?: Json
+          extensions?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       ad_feedback: {
@@ -1068,59 +1093,6 @@ export type Database = {
         }
         Relationships: []
       }
-      livekit_rooms: {
-        Row: {
-          closed_at: string | null
-          created_at: string | null
-          event_id: string
-          id: string
-          is_active: boolean | null
-          livekit_room_sid: string | null
-          max_participants: number | null
-          participant_count: number | null
-          recording_enabled: boolean | null
-          recording_url: string | null
-          room_name: string
-          room_settings: Json | null
-        }
-        Insert: {
-          closed_at?: string | null
-          created_at?: string | null
-          event_id: string
-          id?: string
-          is_active?: boolean | null
-          livekit_room_sid?: string | null
-          max_participants?: number | null
-          participant_count?: number | null
-          recording_enabled?: boolean | null
-          recording_url?: string | null
-          room_name: string
-          room_settings?: Json | null
-        }
-        Update: {
-          closed_at?: string | null
-          created_at?: string | null
-          event_id?: string
-          id?: string
-          is_active?: boolean | null
-          livekit_room_sid?: string | null
-          max_participants?: number | null
-          participant_count?: number | null
-          recording_enabled?: boolean | null
-          recording_url?: string | null
-          room_name?: string
-          room_settings?: Json | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "livekit_rooms_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       messages: {
         Row: {
           content: string
@@ -1662,11 +1634,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_user_posts_user_profiles"
+            foreignKeyName: "user_posts_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "user_profiles"
-            referencedColumns: ["user_id"]
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1679,6 +1651,7 @@ export type Database = {
           cover_photo_url: string | null
           created_at: string | null
           display_name: string | null
+          education: string | null
           followers_count: number | null
           following_count: number | null
           friends_count: number | null
@@ -1699,6 +1672,7 @@ export type Database = {
           cover_photo_url?: string | null
           created_at?: string | null
           display_name?: string | null
+          education?: string | null
           followers_count?: number | null
           following_count?: number | null
           friends_count?: number | null
@@ -1719,6 +1693,7 @@ export type Database = {
           cover_photo_url?: string | null
           created_at?: string | null
           display_name?: string | null
+          education?: string | null
           followers_count?: number | null
           following_count?: number | null
           friends_count?: number | null
@@ -1770,6 +1745,25 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      debug_event_live_status: {
+        Args: { p_event_id: string }
+        Returns: {
+          event_id: string
+          live_count: number
+          live_participants: Json
+          event_is_live: boolean
+          all_participants: Json
+        }[]
+      }
+      debug_live_status: {
+        Args: { p_event_id: string }
+        Returns: {
+          user_id: string
+          role: string
+          is_live: boolean
+          total_count: number
+        }[]
+      }
       get_user_admin_role: {
         Args: { user_email: string }
         Returns: Database["public"]["Enums"]["admin_role"]
@@ -1798,6 +1792,15 @@ export type Database = {
           payouts_enabled: boolean
         }
         Returns: undefined
+      }
+      verify_live_participants: {
+        Args: { p_event_id: string }
+        Returns: {
+          total_participants: number
+          live_hosts: number
+          live_streamers: number
+          total_live: number
+        }[]
       }
     }
     Enums: {
@@ -1928,6 +1931,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       admin_role: ["owner", "master", "manager", "administrator"],

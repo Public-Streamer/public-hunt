@@ -1,22 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import  { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { toast } from '@/hooks/use-toast';
+import type { Database } from '@/integrations/supabase/types';
+import { boolean } from 'zod';
 
-interface UserProfile {
-  id: string;
-  accountType?: 'individual' | 'business/organization' | 'group/team';
-  companyName?: string;
-  companyAccountMaster?: any;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  location: string;
-  bio: string;
-  birthDate: string;
-  profilePhoto?: string;
-}
+type UserProfile = Database['public']['Tables']['user_profiles']['Row'];
 
 interface AppContextType {
   sidebarOpen: boolean;
@@ -43,6 +32,7 @@ interface AppContextType {
   isAdminUser: boolean;
   adminRole: string | null;
   authLoaded: boolean;
+  loading: boolean;
 }
 
 const defaultAppContext: AppContextType = {
@@ -57,6 +47,7 @@ const defaultAppContext: AppContextType = {
   isAdminUser: false,
   adminRole: null,
   authLoaded: false,
+  loading: false,
 };
 
 const AppContext = createContext<AppContextType>(defaultAppContext);
@@ -70,6 +61,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [adminRole, setAdminRole] = useState<string | null>(null);
   const [authLoaded, setAuthLoaded] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const toggleSidebar = () => {
     setSidebarOpen(prev => !prev);
@@ -124,7 +116,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
 
       // If this is a business/organization or group/team account and we have a user, set up company structure
-      if ((userData.accountType === 'business/organization' || userData.accountType === 'group/team') && userData.companyAccountMaster && data.user) {
+      if (userData.is_company_account && data.user) {
         try {
           // Create or update the user profile with company information
           const { error: profileError } = await supabase
@@ -132,12 +124,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             .upsert({
               user_id: data.user.id,
               username: email.split('@')[0],
-              display_name: `${userData.firstName} ${userData.lastName}`,
+              display_name: userData.display_name,
               bio: userData.bio,
               location: userData.location,
               company_id: data.user.id, // Use the new user's ID as company ID
               is_company_account: true,
-              company_name: userData.companyName
+              company_name: userData.company_name
             });
 
           if (profileError) {
@@ -149,8 +141,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             .from('company_profiles')
             .insert({
               company_id: data.user.id, // Use the new user's ID as company ID
-              company_name: userData.companyName,
-              description: userData.bio || `Welcome to ${userData.companyName}! We're excited to share our journey with you.`,
+              company_name: userData.company_name,
+              description: userData.bio || `Welcome to ${userData.company_name}! We're excited to share our journey with you.`,
               industry: 'Technology', // Default, can be updated later
             });
 
@@ -163,7 +155,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             .from('company_roles')
             .insert({
               company_id: data.user.id, // Use the new user's ID as company ID
-              user_id: userData.companyAccountMaster.user_id,
+              user_id: userData.company_id,
               role: 'company_master',
               permissions: ['*'], // All permissions
               assigned_by: data.user.id
@@ -179,7 +171,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       toast({
         title: 'Account created!',
-        description: (userData.accountType === 'business/organization' || userData.accountType === 'group/team')
+        description: (userData.is_company_account)
           ? 'Account created! The designated Account Master has been granted full permissions.' 
           : 'Please check your email to verify your account.',
       });
@@ -267,22 +259,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (session?.user) {
           // Load user profile data from session metadata
           const metadata = session.user.user_metadata;
-          if (metadata) {
-            setUserProfile({
-              id: session.user.id,
-              email: session.user.email || '',
-              accountType: metadata.accountType,
-              companyName: metadata.companyName,
-              companyAccountMaster: metadata.companyAccountMaster,
-              firstName: metadata.firstName || '',
-              lastName: metadata.lastName || '',
-              phone: metadata.phone || '',
-              location: metadata.location || '',
-              bio: metadata.bio || '',
-              birthDate: metadata.birthDate || '',
-              profilePhoto: metadata.profilePhoto
-            });
-          }
+          // if (metadata) {
+          //   setUserProfile({
+          //     id: session.user.id,
+          //     email: session.user.email || '',
+          //     accountType: metadata.accountType,
+          //     companyName: metadata.companyName,
+          //     companyAccountMaster: metadata.companyAccountMaster,
+          //     firstName: metadata.firstName || '',
+          //     lastName: metadata.lastName || '',
+          //     phone: metadata.phone || '',
+          //     location: metadata.location || '',
+          //     bio: metadata.bio || '',
+          //     birthDate: metadata.birthDate || '',
+          //     profilePhoto: metadata.profilePhoto
+          //   });
+          // }
+
+          
           
           // Check admin role after a delay to ensure user is fully loaded
           setTimeout(() => {
@@ -300,29 +294,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     );
 
+   
+
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        const metadata = session.user.user_metadata;
-        if (metadata) {
-          setUserProfile({
-            id: session.user.id,
-            email: session.user.email || '',
-            accountType: metadata.accountType,
-            companyName: metadata.companyName,
-            companyAccountMaster: metadata.companyAccountMaster,
-            firstName: metadata.firstName || '',
-            lastName: metadata.lastName || '',
-            phone: metadata.phone || '',
-            location: metadata.location || '',
-            bio: metadata.bio || '',
-            birthDate: metadata.birthDate || '',
-            profilePhoto: metadata.profilePhoto
-          });
-        }
-        
         // Check admin role
         setTimeout(() => {
           checkAdminRole(session.user.id, session.user.email || '');
@@ -338,9 +316,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return () => subscription.unsubscribe();
   }, []);
 
+
+  
+
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      setLoading(true);
+      const {data: userProfileData, error: userProfileError} = await supabase.from('user_profiles').select('*').eq('user_id', user.id).single();
+    if (userProfileData) {
+      setUserProfile(userProfileData);
+      setLoading(false);
+    }
+    if (userProfileError) {
+      console.error('Error loading user profile:', userProfileError);
+      setLoading(false);
+    }
+    }
+    if (user){
+      loadUserProfile();
+    }
+  }, [user]);
+
   return (
     <AppContext.Provider
       value={{
+        loading,
         sidebarOpen,
         toggleSidebar,
         user,

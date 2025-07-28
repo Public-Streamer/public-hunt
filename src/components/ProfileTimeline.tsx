@@ -163,12 +163,8 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
   const profileData: UserProfile = userProfile || {
     id: userId,
     username: user?.email?.split("@")[0] || "user",
-    display_name: currentUserProfile
-      ? `${currentUserProfile.firstName || ""} ${
-          currentUserProfile.lastName || ""
-        }`.trim() || "User"
-      : "User",
-    profile_picture_url: currentUserProfile?.profilePhoto || "/placeholder.svg",
+    display_name: currentUserProfile?.display_name || "User",
+    profile_picture_url: currentUserProfile?.profile_picture_url || "/placeholder.svg",
   };
 
   // Common locations for autocomplete

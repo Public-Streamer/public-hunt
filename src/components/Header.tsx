@@ -184,9 +184,9 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                   <>
                     <Link to="/profile" className="flex items-center hover:bg-white/20 rounded-lg transition-colors space-x-1 p-1">
                       <Avatar className="h-7 w-7">
-                        <AvatarImage src={userProfile.profilePhoto} />
+                        <AvatarImage src={userProfile.profile_picture_url} />
                         <AvatarFallback className="bg-white text-purple-600 text-sm">
-                          {userProfile.firstName[0]}{userProfile.lastName[0]}
+                          {userProfile.display_name[0]}
                         </AvatarFallback>
                       </Avatar>
                     </Link>
@@ -331,12 +331,12 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                   <>
                     <Link to={`/profile/${userProfile.id}`} className="flex items-center hover:bg-white/20 rounded-lg transition-colors space-x-2 p-2">
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={userProfile.profilePhoto} />
+                        <AvatarImage src={userProfile.profile_picture_url} />
                         <AvatarFallback className="bg-white text-purple-600 text-sm">
-                          {userProfile.firstName[0]}{userProfile.lastName[0]}
+                          {userProfile.display_name[0]}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="hidden lg:flex text-sm">{userProfile.firstName}</span>
+                      <span className="hidden lg:flex text-sm">{userProfile.display_name}</span>
                     </Link>
                     <TooltipWrapper content="Sign out of your account">
                       <Button onClick={logout} variant="ghost" size="sm" className="text-white hover:bg-white/20 bg-black/20 backdrop-blur-sm border border-white/30">

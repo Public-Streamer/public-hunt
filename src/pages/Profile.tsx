@@ -17,24 +17,9 @@ import ProfileMediaUpload from '@/components/ProfileMediaUpload';
 import Messages from '@/components/Messages';
 import Notifications from '@/components/Notifications';
 import BottomSlidePanel from '@/components/BottomSlidePanel';
+import type { Database } from '@/integrations/supabase/types';
 
-interface UserProfile {
-  id: string;
-  username: string;
-  display_name: string;
-  bio: string;
-  profile_picture_url: string;
-  cover_photo_url?: string;
-  location?: string;
-  work?: string;
-  education?: string;
-  relationship_status?: string;
-  website?: string;
-  birthday?: string;
-  occupation?: string;
-  interests?: string[];
-  created_at: string;
-}
+type UserProfile = Database['public']['Tables']['user_profiles']['Row'];
 
 const Profile: React.FC = () => {
   const { userId } = useParams<{ userId?: string }>();
@@ -44,7 +29,9 @@ const Profile: React.FC = () => {
   const [friendsCount, setFriendsCount] = useState(0);
   const [followersCount, setFollowersCount] = useState(0);
   const { toast } = useToast();
-  const { user, userProfile, isAuthenticated, authLoaded } = useAppContext();
+  const { user, userProfile, isAuthenticated, authLoaded,  loading : profileLoading } = useAppContext();
+
+  console.log({userProfile});
 
   const handleProfileUpdate = (updatedProfile: UserProfile) => {
     setProfile(updatedProfile);
@@ -56,26 +43,30 @@ const Profile: React.FC = () => {
       window.location.href = '/login';
       return;
     }
-    loadProfile();
-  }, [userId, user, isAuthenticated, authLoaded]);
+  if(userProfile) {loadProfile()};
+  }, [userId, user, userProfile, isAuthenticated, authLoaded, ]);
 
-  const loadProfile = async () => {
+
+   const loadProfile = async () => {
     try {
       if (!user) return;
       
-      const targetUserId = userId || user.id;
-      setIsOwnProfile(targetUserId === user.id);
+      const targetUserId = userId || userProfile.id;
+      setIsOwnProfile(targetUserId === userProfile.id);
       
+      console.log(userProfile.cover_photo_url);
+
       const mockProfile: UserProfile = {
-        id: targetUserId,
+        id: userProfile.id,
         username: user.email?.split('@')[0] || 'user',
-        display_name: userProfile ? `${userProfile.firstName} ${userProfile.lastName}` : 'User',
+        display_name: userProfile ? `${userProfile.display_name}` : 'User',
         bio: userProfile?.bio || 'Welcome to my profile! I love creating amazing content and connecting with the community.',
-        profile_picture_url: userProfile?.profilePhoto || '/placeholder.svg',
-        cover_photo_url: undefined,
+        profile_picture_url: userProfile?.profile_picture_url || '/placeholder.svg',
+        cover_photo_url: userProfile?.cover_photo_url,
         location: userProfile?.location || 'San Francisco, CA',
-        work: 'Content Creator',
+        company_name: userProfile?.company_name,
         education: 'University of California',
+        work: 'Content Creator',
         relationship_status: 'Single',
         website: 'https://example.com',
         birthday: '1990-01-15',
@@ -87,19 +78,19 @@ const Profile: React.FC = () => {
       setProfile(mockProfile);
       setFriendsCount(Math.floor(Math.random() * 500) + 50);
       setFollowersCount(Math.floor(Math.random() * 1000) + 100);
+      setLoading(false);
     } catch (error) {
+      setLoading(false);
       console.error('Error loading profile:', error);
       toast({
         title: 'Error',
         description: 'Failed to load profile',
         variant: 'destructive'
       });
-    } finally {
-      setLoading(false);
-    }
+    } 
   };
 
-  if (!authLoaded || loading) {
+  if (!authLoaded || loading || profileLoading) {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="text-lg">Loading profile...</div>

@@ -100,7 +100,7 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
 
       // First check if current user has permission to modify this profile
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user || user.id !== profile.id) {
+      if (!user || user.id !== profile.user_id) {
         throw new Error('Unauthorized to update this profile');
       }
 
@@ -114,14 +114,16 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
       const { data: urlData } = supabase.storage
         .from('media')
         .getPublicUrl(filePath);
+        console.log(urlData);
 
       // Update profile with new cover photo
-      const { error: updateError } = await supabase
+      const result = await supabase
         .from('user_profiles')
         .update({ cover_photo_url: urlData.publicUrl })
-        .eq('id', profile.id);
+        .eq('user_id', profile.id);
+        console.log("result:", result);
 
-      if (updateError) throw updateError;
+      if (result.error) throw result.error;
       
       if (onProfileUpdate) {
         onProfileUpdate({
@@ -145,6 +147,9 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
       setUploading(false);
     }
   };
+
+
+ 
 
   const handleProfileUpdate = async (data: ProfileFormData) => {
     try {
@@ -173,6 +178,8 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
       });
     }
   };
+
+  console.log(profile);
 
   return (
     <Card className="mb-6 overflow-hidden">

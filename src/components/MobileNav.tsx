@@ -37,14 +37,14 @@ const MobileNav: React.FC<MobileNavProps> = ({ isOpen, onClose, onLoginClick }) 
           <div className="mt-4 mb-6 p-4 bg-purple-50 rounded-lg">
             <div className="flex items-center space-x-3">
               <Avatar className="h-12 w-12 ring-2 ring-purple-200">
-                <AvatarImage src={userProfile.profilePhoto} />
+                <AvatarImage src={userProfile.profile_picture_url} />
                 <AvatarFallback className="bg-purple-600 text-white text-sm">
-                  {userProfile.firstName[0]}{userProfile.lastName[0]}
+                  {userProfile.display_name[0]}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm truncate">{userProfile.firstName} {userProfile.lastName}</p>
-                <p className="text-xs text-gray-600 truncate">{userProfile.email}</p>
+                <p className="font-semibold text-sm truncate">{userProfile.display_name}</p>
+                <p className="text-xs text-gray-600 truncate">{user.email}</p>
               </div>
             </div>
           </div>
