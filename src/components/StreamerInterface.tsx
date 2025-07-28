@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   VideoTrack,
   AudioTrack,
@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
 import {
   Video,
   VideoOff,
@@ -22,7 +23,12 @@ import {
   Square,
   Users,
   Eye,
+  Edit,
+  Check,
+  X,
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import { useStreamingControls } from "@/hooks/useStreamingControls";
 import { useEventLiveStatus } from "@/hooks/useEventLiveStatus";
 import StageShareMenu from "@/components/StageShareMenu";
@@ -53,6 +59,67 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   const controls = useStreamingControls(eventId);
   const screenSize = useScreenSize();
   const { checkScreenShareSupport } = useMobileMediaPermissions();
+  const { toast } = useToast();
+
+  // Edit state management
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(eventTitle);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Edit handlers
+  const handleEditClick = () => {
+    setEditValue(eventTitle);
+    setIsEditing(true);
+  };
+
+  const handleSaveClick = async () => {
+    if (!editValue.trim()) {
+      toast({
+        title: "Error",
+        description: "Event name cannot be empty",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from("events")
+        .update({ name: editValue.trim() })
+        .eq("id", eventId);
+
+      if (error) throw error;
+
+      setIsEditing(false);
+      toast({
+        title: "Success",
+        description: "Event name updated successfully",
+      });
+    } catch (error) {
+      console.error("Error updating event name:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update event name",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCancelClick = () => {
+    setEditValue(eventTitle);
+    setIsEditing(false);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleSaveClick();
+    } else if (e.key === "Escape") {
+      handleCancelClick();
+    }
+  };
 
   // Get local camera track
   const localCameraTracks = useTracks([Track.Source.Camera], {
@@ -88,11 +155,55 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
               <div className="min-w-0 flex-1">
                 <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
                   <Video className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
-                  <span className="truncate">
-                    {screenSize === "mobile"
-                      ? "Streaming"
-                      : `${eventTitle} - Streaming Controls`}
-                  </span>
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    {isEditing ? (
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <Input
+                          value={editValue}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          onKeyDown={handleKeyPress}
+                          className="text-sm sm:text-base h-8 min-w-0 flex-1"
+                          autoFocus
+                          disabled={isSaving}
+                        />
+                        <Button
+                          size="sm"
+                          onClick={handleSaveClick}
+                          disabled={isSaving}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Check className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={handleCancelClick}
+                          disabled={isSaving}
+                          className="h-8 w-8 p-0"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <>
+                        <span className="truncate">
+                          {screenSize === "mobile"
+                            ? "Streaming"
+                            : `${editValue} - Streaming Controls`}
+                        </span>
+                        {userRole === "host" && screenSize !== "mobile" && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={handleEditClick}
+                            className="h-8 w-8 p-0 ml-2"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </>
+                    )}
+                  </div>
                 </CardTitle>
               </div>
               <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
