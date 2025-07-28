@@ -38,6 +38,7 @@ interface ProfileCoverProps {
     location?: string;
     website?: string;
     created_at: string;
+    user_id: string;
   };
   isOwnProfile: boolean;
   friendsCount?: number;
@@ -100,7 +101,7 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
 
       // First check if current user has permission to modify this profile
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user || user.id !== profile.id) {
+      if (!user || user.id !== profile.user_id) {
         throw new Error('Unauthorized to update this profile');
       }
 
@@ -120,7 +121,7 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
       const result = await supabase
         .from('user_profiles')
         .update({ cover_photo_url: urlData.publicUrl })
-        .eq('user_id', profile.id);
+        .eq('user_id', profile.user_id);
         console.log("result:", result);
 
       if (result.error) throw result.error;
