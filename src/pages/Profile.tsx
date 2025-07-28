@@ -58,21 +58,27 @@ const Profile: React.FC = () => {
 
       const mockProfile: UserProfile = {
         id: userProfile.id,
+        user_id: userProfile.user_id,
         username: user.email?.split('@')[0] || 'user',
         display_name: userProfile ? `${userProfile.display_name}` : 'User',
         bio: userProfile?.bio || 'Welcome to my profile! I love creating amazing content and connecting with the community.',
         profile_picture_url: userProfile?.profile_picture_url || '/placeholder.svg',
         cover_photo_url: userProfile?.cover_photo_url,
         location: userProfile?.location || 'San Francisco, CA',
-        company_name: userProfile?.company_name,
-        education: 'University of California',
-        work: 'Content Creator',
-        relationship_status: 'Single',
-        website: 'https://example.com',
-        birthday: '1990-01-15',
-        occupation: 'Digital Creator & Influencer',
-        interests: ['Technology', 'Photography', 'Travel', 'Gaming', 'Music'],
-        created_at: new Date().toISOString()
+        company_name: userProfile?.company_name || 'Content Creator',
+        company_id: userProfile?.company_id || '',
+        education: userProfile?.education || 'University of California',
+        relationship_status: userProfile?.relationship_status || 'Single',
+        website: userProfile?.website || 'https://example.com',
+        birthday: userProfile?.birthday || '1990-01-15',
+        occupation: userProfile?.occupation || 'Digital Creator & Influencer',
+        interests: userProfile?.interests || ['Technology', 'Photography', 'Travel', 'Gaming', 'Music'],
+        followers_count: userProfile?.followers_count || 0,
+        following_count: userProfile?.following_count || 0,
+        friends_count: userProfile?.friends_count || 0,
+        is_company_account: userProfile?.is_company_account || false,
+        created_at: userProfile?.created_at || new Date().toISOString(),
+        updated_at: userProfile?.updated_at || new Date().toISOString()
       };
       
       setProfile(mockProfile);

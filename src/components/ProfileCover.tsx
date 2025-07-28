@@ -100,7 +100,7 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
 
       // First check if current user has permission to modify this profile
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user || user.id !== profile.user_id) {
+      if (!user || user.id !== profile.id) {
         throw new Error('Unauthorized to update this profile');
       }
 

@@ -457,9 +457,9 @@ const EventPage: React.FC = () => {
                       <LiveDiscussionSection 
                         userProfile={currentUserProfile ? {
                           id: currentUserProfile.id,
-                          username: currentUserProfile.firstName || 'User',
-                          display_name: `${currentUserProfile.firstName} ${currentUserProfile.lastName}`,
-                          profile_picture_url: currentUserProfile.profilePhoto || ''
+                          username: currentUserProfile.display_name || 'User',
+                          display_name: currentUserProfile.display_name || 'User',
+                          profile_picture_url: currentUserProfile.profile_picture_url || ''
                         } : undefined}
                       />
                     )}

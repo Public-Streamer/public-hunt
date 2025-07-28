@@ -12,31 +12,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          operationName?: string
-          query?: string
-          variables?: Json
-          extensions?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       ad_feedback: {
@@ -1656,9 +1631,12 @@ export type Database = {
           following_count: number | null
           friends_count: number | null
           id: string
+          interests: string[] | null
           is_company_account: boolean | null
           location: string | null
+          occupation: string | null
           profile_picture_url: string | null
+          relationship_status: string | null
           updated_at: string | null
           user_id: string | null
           username: string
@@ -1677,9 +1655,12 @@ export type Database = {
           following_count?: number | null
           friends_count?: number | null
           id?: string
+          interests?: string[] | null
           is_company_account?: boolean | null
           location?: string | null
+          occupation?: string | null
           profile_picture_url?: string | null
+          relationship_status?: string | null
           updated_at?: string | null
           user_id?: string | null
           username: string
@@ -1698,9 +1679,12 @@ export type Database = {
           following_count?: number | null
           friends_count?: number | null
           id?: string
+          interests?: string[] | null
           is_company_account?: boolean | null
           location?: string | null
+          occupation?: string | null
           profile_picture_url?: string | null
+          relationship_status?: string | null
           updated_at?: string | null
           user_id?: string | null
           username?: string
@@ -1931,9 +1915,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       admin_role: ["owner", "master", "manager", "administrator"],

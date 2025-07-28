@@ -460,12 +460,10 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
         formattedData.email,
         formattedData.password,
         {
-          firstName: formattedData.firstName,
-          lastName: formattedData.lastName,
-          phone: formattedData.phone,
+          display_name: `${formattedData.firstName} ${formattedData.lastName}`,
           location: formattedData.location,
           bio: formattedData.bio,
-          birthDate: formattedData.birthDate,
+          birthday: formattedData.birthDate,
           ...(formattedData.accountType !== 'individual' && {
             accountType: formattedData.accountType,
             companyName: formattedData.companyName,
