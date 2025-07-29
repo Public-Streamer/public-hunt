@@ -31,7 +31,7 @@ serve(async (req) => {
     }
 
     // Verify webhook signature
-    const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
+    const webhookSecret = "whsec_ruTpxhaYemcbbfp7L0S01P9yYo8luNj2";
     if (!webhookSecret) {
       throw new Error("Webhook secret not configured");
     }
