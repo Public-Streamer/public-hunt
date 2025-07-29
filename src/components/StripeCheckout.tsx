@@ -40,14 +40,33 @@ const CheckoutForm: React.FC<StripeCheckoutProps> = ({
   const { toast } = useToast();
 
   useEffect(() => {
-    // Get payment intent when component mounts
-    const initializePayment = async () => {
+    // Check if user already has a ticket before initializing payment
+    const checkTicketAndInitializePayment = async () => {
       if (!hostStripeAccountId) return;
 
       try {
         const { data: user } = await supabase.auth.getUser();
         if (!user.user) {
           throw new Error("Please log in to purchase tickets");
+        }
+
+        // Check if user already has a ticket
+        const { data: existingTicket } = await supabase
+          .from("tickets")
+          .select("*")
+          .eq("event_id", eventId)
+          .eq("user_id", user.user.id)
+          .eq("status", "active")
+          .single();
+
+        if (existingTicket) {
+          toast({
+            title: "Already Purchased",
+            description: "You already have a ticket for this event",
+            variant: "default",
+          });
+          onSuccess(); // Trigger success flow since they already have access
+          return;
         }
 
         const { data, error } = await supabase.functions.invoke(
@@ -83,8 +102,8 @@ const CheckoutForm: React.FC<StripeCheckoutProps> = ({
       }
     };
 
-    initializePayment();
-  }, [eventId, price, hostStripeAccountId]);
+    checkTicketAndInitializePayment();
+  }, [eventId, price, hostStripeAccountId, onSuccess]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -118,6 +137,41 @@ const CheckoutForm: React.FC<StripeCheckoutProps> = ({
           variant: "destructive",
         });
       } else if (paymentIntent?.status === "succeeded") {
+        // Create ticket immediately after successful payment
+        try {
+          const { data: user } = await supabase.auth.getUser();
+          if (user.user) {
+            const { error: ticketError } = await supabase
+              .from("tickets")
+              .insert({
+                event_id: eventId,
+                user_id: user.user.id,
+                payment_id: paymentIntent.id,
+                stripe_payment_intent_id: paymentIntent.id,
+                amount: price,
+                status: "active",
+              });
+
+            if (ticketError) {
+              console.error("Error creating ticket:", ticketError);
+              toast({
+                title: "Payment Successful, Ticket Creation Failed",
+                description: "Payment was successful but there was an issue creating your ticket. Please contact support.",
+                variant: "destructive",
+              });
+              return;
+            }
+          }
+        } catch (ticketError) {
+          console.error("Error creating ticket:", ticketError);
+          toast({
+            title: "Payment Successful, Ticket Creation Failed", 
+            description: "Payment was successful but there was an issue creating your ticket. Please contact support.",
+            variant: "destructive",
+          });
+          return;
+        }
+
         toast({
           title: "Payment Successful",
           description: "Your ticket has been purchased successfully!",
