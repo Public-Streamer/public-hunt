@@ -994,6 +994,13 @@ export type Database = {
             referencedRelation: "channels"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_events_created_by_user_profiles"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       host_stripe_accounts: {
