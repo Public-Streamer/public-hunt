@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, CreditCard, Lock, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 
 interface StripeCheckoutProps {
   eventId: string;
@@ -14,7 +16,9 @@ interface StripeCheckoutProps {
   onCancel: () => void;
 }
 
-const StripeCheckout: React.FC<StripeCheckoutProps> = ({
+const stripePromise = loadStripe('pk_test_51OL8XHDSRK8tSTCfCaQxQZQlBiJGVFWJPcKhStPXKm8FaHKpqF2O8LxKfJdyZFDbx4p5PmJcGpbGO6m6GfHK5lDG00L2S8XVYw');
+
+const CheckoutForm: React.FC<StripeCheckoutProps> = ({
   eventId,
   eventTitle,
   price,
@@ -22,56 +26,94 @@ const StripeCheckout: React.FC<StripeCheckoutProps> = ({
   onSuccess,
   onCancel
 }) => {
+  const stripe = useStripe();
+  const elements = useElements();
   const [loading, setLoading] = useState(false);
+  const [clientSecret, setClientSecret] = useState<string>('');
   const { toast } = useToast();
 
-  const handleCheckout = async () => {
-    if (!hostStripeAccountId) {
-      toast({
-        title: "Payment Not Available",
-        description: "Host has not set up payment processing yet.",
-        variant: "destructive",
-      });
+  useEffect(() => {
+    // Get payment intent when component mounts
+    const initializePayment = async () => {
+      if (!hostStripeAccountId) return;
+
+      try {
+        const { data: user } = await supabase.auth.getUser();
+        if (!user.user) {
+          throw new Error("Please log in to purchase tickets");
+        }
+
+        const { data, error } = await supabase.functions.invoke('process-ticket-payment', {
+          body: {
+            eventId,
+            amount: price,
+            connectedAccountId: hostStripeAccountId,
+            customerEmail: user.user.email,
+            customerName: user.user.user_metadata?.full_name || user.user.email?.split('@')[0]
+          }
+        });
+
+        if (error) throw error;
+
+        if (data?.clientSecret) {
+          setClientSecret(data.clientSecret);
+        } else {
+          throw new Error("Failed to initialize payment");
+        }
+      } catch (error) {
+        console.error('Payment initialization error:', error);
+        toast({
+          title: "Payment Setup Failed",
+          description: error instanceof Error ? error.message : "Please try again.",
+          variant: "destructive",
+        });
+      }
+    };
+
+    initializePayment();
+  }, [eventId, price, hostStripeAccountId]);
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (!stripe || !elements || !clientSecret) {
       return;
     }
 
     setLoading(true);
 
-    try {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) {
-        throw new Error("Please log in to purchase tickets");
-      }
+    const card = elements.getElement(CardElement);
+    if (!card) {
+      setLoading(false);
+      return;
+    }
 
-      const { data, error } = await supabase.functions.invoke('process-ticket-payment', {
-        body: {
-          eventId,
-          amount: price,
-          connectedAccountId: hostStripeAccountId,
-          customerEmail: user.user.email,
-          customerName: user.user.user_metadata?.full_name || user.user.email?.split('@')[0]
-        }
+    try {
+      const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: {
+          card,
+        },
       });
 
-      if (error) throw error;
-
-      if (data?.clientSecret) {
-        // For now, we'll create a simple payment success simulation
-        // In production, this would redirect to Stripe Checkout
+      if (error) {
         toast({
-          title: "Payment Processed",
+          title: "Payment Failed",
+          description: error.message || "Please try again.",
+          variant: "destructive",
+        });
+      } else if (paymentIntent?.status === 'succeeded') {
+        toast({
+          title: "Payment Successful",
           description: "Your ticket has been purchased successfully!",
           variant: "default",
         });
         onSuccess();
-      } else {
-        throw new Error("Failed to initialize payment");
       }
     } catch (error) {
-      console.error('Checkout error:', error);
+      console.error('Payment error:', error);
       toast({
         title: "Payment Failed",
-        description: error instanceof Error ? error.message : "Please try again.",
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -113,44 +155,74 @@ const StripeCheckout: React.FC<StripeCheckoutProps> = ({
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          <div className="bg-muted p-4 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <Lock className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">Secure Payment</span>
+          <form onSubmit={handleSubmit}>
+            <div className="space-y-4">
+              <div className="bg-muted p-4 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <Lock className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">Card Details</span>
+                </div>
+                <div className="border rounded-md p-3 bg-white">
+                  <CardElement
+                    options={{
+                      style: {
+                        base: {
+                          fontSize: '16px',
+                          color: '#424770',
+                          '::placeholder': {
+                            color: '#aab7c4',
+                          },
+                        },
+                        invalid: {
+                          color: '#9e2146',
+                        },
+                      },
+                    }}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Your payment is processed securely through Stripe. We never store your card details.
+                </p>
+              </div>
+              
+              <div className="flex gap-2 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onCancel}
+                  disabled={loading}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={loading || !stripe || !clientSecret}
+                  className="flex-1"
+                >
+                  {loading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <>
+                      <Lock className="h-4 w-4 mr-2" />
+                      Pay ${price.toFixed(2)}
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Your payment is processed securely through Stripe. We never store your card details.
-            </p>
-          </div>
-          
-          <div className="flex gap-2 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onCancel}
-              disabled={loading}
-              className="flex-1"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleCheckout}
-              disabled={loading}
-              className="flex-1"
-            >
-              {loading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <>
-                  <Lock className="h-4 w-4 mr-2" />
-                  Pay ${price.toFixed(2)}
-                </>
-              )}
-            </Button>
-          </div>
+          </form>
         </div>
       </CardContent>
     </Card>
+  );
+};
+
+const StripeCheckout: React.FC<StripeCheckoutProps> = (props) => {
+  return (
+    <Elements stripe={stripePromise}>
+      <CheckoutForm {...props} />
+    </Elements>
   );
 };
 
