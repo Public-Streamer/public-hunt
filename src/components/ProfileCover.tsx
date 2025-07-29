@@ -58,6 +58,7 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [isLive, setIsLive] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const { toast } = useToast();
   
   const form = useForm<ProfileFormData>({
@@ -92,44 +93,63 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Immediate UI feedback with blob URL
+    const blobUrl = URL.createObjectURL(file);
+    setPreviewUrl(blobUrl);
     setUploading(true);
-    try {
-      // Upload to Supabase storage
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${profile.id}-cover.${fileExt}`;
-      const filePath = `covers/${fileName}`;
 
+    try {
       // First check if current user has permission to modify this profile
       const { data: { user } } = await supabase.auth.getUser();
       if (!user || user.id !== profile.user_id) {
         throw new Error('Unauthorized to update this profile');
       }
 
+      // Delete old cover photo if it exists
+      if (profile.cover_photo_url) {
+        const oldPath = profile.cover_photo_url.split('/').pop();
+        if (oldPath && oldPath.includes(profile.id)) {
+          await supabase.storage
+            .from('media')
+            .remove([`covers/${oldPath}`]);
+        }
+      }
+
+      // Upload to Supabase storage with timestamp for cache busting
+      const fileExt = file.name.split('.').pop();
+      const timestamp = Date.now();
+      const fileName = `${profile.id}-cover-${timestamp}.${fileExt}`;
+      const filePath = `covers/${fileName}`;
+
       const { error: uploadError } = await supabase.storage
         .from('media')
-        .upload(filePath, file, { upsert: true });
+        .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
+      // Get public URL with cache busting parameter
       const { data: urlData } = supabase.storage
         .from('media')
         .getPublicUrl(filePath);
-        console.log(urlData);
+      
+      const cacheBustedUrl = `${urlData.publicUrl}?t=${timestamp}`;
 
       // Update profile with new cover photo
       const result = await supabase
         .from('user_profiles')
-        .update({ cover_photo_url: urlData.publicUrl })
+        .update({ cover_photo_url: cacheBustedUrl })
         .eq('user_id', profile.user_id);
-        console.log("result:", result);
 
       if (result.error) throw result.error;
+      
+      // Clean up blob URL
+      URL.revokeObjectURL(blobUrl);
+      setPreviewUrl(null);
       
       if (onProfileUpdate) {
         onProfileUpdate({
           ...profile,
-          cover_photo_url: urlData.publicUrl
+          cover_photo_url: cacheBustedUrl
         });
       }
       
@@ -139,6 +159,11 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
       });
     } catch (error) {
       console.error('Error uploading cover photo:', error);
+      
+      // Revert UI changes on error
+      URL.revokeObjectURL(blobUrl);
+      setPreviewUrl(null);
+      
       toast({
         title: 'Error',
         description: 'Failed to upload cover photo',
@@ -188,7 +213,7 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
       <div 
         className="h-48 sm:h-56 md:h-64 bg-gradient-to-r from-blue-500 to-purple-600 relative"
         style={{
-          backgroundImage: profile.cover_photo_url ? `url(${profile.cover_photo_url})` : undefined,
+          backgroundImage: (previewUrl || profile.cover_photo_url) ? `url(${previewUrl || profile.cover_photo_url})` : undefined,
           backgroundSize: 'cover',
           backgroundPosition: 'center'
         }}
