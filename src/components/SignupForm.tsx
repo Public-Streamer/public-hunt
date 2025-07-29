@@ -186,7 +186,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
           validationRules.required('Executor last name is required')
         ]);
         break;
-      case 'legalSignature':
+      case 'legalSignature':{
         const expectedName = signupData.accountType === 'individual' 
           ? `${signupData.firstName} ${signupData.lastName}`
           : `${signupData.companyExecutorFirstName} ${signupData.companyExecutorLastName}`;
@@ -195,6 +195,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
           validationRules.exactMatch(expectedName.trim(), `Must match exactly: ${expectedName}`)
         ]);
         break;
+      }
     }
   }, [signupData, validateField]);
 
@@ -257,10 +258,11 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
         return signupData.lastName.trim() !== '';
       case 'birthDate':
         return signupData.birthDate !== '';
-      case 'phone':
+      case 'phone':{
         // Phone number should be in format XXX-XXX-XXXX (10 digits)
         const phoneDigits = signupData.phone.replace(/\D/g, '');
         return phoneDigits.length === 10;
+      }
       case 'companyName':
         return signupData.companyName.trim() !== '';
       case 'companyExecutorFirstName':
