@@ -19,7 +19,7 @@ serve(async (req) => {
         apiVersion: "2023-10-16",
       }
     );
-    // const cryptoProvider = Stripe.createSubtleCryptoProvider();
+    const cryptoProvider = Stripe.createSubtleCryptoProvider();
     const signature = req.headers.get("stripe-signature");
     const body = await req.text();
     if (!signature) {
@@ -30,10 +30,12 @@ serve(async (req) => {
     if (!webhookSecret) {
       throw new Error("Webhook secret not configured");
     }
-    const event = stripe.webhooks.constructEvent(
+    const event = stripe.webhooks.constructEventAsync(
       body,
       signature,
-      webhookSecret
+      webhookSecret,
+      undefined,
+      cryptoProvider
     );
     console.log("Webhook event received:", event.type);
     // Create Supabase client with service role key for database operations
