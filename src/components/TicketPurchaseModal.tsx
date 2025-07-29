@@ -10,6 +10,7 @@ interface TicketPurchaseModalProps {
   eventId: string;
   eventTitle: string;
   price: number;
+  hostStripeAccountId?: string;
   onPurchaseSuccess: () => void;
 }
 
@@ -19,6 +20,7 @@ const TicketPurchaseModal: React.FC<TicketPurchaseModalProps> = ({
   eventId,
   eventTitle,
   price,
+  hostStripeAccountId,
   onPurchaseSuccess
 }) => {
   const [purchaseComplete, setPurchaseComplete] = useState(false);
@@ -69,6 +71,7 @@ const TicketPurchaseModal: React.FC<TicketPurchaseModalProps> = ({
             eventId={eventId}
             eventTitle={eventTitle}
             price={price}
+            hostStripeAccountId={hostStripeAccountId}
             onSuccess={handleSuccess}
             onCancel={onClose}
           />

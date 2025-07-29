@@ -47,6 +47,7 @@ interface EventData {
   created_by: string;
   created_at: string;
   updated_at: string;
+  host_stripe_account_id?: string;
 }
 
 const EventPage: React.FC = () => {
@@ -127,14 +128,16 @@ const EventPage: React.FC = () => {
   const fetchEventData = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      
+      // First fetch the event data
+      const { data: eventData, error: eventError } = await supabase
         .from("events")
         .select("*")
         .eq("id", eventId)
         .single();
 
-      if (error) {
-        console.error("Error fetching event:", error);
+      if (eventError) {
+        console.error("Error fetching event:", eventError);
         toast({
           title: "Error",
           description: "Failed to load event details",
@@ -143,7 +146,25 @@ const EventPage: React.FC = () => {
         return;
       }
 
-      setEventData(data);
+      // Then fetch the host's Stripe account if event exists
+      let hostStripeAccountId = null;
+      if (eventData?.created_by) {
+        const { data: stripeAccount } = await supabase
+          .from("host_stripe_accounts")
+          .select("stripe_account_id")
+          .eq("user_id", eventData.created_by)
+          .single();
+        
+        hostStripeAccountId = stripeAccount?.stripe_account_id || null;
+      }
+
+      // Combine the data
+      const eventWithStripeAccount = {
+        ...eventData,
+        host_stripe_account_id: hostStripeAccountId
+      };
+
+      setEventData(eventWithStripeAccount);
     } catch (error) {
       console.error("Error fetching event data:", error);
       toast({
@@ -640,6 +661,7 @@ const EventPage: React.FC = () => {
           eventId={eventData.id}
           eventTitle={eventData.name}
           price={eventData.ticket_price}
+          hostStripeAccountId={eventData.host_stripe_account_id}
           onPurchaseSuccess={handlePurchaseSuccess}
         />
       )}
