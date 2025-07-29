@@ -59,6 +59,8 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
   const [isLive, setIsLive] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [profilePictureUploading, setProfilePictureUploading] = useState(false);
+  const [profilePicturePreview, setProfilePicturePreview] = useState<string | null>(null);
   const { toast } = useToast();
   
   const form = useForm<ProfileFormData>({
@@ -174,8 +176,90 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
     }
   };
 
+  const handleProfilePictureUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
- 
+    // Immediate UI feedback with blob URL
+    const blobUrl = URL.createObjectURL(file);
+    setProfilePicturePreview(blobUrl);
+    setProfilePictureUploading(true);
+
+    try {
+      // First check if current user has permission to modify this profile
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || user.id !== profile.user_id) {
+        throw new Error('Unauthorized to update this profile');
+      }
+
+      // Delete old profile picture if it exists
+      if (profile.profile_picture_url) {
+        const oldPath = profile.profile_picture_url.split('/').pop();
+        if (oldPath && oldPath.includes(profile.id)) {
+          await supabase.storage
+            .from('media')
+            .remove([`avatars/${oldPath}`]);
+        }
+      }
+
+      // Upload to Supabase storage with timestamp for cache busting
+      const fileExt = file.name.split('.').pop();
+      const timestamp = Date.now();
+      const fileName = `${profile.id}-avatar-${timestamp}.${fileExt}`;
+      const filePath = `avatars/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('media')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL with cache busting parameter
+      const { data: urlData } = supabase.storage
+        .from('media')
+        .getPublicUrl(filePath);
+      
+      const cacheBustedUrl = `${urlData.publicUrl}?t=${timestamp}`;
+
+      // Update profile with new profile picture
+      const result = await supabase
+        .from('user_profiles')
+        .update({ profile_picture_url: cacheBustedUrl })
+        .eq('user_id', profile.user_id);
+
+      if (result.error) throw result.error;
+      
+      // Clean up blob URL
+      URL.revokeObjectURL(blobUrl);
+      setProfilePicturePreview(null);
+      
+      if (onProfileUpdate) {
+        onProfileUpdate({
+          ...profile,
+          profile_picture_url: cacheBustedUrl
+        });
+      }
+      
+      toast({
+        title: 'Success',
+        description: 'Profile picture updated successfully!'
+      });
+    } catch (error) {
+      console.error('Error uploading profile picture:', error);
+      
+      // Revert UI changes on error
+      URL.revokeObjectURL(blobUrl);
+      setProfilePicturePreview(null);
+      
+      toast({
+        title: 'Error',
+        description: 'Failed to upload profile picture',
+        variant: 'destructive'
+      });
+    } finally {
+      setProfilePictureUploading(false);
+    }
+  };
 
   const handleProfileUpdate = async (data: ProfileFormData) => {
     try {
@@ -254,20 +338,40 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
         <div className="flex flex-col sm:flex-row items-center sm:items-start mb-4 space-y-4 sm:space-y-0">
           <div className="relative -mt-20">
             <Avatar className="w-32 h-32 border-4 border-white shadow-lg">
-              <AvatarImage src={profile.profile_picture_url} />
+              <AvatarImage src={profilePicturePreview || profile.profile_picture_url} />
               <AvatarFallback className="text-3xl">
                 {profile.display_name?.[0] || profile.username[0]}
               </AvatarFallback>
             </Avatar>
             {isOwnProfile && (
-              <TooltipWrapper content="Change profile picture">
-                <Button 
-                  size="sm" 
-                  className="absolute bottom-2 right-2 rounded-full w-8 h-8 p-0"
-                >
-                  <Camera className="w-4 h-4" />
-                </Button>
-              </TooltipWrapper>
+              <div>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleProfilePictureUpload}
+                  disabled={profilePictureUploading}
+                  className="hidden"
+                  id="profile-picture-upload"
+                />
+                <Label htmlFor="profile-picture-upload" className="cursor-pointer">
+                  <TooltipWrapper content="Change profile picture">
+                    <Button 
+                      size="sm" 
+                      className="absolute bottom-2 right-2 rounded-full w-8 h-8 p-0"
+                      disabled={profilePictureUploading}
+                      asChild
+                    >
+                      <span>
+                        {profilePictureUploading ? (
+                          <Upload className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Camera className="w-4 h-4" />
+                        )}
+                      </span>
+                    </Button>
+                  </TooltipWrapper>
+                </Label>
+              </div>
             )}
           </div>
           
