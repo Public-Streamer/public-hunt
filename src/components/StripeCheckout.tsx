@@ -1,11 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, CreditCard, Lock, AlertTriangle } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
-import { useToast } from '@/hooks/use-toast';
-import { loadStripe } from '@stripe/stripe-js';
-import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import React, { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2, CreditCard, Lock, AlertTriangle } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { useToast } from "@/hooks/use-toast";
+import { loadStripe } from "@stripe/stripe-js";
+import {
+  Elements,
+  CardElement,
+  useStripe,
+  useElements,
+} from "@stripe/react-stripe-js";
 
 interface StripeCheckoutProps {
   eventId: string;
@@ -16,7 +21,9 @@ interface StripeCheckoutProps {
   onCancel: () => void;
 }
 
-const stripePromise = loadStripe('pk_test_51OL8XHDSRK8tSTCfCaQxQZQlBiJGVFWJPcKhStPXKm8FaHKpqF2O8LxKfJdyZFDbx4p5PmJcGpbGO6m6GfHK5lDG00L2S8XVYw');
+const stripePromise = loadStripe(
+  "pk_test_51RjhRTCREXNJuBpenguJBprCfRoXRXMqA4PsnDY0Gfz7d2DdR1gpyGY22J9Bvq8Ygev1UicmkglLrKraDQ9AMuTy006mGLnaij"
+);
 
 const CheckoutForm: React.FC<StripeCheckoutProps> = ({
   eventId,
@@ -24,12 +31,12 @@ const CheckoutForm: React.FC<StripeCheckoutProps> = ({
   price,
   hostStripeAccountId,
   onSuccess,
-  onCancel
+  onCancel,
 }) => {
   const stripe = useStripe();
   const elements = useElements();
   const [loading, setLoading] = useState(false);
-  const [clientSecret, setClientSecret] = useState<string>('');
+  const [clientSecret, setClientSecret] = useState<string>("");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -43,15 +50,20 @@ const CheckoutForm: React.FC<StripeCheckoutProps> = ({
           throw new Error("Please log in to purchase tickets");
         }
 
-        const { data, error } = await supabase.functions.invoke('process-ticket-payment', {
-          body: {
-            eventId,
-            amount: price,
-            connectedAccountId: hostStripeAccountId,
-            customerEmail: user.user.email,
-            customerName: user.user.user_metadata?.full_name || user.user.email?.split('@')[0]
+        const { data, error } = await supabase.functions.invoke(
+          "process-ticket-payment",
+          {
+            body: {
+              eventId,
+              amount: price,
+              connectedAccountId: hostStripeAccountId,
+              customerEmail: user.user.email,
+              customerName:
+                user.user.user_metadata?.full_name ||
+                user.user.email?.split("@")[0],
+            },
           }
-        });
+        );
 
         if (error) throw error;
 
@@ -61,10 +73,11 @@ const CheckoutForm: React.FC<StripeCheckoutProps> = ({
           throw new Error("Failed to initialize payment");
         }
       } catch (error) {
-        console.error('Payment initialization error:', error);
+        console.error("Payment initialization error:", error);
         toast({
           title: "Payment Setup Failed",
-          description: error instanceof Error ? error.message : "Please try again.",
+          description:
+            error instanceof Error ? error.message : "Please try again.",
           variant: "destructive",
         });
       }
@@ -89,11 +102,14 @@ const CheckoutForm: React.FC<StripeCheckoutProps> = ({
     }
 
     try {
-      const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: {
-          card,
-        },
-      });
+      const { error, paymentIntent } = await stripe.confirmCardPayment(
+        clientSecret,
+        {
+          payment_method: {
+            card,
+          },
+        }
+      );
 
       if (error) {
         toast({
@@ -101,7 +117,7 @@ const CheckoutForm: React.FC<StripeCheckoutProps> = ({
           description: error.message || "Please try again.",
           variant: "destructive",
         });
-      } else if (paymentIntent?.status === 'succeeded') {
+      } else if (paymentIntent?.status === "succeeded") {
         toast({
           title: "Payment Successful",
           description: "Your ticket has been purchased successfully!",
@@ -110,7 +126,7 @@ const CheckoutForm: React.FC<StripeCheckoutProps> = ({
         onSuccess();
       }
     } catch (error) {
-      console.error('Payment error:', error);
+      console.error("Payment error:", error);
       toast({
         title: "Payment Failed",
         description: "An unexpected error occurred. Please try again.",
@@ -167,24 +183,25 @@ const CheckoutForm: React.FC<StripeCheckoutProps> = ({
                     options={{
                       style: {
                         base: {
-                          fontSize: '16px',
-                          color: '#424770',
-                          '::placeholder': {
-                            color: '#aab7c4',
+                          fontSize: "16px",
+                          color: "#424770",
+                          "::placeholder": {
+                            color: "#aab7c4",
                           },
                         },
                         invalid: {
-                          color: '#9e2146',
+                          color: "#9e2146",
                         },
                       },
                     }}
                   />
                 </div>
                 <p className="text-xs text-muted-foreground mt-2">
-                  Your payment is processed securely through Stripe. We never store your card details.
+                  Your payment is processed securely through Stripe. We never
+                  store your card details.
                 </p>
               </div>
-              
+
               <div className="flex gap-2 pt-4">
                 <Button
                   type="button"
