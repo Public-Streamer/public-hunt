@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,7 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock, DollarSign, Users, Video, Heart, MessageCircle, Share2 } from 'lucide-react';
 import SocialMediaSection from './SocialMediaSection';
 import TicketPurchaseModal from './TicketPurchaseModal';
-import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAppContext } from '@/contexts/AppContext';
 
 interface Event {
   id: string;
@@ -31,7 +32,42 @@ interface EventCardProps {
 const EventCard: React.FC<EventCardProps> = ({ event, onPurchase, onWatch }) => {
   const [showSocial, setShowSocial] = useState(false);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
+  const [hasTicket, setHasTicket] = useState(false);
+  const [checkingTicket, setCheckingTicket] = useState(false);
+  const { user, isAuthenticated } = useAppContext();
   const navigate = useNavigate();
+
+  const checkTicketStatus = async () => {
+    if (!user) return;
+    
+    setCheckingTicket(true);
+    try {
+      const { data, error } = await supabase
+        .from('tickets')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('event_id', event.id)
+        .eq('status', 'active')
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking ticket status:', error);
+        return;
+      }
+
+      setHasTicket(!!data);
+    } catch (error) {
+      console.error('Error checking ticket status:', error);
+    } finally {
+      setCheckingTicket(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      checkTicketStatus();
+    }
+  }, [user, isAuthenticated, event.id]);
 
   const handleCardClick = () => {
     navigate(`/event/${event.id}`);
@@ -39,9 +75,21 @@ const EventCard: React.FC<EventCardProps> = ({ event, onPurchase, onWatch }) => 
 
   const handleAction = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (event.isLive) {
-      onWatch?.(event.id);
+    
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    
+    // For free events or users with tickets, navigate to event page or watch
+    if (event.price === 0 || hasTicket) {
+      if (event.isLive) {
+        onWatch?.(event.id);
+      } else {
+        navigate(`/event/${event.id}`);
+      }
     } else {
+      // For paid events without tickets, open purchase modal
       setShowPurchaseModal(true);
     }
   };
@@ -52,7 +100,16 @@ const EventCard: React.FC<EventCardProps> = ({ event, onPurchase, onWatch }) => 
   };
 
   const handlePurchaseSuccess = () => {
+    setHasTicket(true);
     onPurchase?.(event.id);
+  };
+
+  const getButtonText = () => {
+    if (checkingTicket) return "Checking...";
+    if (!isAuthenticated) return "Login to Purchase";
+    if (event.price === 0) return "Watch Event (Free)";
+    if (hasTicket) return "Watch Event";
+    return `Buy Ticket - $${event.price}`;
   };
 
   return (
@@ -114,9 +171,14 @@ const EventCard: React.FC<EventCardProps> = ({ event, onPurchase, onWatch }) => 
             
             <Button 
               onClick={handleAction}
-              className={`w-full ${event.isLive ? 'bg-red-600 hover:bg-red-700' : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700'}`}
+              disabled={checkingTicket}
+              className={`w-full ${
+                event.isLive && (event.price === 0 || hasTicket) 
+                  ? 'bg-red-600 hover:bg-red-700' 
+                  : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700'
+              }`}
             >
-              {event.isLive ? 'Watch Now' : 'Buy Ticket'}
+              {event.isLive && (event.price === 0 || hasTicket) ? 'Watch Now' : getButtonText()}
             </Button>
             
             <div className="flex items-center justify-center gap-1 sm:gap-2 border-t pt-3">
