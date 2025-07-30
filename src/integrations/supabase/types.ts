@@ -786,6 +786,53 @@ export type Database = {
           },
         ]
       }
+      event_chat_messages: {
+        Row: {
+          created_at: string | null
+          display_name: string
+          event_id: string
+          id: string
+          message: string
+          message_type: string | null
+          profile_picture_url: string | null
+          sequence_number: number | null
+          user_id: string | null
+          username: string
+        }
+        Insert: {
+          created_at?: string | null
+          display_name: string
+          event_id: string
+          id?: string
+          message: string
+          message_type?: string | null
+          profile_picture_url?: string | null
+          sequence_number?: number | null
+          user_id?: string | null
+          username: string
+        }
+        Update: {
+          created_at?: string | null
+          display_name?: string
+          event_id?: string
+          id?: string
+          message?: string
+          message_type?: string | null
+          profile_picture_url?: string | null
+          sequence_number?: number | null
+          user_id?: string | null
+          username?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_chat_messages_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_participants: {
         Row: {
           event_id: string

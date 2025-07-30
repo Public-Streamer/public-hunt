@@ -482,19 +482,18 @@ const EventPage: React.FC = () => {
                       />
                     </div>
                   )} */}
-                  {/* Live Discussion Section */}
-                  {eventData.is_live &&
-                    livekitToken &&
-                    (hasTicket || canEnterStage) && (
-                      <LiveDiscussionSection 
-                        userProfile={currentUserProfile ? {
-                          id: currentUserProfile.id,
-                          username: currentUserProfile.display_name || 'User',
-                          display_name: currentUserProfile.display_name || 'User',
-                          profile_picture_url: currentUserProfile.profile_picture_url || ''
-                        } : undefined}
-                      />
-                    )}
+                  {/* Live Discussion Section - Show for users with access regardless of live status */}
+                  {(hasTicket || canEnterStage) && (
+                    <LiveDiscussionSection 
+                      eventId={eventId}
+                      userProfile={currentUserProfile ? {
+                        id: currentUserProfile.id,
+                        username: currentUserProfile.display_name || 'User',
+                        display_name: currentUserProfile.display_name || 'User',
+                        profile_picture_url: currentUserProfile.profile_picture_url || ''
+                      } : undefined}
+                    />
+                  )}
                 </LiveKitRoom>
               ) : (
                 <div className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100 relative">
@@ -536,6 +535,19 @@ const EventPage: React.FC = () => {
               <OfflineStreamSection
                 eventId={eventData.id}
                 hasPaid={hasTicket || canEnterStage}
+              />
+            )}
+
+            {/* Chat History Section - Show when event is not live but user has access */}
+            {!eventData.is_live && (hasTicket || canEnterStage) && (
+              <LiveDiscussionSection 
+                eventId={eventId}
+                userProfile={currentUserProfile ? {
+                  id: currentUserProfile.id,
+                  username: currentUserProfile.display_name || 'User',
+                  display_name: currentUserProfile.display_name || 'User',
+                  profile_picture_url: currentUserProfile.profile_picture_url || ''
+                } : undefined}
               />
             )}
           </div>
