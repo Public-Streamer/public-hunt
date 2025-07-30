@@ -21,6 +21,7 @@ interface AppContextType {
   adminRole: string | null;
   authLoaded: boolean;
   loading: boolean;
+  profileLoading: boolean;
   refreshUserProfile: () => Promise<void>;
 }
 
@@ -37,6 +38,7 @@ const defaultAppContext: AppContextType = {
   adminRole: null,
   authLoaded: false,
   loading: false,
+  profileLoading: false,
   refreshUserProfile: async () => {},
 };
 
@@ -52,6 +54,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [adminRole, setAdminRole] = useState<string | null>(null);
   const [authLoaded, setAuthLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(false);
 
   const toggleSidebar = () => {
     setSidebarOpen(prev => !prev);
@@ -316,6 +319,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
     
     console.log('refreshUserProfile: Starting refresh for user:', user.id);
+    setProfileLoading(true);
     
     try {
       const { data: userProfileData, error: userProfileError } = await supabase
@@ -336,20 +340,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     } catch (error) {
       console.error('Error refreshing user profile:', error);
+    } finally {
+      setProfileLoading(false);
     }
   };
 
   useEffect(() => {
     const loadUserProfile = async () => {
       setLoading(true);
+      setProfileLoading(true);
       const {data: userProfileData, error: userProfileError} = await supabase.from('user_profiles').select('*').eq('user_id', user.id).single();
     if (userProfileData) {
       setUserProfile(userProfileData);
       setLoading(false);
+      setProfileLoading(false);
     }
     if (userProfileError) {
       console.error('Error loading user profile:', userProfileError);
       setLoading(false);
+      setProfileLoading(false);
     }
     }
     if (user){
@@ -361,6 +370,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     <AppContext.Provider
       value={{
         loading,
+        profileLoading,
         sidebarOpen,
         toggleSidebar,
         user,

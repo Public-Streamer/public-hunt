@@ -17,6 +17,7 @@ import ProfileMediaUpload from '@/components/ProfileMediaUpload';
 import Messages from '@/components/Messages';
 import Notifications from '@/components/Notifications';
 import BottomSlidePanel from '@/components/BottomSlidePanel';
+import ProfileSkeleton from '@/components/ProfileSkeleton';
 import type { Database } from '@/integrations/supabase/types';
 
 type UserProfile = Database['public']['Tables']['user_profiles']['Row'];
@@ -29,7 +30,7 @@ const Profile: React.FC = () => {
   const [friendsCount, setFriendsCount] = useState(0);
   const [followersCount, setFollowersCount] = useState(0);
   const { toast } = useToast();
-  const { user, userProfile, isAuthenticated, authLoaded,  loading : profileLoading } = useAppContext();
+  const { user, userProfile, isAuthenticated, authLoaded, profileLoading } = useAppContext();
 
   console.log({userProfile});
 
@@ -97,11 +98,7 @@ const Profile: React.FC = () => {
   };
 
   if (!authLoaded || loading || profileLoading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-lg">Loading profile...</div>
-      </div>
-    );
+    return <ProfileSkeleton />;
   }
 
   if (!profile) {
