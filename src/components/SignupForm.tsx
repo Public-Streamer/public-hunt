@@ -32,7 +32,7 @@ interface SignupFormProps {
 }
 
 const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = false }) => {
-  const { signUp } = useAppContext();
+  const { signUp, refreshUserProfile } = useAppContext();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { validateField, getFieldValidation, isFormValid } = useFormValidation({ realTime: true });
@@ -516,6 +516,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                   .from('user_profiles')
                   .update({ profile_picture_url: cacheBustedUrl })
                   .eq('user_id', user.id);
+
+                // Refresh the user profile in context to show the new picture immediately
+                await refreshUserProfile();
               }
             }
           } catch (photoError) {

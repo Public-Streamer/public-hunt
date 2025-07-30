@@ -7,18 +7,6 @@ import { boolean } from 'zod';
 
 type UserProfile = Database['public']['Tables']['user_profiles']['Row'];
 
-interface AppContextType {
-  sidebarOpen: boolean;
-  toggleSidebar: () => void;
-  user: User | null;
-  userProfile: UserProfile | null;
-  signIn: (email: string, password: string, redirectUrl?: string) => Promise<{error?: string}>;
-  signUp: (email: string, password: string, userData: Omit<UserProfile, 'id' | 'email'>) => Promise<{error?: string}>;
-  logout: () => Promise<void>;
-  isAuthenticated: boolean;
-  isAdminUser: boolean;
-  adminRole: string | null;
-}
 
 interface AppContextType {
   sidebarOpen: boolean;
@@ -33,6 +21,7 @@ interface AppContextType {
   adminRole: string | null;
   authLoaded: boolean;
   loading: boolean;
+  refreshUserProfile: () => Promise<void>;
 }
 
 const defaultAppContext: AppContextType = {
@@ -48,6 +37,7 @@ const defaultAppContext: AppContextType = {
   adminRole: null,
   authLoaded: false,
   loading: false,
+  refreshUserProfile: async () => {},
 };
 
 const AppContext = createContext<AppContextType>(defaultAppContext);
@@ -319,6 +309,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   
 
+  const refreshUserProfile = async () => {
+    if (!user) return;
+    
+    try {
+      const { data: userProfileData, error: userProfileError } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (userProfileData) {
+        setUserProfile(userProfileData);
+      }
+      
+      if (userProfileError) {
+        console.error('Error refreshing user profile:', userProfileError);
+      }
+    } catch (error) {
+      console.error('Error refreshing user profile:', error);
+    }
+  };
+
   useEffect(() => {
     const loadUserProfile = async () => {
       setLoading(true);
@@ -352,6 +364,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         isAdminUser,
         adminRole,
         authLoaded,
+        refreshUserProfile,
       }}
     >
       {children}
