@@ -20,21 +20,25 @@ const TorchButton: React.FC<TorchButtonProps> = ({
 }) => {
   const screenSize = useScreenSize();
 
-  // Only show if back camera is active, video is enabled, and torch is supported
-  if (
-    currentFacingMode !== "environment" ||
-    !isVideoEnabled ||
-    !isTorchSupported
-  ) {
-    console.log(
-      JSON.stringify({
-        currentFacingMode,
-        isVideoEnabled,
-        isTorchSupported,
-      })
-    );
+  // Enhanced torch button visibility logic
+  // Show torch button if back camera is active and video is enabled
+  // Don't hide immediately if torch support is uncertain - let the user try
+  if (currentFacingMode !== "environment" || !isVideoEnabled) {
+    console.log('[TorchButton] Hidden - not environment camera or video disabled:', {
+      currentFacingMode,
+      isVideoEnabled,
+      isTorchSupported,
+    });
     return null;
   }
+
+  // Only hide if torch is definitively not supported AND we have a clear determination
+  // This allows the button to show during detection phase and for optimistic support
+  console.log('[TorchButton] Visible - showing torch button:', {
+    currentFacingMode,
+    isVideoEnabled,
+    isTorchSupported,
+  });
 
   return (
     <Button

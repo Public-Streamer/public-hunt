@@ -727,15 +727,44 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
     requestScreenShare,
   ]);
 
-  // Check torch support using the actual video track capabilities
+  // Enhanced torch support detection with multi-method approach
   useEffect(() => {
+    const getDeviceInfo = () => {
+      const userAgent = navigator.userAgent;
+      const isIOS = /iPad|iPhone|iPod/.test(userAgent);
+      const isAndroid = /Android/.test(userAgent);
+      const isSafari = /Safari/.test(userAgent) && !/Chrome/.test(userAgent);
+      const isChrome = /Chrome/.test(userAgent);
+      
+      return {
+        isIOS,
+        isAndroid,
+        isSafari,
+        isChrome,
+        isMobile: isIOS || isAndroid,
+        userAgent
+      };
+    };
+
     const checkTorchSupport = async () => {
-      console.log('[Torch] Checking torch support for facingMode:', currentFacingMode);
+      const deviceInfo = getDeviceInfo();
+      console.log('[Torch] Enhanced torch detection starting:', {
+        currentFacingMode,
+        deviceInfo,
+        hasLocalParticipant: !!localParticipant
+      });
       
       if (currentFacingMode !== 'environment') {
         console.log('[Torch] Not environment camera, setting torch support to false');
         setIsTorchSupported(false);
         setIsTorchEnabled(false);
+        return;
+      }
+
+      // For non-mobile devices, assume no torch support
+      if (!deviceInfo.isMobile) {
+        console.log('[Torch] Desktop device detected, no torch support');
+        setIsTorchSupported(false);
         return;
       }
 
@@ -745,34 +774,117 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
         const videoTrack = cameraPublication?.track;
         
         if (!videoTrack || !('mediaStreamTrack' in videoTrack)) {
-          console.log('[Torch] No video track or mediaStreamTrack available for torch check');
-          setIsTorchSupported(false);
+          console.log('[Torch] No video track available, using optimistic detection for mobile');
+          
+          // Optimistic approach: assume torch support on mobile back cameras
+          if (deviceInfo.isMobile && currentFacingMode === 'environment') {
+            console.log('[Torch] Optimistic torch support enabled for mobile back camera');
+            setIsTorchSupported(true);
+          } else {
+            setIsTorchSupported(false);
+          }
           return;
         }
 
         const nativeTrack = (videoTrack as any).mediaStreamTrack;
-        console.log('[Torch] Native track found:', nativeTrack);
+        console.log('[Torch] Native track found, starting multi-method detection');
 
-        // Check capabilities on the native track
+        // Method 1: Check getCapabilities() 
+        let torchSupportedByCapabilities = false;
         if (typeof nativeTrack.getCapabilities === 'function') {
-          const capabilities = nativeTrack.getCapabilities();
-          console.log('[Torch] Track capabilities:', capabilities);
+          try {
+            const capabilities = nativeTrack.getCapabilities();
+            console.log('[Torch] Method 1 - Track capabilities:', capabilities);
+            torchSupportedByCapabilities = capabilities.torch === true;
+          } catch (capError) {
+            console.log('[Torch] Method 1 - getCapabilities failed:', capError);
+          }
+        }
+
+        // Method 2: Check getSupportedConstraints()
+        let torchSupportedByConstraints = false;
+        if (typeof navigator.mediaDevices?.getSupportedConstraints === 'function') {
+          try {
+            const supportedConstraints = navigator.mediaDevices.getSupportedConstraints();
+            console.log('[Torch] Method 2 - Supported constraints:', supportedConstraints);
+            torchSupportedByConstraints = (supportedConstraints as any).torch === true;
+          } catch (constraintError) {
+            console.log('[Torch] Method 2 - getSupportedConstraints failed:', constraintError);
+          }
+        }
+
+        // Method 3: Progressive constraint testing
+        let torchSupportedByTesting = false;
+        try {
+          console.log('[Torch] Method 3 - Testing constraint application');
           
-          const torchSupported = capabilities.torch === true;
-          console.log('[Torch] Torch supported:', torchSupported);
-          setIsTorchSupported(torchSupported);
+          // Try to apply a torch constraint temporarily to test support
+          const currentSettings = nativeTrack.getSettings();
+          console.log('[Torch] Current track settings:', currentSettings);
+          
+          // Test constraint application with current torch state
+          await nativeTrack.applyConstraints({ torch: false });
+          console.log('[Torch] Method 3 - Standard constraint test passed');
+          torchSupportedByTesting = true;
+        } catch (testError) {
+          console.log('[Torch] Method 3 - Standard constraint test failed, trying advanced format');
+          
+          try {
+            await nativeTrack.applyConstraints({ advanced: [{ torch: false }] });
+            console.log('[Torch] Method 3 - Advanced constraint test passed');
+            torchSupportedByTesting = true;
+          } catch (advancedError) {
+            console.log('[Torch] Method 3 - All constraint tests failed:', advancedError);
+          }
+        }
+
+        // Method 4: Device-specific logic
+        let torchSupportedByDevice = false;
+        if (deviceInfo.isMobile && currentFacingMode === 'environment') {
+          if (deviceInfo.isIOS && deviceInfo.isSafari) {
+            // iOS Safari: More reliable API support on newer devices
+            torchSupportedByDevice = torchSupportedByCapabilities || torchSupportedByConstraints;
+          } else if (deviceInfo.isAndroid && deviceInfo.isChrome) {
+            // Android Chrome: Less reliable API, use optimistic approach
+            torchSupportedByDevice = true; // Assume support, test during actual usage
+          }
+        }
+
+        // Combine results with weighted decision
+        const detectionResults = {
+          capabilities: torchSupportedByCapabilities,
+          constraints: torchSupportedByConstraints,
+          testing: torchSupportedByTesting,
+          device: torchSupportedByDevice
+        };
+
+        console.log('[Torch] All detection methods completed:', detectionResults);
+
+        // Decision logic: any positive result enables torch support
+        const finalTorchSupport = 
+          torchSupportedByCapabilities || 
+          torchSupportedByConstraints || 
+          torchSupportedByTesting || 
+          torchSupportedByDevice;
+
+        console.log('[Torch] Final torch support decision:', finalTorchSupport);
+        setIsTorchSupported(finalTorchSupport);
+
+      } catch (error) {
+        console.warn('[Torch] Error in enhanced torch detection:', error);
+        
+        // Fallback: optimistic approach for mobile devices
+        if (deviceInfo.isMobile && currentFacingMode === 'environment') {
+          console.log('[Torch] Fallback: enabling optimistic torch support for mobile');
+          setIsTorchSupported(true);
         } else {
-          console.log('[Torch] getCapabilities not supported');
           setIsTorchSupported(false);
         }
-      } catch (error) {
-        console.warn('[Torch] Error checking torch support:', error);
-        setIsTorchSupported(false);
       }
     };
 
-    // Only check when we have a video track and are using environment camera
-    if (localParticipant && currentFacingMode === 'environment') {
+    // Only check when we have environment camera mode
+    if (currentFacingMode === 'environment') {
       checkTorchSupport();
     } else {
       setIsTorchSupported(false);
@@ -783,12 +895,8 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   const toggleTorch = useCallback(async () => {
     console.log('[Torch] Toggle requested, current state:', isTorchEnabled);
     
-    if (
-      !localParticipant ||
-      currentFacingMode !== "environment" ||
-      !isTorchSupported
-    ) {
-      console.log('[Torch] Torch toggle blocked - missing requirements');
+    if (!localParticipant || currentFacingMode !== "environment") {
+      console.log('[Torch] Torch toggle blocked - missing participant or not back camera');
       return;
     }
 
@@ -802,33 +910,84 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       
       if (!cameraPublication?.track || !('mediaStreamTrack' in cameraPublication.track)) {
         console.warn('[Torch] No video track or mediaStreamTrack available for torch control');
+        toast.error("Camera not available for torch control");
         return;
       }
 
       const nativeTrack = (cameraPublication.track as any).mediaStreamTrack;
       console.log('[Torch] Applying constraints to native track:', { torch: newTorchState });
 
-      // Try the standard constraint format first
+      let constraintApplied = false;
+      let lastError: any = null;
+
+      // Method 1: Try standard constraint format
       try {
         await nativeTrack.applyConstraints({ torch: newTorchState });
         console.log('[Torch] Standard constraint applied successfully');
+        constraintApplied = true;
       } catch (standardError) {
-        console.warn('[Torch] Standard constraint failed, trying advanced format:', standardError);
+        console.warn('[Torch] Standard constraint failed:', standardError);
+        lastError = standardError;
         
-        // Fallback to advanced constraint format
-        await nativeTrack.applyConstraints({
-          advanced: [{ torch: newTorchState }]
-        });
-        console.log('[Torch] Advanced constraint applied successfully');
+        // Method 2: Try advanced constraint format
+        try {
+          await nativeTrack.applyConstraints({
+            advanced: [{ torch: newTorchState }]
+          });
+          console.log('[Torch] Advanced constraint applied successfully');
+          constraintApplied = true;
+        } catch (advancedError) {
+          console.warn('[Torch] Advanced constraint failed:', advancedError);
+          lastError = advancedError;
+
+          // Method 3: Try with video constraints wrapper
+          try {
+            await nativeTrack.applyConstraints({
+              video: { torch: newTorchState }
+            } as any);
+            console.log('[Torch] Video-wrapped constraint applied successfully');
+            constraintApplied = true;
+          } catch (videoError) {
+            console.warn('[Torch] Video-wrapped constraint failed:', videoError);
+            lastError = videoError;
+          }
+        }
       }
 
-      setIsTorchEnabled(newTorchState);
-      toast.success(`Torch ${newTorchState ? "on" : "off"}`);
-      console.log(`[Torch] Successfully ${newTorchState ? 'enabled' : 'disabled'} torch`);
+      if (constraintApplied) {
+        setIsTorchEnabled(newTorchState);
+        toast.success(`Torch ${newTorchState ? "on" : "off"}`);
+        console.log(`[Torch] Successfully ${newTorchState ? 'enabled' : 'disabled'} torch`);
+        
+        // If this was the first successful toggle and torch wasn't previously supported,
+        // update torch support status
+        if (!isTorchSupported) {
+          console.log('[Torch] First successful toggle detected, updating support status');
+          setIsTorchSupported(true);
+        }
+      } else {
+        throw lastError || new Error('All constraint application methods failed');
+      }
     } catch (error) {
       console.error('[Torch] Error toggling torch:', error);
-      toast.error("Failed to toggle torch");
-      // Don't update state if constraint application failed
+      
+      // Provide device-specific error messages
+      const userAgent = navigator.userAgent;
+      const isIOS = /iPad|iPhone|iPod/.test(userAgent);
+      const isAndroid = /Android/.test(userAgent);
+      
+      let errorMessage = "Failed to toggle torch";
+      if (isIOS) {
+        errorMessage = "Torch not available on this iOS device/browser";
+      } else if (isAndroid) {
+        errorMessage = "Torch not supported on this Android device";
+      }
+      
+      toast.error(errorMessage);
+      
+      // Update support status if torch definitively doesn't work
+      setIsTorchSupported(false);
+      setIsTorchEnabled(false);
     }
   }, [localParticipant, currentFacingMode, isTorchEnabled, isTorchSupported]);
 
