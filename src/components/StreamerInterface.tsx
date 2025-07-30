@@ -36,6 +36,7 @@ import EventSharePanel from "@/components/EventSharePanel";
 import { useScreenSize } from "@/hooks/use-mobile";
 import LiveStreamLogo from "@/components/ui/live-stream-logo";
 import CameraSwitchButton from "@/components/CameraSwitchButton";
+import TorchButton from "@/components/TorchButton";
 import LiveChatSection from "@/components/LiveChatSection";
 import { useMobileMediaPermissions } from "@/hooks/useMobileMediaPermissions";
 
@@ -417,6 +418,17 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                     />
                   )}
 
+                  {/* Torch Button - Show in mobile layout */}
+                  {screenSize === "mobile" && (
+                    <TorchButton
+                      isTorchEnabled={controls.isTorchEnabled}
+                      isTorchSupported={controls.isTorchSupported}
+                      currentFacingMode={controls.currentFacingMode}
+                      isVideoEnabled={controls.isVideoEnabled}
+                      onToggleTorch={controls.toggleTorch}
+                    />
+                  )}
+
                   {/* Screen Share Button - Only show if supported */}
                   {checkScreenShareSupport() && (
                     <Button
@@ -452,6 +464,17 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                     isVideoEnabled={controls.isVideoEnabled}
                     currentFacingMode={controls.currentFacingMode}
                     onSwitchCamera={controls.switchCamera}
+                  />
+                )}
+
+                {/* Torch Button - Show in desktop layout */}
+                {screenSize !== "mobile" && (
+                  <TorchButton
+                    isTorchEnabled={controls.isTorchEnabled}
+                    isTorchSupported={controls.isTorchSupported}
+                    currentFacingMode={controls.currentFacingMode}
+                    isVideoEnabled={controls.isVideoEnabled}
+                    onToggleTorch={controls.toggleTorch}
                   />
                 )}
               </CardContent>

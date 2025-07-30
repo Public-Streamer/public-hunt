@@ -30,6 +30,10 @@ export interface StreamingControls {
   currentFacingMode: "user" | "environment";
   isSwitchingCamera: boolean;
   switchCamera: () => Promise<void>;
+  // Torch functionality
+  isTorchEnabled: boolean;
+  isTorchSupported: boolean;
+  toggleTorch: () => Promise<void>;
 }
 
 interface LiveStatusResult {
@@ -74,6 +78,10 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   const [currentFacingMode, setCurrentFacingMode] = useState<
     "user" | "environment"
   >("user");
+
+  // State for torch functionality
+  const [isTorchEnabled, setIsTorchEnabled] = useState(false);
+  const [isTorchSupported, setIsTorchSupported] = useState(false);
 
   const participantCount = room?.numParticipants || 1;
 
@@ -288,6 +296,11 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
         );
       }
 
+      // Reset torch when switching cameras
+      if (isTorchEnabled) {
+        setIsTorchEnabled(false);
+      }
+
       const cameraType =
         actualCameraType !== "unknown" ? actualCameraType : newFacingMode;
       const friendlyName = cameraType === "environment" ? "back" : "front";
@@ -456,6 +469,9 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       currentFacingMode: "user" as const,
       isSwitchingCamera: false,
       switchCamera: async () => {},
+      isTorchEnabled: false,
+      isTorchSupported: false,
+      toggleTorch: async () => {},
     };
   }
 
@@ -477,14 +493,21 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
         
         try {
           // Direct getUserMedia call for camera in user interaction context
-          const stream = await navigator.mediaDevices.getUserMedia({
+          const constraints: MediaStreamConstraints = {
             video: {
               facingMode: { ideal: currentFacingMode },
               width: { ideal: 1280, max: 1920 },
               height: { ideal: 720, max: 1080 }
-            },
+            } as MediaTrackConstraints,
             audio: false
-          });
+          };
+
+          // Add torch constraint for back camera if enabled
+          if (currentFacingMode === "environment" && isTorchEnabled) {
+            (constraints.video as any).torch = true;
+          }
+
+          const stream = await navigator.mediaDevices.getUserMedia(constraints);
           
           console.log("📱 MOBILE DEBUG - Direct camera permission granted");
           // Stop the test stream immediately
@@ -518,7 +541,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       toast.error("Failed to toggle camera");
       console.error("📱 MOBILE DEBUG - Toggle video error:", error);
     }
-  }, [localParticipant, isVideoEnabled, currentFacingMode]);
+  }, [localParticipant, isVideoEnabled, currentFacingMode, isTorchEnabled]);
 
   const toggleVideoLiveButton = useCallback(
     async (enabled: boolean) => {
@@ -669,6 +692,62 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
     }
   }, [localParticipant, isScreenSharing, checkScreenShareSupport, requestScreenShare]);
 
+  // Check torch support
+  useEffect(() => {
+    const checkTorchSupport = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "environment" }
+        });
+        
+        const videoTrack = stream.getVideoTracks()[0];
+        if (videoTrack) {
+          const capabilities = videoTrack.getCapabilities();
+          setIsTorchSupported('torch' in capabilities);
+          videoTrack.stop();
+        }
+        stream.getTracks().forEach(track => track.stop());
+      } catch (error) {
+        console.log("Torch support check failed:", error);
+        setIsTorchSupported(false);
+      }
+    };
+
+    if (currentFacingMode === "environment") {
+      checkTorchSupport();
+    } else {
+      setIsTorchSupported(false);
+      setIsTorchEnabled(false);
+    }
+  }, [currentFacingMode]);
+
+  const toggleTorch = useCallback(async () => {
+    if (!localParticipant || currentFacingMode !== "environment" || !isTorchSupported) {
+      return;
+    }
+
+    try {
+      const newTorchState = !isTorchEnabled;
+      
+      // Get current video track
+      const cameraPublication = localParticipant.getTrackPublication(Track.Source.Camera);
+      if (cameraPublication?.track) {
+        const videoTrack = cameraPublication.track as any;
+        
+        // Apply torch constraint to the existing track
+        await videoTrack.applyConstraints({
+          advanced: [{ torch: newTorchState }]
+        });
+        
+        setIsTorchEnabled(newTorchState);
+        toast.success(`Torch ${newTorchState ? "on" : "off"}`);
+      }
+    } catch (error) {
+      console.error("Failed to toggle torch:", error);
+      toast.error("Failed to toggle torch");
+    }
+  }, [localParticipant, currentFacingMode, isTorchEnabled, isTorchSupported]);
+
   const startStream = useCallback(async () => {
     console.log("📱 MOBILE DEBUG - Start stream button clicked - beginning permission flow");
     
@@ -683,18 +762,25 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       
       try {
         console.log("📱 MOBILE DEBUG - Attempting direct getUserMedia call for both camera and mic");
-        const stream = await navigator.mediaDevices.getUserMedia({
+        const constraints: MediaStreamConstraints = {
           video: {
             facingMode: { ideal: currentFacingMode },
             width: { ideal: 1280, max: 1920 },
             height: { ideal: 720, max: 1080 }
-          },
+          } as MediaTrackConstraints,
           audio: {
             echoCancellation: true,
             noiseSuppression: true,
             autoGainControl: true
           }
-        });
+        };
+
+        // Add torch constraint for back camera if enabled
+        if (currentFacingMode === "environment" && isTorchEnabled) {
+          (constraints.video as any).torch = true;
+        }
+
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
         
         // Check what we got
         const videoTracks = stream.getVideoTracks();
@@ -881,5 +967,8 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
     currentFacingMode,
     isSwitchingCamera,
     switchCamera,
+    isTorchEnabled,
+    isTorchSupported,
+    toggleTorch,
   };
 };
