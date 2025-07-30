@@ -310,7 +310,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   
 
   const refreshUserProfile = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('refreshUserProfile: No user found');
+      return;
+    }
+    
+    console.log('refreshUserProfile: Starting refresh for user:', user.id);
     
     try {
       const { data: userProfileData, error: userProfileError } = await supabase
@@ -319,8 +324,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         .eq('user_id', user.id)
         .single();
       
+      console.log('refreshUserProfile: Got data:', userProfileData);
+      
       if (userProfileData) {
         setUserProfile(userProfileData);
+        console.log('refreshUserProfile: Updated userProfile state');
       }
       
       if (userProfileError) {

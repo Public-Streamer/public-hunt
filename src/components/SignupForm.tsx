@@ -517,8 +517,10 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                   .update({ profile_picture_url: cacheBustedUrl })
                   .eq('user_id', user.id);
 
+                console.log('Profile picture uploaded, calling refreshUserProfile...');
                 // Refresh the user profile in context to show the new picture immediately
                 await refreshUserProfile();
+                console.log('refreshUserProfile completed');
               }
             }
           } catch (photoError) {
