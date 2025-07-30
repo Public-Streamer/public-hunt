@@ -101,6 +101,8 @@ const Index: React.FC = () => {
     setCurrentView('stage');
   };
 
+  console.log(events);
+
   if (currentView === 'stage' && selectedEvent) {
     const event = events.find(e => e.id === selectedEvent);
     return (
