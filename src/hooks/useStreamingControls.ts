@@ -56,6 +56,119 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
 
   const navigate = useNavigate();
 
+  // Helper function to update participant live status
+  const updateParticipantLiveStatus = useCallback(
+    async (status: boolean) => {
+      try {
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession();
+        if (sessionError || !session) return;
+
+        const { error } = await supabase
+          .from("event_participants")
+          .update({ is_live: status, is_active: status })
+          .match({
+            event_id: eventId,
+            user_id: session.user.id,
+          });
+
+        if (error) {
+          console.error("Error updating participant live status:", error);
+        }
+      } catch (error) {
+        console.error("Error updating participant live status:", error);
+      }
+    },
+    [eventId]
+  );
+
+  const checkAndUpdateLiveStatus =
+    useCallback(async (): Promise<LiveStatusResult | null> => {
+      try {
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession();
+        if (sessionError || !session) return null;
+
+        // Use a database transaction with advisory lock to prevent race conditions
+        const { data, error } = await supabase.rpc(
+          "update_event_live_status_atomic" as any,
+          {
+            p_event_id: eventId,
+          }
+        );
+
+        if (error) {
+          console.error("Error in atomic live status update:", error);
+          return null;
+        }
+
+        // Extract the result from the returned data
+        const result = Array.isArray(data) ? data[0] : data;
+        return result as LiveStatusResult;
+      } catch (error) {
+        console.error("Error updating event live status:", error);
+        return null;
+      }
+    }, [eventId]);
+
+  // Cleanup function for stopping stream on disconnect
+  const cleanupStream = useCallback(async () => {
+    if (isStreaming || goLive) {
+      console.log("🚨 CLEANUP: Force stopping stream due to page unload/disconnect");
+      try {
+        setIsStreaming(false);
+        setGoLive(false);
+        
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          // Update participant status
+          await updateParticipantLiveStatus(false);
+          
+          // Deactivate event streams  
+          await supabase
+            .from("event_streams")
+            .update({ is_active: false })
+            .eq("event_id", eventId)
+            .eq("streamer_id", session.user.id);
+          
+          // Check if event should be marked as not live
+          await checkAndUpdateLiveStatus();
+        }
+      } catch (error) {
+        console.error("Error during cleanup:", error);
+      }
+    }
+  }, [isStreaming, goLive, eventId, updateParticipantLiveStatus, checkAndUpdateLiveStatus]);
+
+  // Add beforeunload event listener for page refresh/close detection
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (isStreaming || goLive) {
+        // Run cleanup synchronously since async won't work in beforeunload
+        cleanupStream();
+        
+        // Show browser confirmation dialog
+        event.preventDefault();
+        return (event.returnValue = "You are currently streaming. Are you sure you want to leave?");
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isStreaming, goLive, cleanupStream]);
+
+  // Add component unmount cleanup
+  useEffect(() => {
+    return () => {
+      // Cleanup when component unmounts
+      cleanupStream();
+    };
+  }, [cleanupStream]);
+
   // Mobile media permissions handler
   const {
     permissionStatus,
@@ -434,97 +547,6 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
     getCameraType,
   ]);
 
-  // Helper function to update participant live status
-  const updateParticipantLiveStatus = useCallback(
-    async (status: boolean) => {
-      try {
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession();
-        if (sessionError || !session) return;
-
-        const { error } = await supabase
-          .from("event_participants")
-          .update({ is_live: status, is_active: status })
-          .match({
-            event_id: eventId,
-            user_id: session.user.id,
-          });
-
-        if (error) {
-          console.error("Error updating participant live status:", error);
-        }
-      } catch (error) {
-        console.error("Error updating participant live status:", error);
-      }
-    },
-    [eventId]
-  );
-
-  // Helper function to create event participant record
-  // const createEventParticipant = useCallback(
-  //   async (role: "host" | "streamer" | "viewer") => {
-  //     try {
-  //       const {
-  //         data: { session },
-  //         error: sessionError,
-  //       } = await supabase.auth.getSession();
-  //       if (sessionError || !session) return;
-
-  //       const { error } = await supabase.from("event_participants").upsert(
-  //         {
-  //           event_id: eventId,
-  //           user_id: session.user.id,
-  //           role: role,
-  //           is_active: true,
-  //           is_live: true,
-  //         },
-  //         {
-  //           onConflict: "event_id,user_id",
-  //         }
-  //       );
-
-  //       if (error) {
-  //         console.error("Error creating event participant:", error);
-  //       }
-  //     } catch (error) {
-  //       console.error("Error creating event participant:", error);
-  //     }
-  //   },
-  //   [eventId]
-  // );
-
-  const checkAndUpdateLiveStatus =
-    useCallback(async (): Promise<LiveStatusResult | null> => {
-      try {
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession();
-        if (sessionError || !session) return null;
-
-        // Use a database transaction with advisory lock to prevent race conditions
-        const { data, error } = await supabase.rpc(
-          "update_event_live_status_atomic" as any,
-          {
-            p_event_id: eventId,
-          }
-        );
-
-        if (error) {
-          console.error("Error in atomic live status update:", error);
-          return null;
-        }
-
-        // Extract the result from the returned data
-        const result = Array.isArray(data) ? data[0] : data;
-        return result as LiveStatusResult;
-      } catch (error) {
-        console.error("Error updating event live status:", error);
-        return null;
-      }
-    }, [eventId]);
 
   // Safety check for room context
   if (!room || !localParticipant) {
