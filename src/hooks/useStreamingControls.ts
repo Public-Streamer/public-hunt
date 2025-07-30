@@ -107,7 +107,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
     );
   }, [videoDevices, currentCamera, currentFacingMode]);
 
-  // Helper function to detect camera type from device info
+  // Enhanced helper function to detect camera type from device info for Android devices
   const getCameraType = useCallback(
     (device: MediaDeviceInfo): "user" | "environment" | "unknown" => {
       const label = device.label.toLowerCase();
@@ -124,33 +124,110 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
             containsBack: label.includes("back"),
             containsRear: label.includes("rear"),
             containsEnvironment: label.includes("environment"),
+            // Android-specific patterns
+            containsCamera2_0: label.includes("camera2 0"),
+            containsCamera2_1: label.includes("camera2 1"),
+            containsCamera_0: label.includes("camera 0"),
+            containsCamera_1: label.includes("camera 1"),
           },
           null,
           2
         )
       );
 
+      // Standard front camera detection
       if (
         label.includes("front") ||
         label.includes("user") ||
         label.includes("facing")
       ) {
-        console.log("📱 MOBILE DEBUG - Classified as USER camera");
+        console.log("📱 MOBILE DEBUG - Classified as USER camera (standard)");
         return "user";
       }
+
+      // Standard back camera detection
       if (
         label.includes("back") ||
         label.includes("rear") ||
         label.includes("environment")
       ) {
-        console.log("📱 MOBILE DEBUG - Classified as ENVIRONMENT camera");
+        console.log("📱 MOBILE DEBUG - Classified as ENVIRONMENT camera (standard)");
         return "environment";
       }
+
+      // Android-specific camera detection patterns
+      // On most Android devices: camera2 0 = back, camera2 1 = front
+      // On some devices: camera 0 = back, camera 1 = front
+      if (label.includes("camera2 0") || label.includes("camera 0")) {
+        console.log("📱 MOBILE DEBUG - Classified as ENVIRONMENT camera (Android numeric - camera 0)");
+        return "environment";
+      }
+      
+      if (label.includes("camera2 1") || label.includes("camera 1")) {
+        console.log("📱 MOBILE DEBUG - Classified as USER camera (Android numeric - camera 1)");
+        return "user";
+      }
+
+      // Fallback: Use device enumeration order for Android devices with generic labels
+      const isAndroid = /Android/.test(navigator.userAgent);
+      if (isAndroid && videoDevices.length >= 2) {
+        const deviceIndex = videoDevices.findIndex(d => d.deviceId === device.deviceId);
+        if (deviceIndex === 0) {
+          console.log("📱 MOBILE DEBUG - Classified as USER camera (Android fallback - first device)");
+          return "user";
+        } else if (deviceIndex === 1) {
+          console.log("📱 MOBILE DEBUG - Classified as ENVIRONMENT camera (Android fallback - second device)");
+          return "environment";
+        }
+      }
+
       console.log("📱 MOBILE DEBUG - Classified as UNKNOWN camera");
       return "unknown";
     },
-    []
+    [videoDevices]
   );
+
+  // Sync currentFacingMode with the actual active camera from LiveKit
+  useEffect(() => {
+    if (!currentCamera || videoDevices.length === 0) {
+      console.log("📱 MOBILE DEBUG - Camera sync skipped: no current camera or devices");
+      return;
+    }
+
+    const activeCamera = videoDevices.find(device => device.deviceId === currentCamera);
+    if (!activeCamera) {
+      console.log("📱 MOBILE DEBUG - Camera sync skipped: active camera not found in device list");
+      return;
+    }
+
+    const detectedFacingMode = getCameraType(activeCamera);
+    if (detectedFacingMode !== "unknown" && detectedFacingMode !== currentFacingMode) {
+      console.log(
+        "📱 MOBILE DEBUG - Camera sync: Updating facing mode",
+        JSON.stringify({
+          previousFacingMode: currentFacingMode,
+          detectedFacingMode: detectedFacingMode,
+          activeCamera: {
+            deviceId: activeCamera.deviceId,
+            label: activeCamera.label,
+          },
+        }, null, 2)
+      );
+      setCurrentFacingMode(detectedFacingMode);
+    } else {
+      console.log(
+        "📱 MOBILE DEBUG - Camera sync: No change needed",
+        JSON.stringify({
+          currentFacingMode: currentFacingMode,
+          detectedFacingMode: detectedFacingMode,
+          activeCamera: {
+            deviceId: activeCamera.deviceId,
+            label: activeCamera.label,
+          },
+        }, null, 2)
+      );
+    }
+  }, [currentCamera, videoDevices, getCameraType, currentFacingMode]);
 
   // Enhanced camera switching with LiveKit hooks
   const switchCamera = useCallback(async () => {
