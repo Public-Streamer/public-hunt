@@ -132,8 +132,8 @@ serve(async (req) => {
     // Create account onboarding link
     const accountLink = await stripe.accountLinks.create({
       account: account.id,
-      refresh_url: `${req.headers.get("origin")}/payment-setup?refresh=true`,
-      return_url: `${req.headers.get("origin")}/payment-setup?success=true`,
+      refresh_url: `${req.headers.get("origin")}/payments?refresh=true`,
+      return_url: `${req.headers.get("origin")}/payments?success=true`,
       type: "account_onboarding",
     });
 
