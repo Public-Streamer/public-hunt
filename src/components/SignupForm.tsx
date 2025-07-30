@@ -487,6 +487,43 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
       );
       
       if (result && !result.error) {
+        // Handle profile photo upload after successful account creation
+        if (signupData.profilePhoto) {
+          try {
+            // Get the current user to get their ID
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+              // Upload to Supabase storage with timestamp for cache busting
+              const fileExt = signupData.profilePhoto.name.split('.').pop();
+              const timestamp = Date.now();
+              const fileName = `${user.id}-avatar-${timestamp}.${fileExt}`;
+              const filePath = `avatars/${fileName}`;
+
+              const { error: uploadError } = await supabase.storage
+                .from('media')
+                .upload(filePath, signupData.profilePhoto);
+
+              if (!uploadError) {
+                // Get public URL with cache busting parameter
+                const { data: urlData } = supabase.storage
+                  .from('media')
+                  .getPublicUrl(filePath);
+                
+                const cacheBustedUrl = `${urlData.publicUrl}?t=${timestamp}`;
+
+                // Update profile with new profile picture
+                await supabase
+                  .from('user_profiles')
+                  .update({ profile_picture_url: cacheBustedUrl })
+                  .eq('user_id', user.id);
+              }
+            }
+          } catch (photoError) {
+            console.error('Error uploading profile photo:', photoError);
+            // Don't block account creation if photo upload fails
+          }
+        }
+
         toast({
           title: "Account created successfully!",
           description: "Welcome to Public Streamer.",
