@@ -786,6 +786,53 @@ export type Database = {
           },
         ]
       }
+      event_chat_messages: {
+        Row: {
+          created_at: string | null
+          display_name: string
+          event_id: string
+          id: string
+          message: string
+          message_type: string | null
+          profile_picture_url: string | null
+          sequence_number: number | null
+          user_id: string | null
+          username: string
+        }
+        Insert: {
+          created_at?: string | null
+          display_name: string
+          event_id: string
+          id?: string
+          message: string
+          message_type?: string | null
+          profile_picture_url?: string | null
+          sequence_number?: number | null
+          user_id?: string | null
+          username: string
+        }
+        Update: {
+          created_at?: string | null
+          display_name?: string
+          event_id?: string
+          id?: string
+          message?: string
+          message_type?: string | null
+          profile_picture_url?: string | null
+          sequence_number?: number | null
+          user_id?: string | null
+          username?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_chat_messages_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_participants: {
         Row: {
           event_id: string
@@ -1416,51 +1463,6 @@ export type Database = {
           stripe_payment_intent_id?: string | null
           user_id?: string | null
           verification_status?: string | null
-        }
-        Relationships: []
-      }
-      user_accounts: {
-        Row: {
-          age_verified: boolean | null
-          birth_date: string
-          created_at: string | null
-          email: string
-          first_name: string
-          id: string
-          last_name: string
-          payment_verified: boolean | null
-          signup_fee_paid: boolean | null
-          transaction_id: string | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          age_verified?: boolean | null
-          birth_date: string
-          created_at?: string | null
-          email: string
-          first_name: string
-          id?: string
-          last_name: string
-          payment_verified?: boolean | null
-          signup_fee_paid?: boolean | null
-          transaction_id?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          age_verified?: boolean | null
-          birth_date?: string
-          created_at?: string | null
-          email?: string
-          first_name?: string
-          id?: string
-          last_name?: string
-          payment_verified?: boolean | null
-          signup_fee_paid?: boolean | null
-          transaction_id?: string | null
-          updated_at?: string | null
-          user_id?: string | null
         }
         Relationships: []
       }
