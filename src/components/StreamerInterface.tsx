@@ -433,7 +433,9 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                   {checkScreenShareSupport() && (
                     <Button
                       onClick={controls.toggleScreenShare}
-                      variant={controls.isScreenSharing ? "default" : "secondary"}
+                      variant={
+                        controls.isScreenSharing ? "default" : "secondary"
+                      }
                       className={`w-full text-xs sm:text-sm ${
                         screenSize === "mobile" ? "col-span-1" : ""
                       }`}
@@ -468,7 +470,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                 )}
 
                 {/* Torch Button - Show in desktop layout */}
-                {screenSize !== "mobile" && (
+                {screenSize !== "desktop" && (
                   <TorchButton
                     isTorchEnabled={controls.isTorchEnabled}
                     isTorchSupported={controls.isTorchSupported}
