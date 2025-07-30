@@ -21,7 +21,11 @@ const TorchButton: React.FC<TorchButtonProps> = ({
   const screenSize = useScreenSize();
 
   // Only show if back camera is active, video is enabled, and torch is supported
-  if (currentFacingMode !== "environment" || !isVideoEnabled || !isTorchSupported) {
+  if (
+    currentFacingMode !== "environment" ||
+    !isVideoEnabled ||
+    !isTorchSupported
+  ) {
     return null;
   }
 
@@ -30,17 +34,17 @@ const TorchButton: React.FC<TorchButtonProps> = ({
       onClick={onToggleTorch}
       variant={isTorchEnabled ? "default" : "secondary"}
       className="w-full text-xs sm:text-sm"
-      size={screenSize === "mobile" ? "sm" : "default"}
+      size={"sm"}
     >
       {isTorchEnabled ? (
         <>
           <Flashlight className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-          {screenSize === "mobile" ? "Torch" : "Torch On"}
+          {"Torch On"}
         </>
       ) : (
         <>
           <FlashlightOff className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-          {screenSize === "mobile" ? "Torch" : "Torch Off"}
+          {"Torch Off"}
         </>
       )}
     </Button>
