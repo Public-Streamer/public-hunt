@@ -727,41 +727,68 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
     requestScreenShare,
   ]);
 
-  // Check torch support
+  // Check torch support using the actual video track capabilities
   useEffect(() => {
     const checkTorchSupport = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "environment" },
-        });
+      console.log('[Torch] Checking torch support for facingMode:', currentFacingMode);
+      
+      if (currentFacingMode !== 'environment') {
+        console.log('[Torch] Not environment camera, setting torch support to false');
+        setIsTorchSupported(false);
+        setIsTorchEnabled(false);
+        return;
+      }
 
-        const videoTrack = stream.getVideoTracks()[0];
-        if (videoTrack) {
-          const capabilities = videoTrack.getCapabilities();
-          setIsTorchSupported("torch" in capabilities);
-          videoTrack.stop();
+      try {
+        // Get the native MediaStreamTrack from LiveKit's video track
+        const cameraPublication = localParticipant?.getTrackPublication(Track.Source.Camera);
+        const videoTrack = cameraPublication?.track;
+        
+        if (!videoTrack || !('mediaStreamTrack' in videoTrack)) {
+          console.log('[Torch] No video track or mediaStreamTrack available for torch check');
+          setIsTorchSupported(false);
+          return;
         }
-        stream.getTracks().forEach((track) => track.stop());
+
+        const nativeTrack = (videoTrack as any).mediaStreamTrack;
+        console.log('[Torch] Native track found:', nativeTrack);
+
+        // Check capabilities on the native track
+        if (typeof nativeTrack.getCapabilities === 'function') {
+          const capabilities = nativeTrack.getCapabilities();
+          console.log('[Torch] Track capabilities:', capabilities);
+          
+          const torchSupported = capabilities.torch === true;
+          console.log('[Torch] Torch supported:', torchSupported);
+          setIsTorchSupported(torchSupported);
+        } else {
+          console.log('[Torch] getCapabilities not supported');
+          setIsTorchSupported(false);
+        }
       } catch (error) {
-        console.log("Torch support check failed:", error);
+        console.warn('[Torch] Error checking torch support:', error);
         setIsTorchSupported(false);
       }
     };
 
-    if (currentFacingMode === "environment") {
+    // Only check when we have a video track and are using environment camera
+    if (localParticipant && currentFacingMode === 'environment') {
       checkTorchSupport();
     } else {
       setIsTorchSupported(false);
       setIsTorchEnabled(false);
     }
-  }, [currentFacingMode]);
+  }, [currentFacingMode, localParticipant]);
 
   const toggleTorch = useCallback(async () => {
+    console.log('[Torch] Toggle requested, current state:', isTorchEnabled);
+    
     if (
       !localParticipant ||
       currentFacingMode !== "environment" ||
       !isTorchSupported
     ) {
+      console.log('[Torch] Torch toggle blocked - missing requirements');
       return;
     }
 
@@ -772,20 +799,36 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       const cameraPublication = localParticipant.getTrackPublication(
         Track.Source.Camera
       );
-      if (cameraPublication?.track) {
-        const videoTrack = cameraPublication.track as any;
-
-        // Apply torch constraint to the existing track
-        await videoTrack.applyConstraints({
-          advanced: [{ torch: newTorchState }],
-        });
-
-        setIsTorchEnabled(newTorchState);
-        toast.success(`Torch ${newTorchState ? "on" : "off"}`);
+      
+      if (!cameraPublication?.track || !('mediaStreamTrack' in cameraPublication.track)) {
+        console.warn('[Torch] No video track or mediaStreamTrack available for torch control');
+        return;
       }
+
+      const nativeTrack = (cameraPublication.track as any).mediaStreamTrack;
+      console.log('[Torch] Applying constraints to native track:', { torch: newTorchState });
+
+      // Try the standard constraint format first
+      try {
+        await nativeTrack.applyConstraints({ torch: newTorchState });
+        console.log('[Torch] Standard constraint applied successfully');
+      } catch (standardError) {
+        console.warn('[Torch] Standard constraint failed, trying advanced format:', standardError);
+        
+        // Fallback to advanced constraint format
+        await nativeTrack.applyConstraints({
+          advanced: [{ torch: newTorchState }]
+        });
+        console.log('[Torch] Advanced constraint applied successfully');
+      }
+
+      setIsTorchEnabled(newTorchState);
+      toast.success(`Torch ${newTorchState ? "on" : "off"}`);
+      console.log(`[Torch] Successfully ${newTorchState ? 'enabled' : 'disabled'} torch`);
     } catch (error) {
-      console.error("Failed to toggle torch:", error);
+      console.error('[Torch] Error toggling torch:', error);
       toast.error("Failed to toggle torch");
+      // Don't update state if constraint application failed
     }
   }, [localParticipant, currentFacingMode, isTorchEnabled, isTorchSupported]);
 
