@@ -26,6 +26,13 @@ const TorchButton: React.FC<TorchButtonProps> = ({
     !isVideoEnabled ||
     !isTorchSupported
   ) {
+    console.log(
+      JSON.stringify({
+        currentFacingMode,
+        isVideoEnabled,
+        isTorchSupported,
+      })
+    );
     return null;
   }
 
