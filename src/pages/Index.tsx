@@ -127,32 +127,32 @@ const Index: React.FC = () => {
       <LiveEventSpotlight />
 
       {/* Trending Channels */}
-      <TrendingChannels />
+      {/* <TrendingChannels /> */}
 
       {/* Upcoming Events */}
-      <UpcomingEvents />
+      {/* <UpcomingEvents /> */}
 
       {/* Live Feed - All live events sorted by popularity */}
-      <LiveFeed />
+      {/* <LiveFeed /> */}
 
       {/* Trending Episodes Carousel */}
-      <TrendingEpisodes />
+      {/* <TrendingEpisodes /> */}
 
       {/* Original EventGrid and LiveNewsFeed in side layout */}
       <div className="py-8">
         <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2">
-              <h2 className="text-2xl font-bold mb-6">All Events</h2>
+          <div className="">
+            <div className="">
+              {/* <h2 className="text-2xl font-bold mb-6">All Events</h2> */}
               <EventGrid 
                 events={events}
                 onPurchase={handlePurchase}
                 onWatch={handleWatch}
               />
             </div>
-            <div className="lg:col-span-1">
+            {/* <div className="lg:col-span-1">
               <LiveNewsFeed />
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
