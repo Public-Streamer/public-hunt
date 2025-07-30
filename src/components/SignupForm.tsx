@@ -518,9 +518,11 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                   .eq('user_id', user.id);
 
                 console.log('Profile picture uploaded, calling refreshUserProfile...');
-                // Refresh the user profile in context to show the new picture immediately
-                await refreshUserProfile();
-                console.log('refreshUserProfile completed');
+                // Small delay to ensure auth state has propagated
+                setTimeout(async () => {
+                  await refreshUserProfile();
+                  console.log('refreshUserProfile completed');
+                }, 100);
               }
             }
           } catch (photoError) {
