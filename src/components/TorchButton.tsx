@@ -21,16 +21,20 @@ const TorchButton: React.FC<TorchButtonProps> = ({
   const screenSize = useScreenSize();
 
   // Only show if back camera is active, video is enabled, and torch is supported
-  // if (currentFacingMode !== "environment" || !isVideoEnabled) {
-  //   console.log(
-  //     JSON.stringify({
-  //       currentFacingMode,
-  //       isVideoEnabled,
-  //       isTorchSupported,
-  //     })
-  //   );
-  //   return null;
-  // }
+  if (
+    currentFacingMode !== "environment" ||
+    !isVideoEnabled ||
+    !isTorchSupported
+  ) {
+    console.log(
+      JSON.stringify({
+        currentFacingMode,
+        isVideoEnabled,
+        isTorchSupported,
+      })
+    );
+    return null;
+  }
 
   return (
     <Button
