@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -59,13 +58,16 @@ const App = () => (
                   element={<CompanyProfile />}
                 />
                 <Route path="/login" element={<Login />} />
-                <Route path="/payment-setup" element={<PaymentSetup />} />
+                <Route path="/payments" element={<PaymentSetup />} />
                 <Route path="/past-events" element={<PastEvents />} />
                 <Route path="/my-ads" element={<MyAds />} />
                 <Route path="/advertisers" element={<Advertisers />} />
                 <Route path="/create-ad" element={<CreateAd />} />
                 <Route path="/ad-library" element={<AdLibrary />} />
-                <Route path="/advertiser-dashboard" element={<AdvertiserDashboard />} />
+                <Route
+                  path="/advertiser-dashboard"
+                  element={<AdvertiserDashboard />}
+                />
                 <Route path="/withdraw" element={<WithdrawFunds />} />
                 <Route path="/master-admin" element={<MasterAdmin />} />
                 <Route path="/qa" element={<QA />} />
