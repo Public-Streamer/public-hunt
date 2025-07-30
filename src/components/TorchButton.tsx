@@ -34,17 +34,17 @@ const TorchButton: React.FC<TorchButtonProps> = ({
       onClick={onToggleTorch}
       variant={isTorchEnabled ? "default" : "secondary"}
       className="w-full text-xs sm:text-sm"
-      size={"sm"}
+      size={screenSize === "mobile" ? "sm" : "default"}
     >
       {isTorchEnabled ? (
         <>
           <Flashlight className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-          {"Torch On"}
+          {screenSize === "mobile" ? "Torch" : "Torch On"}
         </>
       ) : (
         <>
           <FlashlightOff className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-          {"Torch Off"}
+          {screenSize === "mobile" ? "Torch" : "Torch Off"}
         </>
       )}
     </Button>

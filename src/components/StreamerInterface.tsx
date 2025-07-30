@@ -470,7 +470,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                 )}
 
                 {/* Torch Button - Show in desktop layout */}
-                {screenSize !== "desktop" && (
+                {screenSize !== "mobile" && (
                   <TorchButton
                     isTorchEnabled={controls.isTorchEnabled}
                     isTorchSupported={controls.isTorchSupported}
