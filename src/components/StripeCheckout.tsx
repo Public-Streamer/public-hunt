@@ -136,6 +136,48 @@ const CheckoutForm: React.FC<StripeCheckoutProps> = ({
           description: error.message || "Please try again.",
           variant: "destructive",
         });
+      } else if (paymentIntent?.status === "succeeded") {
+        // Create ticket immediately after successful payment
+        try {
+          const { data: user } = await supabase.auth.getUser();
+          if (user.user) {
+            const { error: ticketError } = await supabase
+              .from("tickets")
+              .insert({
+                event_id: eventId,
+                user_id: user.user.id,
+                payment_id: paymentIntent.id,
+                stripe_payment_intent_id: paymentIntent.id,
+                amount: price,
+                status: "active",
+              });
+
+            if (ticketError) {
+              console.error("Error creating ticket:", ticketError);
+              toast({
+                title: "Payment Successful, Ticket Creation Failed",
+                description: "Payment was successful but there was an issue creating your ticket. Please contact support.",
+                variant: "destructive",
+              });
+              return;
+            }
+          }
+        } catch (ticketError) {
+          console.error("Error creating ticket:", ticketError);
+          toast({
+            title: "Payment Successful, Ticket Creation Failed", 
+            description: "Payment was successful but there was an issue creating your ticket. Please contact support.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        toast({
+          title: "Payment Successful",
+          description: "Your ticket has been purchased successfully!",
+          variant: "default",
+        });
+        onSuccess();
       }
     } catch (error) {
       console.error("Payment error:", error);
