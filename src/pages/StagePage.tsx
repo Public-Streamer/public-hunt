@@ -278,13 +278,11 @@ const StagePage: React.FC = () => {
 
   if (!user) {
     const redirectUrl = window.location.pathname + window.location.search;
-
-    const redirectWithToken = inviteToken
-      ? `${redirectUrl}${
-          redirectUrl.includes("?") ? "&" : "?"
-        }token=${inviteToken}`
+  
+    const redirectWithToken = inviteToken 
+      ? `${redirectUrl}${redirectUrl.includes('?') ? '&' : '?'}token=${inviteToken}`
       : redirectUrl;
-
+    
     return (
       <Navigate
         to={`/login?redirect=${encodeURIComponent(redirectWithToken)}`}
