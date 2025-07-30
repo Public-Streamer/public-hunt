@@ -13,7 +13,6 @@ import FollowButton from '@/components/FollowButton';
 import SocialShareMenu from '@/components/SocialShareMenu';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
-import { useAppContext } from '@/contexts/AppContext';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -63,7 +62,6 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
   const [profilePictureUploading, setProfilePictureUploading] = useState(false);
   const [profilePicturePreview, setProfilePicturePreview] = useState<string | null>(null);
   const { toast } = useToast();
-  const { refreshUserProfile } = useAppContext();
   
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileFormSchema),
@@ -230,9 +228,6 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
         .eq('user_id', profile.user_id);
 
       if (result.error) throw result.error;
-      
-      // Refresh the user profile in context to show the new picture immediately
-      await refreshUserProfile();
       
       // Clean up blob URL
       URL.revokeObjectURL(blobUrl);
