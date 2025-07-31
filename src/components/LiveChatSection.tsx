@@ -17,7 +17,7 @@ interface LiveChatSectionProps {
 
 const LiveChatSection: React.FC<LiveChatSectionProps> = ({ className, eventId }) => {
   const { chatMessages, send } = useChat();
-  const { user } = useAppContext();
+  const { userProfile } = useAppContext();
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -41,14 +41,14 @@ const LiveChatSection: React.FC<LiveChatSectionProps> = ({ className, eventId })
       await send(messageContent);
       
       // Persist to Supabase (parallel operation, don't block chat if it fails)
-      if (user && eventId) {
+      if (userProfile && eventId) {
         try {
           await supabase.from('event_chat_messages').insert([{
             event_id: eventId,
-            user_id: user.id,
-            username: user.email || 'unknown',
-            display_name: user.email?.split('@')[0] || 'Anonymous',
-            profile_picture_url: null,
+            user_id: userProfile.user_id,
+            username: userProfile.username || 'unknown',
+            display_name: userProfile.display_name || 'Anonymous',
+            profile_picture_url: userProfile.profile_picture_url || null,
             message: messageContent,
             message_type: 'user'
           }]);
