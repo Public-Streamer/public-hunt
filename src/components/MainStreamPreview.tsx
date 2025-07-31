@@ -34,7 +34,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
   isMuted,
   eventId,
 }) => {
-  const { user } = useAppContext();
+  const { userProfile } = useAppContext();
   const { chatMessages, send } = useChat();
   console.log("Chat messages received:", chatMessages);
   console.log("Chat send function:", send);
@@ -82,10 +82,10 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
       try {
         await supabase.from('event_chat_messages').insert([{
           event_id: eventId,
-          user_id: user?.id ?? null,
-          username: user?.email || 'unknown',
-          display_name: user?.email?.split('@')[0] || 'Anonymous',
-          profile_picture_url: null,
+          user_id: userProfile?.id ?? null,
+          username: userProfile?.username || 'unknown',
+          display_name: userProfile?.display_name || 'Anonymous',
+          profile_picture_url: userProfile?.profile_picture_url || null,
           message: messageContent,
           message_type: 'user'
         }]);
