@@ -67,7 +67,7 @@ serve(async (req) => {
           refresh_url: `${req.headers.get(
             "origin"
           )}/payment-setup?refresh=true`,
-          return_url: `${req.headers.get("origin")}/payment-setup?success=true`,
+          return_url: `${req.headers.get("origin")}/payments?success=true`,
           type: "account_onboarding",
         });
 
