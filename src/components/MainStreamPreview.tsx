@@ -1,21 +1,15 @@
 import React, { useEffect, useState, useRef } from "react";
 import {
-  useTracks,
   VideoTrack,
-  RoomAudioRenderer,
-  AudioTrack,
-  useChat,
 } from "@livekit/components-react";
 import {
   TrackReference,
-  TrackReferencePlaceholder,
 } from "@livekit/components-core";
 import { Badge } from "@/components/ui/badge";
-import { Video, Mic, MicOff, VolumeX, Volume2, Send, MessageCircle, X, Plane, Maximize, Minimize } from "lucide-react";
+import { Video, MessageCircle, X, Plane, Maximize, Minimize } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { supabase } from "@/integrations/supabase/client";
-import { useAppContext } from "@/contexts/AppContext";
+import { useSupabaseChatMessages } from "@/hooks/useSupabaseChatMessages";
 
 interface MainStreamPreviewProps {
   track?: TrackReference;
@@ -34,10 +28,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
   isMuted,
   eventId,
 }) => {
-  const { userProfile } = useAppContext();
-  const { chatMessages, send } = useChat();
-  console.log("Chat messages received:", chatMessages);
-  console.log("Chat send function:", send);
+  const { messages, sendMessage } = useSupabaseChatMessages(eventId);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const videoContainerRef = useRef<HTMLDivElement>(null);
   const videoElementRef = useRef<HTMLVideoElement>(null);
@@ -62,36 +53,23 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
       chatContainerRef.current.scrollTop =
         chatContainerRef.current.scrollHeight;
     }
-  }, [chatMessages]);
+  }, [messages]);
 
   // Show only the latest 5 messages for better readability
   useEffect(() => {
-    const latest = chatMessages.slice(-5);
+    const latest = messages.slice(-5);
     setVisibleMessages(latest);
-  }, [chatMessages]);
+  }, [messages]);
 
   const handleSendMessage = async () => {
-    if (chatMessage.trim() && send) {
+    if (chatMessage.trim()) {
       const messageContent = chatMessage.trim();
       
-      // Send via LiveKit (real-time)
-      send(messageContent);
-      setChatMessage("");
-
-      // Persist to Supabase (parallel, non-blocking)
       try {
-        await supabase.from('event_chat_messages').insert([{
-          event_id: eventId,
-          user_id: userProfile?.user_id ?? null,
-          username: userProfile?.username || 'unknown',
-          display_name: userProfile?.display_name || 'Anonymous',
-          profile_picture_url: userProfile?.profile_picture_url || null,
-          message: messageContent,
-          message_type: 'user'
-        }]);
+        await sendMessage(messageContent);
+        setChatMessage("");
       } catch (error) {
-        console.error('Failed to persist chat message to Supabase:', error);
-        // Don't block the user experience - LiveKit chat continues
+        console.error('Failed to send chat message:', error);
       }
     }
   };
@@ -354,7 +332,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
                 >
                   <div className="flex flex-col">
                     <span className="font-semibold text-blue-200 text-xs sm:text-sm leading-tight truncate max-w-full">
-                      {message.from?.name || message.from?.identity || "Anonymous"}
+                      {message.display_name || "Anonymous"}
                     </span>
                     <span className="text-white text-xs sm:text-sm leading-relaxed break-words">
                       {message.message}
