@@ -77,8 +77,11 @@ export const useSupabaseChatMessages = (eventId: string) => {
 
     fetchMessages();
 
+    // Create unique channel name per hook instance to avoid conflicts
+    const channelName = `event-chat-messages-${eventId}-${Date.now()}-${Math.random()}`;
+    
     const channel = supabase
-      .channel('event-chat-changes')
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
