@@ -16,6 +16,7 @@ interface ChatMessage {
 export const useSupabaseChatMessages = (eventId: string) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('connecting');
   const { userProfile, isAuthenticated } = useAppContext();
 
   // Fetch existing messages
@@ -75,10 +76,14 @@ export const useSupabaseChatMessages = (eventId: string) => {
   useEffect(() => {
     if (!eventId) return;
 
+    console.log(`🚀 [Chat-${eventId}] Setting up real-time subscription for event:`, eventId);
+    setConnectionStatus('connecting');
+
     fetchMessages();
 
     // Create unique channel name per hook instance to avoid conflicts
     const channelName = `event-chat-messages-${eventId}-${Date.now()}-${Math.random()}`;
+    console.log(`📡 [Chat-${eventId}] Creating channel:`, channelName);
     
     const channel = supabase
       .channel(channelName)
@@ -91,14 +96,36 @@ export const useSupabaseChatMessages = (eventId: string) => {
           filter: `event_id=eq.${eventId}`
         },
         (payload) => {
+          console.log(`✅ [Chat-${eventId}] Received real-time message:`, payload.new);
           const newMessage = payload.new as ChatMessage;
-          setMessages(prev => [...prev, newMessage]);
+          setMessages(prev => {
+            const updated = [...prev, newMessage];
+            console.log(`📝 [Chat-${eventId}] Updated messages count:`, updated.length);
+            return updated;
+          });
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log(`🔄 [Chat-${eventId}] Subscription status:`, status);
+        if (status === 'SUBSCRIBED') {
+          setConnectionStatus('connected');
+          console.log(`🎉 [Chat-${eventId}] Successfully subscribed to real-time updates`);
+        } else if (status === 'CHANNEL_ERROR') {
+          setConnectionStatus('error');
+          console.error(`❌ [Chat-${eventId}] Channel subscription error`);
+        } else if (status === 'TIMED_OUT') {
+          setConnectionStatus('error');
+          console.error(`⏰ [Chat-${eventId}] Channel subscription timed out`);
+        } else if (status === 'CLOSED') {
+          setConnectionStatus('disconnected');
+          console.log(`🔌 [Chat-${eventId}] Channel subscription closed`);
+        }
+      });
 
     return () => {
+      console.log(`🧹 [Chat-${eventId}] Cleaning up subscription for channel:`, channelName);
       supabase.removeChannel(channel);
+      setConnectionStatus('disconnected');
     };
   }, [eventId, fetchMessages]);
 
@@ -106,6 +133,7 @@ export const useSupabaseChatMessages = (eventId: string) => {
     messages,
     loading,
     sendMessage,
-    canSend: isAuthenticated && userProfile
+    canSend: isAuthenticated && userProfile,
+    connectionStatus
   };
 };
