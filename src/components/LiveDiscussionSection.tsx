@@ -37,6 +37,7 @@ const LiveDiscussionSection: React.FC<LiveDiscussionSectionProps> = ({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
   const emojiButtonRef = useRef<HTMLButtonElement>(null);
+  const { user } = useAppContext();
 
   // Close emoji picker when clicking outside
   useEffect(() => {
@@ -79,8 +80,7 @@ const LiveDiscussionSection: React.FC<LiveDiscussionSectionProps> = ({
       
       // Persist to Supabase (parallel operation, don't block chat if it fails)
       if (eventId) {
-        try {
-          const { user } = useAppContext();
+        try { 
           await supabase.from('event_chat_messages').insert([{
             event_id: eventId,
             user_id: user?.id ?? null,
