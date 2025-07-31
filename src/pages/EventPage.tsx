@@ -487,6 +487,7 @@ const EventPage: React.FC = () => {
                     livekitToken &&
                     (hasTicket || canEnterStage) && (
                       <LiveDiscussionSection 
+                        eventId={eventId}
                         userProfile={currentUserProfile ? {
                           id: currentUserProfile.id,
                           username: currentUserProfile.display_name || 'User',

@@ -7,13 +7,17 @@ import { MessageCircle, Send, Plane } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useChat } from "@livekit/components-react";
 import { ReceivedChatMessage } from "@livekit/components-core";
+import { supabase } from "@/integrations/supabase/client";
+import { useAppContext } from "@/contexts/AppContext";
 
 interface LiveChatSectionProps {
   className?: string;
+  eventId: string;
 }
 
-const LiveChatSection: React.FC<LiveChatSectionProps> = ({ className }) => {
+const LiveChatSection: React.FC<LiveChatSectionProps> = ({ className, eventId }) => {
   const { chatMessages, send } = useChat();
+  const { user } = useAppContext();
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -30,8 +34,30 @@ const LiveChatSection: React.FC<LiveChatSectionProps> = ({ className }) => {
     if (!newMessage.trim() || loading || !send) return;
 
     setLoading(true);
+    const messageContent = newMessage.trim();
+    
     try {
-      await send(newMessage.trim());
+      // Send via LiveKit (existing functionality)
+      await send(messageContent);
+      
+      // Persist to Supabase (parallel operation, don't block chat if it fails)
+      if (user && eventId) {
+        try {
+          await supabase.from('event_chat_messages').insert([{
+            event_id: eventId,
+            user_id: user.id,
+            username: user.email || 'unknown',
+            display_name: user.email?.split('@')[0] || 'Anonymous',
+            profile_picture_url: null,
+            message: messageContent,
+            message_type: 'user'
+          }]);
+        } catch (dbError) {
+          console.error("Failed to persist message to database:", dbError);
+          // Don't block the chat experience
+        }
+      }
+      
       setNewMessage("");
     } catch (error) {
       console.error("Failed to send message:", error);

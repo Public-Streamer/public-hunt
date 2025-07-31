@@ -8,6 +8,7 @@ import Picker from '@emoji-mart/react';
 import { MessageCircle, Send, Smile } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAppContext } from "@/contexts/AppContext";
+import { supabase } from "@/integrations/supabase/client";
 import TooltipWrapper from "@/components/ui/tooltip-wrapper";
 import { formatDistanceToNow } from "date-fns";
 import { ReceivedChatMessage } from "@livekit/components-core";
@@ -15,6 +16,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useChat } from "@livekit/components-react";
 
 interface LiveDiscussionSectionProps {
+  eventId: string;
   userProfile?: {
     id: string;
     username: string;
@@ -24,6 +26,7 @@ interface LiveDiscussionSectionProps {
 }
 
 const LiveDiscussionSection: React.FC<LiveDiscussionSectionProps> = ({
+  eventId,
   userProfile,
 }) => {
   const { chatMessages, send } = useChat();
@@ -68,8 +71,31 @@ const LiveDiscussionSection: React.FC<LiveDiscussionSectionProps> = ({
     if (!newMessage.trim() || !isAuthenticated || loading) return;
 
     setLoading(true);
+    const messageContent = newMessage.trim();
+    
     try {
-      await send(newMessage);
+      // Send via LiveKit (existing functionality)
+      await send(messageContent);
+      
+      // Persist to Supabase (parallel operation, don't block chat if it fails)
+      if (eventId) {
+        try {
+          const { user } = useAppContext();
+          await supabase.from('event_chat_messages').insert([{
+            event_id: eventId,
+            user_id: user?.id ?? null,
+            username: userProfile?.username || user?.email || 'unknown',
+            display_name: userProfile?.display_name || user?.email?.split('@')[0] || 'Anonymous',
+            profile_picture_url: userProfile?.profile_picture_url || null,
+            message: messageContent,
+            message_type: 'user'
+          }]);
+        } catch (dbError) {
+          console.error("Failed to persist message to database:", dbError);
+          // Don't block the chat experience
+        }
+      }
+      
       setNewMessage("");
     } catch (error) {
       console.error("Failed to send message:", error);
