@@ -61,6 +61,8 @@ const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
     }
   };
 
+  console.log(user);
+
   return (
     <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 py-20 transition-colors duration-300">
       <div className="container mx-auto px-4">
