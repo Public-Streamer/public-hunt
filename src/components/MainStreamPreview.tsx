@@ -82,7 +82,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
       try {
         await supabase.from('event_chat_messages').insert([{
           event_id: eventId,
-          user_id: userProfile?.id ?? null,
+          user_id: userProfile?.user_id ?? null,
           username: userProfile?.username || 'unknown',
           display_name: userProfile?.display_name || 'Anonymous',
           profile_picture_url: userProfile?.profile_picture_url || null,
