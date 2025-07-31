@@ -21,6 +21,7 @@ import {
 } from "@livekit/components-react";
 import "@livekit/components-styles";
 import LiveDiscussionSection from "@/components/LiveDiscussionSection";
+import { PreStreamChatArchive } from "@/components/PreStreamChatArchive";
 import MediaDisplay from "@/components/MediaDisplay";
 import ViewerInterface from "@/components/ViewerInterface";
 import OfflineStreamSection from "@/components/OfflineStreamSection";
@@ -527,6 +528,12 @@ const EventPage: React.FC = () => {
                 </div>
               )}
 
+              {/* Pre-Stream Chat Archive for scheduled events */}
+              {!eventData.is_live && (hasTicket || canEnterStage) && (
+                <div className="p-4 border-t border-border/30">
+                  <PreStreamChatArchive eventId={eventId!} />
+                </div>
+              )}
               
             </Card>
 
