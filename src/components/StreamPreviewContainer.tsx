@@ -14,6 +14,7 @@ interface StreamPreviewContainerProps {
   isLive: boolean;
   hasAccess: boolean;
   isLoggedIn: boolean;
+  eventId: string;
 }
 
 const StreamPreviewContainer: React.FC<StreamPreviewContainerProps> = ({
@@ -21,6 +22,7 @@ const StreamPreviewContainer: React.FC<StreamPreviewContainerProps> = ({
   isLive,
   hasAccess,
   isLoggedIn,
+  eventId,
 }) => {
   const [selectedTrackIndex, setSelectedTrackIndex] = useState<number>(0);
   const [isMuted, setIsMuted] = useState(false);
@@ -142,6 +144,7 @@ const StreamPreviewContainer: React.FC<StreamPreviewContainerProps> = ({
         isLive={isLive}
         setIsMuted={setIsMuted}
         isMuted={isMuted}
+        eventId={eventId}
       />
       <StartAudio label="Start Audio" className="btn btn-primary" />
       {/* Streamer grid - only show if there are multiple streamers */}

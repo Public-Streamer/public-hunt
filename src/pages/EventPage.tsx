@@ -468,6 +468,7 @@ const EventPage: React.FC = () => {
                     isLive={eventData.is_live}
                     hasAccess={hasTicket || canEnterStage}
                     isLoggedIn={!!currentUser}
+                    eventId={eventId}
                   />
                   <RoomAudioRenderer />
 

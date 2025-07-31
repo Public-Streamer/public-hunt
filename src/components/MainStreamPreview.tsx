@@ -14,6 +14,8 @@ import { Badge } from "@/components/ui/badge";
 import { Video, Mic, MicOff, VolumeX, Volume2, Send, MessageCircle, X, Plane, Maximize, Minimize } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import { supabase } from "@/integrations/supabase/client";
+import { useAppContext } from "@/contexts/AppContext";
 
 interface MainStreamPreviewProps {
   track?: TrackReference;
@@ -21,6 +23,7 @@ interface MainStreamPreviewProps {
   isLive: boolean;
   setIsMuted: any;
   isMuted: boolean;
+  eventId: string;
 }
 
 const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
@@ -29,7 +32,9 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
   isLive,
   setIsMuted,
   isMuted,
+  eventId,
 }) => {
+  const { user } = useAppContext();
   const { chatMessages, send } = useChat();
   console.log("Chat messages received:", chatMessages);
   console.log("Chat send function:", send);
@@ -65,10 +70,29 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
     setVisibleMessages(latest);
   }, [chatMessages]);
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (chatMessage.trim() && send) {
-      send(chatMessage.trim());
+      const messageContent = chatMessage.trim();
+      
+      // Send via LiveKit (real-time)
+      send(messageContent);
       setChatMessage("");
+
+      // Persist to Supabase (parallel, non-blocking)
+      try {
+        await supabase.from('event_chat_messages').insert([{
+          event_id: eventId,
+          user_id: user?.id ?? null,
+          username: user?.email || 'unknown',
+          display_name: user?.email?.split('@')[0] || 'Anonymous',
+          profile_picture_url: null,
+          message: messageContent,
+          message_type: 'user'
+        }]);
+      } catch (error) {
+        console.error('Failed to persist chat message to Supabase:', error);
+        // Don't block the user experience - LiveKit chat continues
+      }
     }
   };
 
