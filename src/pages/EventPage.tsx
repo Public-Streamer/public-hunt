@@ -474,6 +474,11 @@ const EventPage: React.FC = () => {
                   />
                   <RoomAudioRenderer />
 
+                   {/* Realtime Scoreboard */}
+             <div className="p-5">
+             {currentUser ? <RealtimeScoreboard eventId={eventId} /> : <div className="p-6">Please sign in to view the scoreboard</div>}
+             </div>
+
                   {/* Show full viewer interface below if user has access */}
                   {/* {(hasTicket || canEnterStage) && (
                     <div className="mt-6">
@@ -529,10 +534,7 @@ const EventPage: React.FC = () => {
                 </div>
               )}
 
-              {/* Realtime Scoreboard */}
-             <div className="p-5">
-             {currentUser ? <RealtimeScoreboard eventId={eventId} /> : <div className="p-6">Please sign in to view the scoreboard</div>}
-             </div>
+             
 
               {/* Pre-Stream Chat Archive for scheduled events */}
               {!eventData.is_live && (hasTicket || canEnterStage) && (

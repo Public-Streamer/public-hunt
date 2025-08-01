@@ -165,7 +165,7 @@ export const ScoreboardControls: React.FC<ScoreboardControlsProps> = ({ eventId 
             className="flex-1"
           />
           <Button onClick={createTeam} disabled={loading || !newTeamName.trim()}>
-            <Plus className="h-4 w-4" />
+            <Plus className=" h-2 w-2 md:h-4 md:w-4" />
             Add Team
           </Button>
         </div>
@@ -175,7 +175,7 @@ export const ScoreboardControls: React.FC<ScoreboardControlsProps> = ({ eventId 
           {teams.map((team) => (
             <div
               key={team.id}
-              className="flex items-center gap-3 p-3 border rounded-lg"
+              className="flex  items-center gap-3 p-3 border rounded-lg"
               style={{ borderLeftColor: team.team_color, borderLeftWidth: '4px' }}
             >
               <div className="flex-1">
@@ -185,20 +185,20 @@ export const ScoreboardControls: React.FC<ScoreboardControlsProps> = ({ eventId 
                 </div>
               </div>
               
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-col sm:flex-row ">
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={() => updateScore(team.id, team.score - 1)}
                 >
-                  <Minus className="h-4 w-4" />
+                  <Minus className="h-2 w-2 md:h-4 md:w-4" />
                 </Button>
                 
                 <Input
                   type="number"
                   value={team.score}
                   onChange={(e) => updateScore(team.id, parseInt(e.target.value) || 0)}
-                  className="w-20 text-center"
+                  className="w-20 p-0 text-center"
                   min="0"
                 />
                 
@@ -207,7 +207,7 @@ export const ScoreboardControls: React.FC<ScoreboardControlsProps> = ({ eventId 
                   variant="outline"
                   onClick={() => updateScore(team.id, team.score + 1)}
                 >
-                  <Plus className="h-4 w-4" />
+                  <Plus className="h-2 w-2 md:h-4 md:w-4" />
                 </Button>
                 
                 <Button
