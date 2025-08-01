@@ -39,6 +39,7 @@ import CameraSwitchButton from "@/components/CameraSwitchButton";
 import TorchButton from "@/components/TorchButton";
 import LiveChatSection from "@/components/LiveChatSection";
 import { useMobileMediaPermissions } from "@/hooks/useMobileMediaPermissions";
+import { ScoreboardControls } from "@/components/ScoreboardControls";
 
 interface StreamerInterfaceProps {
   eventId: string;
@@ -538,6 +539,11 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
             {/* Event Share Panel - Only for hosts */}
             {userRole === "host" && (
               <EventSharePanel eventId={eventId} eventTitle={eventTitle} />
+            )}
+
+            {/* Scoreboard Controls - Only for hosts */}
+            {userRole === "host" && (
+              <ScoreboardControls eventId={eventId} />
             )}
           </div>
         </div>

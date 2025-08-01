@@ -28,6 +28,7 @@ import OfflineStreamSection from "@/components/OfflineStreamSection";
 import SocialShareMenu from "@/components/SocialShareMenu";
 import TicketPurchaseModal from "@/components/TicketPurchaseModal";
 import StreamPreviewContainer from "@/components/StreamPreviewContainer";
+import { RealtimeScoreboard } from "@/components/RealtimeScoreboard";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { useAppContext } from "@/contexts/AppContext";
@@ -670,6 +671,9 @@ const EventPage: React.FC = () => {
                 )}
               </CardContent>
             </Card>
+
+            {/* Realtime Scoreboard */}
+            <RealtimeScoreboard eventId={eventId} />
 
             {/* Share Event Card */}
             <Card>
