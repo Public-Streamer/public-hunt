@@ -112,15 +112,15 @@ export const RealtimeScoreboard: React.FC<RealtimeScoreboardProps> = ({ eventId 
                 {index + 1}
               </div>
               
-              <div className="flex-1">
-                <div className="font-medium flex items-center gap-2 text-base ">
-                  {team.team_name}
-                  {index === 0 && <Trophy className="h-4 w-4 text-yellow-500" />}
+              <div className="flex-1 min-w-0">
+                <div className="font-medium flex items-center gap-2 text-sm sm:text-base truncate">
+                  <span className="truncate">{team.team_name}</span>
+                  {index === 0 && <Trophy className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500 flex-shrink-0" />}
                 </div>
               </div>
               
               <div 
-                className="text-base  font-bold"
+                className="text-lg sm:text-xl font-bold flex-shrink-0"
                 style={{ color: team.team_color }}
               >
                 {team.score}

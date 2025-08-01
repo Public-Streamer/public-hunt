@@ -164,9 +164,14 @@ export const ScoreboardControls: React.FC<ScoreboardControlsProps> = ({ eventId 
             onKeyPress={(e) => e.key === 'Enter' && createTeam()}
             className="flex-1"
           />
-          <Button onClick={createTeam} disabled={loading || !newTeamName.trim()}>
-            <Plus className=" h-2 w-2 md:h-4 md:w-4" />
-            Add Team
+          <Button 
+            onClick={createTeam} 
+            disabled={loading || !newTeamName.trim()}
+            className="h-9 px-3 text-sm sm:h-10 sm:px-4 sm:text-base"
+          >
+            <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+            <span className="hidden xs:inline">Add Team</span>
+            <span className="xs:hidden">Add</span>
           </Button>
         </div>
 
@@ -185,20 +190,21 @@ export const ScoreboardControls: React.FC<ScoreboardControlsProps> = ({ eventId 
                 </div>
               </div>
               
-              <div className="flex items-center gap-2 flex-col sm:flex-row ">
+              <div className="flex items-center gap-1 sm:gap-2 flex-col xs:flex-row">
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={() => updateScore(team.id, team.score - 1)}
+                  className="h-8 w-8 p-0 sm:h-9 sm:w-auto sm:px-3"
                 >
-                  <Minus className="h-2 w-2 md:h-4 md:w-4" />
+                  <Minus className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
                 
                 <Input
                   type="number"
                   value={team.score}
                   onChange={(e) => updateScore(team.id, parseInt(e.target.value) || 0)}
-                  className="w-20 p-0 text-center"
+                  className="w-16 sm:w-20 h-8 px-1 sm:px-3 text-center text-sm"
                   min="0"
                 />
                 
@@ -206,17 +212,18 @@ export const ScoreboardControls: React.FC<ScoreboardControlsProps> = ({ eventId 
                   size="sm"
                   variant="outline"
                   onClick={() => updateScore(team.id, team.score + 1)}
+                  className="h-8 w-8 p-0 sm:h-9 sm:w-auto sm:px-3"
                 >
-                  <Plus className="h-2 w-2 md:h-4 md:w-4" />
+                  <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
                 
                 <Button
                   size="sm"
-                  variant="outline"
+                  variant="destructive"
                   onClick={() => deleteTeam(team.id)}
-                  className="text-destructive hover:text-destructive"
+                  className="h-8 w-8 p-0 sm:h-9 sm:w-auto sm:px-3"
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
               </div>
             </div>

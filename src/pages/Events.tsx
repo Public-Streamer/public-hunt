@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Star, Eye, ChevronDown, ChevronUp, Plus, History, Clock, DollarSign } from 'lucide-react';
+import { Star, Eye, ChevronDown, ChevronUp, Plus, History, Clock, DollarSign, User } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import TooltipWrapper from '@/components/ui/tooltip-wrapper';
@@ -12,6 +12,7 @@ import EventRankingControls, { SortOption } from '@/components/EventRankingContr
 import ScheduledEventsGrid from '@/components/ScheduledEventsGrid';
 import PastEventsGrid from '@/components/PastEventsGrid';
 import { supabase } from '@/integrations/supabase/client';
+import { useAppContext } from '@/contexts/AppContext';
 
 interface Event {
   id: string;
@@ -34,13 +35,16 @@ const Events: React.FC = () => {
   const [memberSearch, setMemberSearch] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('most-live-viewers');
   const [scheduledSortBy, setScheduledSortBy] = useState<SortOption>('most-live-viewers');
+  const [mySortBy, setMySortBy] = useState<SortOption>('most-live-viewers');
   const [activeTab, setActiveTab] = useState('live');
   const [liveEvents, setLiveEvents] = useState<Event[]>([]);
   const [scheduledEvents, setScheduledEvents] = useState<Event[]>([]);
+  const [myEvents, setMyEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [highlightedEvent, setHighlightedEvent] = useState<string | null>(null);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { user, isAuthenticated } = useAppContext();
   
   useEffect(() => {
     fetchEvents();
@@ -96,11 +100,29 @@ const Events: React.FC = () => {
         throw scheduledError;
       }
 
+      // Fetch user's own events if authenticated
+      let myEventsData = [];
+      if (user?.id) {
+        const { data, error: myEventsError } = await supabase
+          .from('events')
+          .select('*')
+          .eq('created_by', user.id)
+          .order('created_at', { ascending: false });
+
+        if (myEventsError) {
+          console.error('Error fetching my events:', myEventsError);
+        } else {
+          myEventsData = data || [];
+        }
+      }
+
       console.log('Live events:', liveEventsData);
       console.log('Scheduled events:', scheduledEventsData);
+      console.log('My events:', myEventsData);
 
       setLiveEvents(liveEventsData || []);
       setScheduledEvents(scheduledEventsData || []);
+      setMyEvents(myEventsData);
     } catch (error) {
       console.error('Error fetching events:', error);
     } finally {
@@ -162,6 +184,7 @@ const Events: React.FC = () => {
   };
   
   const filteredLiveEvents = sortEvents(filterEvents(liveEvents), sortBy);
+  const filteredMyEvents = sortEvents(filterEvents(myEvents), mySortBy);
   
   const handleEventClick = (eventId: string) => {
     navigate(`/event/${eventId}`);
@@ -176,7 +199,7 @@ const Events: React.FC = () => {
         </p>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 gap-2 sm:gap-4 p-2 bg-transparent">
+          <TabsList className={`grid w-full ${isAuthenticated ? 'grid-cols-4' : 'grid-cols-3'} gap-2 sm:gap-4 p-2 bg-transparent`}>
             <TooltipWrapper content="View all currently live streaming events happening right now">
               <TabsTrigger 
                 value="live" 
@@ -219,6 +242,22 @@ const Events: React.FC = () => {
                 </div>
               </TabsTrigger>
             </TooltipWrapper>
+            {isAuthenticated && (
+              <TooltipWrapper content="View events you have created">
+                <TabsTrigger 
+                  value="my-events"
+                  className="flex items-center justify-center px-2 sm:px-6 py-3 sm:py-4 text-xs sm:text-base font-bold min-h-[60px] sm:min-h-[70px] rounded-xl transition-all duration-200 border-2 border-green-300 bg-gradient-to-r from-green-50 to-green-100 text-green-800 shadow-lg hover:shadow-xl hover:scale-105 hover:from-green-100 hover:to-green-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-green-600 data-[state=active]:text-white data-[state=active]:border-green-500 data-[state=active]:shadow-green-300"
+                >
+                  <div className="flex flex-col sm:flex-row items-center space-y-1 sm:space-y-0 sm:space-x-3 text-center">
+                    <User className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 text-green-600" />
+                    <div className="flex flex-col sm:flex-row sm:space-x-1">
+                      <span className="text-xs sm:text-base font-bold leading-tight">My</span>
+                      <span className="text-xs sm:text-base font-bold leading-tight">Events</span>
+                    </div>
+                  </div>
+                </TabsTrigger>
+              </TooltipWrapper>
+            )}
           </TabsList>
           
           <TabsContent value="live" className="space-y-6">
@@ -346,6 +385,97 @@ const Events: React.FC = () => {
           <TabsContent value="past" className="space-y-6">
             <PastEventsGrid />
           </TabsContent>
+          
+          {isAuthenticated && (
+            <TabsContent value="my-events" className="space-y-6">
+              <Button 
+                onClick={() => navigate('/create?tab=event')} 
+                className="mb-4 w-full md:w-auto bg-gradient-to-r from-green-500 to-emerald-500 text-white border-none hover:from-green-600 hover:to-emerald-600"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Create New Event
+              </Button>
+              
+              <EventRankingControls
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                sortBy={mySortBy}
+                onSortChange={setMySortBy}
+                memberSearch={memberSearch}
+                onMemberSearchChange={setMemberSearch}
+                activeTab={activeTab}
+              />
+              
+              {loading ? (
+                <div className="text-center py-8">
+                  <div className="text-lg">Loading your events...</div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredMyEvents.map((event, index) => (
+                    <TooltipWrapper key={event.id} content={`View ${event.name} - ${event.viewer_count} viewers`}>
+                      <Card 
+                        className={`hover:shadow-lg transition-all cursor-pointer relative ${
+                          highlightedEvent === event.id ? 'ring-4 ring-green-500 ring-opacity-50 shadow-xl' : ''
+                        }`}
+                        onClick={() => handleEventClick(event.id)}
+                      >
+                        <div className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold">
+                          #{index + 1}
+                        </div>
+                        <CardHeader className="pt-8">
+                          <div className="flex items-center justify-between">
+                            <CardTitle className="text-lg">{event.name}</CardTitle>
+                            {event.is_live && (
+                              <TooltipWrapper content="This event is currently live">
+                                <Badge className="bg-red-500">LIVE</Badge>
+                              </TooltipWrapper>
+                            )}
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-sm text-gray-600 mb-2">{event.category}</p>
+                          <div className="flex items-center justify-between text-sm text-gray-500 mb-2">
+                            <TooltipWrapper content="Event price">
+                              <span className="font-semibold">${event.ticket_price}</span>
+                            </TooltipWrapper>
+                            <TooltipWrapper content="Event location">
+                              <span className="text-xs">{event.location}</span>
+                            </TooltipWrapper>
+                          </div>
+                          <div className="flex items-center justify-between text-xs text-gray-400 mb-1">
+                            <TooltipWrapper content="Current viewers">
+                              <span className="flex items-center">
+                                <Eye className="h-3 w-3 mr-1" />
+                                {event.viewer_count || 0} viewers
+                              </span>
+                            </TooltipWrapper>
+                            <span>{new Date(event.created_at).toLocaleDateString()}</span>
+                          </div>
+                          <div className="text-xs text-gray-600 mt-2 line-clamp-2">
+                            {event.description}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </TooltipWrapper>
+                  ))}
+                  {filteredMyEvents.length === 0 && !loading && (
+                    <div className="col-span-full text-center py-8">
+                      <p className="text-gray-500 text-lg">You haven't created any events yet.</p>
+                      <p className="text-gray-400 mt-2">Create your first event to get started!</p>
+                      <Button 
+                        onClick={() => navigate('/create?tab=event')} 
+                        className="mt-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create Your First Event
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </div>
