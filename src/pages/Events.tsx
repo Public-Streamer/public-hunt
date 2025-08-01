@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Star, Eye, ChevronDown, ChevronUp, Plus, History, Clock, DollarSign, User } from 'lucide-react';
+import { Star, Eye, ChevronDown, ChevronUp, Plus, History, Clock, DollarSign, User, Edit2 } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import TooltipWrapper from '@/components/ui/tooltip-wrapper';
@@ -13,6 +13,7 @@ import ScheduledEventsGrid from '@/components/ScheduledEventsGrid';
 import PastEventsGrid from '@/components/PastEventsGrid';
 import { supabase } from '@/integrations/supabase/client';
 import { useAppContext } from '@/contexts/AppContext';
+import EditEventModal from '@/components/EditEventModal';
 
 interface Event {
   id: string;
@@ -42,6 +43,8 @@ const Events: React.FC = () => {
   const [myEvents, setMyEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [highlightedEvent, setHighlightedEvent] = useState<string | null>(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingEventId, setEditingEventId] = useState<string | null>(null);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, isAuthenticated } = useAppContext();
@@ -188,6 +191,15 @@ const Events: React.FC = () => {
   
   const handleEventClick = (eventId: string) => {
     navigate(`/event/${eventId}`);
+  };
+
+  const handleEditEvent = (eventId: string) => {
+    setEditingEventId(eventId);
+    setEditModalOpen(true);
+  };
+
+  const handleEventUpdated = () => {
+    fetchEvents();
   };
   
   return (
@@ -414,15 +426,31 @@ const Events: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {filteredMyEvents.map((event, index) => (
                     <TooltipWrapper key={event.id} content={`View ${event.name} - ${event.viewer_count} viewers`}>
-                      <Card 
-                        className={`hover:shadow-lg transition-all cursor-pointer relative ${
-                          highlightedEvent === event.id ? 'ring-4 ring-green-500 ring-opacity-50 shadow-xl' : ''
-                        }`}
-                        onClick={() => handleEventClick(event.id)}
-                      >
-                        <div className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold">
-                          #{index + 1}
-                        </div>
+                       <Card 
+                         className={`hover:shadow-lg transition-all cursor-pointer relative ${
+                           highlightedEvent === event.id ? 'ring-4 ring-green-500 ring-opacity-50 shadow-xl' : ''
+                         }`}
+                         onClick={() => handleEventClick(event.id)}
+                       >
+                         <div className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold">
+                           #{index + 1}
+                         </div>
+                         
+                         {/* Edit button for user's own events */}
+                         {user && event.created_by === user.id && (
+                           <Button
+                             size="sm"
+                             variant="outline"
+                             className="absolute top-2 right-2 z-10 bg-green-50 border-green-200 hover:bg-green-100 hover:border-green-300 px-2 py-1 h-7"
+                             onClick={(e) => {
+                               e.stopPropagation();
+                               handleEditEvent(event.id);
+                             }}
+                           >
+                             <Edit2 className="h-3 w-3 mr-1 text-green-600" />
+                             <span className="text-green-600 text-xs">Edit</span>
+                           </Button>
+                         )}
                         <CardHeader className="pt-8">
                           <div className="flex items-center justify-between">
                             <CardTitle className="text-lg">{event.name}</CardTitle>
@@ -478,6 +506,19 @@ const Events: React.FC = () => {
           )}
         </Tabs>
       </div>
+
+      {/* Edit Event Modal */}
+      {editingEventId && (
+        <EditEventModal
+          isOpen={editModalOpen}
+          onClose={() => {
+            setEditModalOpen(false);
+            setEditingEventId(null);
+          }}
+          eventId={editingEventId}
+          onEventUpdated={handleEventUpdated}
+        />
+      )}
     </div>
   );
 };
