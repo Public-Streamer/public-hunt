@@ -25,11 +25,12 @@ interface SelectedMember extends Subscriber {
 
 interface StreamerSelectorProps {
   onStreamersChange: (streamers: SelectedMember[]) => void;
+  initialStreamers?: SelectedMember[];
 }
 
-const StreamerSelector: React.FC<StreamerSelectorProps> = ({ onStreamersChange }) => {
+const StreamerSelector: React.FC<StreamerSelectorProps> = ({ onStreamersChange, initialStreamers = [] }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedMembers, setSelectedMembers] = useState<SelectedMember[]>([]);
+  const [selectedMembers, setSelectedMembers] = useState<SelectedMember[]>(initialStreamers);
   const [isLocked, setIsLocked] = useState(false);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,6 +72,11 @@ const StreamerSelector: React.FC<StreamerSelectorProps> = ({ onStreamersChange }
 
     fetchUsers();
   }, []);
+
+  // Update selectedMembers when initialStreamers changes
+  useEffect(() => {
+    setSelectedMembers(initialStreamers);
+  }, [initialStreamers]);
 
   const filteredSubscribers = subscribers.filter(sub => 
     sub.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

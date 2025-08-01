@@ -9,6 +9,8 @@ import { Calendar, X } from "lucide-react";
 import PriceSlider from "@/components/PriceSlider";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import StreamerSelector from "@/components/StreamerSelector";
+import { useAppContext } from "@/contexts/AppContext";
 
 interface EditEventModalProps {
   isOpen: boolean;
@@ -25,6 +27,15 @@ interface EventData {
   location: string;
   category: string;
   ticket_price: number;
+}
+
+interface SelectedMember {
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string;
+  permissions: string[];
+  confirmed: boolean;
 }
 
 const EditEventModal: React.FC<EditEventModalProps> = ({
@@ -44,13 +55,17 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
   });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [selectedStreamers, setSelectedStreamers] = useState<SelectedMember[]>([]);
+  const [originalStreamers, setOriginalStreamers] = useState<SelectedMember[]>([]);
   const { toast } = useToast();
+  const { userProfile } = useAppContext();
 
   const fetchEventData = async () => {
     if (!eventId) return;
     
     setLoading(true);
     try {
+      // Fetch event data
       const { data, error } = await supabase
         .from("events")
         .select("*")
@@ -68,6 +83,47 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
         category: data.category || "",
         ticket_price: data.ticket_price || 0,
       });
+
+      // Fetch existing streamers with user profile data
+      const { data: streamersData, error: streamersError } = await supabase
+        .from("event_streamers")
+        .select(`
+          streamer_id,
+          permissions,
+          role_type
+        `)
+        .eq("event_id", eventId);
+
+      if (streamersError) {
+        console.error("Error fetching streamers:", streamersError);
+      } else if (streamersData?.length > 0) {
+        // Get user profiles for the streamers
+        const streamerIds = streamersData.map(s => s.streamer_id);
+        const { data: profilesData, error: profilesError } = await supabase
+          .from("user_profiles")
+          .select("id, user_id, username, display_name, profile_picture_url")
+          .in("user_id", streamerIds);
+
+        if (profilesError) {
+          console.error("Error fetching user profiles:", profilesError);
+        } else {
+          // Transform streamers data to SelectedMember format
+          const transformedStreamers: SelectedMember[] = streamersData.map(streamer => {
+            const profile = profilesData?.find(p => p.user_id === streamer.streamer_id);
+            return {
+              id: streamer.streamer_id,
+              name: profile?.display_name || profile?.username || "Unknown User",
+              email: profile?.username || "user@example.com",
+              avatar: profile?.profile_picture_url,
+              permissions: streamer.permissions || [],
+              confirmed: true // Existing streamers are already confirmed
+            };
+          });
+
+          setSelectedStreamers(transformedStreamers);
+          setOriginalStreamers(transformedStreamers);
+        }
+      }
     } catch (error) {
       console.error("Error fetching event data:", error);
       toast({
@@ -116,12 +172,74 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
     return true;
   };
 
+  const syncStreamers = async () => {
+    if (!userProfile?.user_id) return;
+
+    // Get current streamer IDs
+    const currentStreamerIds = selectedStreamers.map(s => s.id);
+    const originalStreamerIds = originalStreamers.map(s => s.id);
+
+    // Find streamers to add and remove
+    const streamersToAdd = selectedStreamers.filter(s => !originalStreamerIds.includes(s.id));
+    const streamersToRemove = originalStreamers.filter(s => !currentStreamerIds.includes(s.id));
+    const streamersToUpdate = selectedStreamers.filter(s => 
+      originalStreamerIds.includes(s.id) &&
+      JSON.stringify(s.permissions) !== JSON.stringify(originalStreamers.find(orig => orig.id === s.id)?.permissions)
+    );
+
+    // Remove streamers
+    if (streamersToRemove.length > 0) {
+      const { error: removeError } = await supabase
+        .from("event_streamers")
+        .delete()
+        .eq("event_id", eventId)
+        .in("streamer_id", streamersToRemove.map(s => s.id));
+
+      if (removeError) throw removeError;
+    }
+
+    // Add new streamers
+    if (streamersToAdd.length > 0) {
+      const { error: addError } = await supabase
+        .from("event_streamers")
+        .insert(
+          streamersToAdd.map(streamer => ({
+            event_id: eventId,
+            streamer_id: streamer.id,
+            assigned_by: userProfile.user_id,
+            permissions: streamer.permissions,
+            role_type: "Streamers"
+          }))
+        );
+
+      if (addError) throw addError;
+    }
+
+    // Update existing streamers with changed permissions
+    if (streamersToUpdate.length > 0) {
+      const updatePromises = streamersToUpdate.map(streamer =>
+        supabase
+          .from("event_streamers")
+          .update({ permissions: streamer.permissions })
+          .eq("event_id", eventId)
+          .eq("streamer_id", streamer.id)
+      );
+
+      const results = await Promise.all(updatePromises);
+      const errors = results.filter(result => result.error);
+      if (errors.length > 0) {
+        throw errors[0].error;
+      }
+    }
+  };
+
   const handleSave = async () => {
     if (!validateForm()) return;
     
     setSaving(true);
     try {
-      const { error } = await supabase
+      // Update event data
+      const { error: eventError } = await supabase
         .from("events")
         .update({
           name: formData.name,
@@ -135,11 +253,14 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
         })
         .eq("id", eventId);
 
-      if (error) throw error;
+      if (eventError) throw eventError;
+
+      // Sync streamers data
+      await syncStreamers();
 
       toast({
         title: "Success",
-        description: "Event updated successfully!",
+        description: "Event and production team updated successfully!",
       });
 
       onEventUpdated();
@@ -154,6 +275,10 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleStreamersChange = (streamers: SelectedMember[]) => {
+    setSelectedStreamers(streamers);
   };
 
   return (
@@ -268,6 +393,12 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
                 </div>
               </CardContent>
             </Card>
+
+            {/* Event Production Team Section */}
+            <StreamerSelector 
+              onStreamersChange={handleStreamersChange}
+              initialStreamers={selectedStreamers}
+            />
 
             <div className="flex justify-end gap-3 pt-4">
               <Button
