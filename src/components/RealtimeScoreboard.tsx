@@ -86,7 +86,7 @@ export const RealtimeScoreboard: React.FC<RealtimeScoreboardProps> = ({ eventId 
   }
 
   return (
-    <Card className="w-full">
+    <Card className="w-full ">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Trophy className="h-5 w-5" />

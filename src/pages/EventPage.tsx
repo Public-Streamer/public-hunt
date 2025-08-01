@@ -529,6 +529,11 @@ const EventPage: React.FC = () => {
                 </div>
               )}
 
+              {/* Realtime Scoreboard */}
+             <div className="p-5">
+             {currentUser ? <RealtimeScoreboard eventId={eventId} /> : <div className="p-6">Please sign in to view the scoreboard</div>}
+             </div>
+
               {/* Pre-Stream Chat Archive for scheduled events */}
               {!eventData.is_live && (hasTicket || canEnterStage) && (
                 <div className="p-4 border-t border-border/30">
@@ -548,6 +553,8 @@ const EventPage: React.FC = () => {
                 hasPaid={hasTicket || canEnterStage}
               />
             )}
+
+             
           </div>
 
           {/* Right Column - Event Details and Actions */}
@@ -672,8 +679,7 @@ const EventPage: React.FC = () => {
               </CardContent>
             </Card>
 
-            {/* Realtime Scoreboard */}
-            <RealtimeScoreboard eventId={eventId} />
+           
 
             {/* Share Event Card */}
             <Card>

@@ -319,8 +319,14 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                 </CardContent>
               </Card>
             )}
-          </div>
 
+            {/* Scoreboard Controls - Only for hosts */}
+          {userRole === "host" && (
+              <ScoreboardControls eventId={eventId} />
+            )}
+
+          </div>
+          
           {/* Controls Panel */}
           <div className="space-y-3 sm:space-y-4">
             {/* Stream Controls */}
@@ -541,10 +547,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
               <EventSharePanel eventId={eventId} eventTitle={eventTitle} />
             )}
 
-            {/* Scoreboard Controls - Only for hosts */}
-            {userRole === "host" && (
-              <ScoreboardControls eventId={eventId} />
-            )}
+            
           </div>
         </div>
       </div>
