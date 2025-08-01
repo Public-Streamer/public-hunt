@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.create-stripe-express-account]
 verify_jwt = true
+
+[functions.scoreboard-operations]
+verify_jwt = false
