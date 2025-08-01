@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Minus, Edit3, Trash2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Team {
   id: string;
@@ -40,15 +41,12 @@ export const ScoreboardControls: React.FC<ScoreboardControlsProps> = ({ eventId 
 
   const fetchTeams = async () => {
     try {
-      const response = await fetch('/functions/v1/scoreboard-operations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'fetch', eventId })
+      const { data, error } = await supabase.functions.invoke('scoreboard-operations', {
+        body: { action: 'fetch', eventId }
       });
 
-      if (!response.ok) throw new Error('Failed to fetch teams');
+      if (error) throw error;
       
-      const data = await response.json();
       setTeams(data || []);
     } catch (error) {
       console.error('Error fetching teams:', error);
@@ -67,18 +65,16 @@ export const ScoreboardControls: React.FC<ScoreboardControlsProps> = ({ eventId 
     try {
       const teamColor = TEAM_COLORS[teams.length % TEAM_COLORS.length];
       
-      const response = await fetch('/functions/v1/scoreboard-operations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const { error } = await supabase.functions.invoke('scoreboard-operations', {
+        body: {
           action: 'create',
           eventId,
           teamName: newTeamName.trim(),
           teamColor
-        })
+        }
       });
 
-      if (!response.ok) throw new Error('Failed to create team');
+      if (error) throw error;
 
       setNewTeamName('');
       fetchTeams(); // Refresh the list
@@ -100,17 +96,15 @@ export const ScoreboardControls: React.FC<ScoreboardControlsProps> = ({ eventId 
 
   const updateScore = async (teamId: string, newScore: number) => {
     try {
-      const response = await fetch('/functions/v1/scoreboard-operations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const { error } = await supabase.functions.invoke('scoreboard-operations', {
+        body: {
           action: 'updateScore',
           teamId,
           score: Math.max(0, newScore)
-        })
+        }
       });
 
-      if (!response.ok) throw new Error('Failed to update score');
+      if (error) throw error;
       
       // Update local state immediately for better UX
       setTeams(prev => prev.map(team => 
@@ -128,16 +122,14 @@ export const ScoreboardControls: React.FC<ScoreboardControlsProps> = ({ eventId 
 
   const deleteTeam = async (teamId: string) => {
     try {
-      const response = await fetch('/functions/v1/scoreboard-operations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const { error } = await supabase.functions.invoke('scoreboard-operations', {
+        body: {
           action: 'delete',
           teamId
-        })
+        }
       });
 
-      if (!response.ok) throw new Error('Failed to delete team');
+      if (error) throw error;
 
       setTeams(prev => prev.filter(team => team.id !== teamId));
       toast({

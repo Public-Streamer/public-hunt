@@ -66,15 +66,12 @@ export const RealtimeScoreboard: React.FC<RealtimeScoreboardProps> = ({ eventId 
 
   const fetchTeams = async () => {
     try {
-      const response = await fetch('/functions/v1/scoreboard-operations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'fetch', eventId })
+      const { data, error } = await supabase.functions.invoke('scoreboard-operations', {
+        body: { action: 'fetch', eventId }
       });
 
-      if (!response.ok) throw new Error('Failed to fetch teams');
+      if (error) throw error;
       
-      const data = await response.json();
       setTeams(data || []);
     } catch (error) {
       console.error('Error fetching teams:', error);
