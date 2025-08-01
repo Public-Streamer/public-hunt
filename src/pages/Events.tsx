@@ -47,7 +47,7 @@ const Events: React.FC = () => {
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, isAuthenticated } = useAppContext();
+  const { userProfile, isAuthenticated } = useAppContext();
   
   useEffect(() => {
     fetchEvents();
@@ -105,11 +105,11 @@ const Events: React.FC = () => {
 
       // Fetch user's own events if authenticated
       let myEventsData = [];
-      if (user?.id) {
+      if (userProfile?.user_id) {
         const { data, error: myEventsError } = await supabase
           .from('events')
           .select('*')
-          .eq('created_by', user.id)
+          .eq('created_by', userProfile.user_id)
           .order('created_at', { ascending: false });
 
         if (myEventsError) {
@@ -437,7 +437,7 @@ const Events: React.FC = () => {
                          </div>
                          
                          {/* Edit button for user's own events */}
-                         {user && event.created_by === user.id && (
+                         {userProfile && event.created_by === userProfile.user_id && (
                            <Button
                              size="sm"
                              variant="outline"
