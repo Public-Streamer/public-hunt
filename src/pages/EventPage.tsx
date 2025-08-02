@@ -60,7 +60,8 @@ const EventPage: React.FC = () => {
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user: currentUser, userProfile: currentUserProfile } = useAppContext();
+  const { user: currentUser, userProfile: currentUserProfile } =
+    useAppContext();
 
   const [eventData, setEventData] = useState<EventData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -76,13 +77,12 @@ const EventPage: React.FC = () => {
     if (!eventId) return;
 
     fetchEventData();
-    
+
     // Cleanup meta tags when component unmounts
     return () => {
       resetDefaultMetaTags();
     };
   }, [eventId]);
-
 
   useEffect(() => {
     if (currentUser && eventData) {
@@ -90,6 +90,10 @@ const EventPage: React.FC = () => {
       checkStreamerStatus();
     }
   }, [currentUser, eventData]);
+
+  const room = useRoomContext();
+
+  const participantCount = room?.numParticipants || 1;
 
   // // Set up real-time subscription for live status updates
   useEffect(() => {
@@ -135,20 +139,19 @@ const EventPage: React.FC = () => {
     }
   }, [currentUser, eventData, hasTicket, canEnterStage]);
 
-
   const fetchEventData = async () => {
     try {
       setLoading(true);
-      
+
       // Import utility functions
       const { parseEventIdentifier } = await import("@/lib/eventUtils");
       const { isUuid, identifier } = parseEventIdentifier(eventId!);
-      
+
       // Fetch event data by UUID or slug
-      const eventQuery = isUuid 
+      const eventQuery = isUuid
         ? supabase.from("events").select("*").eq("id", identifier)
         : supabase.from("events").select("*").eq("slug", identifier);
-        
+
       const { data: eventData, error: eventError } = await eventQuery.single();
 
       if (eventError) {
@@ -169,32 +172,39 @@ const EventPage: React.FC = () => {
           .select("stripe_account_id")
           .eq("user_id", eventData.created_by)
           .single();
-        
+
         hostStripeAccountId = stripeAccount?.stripe_account_id || null;
       }
 
       // Combine the data
       const eventWithStripeAccount = {
         ...eventData,
-        host_stripe_account_id: hostStripeAccountId
+        host_stripe_account_id: hostStripeAccountId,
       };
 
       setEventData(eventWithStripeAccount);
-      
+
       // Update meta tags for social media sharing
       const eventMetaData = {
         title: eventWithStripeAccount.name,
-        description: eventWithStripeAccount.description || `Join ${eventWithStripeAccount.name} - Live streaming event`,
-        image: eventWithStripeAccount.media_urls?.[0] || `${window.location.origin}/placeholder.svg`,
-        url: eventWithStripeAccount.slug 
+        description:
+          eventWithStripeAccount.description ||
+          `Join ${eventWithStripeAccount.name} - Live streaming event`,
+        image:
+          eventWithStripeAccount.media_urls?.[0] ||
+          `${window.location.origin}/placeholder.svg`,
+        url: eventWithStripeAccount.slug
           ? `${window.location.origin}/event/${eventWithStripeAccount.slug}`
           : `${window.location.origin}/event/${eventWithStripeAccount.id}`,
-        date: eventWithStripeAccount.date ? `${eventWithStripeAccount.date}T${eventWithStripeAccount.time || '00:00:00'}` : undefined,
+        date: eventWithStripeAccount.date
+          ? `${eventWithStripeAccount.date}T${
+              eventWithStripeAccount.time || "00:00:00"
+            }`
+          : undefined,
         location: eventWithStripeAccount.location,
-        price: eventWithStripeAccount.ticket_price
+        price: eventWithStripeAccount.ticket_price,
       };
       updateEventMetaTags(eventMetaData);
-      
     } catch (error) {
       console.error("Error fetching event data:", error);
       toast({
@@ -293,7 +303,7 @@ const EventPage: React.FC = () => {
     }
   };
 
-  const eventUrl = eventData?.slug 
+  const eventUrl = eventData?.slug
     ? `${window.location.origin}/event/${eventData.slug}`
     : `${window.location.origin}/event/${eventId}`;
 
@@ -482,9 +492,6 @@ const EventPage: React.FC = () => {
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             {/* Event Preview Card - Always show StreamPreviewContainer in pink area */}
             <Card className="overflow-hidden">
-
-
-
               {eventData.is_live && roomName && livekitToken && serverUrl ? (
                 <LiveKitRoom
                   token={livekitToken}
@@ -504,10 +511,16 @@ const EventPage: React.FC = () => {
                   />
                   <RoomAudioRenderer />
 
-                   {/* Realtime Scoreboard */}
-             <div className="p-5">
-             {currentUser ? <RealtimeScoreboard eventId={eventId} /> : <div className="p-6">Please sign in to view the scoreboard</div>}
-             </div>
+                  {/* Realtime Scoreboard */}
+                  <div className="p-5">
+                    {currentUser ? (
+                      <RealtimeScoreboard eventId={eventId} />
+                    ) : (
+                      <div className="p-6">
+                        Please sign in to view the scoreboard
+                      </div>
+                    )}
+                  </div>
 
                   {/* Show full viewer interface below if user has access */}
                   {/* {(hasTicket || canEnterStage) && (
@@ -524,26 +537,40 @@ const EventPage: React.FC = () => {
                   {eventData.is_live &&
                     livekitToken &&
                     (hasTicket || canEnterStage) && (
-                      <LiveDiscussionSection 
+                      <LiveDiscussionSection
                         eventId={eventId}
-                        userProfile={currentUserProfile ? {
-                          id: currentUserProfile.id,
-                          username: currentUserProfile.display_name || 'User',
-                          display_name: currentUserProfile.display_name || 'User',
-                          profile_picture_url: currentUserProfile.profile_picture_url || ''
-                        } : undefined}
+                        userProfile={
+                          currentUserProfile
+                            ? {
+                                id: currentUserProfile.id,
+                                username:
+                                  currentUserProfile.display_name || "User",
+                                display_name:
+                                  currentUserProfile.display_name || "User",
+                                profile_picture_url:
+                                  currentUserProfile.profile_picture_url || "",
+                              }
+                            : undefined
+                        }
                       />
                     )}
                 </LiveKitRoom>
               ) : (
                 <div className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100 relative">
                   {/* Show 10-Second Preview for Paid Live Events */}
-                  {currentUser && eventData.ticket_price && eventData.ticket_price > 0 && !hasTicket && !canEnterStage && eventData.is_live ? (
+                  {currentUser &&
+                  eventData.ticket_price &&
+                  eventData.ticket_price > 0 &&
+                  !hasTicket &&
+                  !canEnterStage &&
+                  eventData.is_live ? (
                     <EventStreamPreview
                       eventId={eventData.id}
                       eventName={eventData.name}
                       isLive={eventData.is_live}
-                      fallbackImage={eventData.media_urls?.[0] || '/placeholder.svg'}
+                      fallbackImage={
+                        eventData.media_urls?.[0] || "/placeholder.svg"
+                      }
                       hasAccess={hasTicket || canEnterStage}
                     />
                   ) : (
@@ -577,15 +604,12 @@ const EventPage: React.FC = () => {
                 </div>
               )}
 
-             
-
               {/* Pre-Stream Chat Archive for scheduled events */}
               {!eventData.is_live && (hasTicket || canEnterStage) && (
                 <div className="p-4 border-t border-border/30">
                   <PreStreamChatArchive eventId={eventId!} />
                 </div>
               )}
-              
             </Card>
 
             {/* Promotional Media */}
@@ -598,14 +622,12 @@ const EventPage: React.FC = () => {
                 hasPaid={hasTicket || canEnterStage}
               />
             )}
-
-             
           </div>
 
           {/* Right Column - Event Details and Actions */}
           <div className="space-y-4 sm:space-y-6">
-          <Card>
-          <CardHeader className="p-3 sm:p-6">
+            <Card>
+              <CardHeader className="p-3 sm:p-6">
                 <CardTitle className="text-lg sm:text-xl lg:text-2xl font-bold break-words">
                   {eventData.name}
                 </CardTitle>
@@ -642,7 +664,7 @@ const EventPage: React.FC = () => {
                   <div className="flex items-center text-xs sm:text-sm">
                     <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 text-gray-500 flex-shrink-0" />
                     <span className="truncate">
-                      {eventData.viewer_count || 0} viewers
+                      {participantCount || 0} viewers
                     </span>
                   </div>
                   <div className="flex items-center text-xs sm:text-sm">
@@ -653,7 +675,7 @@ const EventPage: React.FC = () => {
                   </div>
                 </div>
               </CardContent>
-          </Card>
+            </Card>
             {/* Event Details Card */}
             <Card>
               <CardHeader className="p-3 sm:p-6">
@@ -696,35 +718,36 @@ const EventPage: React.FC = () => {
                     {(eventData.viewer_count || 0).toLocaleString()}
                   </p>
                 </div>
-                {hasTicket && eventData.ticket_price && eventData.ticket_price > 0 && (
-                  <div>
-                    <p className="font-semibold text-sm sm:text-base">
-                      Payment Status
-                    </p>
-                    <div className="space-y-1">
-                      <Badge className="bg-green-600 text-white text-xs">
-                        ✓ Paid ${eventData.ticket_price}
-                      </Badge>
-                      <p className="text-xs text-gray-600">
-                        You have full access to this event
+                {hasTicket &&
+                  eventData.ticket_price &&
+                  eventData.ticket_price > 0 && (
+                    <div>
+                      <p className="font-semibold text-sm sm:text-base">
+                        Payment Status
                       </p>
+                      <div className="space-y-1">
+                        <Badge className="bg-green-600 text-white text-xs">
+                          ✓ Paid ${eventData.ticket_price}
+                        </Badge>
+                        <p className="text-xs text-gray-600">
+                          You have full access to this event
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                )}
-                {hasTicket && (!eventData.ticket_price || eventData.ticket_price <= 0) && (
-                  <div>
-                    <p className="font-semibold text-sm sm:text-base">
-                      Your Access
-                    </p>
-                    <Badge className="bg-green-600 text-white text-xs">
-                      Full Access (Free Event)
-                    </Badge>
-                  </div>
-                )}
+                  )}
+                {hasTicket &&
+                  (!eventData.ticket_price || eventData.ticket_price <= 0) && (
+                    <div>
+                      <p className="font-semibold text-sm sm:text-base">
+                        Your Access
+                      </p>
+                      <Badge className="bg-green-600 text-white text-xs">
+                        Full Access (Free Event)
+                      </Badge>
+                    </div>
+                  )}
               </CardContent>
             </Card>
-
-           
 
             {/* Share Event Card */}
             <Card>

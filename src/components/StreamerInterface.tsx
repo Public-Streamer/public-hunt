@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   VideoTrack,
   AudioTrack,
@@ -146,6 +146,12 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
       </div>
     );
   }
+
+  useEffect(() => {
+    return () => {
+      controls.stopStream();
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-background p-2 sm:p-4">
@@ -321,12 +327,9 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
             )}
 
             {/* Scoreboard Controls - Only for hosts */}
-          {userRole === "host" && (
-              <ScoreboardControls eventId={eventId} />
-            )}
-
+            {userRole === "host" && <ScoreboardControls eventId={eventId} />}
           </div>
-          
+
           {/* Controls Panel */}
           <div className="space-y-3 sm:space-y-4">
             {/* Stream Controls */}
@@ -546,8 +549,6 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
             {userRole === "host" && (
               <EventSharePanel eventId={eventId} eventTitle={eventTitle} />
             )}
-
-            
           </div>
         </div>
       </div>
