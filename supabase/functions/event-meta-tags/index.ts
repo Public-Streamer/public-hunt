@@ -33,9 +33,19 @@ serve(async (req) => {
   try {
     const url = new URL(req.url);
     const pathname = url.pathname;
+    const userAgent = req.headers.get('user-agent') || '';
     
-    // Extract event identifier from URL (e.g., /event-meta-tags/squid-game-001 or /event-meta-tags/uuid)
-    const eventIdentifier = pathname.split('/').pop();
+    // Check if this is a social media crawler
+    const isCrawler = /facebookexternalhit|WhatsApp|Twitterbot|LinkedInBot|Slackbot|TelegramBot|SkypeBot|GoogleBot/i.test(userAgent);
+    
+    // Extract event identifier from URL
+    // Could be /event-meta-tags/slug or /event/slug (when called as middleware)
+    let eventIdentifier = pathname.split('/').pop();
+    
+    // If called with /event/ path, extract the identifier
+    if (pathname.includes('/event/')) {
+      eventIdentifier = pathname.split('/event/')[1];
+    }
     
     if (!eventIdentifier) {
       return new Response('Event identifier required', { status: 400, headers: corsHeaders });
@@ -76,12 +86,15 @@ serve(async (req) => {
     }
 
     // Generate meta tags
-    const eventUrl = `${url.origin}/event/${event.slug || event.id}`;
+    const baseUrl = url.origin.includes('supabase.co') 
+      ? 'https://dev.publicstreamer.com' 
+      : url.origin;
+    const eventUrl = `${baseUrl}/event/${event.slug || event.id}`;
     const eventTitle = event.name;
-    const eventDescription = event.description || `Join ${eventTitle} - Live streaming event`;
+    const eventDescription = event.description || `Join ${eventTitle} - Live streaming event on Public Streamer`;
     const eventImage = event.media_urls && event.media_urls.length > 0 
       ? event.media_urls[0] 
-      : `${url.origin}/placeholder.svg`;
+      : `${baseUrl}/placeholder.svg`;
     
     const hostName = hostData?.display_name || hostData?.username || 'Public Streamer';
     const eventDate = event.date ? new Date(event.date).toLocaleDateString() : '';
@@ -156,9 +169,14 @@ serve(async (req) => {
   }
   </script>
   
-  <!-- Redirect to actual event page -->
+  <!-- Redirect to actual event page for human visitors -->
   <script>
-    window.location.href = "${eventUrl}";
+    // Only redirect if not a crawler
+    const userAgent = navigator.userAgent;
+    const isCrawler = /facebookexternalhit|WhatsApp|Twitterbot|LinkedInBot|Slackbot|TelegramBot|SkypeBot|GoogleBot/i.test(userAgent);
+    if (!isCrawler) {
+      window.location.href = "${eventUrl}";
+    }
   </script>
 </head>
 <body>

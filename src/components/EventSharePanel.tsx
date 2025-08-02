@@ -6,6 +6,7 @@ import { Share2, MessageCircle, Facebook, Copy, Check, ExternalLink, Globe, User
 import { toast } from 'sonner';
 import { useScreenSize } from '@/hooks/use-mobile';
 import { supabase } from '@/integrations/supabase/client';
+import { getShareableEventUrl } from '@/lib/shareUtils';
 
 interface EventSharePanelProps {
   eventId: string;
@@ -44,10 +45,8 @@ const EventSharePanel: React.FC<EventSharePanelProps> = ({
     fetchEventSlug();
   }, [eventId]);
 
-  // Use slug for URL if available, otherwise fall back to UUID
-  const eventUrl = eventSlug 
-    ? `${window.location.origin}/event/${eventSlug}`
-    : `${window.location.origin}/event/${eventId}`;
+  // Use shareable URL that includes meta tags for social media
+  const eventUrl = getShareableEventUrl(eventId, eventSlug);
   
   const createShareMessage = (platform: string): string => {
     const baseMessage = `🚀 Join me for an exciting live event: "${eventTitle}"!`;
