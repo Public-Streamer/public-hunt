@@ -29,6 +29,7 @@ import SocialShareMenu from "@/components/SocialShareMenu";
 import TicketPurchaseModal from "@/components/TicketPurchaseModal";
 import StreamPreviewContainer from "@/components/StreamPreviewContainer";
 import { RealtimeScoreboard } from "@/components/RealtimeScoreboard";
+import EventStreamPreview from "@/components/EventStreamPreview";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { useAppContext } from "@/contexts/AppContext";
@@ -573,6 +574,17 @@ const EventPage: React.FC = () => {
               )}
               
             </Card>
+
+            {/* 10-Second Preview for Paid Live Events */}
+            {currentUser && eventData.ticket_price && eventData.ticket_price > 0 && !hasTicket && !canEnterStage && (
+              <EventStreamPreview
+                eventId={eventData.id}
+                eventName={eventData.name}
+                isLive={eventData.is_live}
+                fallbackImage={eventData.media_urls?.[0] || '/placeholder.svg'}
+                hasAccess={hasTicket || canEnterStage}
+              />
+            )}
 
             {/* Promotional Media */}
             {mediaData.length > 0 && <MediaDisplay media={mediaData} />}
