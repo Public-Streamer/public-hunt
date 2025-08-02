@@ -39,12 +39,23 @@ serve(async (req) => {
     const isCrawler = /facebookexternalhit|WhatsApp|Twitterbot|LinkedInBot|Slackbot|TelegramBot|SkypeBot|GoogleBot/i.test(userAgent);
     
     // Extract event identifier from URL
-    // Could be /event-meta-tags/slug or /event/slug (when called as middleware)
     let eventIdentifier = pathname.split('/').pop();
     
-    // If called with /event/ path, extract the identifier
+    // Handle different URL patterns
     if (pathname.includes('/event/')) {
       eventIdentifier = pathname.split('/event/')[1];
+      
+      // If this is a direct event URL and not a crawler, redirect to the React app
+      if (!isCrawler && !pathname.includes('/functions/')) {
+        const appUrl = `https://dev.publicstreamer.com${pathname}`;
+        return new Response(null, {
+          status: 302,
+          headers: {
+            ...corsHeaders,
+            'Location': appUrl,
+          },
+        });
+      }
     }
     
     if (!eventIdentifier) {
