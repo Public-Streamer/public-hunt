@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Share2, MessageCircle, Facebook, Copy, Check, ExternalLink, Globe, Users2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useScreenSize } from '@/hooks/use-mobile';
+import { supabase } from '@/integrations/supabase/client';
 
 interface EventSharePanelProps {
   eventId: string;
@@ -19,9 +20,34 @@ const EventSharePanel: React.FC<EventSharePanelProps> = ({
 }) => {
   const [copiedStates, setCopiedStates] = useState<{ [key: string]: boolean }>({});
   const [isPostingToAll, setIsPostingToAll] = useState(false);
+  const [eventSlug, setEventSlug] = useState<string>('');
   const screenSize = useScreenSize();
 
-  const eventUrl = `${window.location.origin}/event/${eventId}`;
+  // Fetch event slug for better URL
+  useEffect(() => {
+    const fetchEventSlug = async () => {
+      try {
+        const { data } = await supabase
+          .from('events')
+          .select('slug')
+          .eq('id', eventId)
+          .single();
+        
+        if (data?.slug) {
+          setEventSlug(data.slug);
+        }
+      } catch (error) {
+        console.log('Could not fetch event slug:', error);
+      }
+    };
+    
+    fetchEventSlug();
+  }, [eventId]);
+
+  // Use slug for URL if available, otherwise fall back to UUID
+  const eventUrl = eventSlug 
+    ? `${window.location.origin}/event/${eventSlug}`
+    : `${window.location.origin}/event/${eventId}`;
   
   const createShareMessage = (platform: string): string => {
     const baseMessage = `🚀 Join me for an exciting live event: "${eventTitle}"!`;

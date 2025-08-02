@@ -883,6 +883,47 @@ export type Database = {
           },
         ]
       }
+      event_scoreboard: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          event_id: string
+          id: string
+          score: number
+          team_color: string | null
+          team_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          event_id: string
+          id?: string
+          score?: number
+          team_color?: string | null
+          team_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          event_id?: string
+          id?: string
+          score?: number
+          team_color?: string | null
+          team_name?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_scoreboard_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_streamers: {
         Row: {
           assigned_at: string | null
@@ -979,6 +1020,8 @@ export type Database = {
           media_urls: string[] | null
           name: string
           payment_enabled: boolean | null
+          slug: string | null
+          slug_counter: number | null
           stream_quality: string | null
           stream_url: string | null
           stripe_account_id: string | null
@@ -1002,6 +1045,8 @@ export type Database = {
           media_urls?: string[] | null
           name: string
           payment_enabled?: boolean | null
+          slug?: string | null
+          slug_counter?: number | null
           stream_quality?: string | null
           stream_url?: string | null
           stripe_account_id?: string | null
@@ -1025,6 +1070,8 @@ export type Database = {
           media_urls?: string[] | null
           name?: string
           payment_enabled?: boolean | null
+          slug?: string | null
+          slug_counter?: number | null
           stream_quality?: string | null
           stream_url?: string | null
           stripe_account_id?: string | null
@@ -1756,6 +1803,10 @@ export type Database = {
           is_live: boolean
           total_count: number
         }[]
+      }
+      generate_slug: {
+        Args: { event_name: string }
+        Returns: string
       }
       get_user_admin_role: {
         Args: { user_email: string }

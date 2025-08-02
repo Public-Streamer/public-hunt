@@ -32,6 +32,7 @@ import { RealtimeScoreboard } from "@/components/RealtimeScoreboard";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { useAppContext } from "@/contexts/AppContext";
+import { updateEventMetaTags, resetDefaultMetaTags } from "@/lib/metaTags";
 
 interface EventData {
   id: string;
@@ -50,6 +51,8 @@ interface EventData {
   created_at: string;
   updated_at: string;
   host_stripe_account_id?: string;
+  slug?: string;
+  slug_counter?: number;
 }
 
 const EventPage: React.FC = () => {
@@ -72,6 +75,11 @@ const EventPage: React.FC = () => {
     if (!eventId) return;
 
     fetchEventData();
+    
+    // Cleanup meta tags when component unmounts
+    return () => {
+      resetDefaultMetaTags();
+    };
   }, [eventId]);
 
 
@@ -131,12 +139,16 @@ const EventPage: React.FC = () => {
     try {
       setLoading(true);
       
-      // First fetch the event data
-      const { data: eventData, error: eventError } = await supabase
-        .from("events")
-        .select("*")
-        .eq("id", eventId)
-        .single();
+      // Import utility functions
+      const { parseEventIdentifier } = await import("@/lib/eventUtils");
+      const { isUuid, identifier } = parseEventIdentifier(eventId!);
+      
+      // Fetch event data by UUID or slug
+      const eventQuery = isUuid 
+        ? supabase.from("events").select("*").eq("id", identifier)
+        : supabase.from("events").select("*").eq("slug", identifier);
+        
+      const { data: eventData, error: eventError } = await eventQuery.single();
 
       if (eventError) {
         console.error("Error fetching event:", eventError);
@@ -167,6 +179,21 @@ const EventPage: React.FC = () => {
       };
 
       setEventData(eventWithStripeAccount);
+      
+      // Update meta tags for social media sharing
+      const eventMetaData = {
+        title: eventWithStripeAccount.name,
+        description: eventWithStripeAccount.description || `Join ${eventWithStripeAccount.name} - Live streaming event`,
+        image: eventWithStripeAccount.media_urls?.[0] || `${window.location.origin}/placeholder.svg`,
+        url: eventWithStripeAccount.slug 
+          ? `${window.location.origin}/event/${eventWithStripeAccount.slug}`
+          : `${window.location.origin}/event/${eventWithStripeAccount.id}`,
+        date: eventWithStripeAccount.date ? `${eventWithStripeAccount.date}T${eventWithStripeAccount.time || '00:00:00'}` : undefined,
+        location: eventWithStripeAccount.location,
+        price: eventWithStripeAccount.ticket_price
+      };
+      updateEventMetaTags(eventMetaData);
+      
     } catch (error) {
       console.error("Error fetching event data:", error);
       toast({
@@ -265,7 +292,9 @@ const EventPage: React.FC = () => {
     }
   };
 
-  const eventUrl = `${window.location.origin}/event/${eventId}`;
+  const eventUrl = eventData?.slug 
+    ? `${window.location.origin}/event/${eventData.slug}`
+    : `${window.location.origin}/event/${eventId}`;
 
   const handlePayment = () => {
     if (!currentUser) {
