@@ -98,9 +98,9 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({ eventId, eventName, fallb
       </LiveKitRoom>
       
       {showOverlay && (
-        <div className="absolute inset-0 bg-black/60 flex items-center justify-center transition-opacity duration-500">
+        <div className="absolute inset-0 bg-black/60 flex pt-2 justify-center transition-opacity duration-500">
           <div className="text-center text-white p-4">
-            <div className="text-lg font-semibold mb-2">Preview Ended</div>
+            <div className="text-lg font-semibold">Preview Ended</div>
             <div className="text-sm opacity-90">Click "Watch Now" to continue viewing</div>
           </div>
         </div>

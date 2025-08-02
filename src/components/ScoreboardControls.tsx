@@ -190,7 +190,7 @@ export const ScoreboardControls: React.FC<ScoreboardControlsProps> = ({ eventId 
                 </div>
               </div>
               
-              <div className="flex items-center gap-1 sm:gap-2 flex-col xs:flex-row">
+              <div className="flex items-center gap-1 sm:gap-2 flex-col md:flex-row">
                 <Button
                   size="sm"
                   variant="outline"
