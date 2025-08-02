@@ -3,7 +3,7 @@ import { useParams, Navigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { LiveKitRoom, RoomAudioRenderer } from "@livekit/components-react";
 import "@livekit/components-styles";
-import { StreamerInterface } from "@/components/StreamerInterface";
+import StreamerInterfaceWithCleanup from "@/components/StreamerInterfaceWithCleanup";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 
@@ -337,7 +337,7 @@ const StagePage: React.FC = () => {
       style={{ height: "100vh" }}
     >
       <RoomAudioRenderer />
-      <StreamerInterface
+      <StreamerInterfaceWithCleanup
         eventId={eventId}
         eventTitle={event.name}
         isLive={event.is_live}
