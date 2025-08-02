@@ -6,7 +6,6 @@ import "@livekit/components-styles";
 import { StreamerInterface } from "@/components/StreamerInterface";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
-import { useStreamingControls } from "@/hooks/useStreamingControls";
 
 const StagePage: React.FC = () => {
   const { eventId } = useParams<{ eventId: string }>();
@@ -21,8 +20,6 @@ const StagePage: React.FC = () => {
   const [tokenLoading, setTokenLoading] = useState(false);
   const tokenGenerated = useRef(false);
   const inviteToken = searchParams.get("token");
-
-
 
   // Use React Query for event data
   const { data: eventData, isLoading: isEventLoading } = useQuery({
@@ -260,12 +257,11 @@ const StagePage: React.FC = () => {
   }, [eventId, userRole, user, inviteToken]);
 
   // Cleanup token generation flag on unmount
-  // useEffect(() => {
-  //   return () => {
-  //     tokenGenerated.current = false;
-  //     stopStream();
-  //   };
-  // }, []);
+  useEffect(() => {
+    return () => {
+      tokenGenerated.current = false;
+    };
+  }, []);
 
   if (loading || tokenLoading) {
     return (
@@ -282,13 +278,11 @@ const StagePage: React.FC = () => {
 
   if (!user) {
     const redirectUrl = window.location.pathname + window.location.search;
-
-    const redirectWithToken = inviteToken
-      ? `${redirectUrl}${
-          redirectUrl.includes("?") ? "&" : "?"
-        }token=${inviteToken}`
+  
+    const redirectWithToken = inviteToken 
+      ? `${redirectUrl}${redirectUrl.includes('?') ? '&' : '?'}token=${inviteToken}`
       : redirectUrl;
-
+    
     return (
       <Navigate
         to={`/login?redirect=${encodeURIComponent(redirectWithToken)}`}
@@ -342,7 +336,7 @@ const StagePage: React.FC = () => {
       }}
       style={{ height: "100vh" }}
     >
-      <RoomAudioRenderer /> 
+      <RoomAudioRenderer />
       <StreamerInterface
         eventId={eventId}
         eventTitle={event.name}
