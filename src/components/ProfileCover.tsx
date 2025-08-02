@@ -11,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Textarea } from '@/components/ui/textarea';
 import FollowButton from '@/components/FollowButton';
 import SocialShareMenu from '@/components/SocialShareMenu';
+import { BirthdaySelector } from '@/components/BirthdaySelector';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
@@ -19,10 +20,12 @@ import * as z from 'zod';
 import TooltipWrapper from '@/components/ui/tooltip-wrapper';
 
 const profileFormSchema = z.object({
+  username: z.string().min(3, 'Username must be at least 3 characters').max(30, 'Username must be less than 30 characters').regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores'),
   display_name: z.string().min(1, 'Display name is required'),
   bio: z.string().max(500, 'Bio must be less than 500 characters').optional(),
   location: z.string().optional(),
   website: z.string().url('Must be a valid URL').optional().or(z.literal('')),
+  birthday: z.string().optional(),
 });
 
 type ProfileFormData = z.infer<typeof profileFormSchema>;
@@ -37,6 +40,7 @@ interface ProfileCoverProps {
     cover_photo_url?: string;
     location?: string;
     website?: string;
+    birthday?: string;
     created_at: string;
     user_id: string;
   };
@@ -66,12 +70,26 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
+      username: profile.username,
       display_name: profile.display_name,
-      bio: profile.bio,
+      bio: profile.bio || '',
       location: profile.location || '',
       website: profile.website || '',
+      birthday: profile.birthday || '',
     },
   });
+
+  // Update form values when profile changes
+  useEffect(() => {
+    form.reset({
+      username: profile.username,
+      display_name: profile.display_name,
+      bio: profile.bio || '',
+      location: profile.location || '',
+      website: profile.website || '',
+      birthday: profile.birthday || '',
+    });
+  }, [profile, form]);
 
   useEffect(() => {
     getCurrentUser();
@@ -263,10 +281,64 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
 
   const handleProfileUpdate = async (data: ProfileFormData) => {
     try {
-      // Mock update - in real app, update in Supabase
+      // First check if current user has permission to modify this profile
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || user.id !== profile.user_id) {
+        throw new Error('Unauthorized to update this profile');
+      }
+
+      // Check if username is being changed and if it's unique
+      if (data.username && data.username !== profile.username) {
+        const { data: existingUser, error: checkError } = await supabase
+          .from('user_profiles')
+          .select('id')
+          .eq('username', data.username)
+          .neq('user_id', profile.user_id)
+          .maybeSingle();
+
+        if (checkError) throw checkError;
+        
+        if (existingUser) {
+          toast({
+            title: 'Error',
+            description: 'Username is already taken. Please choose a different one.',
+            variant: 'destructive'
+          });
+          return;
+        }
+      }
+
+      // Prepare update data
+      const updateData: any = {
+        username: data.username,
+        display_name: data.display_name,
+        bio: data.bio || null,
+        location: data.location || null,
+        website: data.website || null,
+        updated_at: new Date().toISOString(),
+      };
+
+      // Add birthday if provided
+      if (data.birthday) {
+        updateData.birthday = data.birthday;
+      }
+
+      // Update profile in database
+      const { error: updateError } = await supabase
+        .from('user_profiles')
+        .update(updateData)
+        .eq('user_id', profile.user_id);
+
+      if (updateError) throw updateError;
+
+      // Create updated profile object
       const updatedProfile = {
         ...profile,
-        ...data
+        ...data,
+        bio: data.bio || '',
+        location: data.location || '',
+        website: data.website || '',
+        birthday: data.birthday || ''
       };
       
       if (onProfileUpdate) {
@@ -283,7 +355,7 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
       console.error('Error updating profile:', error);
       toast({
         title: 'Error',
-        description: 'Failed to update profile',
+        description: error instanceof Error ? error.message : 'Failed to update profile',
         variant: 'destructive'
       });
     }
@@ -401,64 +473,94 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
                     <DialogHeader>
                       <DialogTitle>Edit Profile</DialogTitle>
                     </DialogHeader>
-                    <Form {...form}>
-                      <form onSubmit={form.handleSubmit(handleProfileUpdate)} className="space-y-4">
-                        <FormField
-                          control={form.control}
-                          name="display_name"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Display Name</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Your display name" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="bio"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Bio</FormLabel>
-                              <FormControl>
-                                <Textarea 
-                                  placeholder="Tell us about yourself..."
-                                  className="min-h-[100px]"
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="location"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Location</FormLabel>
-                              <FormControl>
-                                <Input placeholder="City, State, Country" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="website"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Website</FormLabel>
-                              <FormControl>
-                                <Input placeholder="https://yourwebsite.com" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                     <Form {...form}>
+                       <form onSubmit={form.handleSubmit(handleProfileUpdate)} className="space-y-4">
+                         <FormField
+                           control={form.control}
+                           name="username"
+                           render={({ field }) => (
+                             <FormItem>
+                               <FormLabel>Username</FormLabel>
+                               <FormControl>
+                                 <Input placeholder="Your unique username" {...field} />
+                               </FormControl>
+                               <FormMessage />
+                             </FormItem>
+                           )}
+                         />
+                         <FormField
+                           control={form.control}
+                           name="display_name"
+                           render={({ field }) => (
+                             <FormItem>
+                               <FormLabel>Display Name</FormLabel>
+                               <FormControl>
+                                 <Input placeholder="Your display name" {...field} />
+                               </FormControl>
+                               <FormMessage />
+                             </FormItem>
+                           )}
+                         />
+                         <FormField
+                           control={form.control}
+                           name="bio"
+                           render={({ field }) => (
+                             <FormItem>
+                               <FormLabel>Bio</FormLabel>
+                               <FormControl>
+                                 <Textarea 
+                                   placeholder="Welcome to my profile! I love creating amazing content and connecting with the community."
+                                   className="min-h-[100px]"
+                                   {...field}
+                                 />
+                               </FormControl>
+                               <FormMessage />
+                             </FormItem>
+                           )}
+                         />
+                         <FormField
+                           control={form.control}
+                           name="location"
+                           render={({ field }) => (
+                             <FormItem>
+                               <FormLabel>Location</FormLabel>
+                               <FormControl>
+                                 <Input placeholder="San Francisco, CA" {...field} />
+                               </FormControl>
+                               <FormMessage />
+                             </FormItem>
+                           )}
+                         />
+                         <FormField
+                           control={form.control}
+                           name="website"
+                           render={({ field }) => (
+                             <FormItem>
+                               <FormLabel>Website</FormLabel>
+                               <FormControl>
+                                 <Input placeholder="https://example.com" {...field} />
+                               </FormControl>
+                               <FormMessage />
+                             </FormItem>
+                           )}
+                         />
+                         <FormField
+                           control={form.control}
+                           name="birthday"
+                           render={({ field }) => (
+                             <FormItem>
+                               <FormLabel>Birthday</FormLabel>
+                               <FormControl>
+                                 <BirthdaySelector
+                                   value={field.value || ''}
+                                   onChange={field.onChange}
+                                   className="w-full"
+                                 />
+                               </FormControl>
+                               <FormMessage />
+                             </FormItem>
+                           )}
+                         />
                         <div className="flex justify-end space-x-2">
                           <TooltipWrapper content="Cancel changes and close dialog">
                             <Button type="button" variant="outline" onClick={() => setShowEditDialog(false)}>
