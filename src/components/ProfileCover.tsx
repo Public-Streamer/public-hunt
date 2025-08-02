@@ -26,6 +26,8 @@ const profileFormSchema = z.object({
   location: z.string().optional(),
   website: z.string().url('Must be a valid URL').optional().or(z.literal('')),
   birthday: z.string().optional(),
+  education: z.string().optional(),
+  relationship_status: z.string().optional(),
 });
 
 type ProfileFormData = z.infer<typeof profileFormSchema>;
@@ -41,6 +43,8 @@ interface ProfileCoverProps {
     location?: string;
     website?: string;
     birthday?: string;
+    education?: string;
+    relationship_status?: string;
     created_at: string;
     user_id: string;
   };
@@ -76,6 +80,8 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
       location: profile.location || '',
       website: profile.website || '',
       birthday: profile.birthday || '',
+      education: profile.education || '',
+      relationship_status: profile.relationship_status || '',
     },
   });
 
@@ -88,6 +94,8 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
       location: profile.location || '',
       website: profile.website || '',
       birthday: profile.birthday || '',
+      education: profile.education || '',
+      relationship_status: profile.relationship_status || '',
     });
   }, [profile, form]);
 
@@ -315,6 +323,8 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
         bio: data.bio || null,
         location: data.location || null,
         website: data.website || null,
+        education: data.education || null,
+        relationship_status: data.relationship_status || null,
         updated_at: new Date().toISOString(),
       };
 
@@ -338,7 +348,9 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
         bio: data.bio || '',
         location: data.location || '',
         website: data.website || '',
-        birthday: data.birthday || ''
+        birthday: data.birthday || '',
+        education: data.education || '',
+        relationship_status: data.relationship_status || ''
       };
       
       if (onProfileUpdate) {
@@ -544,24 +556,50 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
                              </FormItem>
                            )}
                          />
-                         <FormField
-                           control={form.control}
-                           name="birthday"
-                           render={({ field }) => (
-                             <FormItem>
-                               <FormLabel>Birthday</FormLabel>
-                               <FormControl>
-                                 <BirthdaySelector
-                                   value={field.value || ''}
-                                   onChange={field.onChange}
-                                   className="w-full"
-                                 />
-                               </FormControl>
-                               <FormMessage />
-                             </FormItem>
-                           )}
-                         />
-                        <div className="flex justify-end space-x-2">
+                          <FormField
+                            control={form.control}
+                            name="birthday"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Birthday</FormLabel>
+                                <FormControl>
+                                  <BirthdaySelector
+                                    value={field.value || ''}
+                                    onChange={field.onChange}
+                                    className="w-full"
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="education"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Education</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="University of California, Berkeley" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="relationship_status"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Relationship Status</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Single, Married, In a relationship, etc." {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                         <div className="flex justify-end space-x-2">
                           <TooltipWrapper content="Cancel changes and close dialog">
                             <Button type="button" variant="outline" onClick={() => setShowEditDialog(false)}>
                               Cancel
