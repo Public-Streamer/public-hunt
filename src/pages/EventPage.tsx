@@ -29,6 +29,7 @@ import SocialShareMenu from "@/components/SocialShareMenu";
 import TicketPurchaseModal from "@/components/TicketPurchaseModal";
 import StreamPreviewContainer from "@/components/StreamPreviewContainer";
 import { RealtimeScoreboard } from "@/components/RealtimeScoreboard";
+import EventStreamPreview from "@/components/EventStreamPreview";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { useAppContext } from "@/contexts/AppContext";
@@ -536,30 +537,43 @@ const EventPage: React.FC = () => {
                 </LiveKitRoom>
               ) : (
                 <div className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100 relative">
-                  {!currentUser && (
-                    <div className="absolute inset-0 backdrop-blur-md bg-black/20 flex items-center justify-center z-10">
-                      <div className="text-center bg-white/90 p-6 rounded-lg shadow-lg">
-                        <div className="text-lg font-semibold mb-2">
-                          Sign In to Watch Stream
+                  {/* Show 10-Second Preview for Paid Live Events */}
+                  {currentUser && eventData.ticket_price && eventData.ticket_price > 0 && !hasTicket && !canEnterStage && eventData.is_live ? (
+                    <EventStreamPreview
+                      eventId={eventData.id}
+                      eventName={eventData.name}
+                      isLive={eventData.is_live}
+                      fallbackImage={eventData.media_urls?.[0] || '/placeholder.svg'}
+                      hasAccess={hasTicket || canEnterStage}
+                    />
+                  ) : (
+                    <>
+                      {!currentUser && (
+                        <div className="absolute inset-0 backdrop-blur-md bg-black/20 flex items-center justify-center z-10">
+                          <div className="text-center bg-white/90 p-6 rounded-lg shadow-lg">
+                            <div className="text-lg font-semibold mb-2">
+                              Sign In to Watch Stream
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              Please sign in to access this event
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-sm text-gray-600">
-                          Please sign in to access this event
-                        </div>
+                      )}
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Video className="h-12 w-12 sm:h-16 sm:w-16 lg:h-24 lg:w-24 text-purple-500" />
                       </div>
-                    </div>
+                      {eventData.is_live && (
+                        <Badge className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-red-600 text-white text-xs">
+                          <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full mr-1 animate-pulse" />
+                          LIVE
+                        </Badge>
+                      )}
+                      <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-black/70 text-white px-2 py-1 rounded text-xs sm:text-sm">
+                        Multi-camera
+                      </div>
+                    </>
                   )}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Video className="h-12 w-12 sm:h-16 sm:w-16 lg:h-24 lg:w-24 text-purple-500" />
-                  </div>
-                  {eventData.is_live && (
-                    <Badge className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-red-600 text-white text-xs">
-                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full mr-1 animate-pulse" />
-                      LIVE
-                    </Badge>
-                  )}
-                  <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-black/70 text-white px-2 py-1 rounded text-xs sm:text-sm">
-                    Multi-camera
-                  </div>
                 </div>
               )}
 

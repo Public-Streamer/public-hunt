@@ -186,7 +186,7 @@ const Profile: React.FC = () => {
         </TabsContent>
         
         <TabsContent value="events" className="mt-6">
-          <UserEventsList userId={profile.id} />
+          <UserEventsList userId={profile.user_id} />
         </TabsContent>
         
         <TabsContent value="channels" className="mt-6">
