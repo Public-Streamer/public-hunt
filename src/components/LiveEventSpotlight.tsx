@@ -65,7 +65,7 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({ eventId, eventName, fallb
       const timer = setTimeout(() => {
         setIsBlurred(true);
         setShowOverlay(true);
-      }, 5000);
+      }, 15000);
 
       return () => clearTimeout(timer);
     }
