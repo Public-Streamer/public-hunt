@@ -21,10 +21,12 @@ verify_jwt = true
 [functions.scoreboard-operations]
 verify_jwt = false
 
+[functions.check-stripe-account-status]
+verify_jwt = true
+
 [functions.event-meta-tags]
 verify_jwt = false
 
-# URL routing for event pages to handle social media crawlers
 [[edge_functions]]
 function = "event-meta-tags"
 pattern = "/event/**"

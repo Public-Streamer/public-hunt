@@ -35,8 +35,25 @@ serve(async (req) => {
     const pathname = url.pathname;
     const userAgent = req.headers.get('user-agent') || '';
     
-    // Check if this is a social media crawler
-    const isCrawler = /facebookexternalhit|WhatsApp|Twitterbot|LinkedInBot|Slackbot|TelegramBot|SkypeBot|GoogleBot/i.test(userAgent);
+    console.log('Edge function called:', { pathname, userAgent });
+    
+    // Enhanced crawler detection including WhatsApp and other platforms
+    const crawlerPatterns = [
+      /facebookexternalhit/i,
+      /WhatsApp/i,
+      /Twitterbot/i,
+      /LinkedInBot/i,
+      /Slackbot/i,
+      /TelegramBot/i,
+      /SkypeBot/i,
+      /GoogleBot/i,
+      /bingbot/i,
+      /facebot/i,
+      /ia_archiver/i
+    ];
+    
+    const isCrawler = crawlerPatterns.some(pattern => pattern.test(userAgent));
+    console.log('Is crawler:', isCrawler);
     
     // Extract event identifier from URL
     let eventIdentifier = pathname.split('/').pop();
@@ -44,21 +61,11 @@ serve(async (req) => {
     // Handle different URL patterns
     if (pathname.includes('/event/')) {
       eventIdentifier = pathname.split('/event/')[1];
-      
-      // If this is a direct event URL and not a crawler, redirect to the React app
-      if (!isCrawler && !pathname.includes('/functions/')) {
-        const appUrl = `https://dev.publicstreamer.com${pathname}`;
-        return new Response(null, {
-          status: 302,
-          headers: {
-            ...corsHeaders,
-            'Location': appUrl,
-          },
-        });
-      }
+      console.log('Event identifier from /event/ path:', eventIdentifier);
     }
     
     if (!eventIdentifier) {
+      console.log('No event identifier found');
       return new Response('Event identifier required', { status: 400, headers: corsHeaders });
     }
 
@@ -112,9 +119,14 @@ serve(async (req) => {
     const eventTime = event.time || '';
     const ticketPrice = event.ticket_price ? `$${event.ticket_price}` : 'Free';
 
-    // Generate HTML with meta tags
-    const html = `
-<!DOCTYPE html>
+    console.log('Generated meta data:', { eventTitle, eventDescription, eventImage, eventUrl });
+
+    // For crawlers, return HTML with meta tags
+    if (isCrawler) {
+      console.log('Serving meta tags to crawler');
+      
+      // Generate HTML with meta tags
+      const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -152,6 +164,7 @@ serve(async (req) => {
   <!-- WhatsApp specific -->
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
+  <meta property="og:image:type" content="image/jpeg">
   
   <!-- JSON-LD Structured Data -->
   <script type="application/ld+json">
@@ -179,16 +192,6 @@ serve(async (req) => {
     }
   }
   </script>
-  
-  <!-- Redirect to actual event page for human visitors -->
-  <script>
-    // Only redirect if not a crawler
-    const userAgent = navigator.userAgent;
-    const isCrawler = /facebookexternalhit|WhatsApp|Twitterbot|LinkedInBot|Slackbot|TelegramBot|SkypeBot|GoogleBot/i.test(userAgent);
-    if (!isCrawler) {
-      window.location.href = "${eventUrl}";
-    }
-  </script>
 </head>
 <body>
   <div style="text-align: center; padding: 50px; font-family: Arial, sans-serif;">
@@ -198,19 +201,30 @@ serve(async (req) => {
     ${eventDate ? `<p>Date: ${eventDate} ${eventTime}</p>` : ''}
     ${event.location ? `<p>Location: ${event.location}</p>` : ''}
     <p>Price: ${ticketPrice}</p>
-    <p>Redirecting to event page...</p>
-    <a href="${eventUrl}">Click here if you are not redirected automatically</a>
+    <a href="${eventUrl}">View Event</a>
   </div>
 </body>
 </html>`;
 
-    return new Response(html, {
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'text/html; charset=utf-8',
-        'Cache-Control': 'public, max-age=300', // Cache for 5 minutes
-      },
-    });
+      return new Response(html, {
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'public, max-age=300',
+        },
+      });
+    } else {
+      console.log('Redirecting human visitor to app');
+      // For human visitors, redirect to the React app
+      return new Response(null, {
+        status: 302,
+        headers: {
+          ...corsHeaders,
+          'Location': eventUrl,
+        },
+      });
+    }
+
 
   } catch (error) {
     console.error('Error in event-meta-tags function:', error);
