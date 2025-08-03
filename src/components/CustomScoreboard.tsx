@@ -591,7 +591,12 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
                 console.log('Team input change:', e.target.value);
                 setNewTeamName(e.target.value);
               }}
-              onKeyPress={(e) => e.key === 'Enter' && createTeam()}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  createTeam();
+                }
+              }}
               className="flex-1"
               disabled={loading}
             />

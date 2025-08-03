@@ -161,7 +161,12 @@ export const ScoreboardControls: React.FC<ScoreboardControlsProps> = ({ eventId 
             placeholder="Team name..."
             value={newTeamName}
             onChange={(e) => setNewTeamName(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && createTeam()}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                createTeam();
+              }
+            }}
             className="flex-1"
           />
           <Button 
