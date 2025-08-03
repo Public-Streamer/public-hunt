@@ -42,8 +42,10 @@ export const PinnedMessageSection: React.FC<PinnedMessageSectionProps> = ({
           filter: `id=eq.${eventId}`
         },
         (payload) => {
+          console.log('Real-time pinned message update:', payload);
           // Only update if pinned_message actually changed
           if (payload.new && 'pinned_message' in payload.new) {
+            console.log('Parsing pinned message data:', payload.new.pinned_message);
             parsePinnedMessages(payload.new.pinned_message);
           }
         }
@@ -82,6 +84,7 @@ export const PinnedMessageSection: React.FC<PinnedMessageSectionProps> = ({
       });
 
       if (error) throw error;
+      console.log('Fetched pinned messages data:', data);
       setMessages(data?.messages || []);
     } catch (error) {
       console.error('Error fetching pinned messages:', error);
@@ -246,7 +249,7 @@ export const PinnedMessageSection: React.FC<PinnedMessageSectionProps> = ({
           <div className="flex items-center gap-3">
             <Pin className="h-5 w-5 text-primary flex-shrink-0" />
             <span className="text-lg font-medium">
-              {messages.length === 0 ? 'Pinned Messages' : `Pinned Messages (${messages.length})`}
+              {messages.length === 0 ? 'Pinned Messages (v2.0)' : `Pinned Messages (${messages.length}) (v2.0)`}
             </span>
             {isHost && (
               <Button 
