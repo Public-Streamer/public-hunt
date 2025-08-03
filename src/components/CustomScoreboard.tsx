@@ -81,7 +81,8 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
           table: 'event_scoreboard',
           filter: `event_id=eq.${eventId} AND scoreboard_type=eq.custom`
         },
-        () => {
+        (payload) => {
+          console.log('Custom scoreboard real-time update:', payload);
           fetchTeams();
         }
       )
@@ -121,7 +122,8 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
 
       if (response.ok) {
         const data = await response.json();
-        setTeams(data.teams || []);
+        console.log('Fetched custom teams:', data);
+        setTeams(Array.isArray(data) ? data : data.teams || []);
       }
     } catch (error) {
       console.error('Error fetching teams:', error);
