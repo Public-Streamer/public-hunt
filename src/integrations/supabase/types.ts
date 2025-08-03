@@ -887,8 +887,10 @@ export type Database = {
         Row: {
           created_at: string | null
           created_by: string | null
+          custom_fields: Json | null
           event_id: string
           id: string
+          is_editable: boolean | null
           score: number
           team_color: string | null
           team_name: string
@@ -897,8 +899,10 @@ export type Database = {
         Insert: {
           created_at?: string | null
           created_by?: string | null
+          custom_fields?: Json | null
           event_id: string
           id?: string
+          is_editable?: boolean | null
           score?: number
           team_color?: string | null
           team_name: string
@@ -907,8 +911,10 @@ export type Database = {
         Update: {
           created_at?: string | null
           created_by?: string | null
+          custom_fields?: Json | null
           event_id?: string
           id?: string
+          is_editable?: boolean | null
           score?: number
           team_color?: string | null
           team_name?: string

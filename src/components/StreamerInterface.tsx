@@ -39,7 +39,7 @@ import CameraSwitchButton from "@/components/CameraSwitchButton";
 import TorchButton from "@/components/TorchButton";
 import LiveChatSection from "@/components/LiveChatSection";
 import { useMobileMediaPermissions } from "@/hooks/useMobileMediaPermissions";
-import { ScoreboardControls } from "@/components/ScoreboardControls";
+import { EnhancedScoreboardControls } from "@/components/EnhancedScoreboardControls";
 import EventProductionTeam from "@/components/EventProductionTeam";
 
 interface StreamerInterfaceProps {
@@ -321,9 +321,9 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
               </Card>
             )}
 
-            {/* Scoreboard Controls - Only for hosts */}
+            {/* Enhanced Scoreboard Controls - Only for hosts */}
             {userRole === "host" && (
-              <ScoreboardControls eventId={eventId} />
+              <EnhancedScoreboardControls eventId={eventId} />
             )}
 
             {/* Event Production Team - Only for hosts */}

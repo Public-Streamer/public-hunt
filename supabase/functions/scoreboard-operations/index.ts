@@ -17,7 +17,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { action, eventId, teamName, teamColor, teamId, score } = await req.json()
+    const { action, eventId, teamName, teamColor, teamId, score, customFields } = await req.json()
 
     switch (action) {
       case 'fetch':
@@ -40,6 +40,7 @@ serve(async (req) => {
             team_name: teamName,
             score: 0,
             team_color: teamColor,
+            custom_fields: customFields || {},
           })
 
         if (createError) throw createError
@@ -54,6 +55,22 @@ serve(async (req) => {
           .eq('id', teamId)
 
         if (updateError) throw updateError
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+
+      case 'updateTeam':
+        const { error: updateTeamError } = await supabaseClient
+          .from('event_scoreboard')
+          .update({ 
+            team_name: teamName,
+            score: score,
+            team_color: teamColor,
+            custom_fields: customFields || {}
+          })
+          .eq('id', teamId)
+
+        if (updateTeamError) throw updateTeamError
         return new Response(JSON.stringify({ success: true }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })
