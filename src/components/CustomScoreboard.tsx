@@ -409,6 +409,8 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
 
   const deleteTeam = async (teamId: string) => {
     try {
+      console.log('🗑️ Deleting team:', teamId);
+      
       const { error } = await supabase.functions.invoke('scoreboard-operations', {
         body: {
           action: 'delete',
@@ -418,7 +420,11 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
 
       if (error) throw error;
 
-      setTeams(prev => prev.filter(team => team.id !== teamId));
+      console.log('✅ Team deletion successful, real-time will handle state update');
+      
+      // Don't update local state here - let real-time handle it
+      // This prevents conflicts with the real-time DELETE event
+      
       toast({
         title: "Success",
         description: "Team deleted",
