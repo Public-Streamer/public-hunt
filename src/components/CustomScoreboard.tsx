@@ -48,6 +48,7 @@ const FIELD_TYPE_ICONS = {
 };
 
 export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isHost }) => {
+  console.log('CustomScoreboard - isHost:', isHost);
   const [teams, setTeams] = useState<CustomTeam[]>([]);
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [loading, setLoading] = useState(false);
@@ -138,9 +139,9 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
         .eq('id', eventId)
         .single();
 
-      if (event?.metadata?.customFields) {
-        setCustomFields(event.metadata.customFields);
-      }
+      const fields = event?.metadata?.customFields || [];
+      console.log('Fetched custom fields:', fields);
+      setCustomFields(fields);
       
       if (event?.metadata?.scoreboardName) {
         setScoreboardName(event.metadata.scoreboardName);
@@ -452,7 +453,10 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
         {isHost ? (
           <Input
             value={value || ''}
-            onChange={(e) => updateTeamField(team.id, field.id, e.target.value)}
+            onChange={(e) => {
+              console.log('Text field change:', e.target.value, 'isHost:', isHost);
+              updateTeamField(team.id, field.id, e.target.value);
+            }}
             className="max-w-40"
             placeholder="Enter text..."
           />
@@ -629,17 +633,24 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
                     )}
                   </div>
 
-                  {/* Custom fields */}
-                  {customFields.length > 0 && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {customFields.map((field) => (
-                        <div key={field.id} className="space-y-1">
-                          <Label className="text-sm font-medium">{field.label}</Label>
-                          {renderFieldValue(team, field)}
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                   {/* Custom fields */}
+                   {customFields.length > 0 ? (
+                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                       {customFields.map((field) => (
+                         <div key={field.id} className="space-y-1">
+                           <Label className="text-sm font-medium">{field.label}</Label>
+                           {renderFieldValue(team, field)}
+                         </div>
+                       ))}
+                     </div>
+                   ) : (
+                     <div className="text-sm text-muted-foreground">
+                       {(() => {
+                         console.log('Custom fields debug:', { customFields, teamCustomFields: team.custom_fields, isHost });
+                         return isHost ? 'No template fields defined. Use the Template button to add fields.' : 'No fields to display.';
+                       })()}
+                     </div>
+                   )}
                 </CardContent>
               </Card>
             ))
