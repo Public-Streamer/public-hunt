@@ -424,7 +424,7 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
             onCheckedChange={(checked) => isHost && updateTeamField(team.id, field.id, checked)}
             disabled={!isHost}
           />
-          <span className="text-sm">{Boolean(value) ? 'Yes' : 'No'}</span>
+          <span className="text-sm">{value ? 'Yes' : 'No'}</span>
         </div>
       );
     }
@@ -435,7 +435,7 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
           {isHost ? (
             <Input
               type="number"
-              value={value || 0}
+              defaultValue={value || 0}
               onChange={(e) => updateTeamField(team.id, field.id, parseInt(e.target.value) || 0)}
               className="w-20"
               min="0"
