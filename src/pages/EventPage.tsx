@@ -28,7 +28,7 @@ import OfflineStreamSection from "@/components/OfflineStreamSection";
 import SocialShareMenu from "@/components/SocialShareMenu";
 import TicketPurchaseModal from "@/components/TicketPurchaseModal";
 import StreamPreviewContainer from "@/components/StreamPreviewContainer";
-import { RealtimeScoreboard } from "@/components/RealtimeScoreboard";
+import { CoonHuntScoreboard } from "@/components/CoonHuntScoreboard";
 import EventStreamPreview from "@/components/EventStreamPreview";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
@@ -504,9 +504,9 @@ const EventPage: React.FC = () => {
                   />
                   <RoomAudioRenderer />
 
-                   {/* Realtime Scoreboard */}
+                   {/* Coon Hunt Scoreboard */}
              <div className="p-5">
-             {currentUser ? <RealtimeScoreboard eventId={eventId} /> : <div className="p-6">Please sign in to view the scoreboard</div>}
+             {currentUser ? <CoonHuntScoreboard eventId={eventId} isHost={false} /> : <div className="p-6">Please sign in to view the scoreboard</div>}
              </div>
 
                   {/* Show full viewer interface below if user has access */}

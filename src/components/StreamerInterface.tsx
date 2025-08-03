@@ -40,6 +40,7 @@ import TorchButton from "@/components/TorchButton";
 import LiveChatSection from "@/components/LiveChatSection";
 import { useMobileMediaPermissions } from "@/hooks/useMobileMediaPermissions";
 import { CoonHuntScoreboard } from "@/components/CoonHuntScoreboard";
+import { ScoreboardGameSelector } from "@/components/ScoreboardGameSelector";
 import EventProductionTeam from "@/components/EventProductionTeam";
 
 interface StreamerInterfaceProps {
@@ -68,6 +69,9 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(eventTitle);
   const [isSaving, setIsSaving] = useState(false);
+  
+  // Scoreboard state management
+  const [selectedGameType, setSelectedGameType] = useState<string | null>(null);
 
   // Edit handlers
   const handleEditClick = () => {
@@ -321,9 +325,38 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
               </Card>
             )}
 
-            {/* Coon Hunt Scoreboard - Only for hosts */}
+            {/* Scoreboard Section - Only for hosts */}
             {userRole === "host" && (
-              <CoonHuntScoreboard eventId={eventId} isHost={true} />
+              <Card>
+                <CardHeader>
+                  <CardTitle>Event Scoreboard</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {!selectedGameType ? (
+                    <div className="text-center py-8">
+                      <div className="space-y-4">
+                        <p className="text-muted-foreground">
+                          Create a specialized scoreboard for your competition
+                        </p>
+                        <ScoreboardGameSelector onGameSelect={setSelectedGameType} />
+                      </div>
+                    </div>
+                  ) : selectedGameType === 'coon_hunt' ? (
+                    <CoonHuntScoreboard eventId={eventId} isHost={true} />
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <p>This game type is not yet supported.</p>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setSelectedGameType(null)}
+                        className="mt-4"
+                      >
+                        Choose Different Game
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             )}
 
             {/* Event Production Team - Only for hosts */}

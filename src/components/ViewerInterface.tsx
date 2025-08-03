@@ -1,5 +1,7 @@
 //NOTE: THIS COMPONENT IS NOT IN USE; DON'T REMOVE IT BUT DON"T WORK ON IT
 
+// For the actual viewer interface with scoreboard, see pages/StagePage.tsx
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
