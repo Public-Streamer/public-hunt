@@ -119,7 +119,7 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [eventId, scoreboardName, customFields]);
+  }, [eventId]);
 
   const fetchTeams = async () => {
     try {
