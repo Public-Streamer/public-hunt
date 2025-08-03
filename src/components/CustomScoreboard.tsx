@@ -583,9 +583,13 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
             <Input
               placeholder="Enter team name..."
               value={newTeamName}
-              onChange={(e) => setNewTeamName(e.target.value)}
+              onChange={(e) => {
+                console.log('Team input change:', e.target.value);
+                setNewTeamName(e.target.value);
+              }}
               onKeyPress={(e) => e.key === 'Enter' && createTeam()}
               className="flex-1"
+              disabled={loading}
             />
             <Button onClick={createTeam} disabled={loading || !newTeamName.trim()}>
               <Plus className="h-4 w-4 mr-2" />
