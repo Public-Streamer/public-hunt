@@ -581,7 +581,7 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
             onCheckedChange={(checked) => isHost && updateTeamField(team.id, field.id, checked)}
             disabled={!isHost}
           />
-          <span className="text-sm">{value ? 'Yes' : 'No'}</span>
+          <span className="text-sm font-bold">{value ? 'Yes' : 'No'}</span>
         </div>
       );
     }
@@ -630,7 +630,7 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
             placeholder="Enter text..."
           />
         ) : (
-          <span className="text-sm">{value || '-'}</span>
+          <span className="text-sm font-bold">{value || '-'}</span>
         )}
       </div>
     );
@@ -860,7 +860,7 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
                                         onCheckedChange={(checked) => isHost && updateTeamField(team.id, fieldId, fieldMeta ? { ...fieldMeta, value: checked } : checked)}
                                         disabled={!isHost}
                                       />
-                                      <span className="text-sm">{actualValue ? 'Yes' : 'No'}</span>
+                                       <span className="text-sm font-bold">{actualValue ? 'Yes' : 'No'}</span>
                                     </div>
                                   ) : fieldType === 'score' ? (
                                     <div className="flex items-center gap-2">
@@ -909,7 +909,7 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
                                           placeholder="Enter text..."
                                         />
                                       ) : (
-                                        <span className="text-sm">{actualValue || '-'}</span>
+                                        <span className="text-sm font-bold">{actualValue || '-'}</span>
                                       )}
                                     </div>
                                   )}
