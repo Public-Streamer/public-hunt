@@ -7,9 +7,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { Plus, Settings, Trash2, Edit3, Save, X, Type, Hash, ToggleLeft } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 
 interface CustomField {
   id: string;
@@ -56,12 +56,13 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
   const [editingTeam, setEditingTeam] = useState<CustomTeam | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
-  const [fieldInputValues, setFieldInputValues] = useState<Record<string, Record<string, any>>>({});
+  
+  // Local state for input values to prevent constant API calls
+  const [localInputValues, setLocalInputValues] = useState<Record<string, Record<string, any>>>({});
   
   // Scoreboard naming states
   const [scoreboardName, setScoreboardName] = useState('Custom Scoreboard');
-  const [isEditingName, setIsEditingName] = useState(false);
-  const [tempName, setTempName] = useState('');
+  const [editingTitle, setEditingTitle] = useState(false);
   
   // Template field creation states
   const [newFieldLabel, setNewFieldLabel] = useState('');
@@ -96,8 +97,21 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
           table: 'events',
           filter: `id=eq.${eventId}`
         },
-        () => {
-          fetchCustomFields(); // Refresh metadata including scoreboard name and fields
+        (payload) => {
+          console.log('Real-time event update received:', payload);
+          // Only update title from real-time if it's different from current local state
+          if (payload.new && payload.new.metadata) {
+            const metadata = payload.new.metadata as Record<string, any>;
+            const newTitle = metadata?.scoreboardName;
+            if (newTitle && newTitle !== scoreboardName) {
+              setScoreboardName(newTitle);
+            }
+            // Also update custom fields if they changed
+            const newFields = metadata?.customFields;
+            if (newFields && JSON.stringify(newFields) !== JSON.stringify(customFields)) {
+              setCustomFields(newFields);
+            }
+          }
         }
       )
       .subscribe();
@@ -105,28 +119,21 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [eventId]);
+  }, [eventId, scoreboardName, customFields]);
 
   const fetchTeams = async () => {
     try {
-      const response = await fetch('https://zmfugicftfwvuudensdo.supabase.co/functions/v1/scoreboard-operations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptZnVnaWNmdGZ3dnV1ZGVuc2RvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwNjU2ODUsImV4cCI6MjA2NzY0MTY4NX0.J8CA_K_oxhcd2wlQf0KvEarwi0ejq0nBgAVMEhQlXE8'
-        },
-        body: JSON.stringify({
+      const { data, error } = await supabase.functions.invoke('scoreboard-operations', {
+        body: {
           action: 'fetch',
           eventId,
           scoreboardType: 'custom'
-        })
+        }
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Fetched custom teams:', data);
-        setTeams(Array.isArray(data) ? data : data.teams || []);
-      }
+      if (error) throw error;
+      console.log('Fetched custom teams:', data);
+      setTeams(Array.isArray(data) ? data : data?.teams || []);
     } catch (error) {
       console.error('Error fetching teams:', error);
     }
@@ -140,13 +147,13 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
         .eq('id', eventId)
         .single();
 
-      const fields = event?.metadata?.customFields || [];
+      const metadata = event?.metadata as Record<string, any> | null;
+      const fields = metadata?.customFields || [];
       console.log('Fetched custom fields:', fields);
       setCustomFields(fields);
       
-      if (event?.metadata?.scoreboardName) {
-        setScoreboardName(event.metadata.scoreboardName);
-      }
+      const title = metadata?.scoreboardName || 'Custom Scoreboard';
+      setScoreboardName(title);
     } catch (error) {
       console.error('Error fetching custom fields:', error);
     }
@@ -161,16 +168,16 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
         .eq('id', eventId)
         .single();
 
-      const currentMetadata = event?.metadata || {};
+      const currentMetadata = (event?.metadata as Record<string, any>) || {};
       
       const { error } = await supabase
         .from('events')
         .update({
           metadata: { 
             ...currentMetadata, 
-            customFields: fields,
+            customFields: fields as any,
             scoreboardName 
-          }
+          } as any
         })
         .eq('id', eventId);
 
@@ -183,59 +190,56 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
         await applyFieldsToAllTeams(fields);
       }
       
-      toast.success('Template updated successfully');
+      toast({
+        title: "Success",
+        description: "Template updated successfully",
+      });
     } catch (error) {
       console.error('Error saving custom fields:', error);
-      toast.error('Failed to update template');
+      toast({
+        title: "Error",
+        description: "Failed to update template",
+        variant: "destructive",
+      });
     }
   };
 
-  const saveScoreboardName = async (name: string) => {
+  const updateScoreboardTitle = async (newTitle: string) => {
     try {
-      // Get current metadata and preserve other fields
-      const { data: event } = await supabase
+      const { data: eventData, error: fetchError } = await supabase
         .from('events')
         .select('metadata')
         .eq('id', eventId)
         .single();
 
-      const currentMetadata = event?.metadata || {};
-      
+      if (fetchError) throw fetchError;
+
+      const currentMetadata = (eventData.metadata as Record<string, any>) || {};
+      const updatedMetadata = {
+        ...currentMetadata,
+        scoreboardName: newTitle
+      };
+
       const { error } = await supabase
         .from('events')
-        .update({
-          metadata: { 
-            ...currentMetadata, 
-            scoreboardName: name 
-          }
-        })
+        .update({ metadata: updatedMetadata as any })
         .eq('id', eventId);
 
       if (error) throw error;
-      
-      setScoreboardName(name);
-      toast.success('Scoreboard name updated');
+
+      toast({
+        title: "Success",
+        description: "Scoreboard title updated",
+      });
     } catch (error) {
-      console.error('Error saving scoreboard name:', error);
-      toast.error('Failed to update scoreboard name');
+      console.error('Error updating scoreboard title:', error);
+      fetchCustomFields();
+      toast({
+        title: "Error",
+        description: "Failed to update scoreboard title",
+        variant: "destructive",
+      });
     }
-  };
-
-  const startEditingName = () => {
-    setTempName(scoreboardName);
-    setIsEditingName(true);
-  };
-
-  const saveNameChanges = () => {
-    if (tempName.trim()) {
-      saveScoreboardName(tempName.trim());
-    }
-    setIsEditingName(false);
-  };
-
-  const cancelNameEdit = () => {
-    setTempName('');
-    setIsEditingName(false);
   };
 
   const applyFieldsToAllTeams = async (fields: CustomField[]) => {
@@ -282,30 +286,31 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
            field.type === 'toggle' ? false : '');
       });
 
-      const response = await fetch('https://zmfugicftfwvuudensdo.supabase.co/functions/v1/scoreboard-operations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptZnVnaWNmdGZ3dnV1ZGVuc2RvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwNjU2ODUsImV4cCI6MjA2NzY0MTY4NX0.J8CA_K_oxhcd2wlQf0KvEarwi0ejq0nBgAVMEhQlXE8'
-        },
-        body: JSON.stringify({
+      const { error } = await supabase.functions.invoke('scoreboard-operations', {
+        body: {
           action: 'create',
           eventId,
           teamName: newTeamName,
           teamColor,
           customFields: initialCustomFields,
           scoreboardType: 'custom'
-        })
+        }
       });
 
-      if (response.ok) {
-        setNewTeamName('');
-        await fetchTeams();
-        toast.success('Team added successfully');
-      }
+      if (error) throw error;
+
+      setNewTeamName('');
+      toast({
+        title: "Success",
+        description: "Team added successfully",
+      });
     } catch (error) {
       console.error('Error creating team:', error);
-      toast.error('Failed to add team');
+      toast({
+        title: "Error",
+        description: "Failed to add team",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -313,49 +318,48 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
 
   const updateTeam = async (teamId: string, updates: Partial<CustomTeam>) => {
     try {
-      const response = await fetch('https://zmfugicftfwvuudensdo.supabase.co/functions/v1/scoreboard-operations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptZnVnaWNmdGZ3dnV1ZGVuc2RvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwNjU2ODUsImV4cCI6MjA2NzY0MTY4NX0.J8CA_K_oxhcd2wlQf0KvEarwi0ejq0nBgAVMEhQlXE8'
-        },
-        body: JSON.stringify({
+      const { error } = await supabase.functions.invoke('scoreboard-operations', {
+        body: {
           action: 'updateTeam',
           teamId,
           ...updates
-        })
+        }
       });
 
-      if (response.ok) {
-        await fetchTeams();
-      }
+      if (error) throw error;
     } catch (error) {
       console.error('Error updating team:', error);
-      toast.error('Failed to update team');
+      toast({
+        title: "Error",
+        description: "Failed to update team",
+        variant: "destructive",
+      });
     }
   };
 
   const deleteTeam = async (teamId: string) => {
     try {
-      const response = await fetch('https://zmfugicftfwvuudensdo.supabase.co/functions/v1/scoreboard-operations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptZnVnaWNmdGZ3dnV1ZGVuc2RvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwNjU2ODUsImV4cCI6MjA2NzY0MTY4NX0.J8CA_K_oxhcd2wlQf0KvEarwi0ejq0nBgAVMEhQlXE8'
-        },
-        body: JSON.stringify({
+      const { error } = await supabase.functions.invoke('scoreboard-operations', {
+        body: {
           action: 'delete',
           teamId
-        })
+        }
       });
 
-      if (response.ok) {
-        await fetchTeams();
-        toast.success('Team deleted');
-      }
+      if (error) throw error;
+
+      setTeams(prev => prev.filter(team => team.id !== teamId));
+      toast({
+        title: "Success",
+        description: "Team deleted",
+      });
     } catch (error) {
       console.error('Error deleting team:', error);
-      toast.error('Failed to delete team');
+      toast({
+        title: "Error",
+        description: "Failed to delete team",
+        variant: "destructive",
+      });
     }
   };
 
@@ -383,30 +387,47 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
     saveCustomFields(updatedFields);
   };
 
-  const updateTeamField = async (teamId: string, fieldId: string, value: any) => {
-    const team = teams.find(t => t.id === teamId);
-    if (!team) return;
-
-    // Update local state immediately for better UX
-    setFieldInputValues(prev => ({
+  // Function to handle local input changes without saving
+  const handleFieldChange = (teamId: string, fieldId: string, value: any) => {
+    setLocalInputValues(prev => ({
       ...prev,
       [teamId]: {
         ...prev[teamId],
         [fieldId]: value
       }
     }));
+  };
+
+  // Function to get the current value for an input (local or from database)
+  const getCurrentFieldValue = (teamId: string, fieldId: string, dbValue: any) => {
+    const localValue = localInputValues[teamId]?.[fieldId];
+    return localValue !== undefined ? localValue : (dbValue || (customFields.find(f => f.id === fieldId)?.type === 'score' ? 0 : ''));
+  };
+
+  const updateTeamField = async (teamId: string, fieldId: string, value: any) => {
+    const team = teams.find(t => t.id === teamId);
+    if (!team) return;
 
     const updatedFields = {
       ...team.custom_fields,
       [fieldId]: value
     };
 
-    // Update the teams state immediately
+    // Update local state immediately
     setTeams(prev => prev.map(t => 
       t.id === teamId 
         ? { ...t, custom_fields: updatedFields }
         : t
     ));
+
+    // Clear local input for this field after successful update
+    setLocalInputValues(prev => ({
+      ...prev,
+      [teamId]: {
+        ...prev[teamId],
+        [fieldId]: undefined
+      }
+    }));
 
     await updateTeam(teamId, { custom_fields: updatedFields });
   };
@@ -427,7 +448,10 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
 
     setEditDialogOpen(false);
     setEditingTeam(null);
-    toast.success('Team updated');
+    toast({
+      title: "Success",
+      description: "Team updated",
+    });
   };
 
   const renderFieldValue = (team: CustomTeam, field: CustomField) => {
@@ -452,8 +476,14 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
           {isHost ? (
             <Input
               type="number"
-              value={fieldInputValues[team.id]?.[field.id] ?? value ?? 0}
-              onChange={(e) => updateTeamField(team.id, field.id, parseInt(e.target.value) || 0)}
+              value={getCurrentFieldValue(team.id, field.id, value)}
+              onChange={(e) => handleFieldChange(team.id, field.id, parseInt(e.target.value) || 0)}
+              onBlur={(e) => updateTeamField(team.id, field.id, parseInt(e.target.value) || 0)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  updateTeamField(team.id, field.id, parseInt((e.target as HTMLInputElement).value) || 0);
+                }
+              }}
               className="w-20"
               min="0"
             />
@@ -469,10 +499,13 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
       <div>
         {isHost ? (
           <Input
-            value={fieldInputValues[team.id]?.[field.id] ?? value ?? ''}
-            onChange={(e) => {
-              console.log('Text field change:', e.target.value, 'isHost:', isHost);
-              updateTeamField(team.id, field.id, e.target.value);
+            value={getCurrentFieldValue(team.id, field.id, value)}
+            onChange={(e) => handleFieldChange(team.id, field.id, e.target.value)}
+            onBlur={(e) => updateTeamField(team.id, field.id, e.target.value)}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                updateTeamField(team.id, field.id, (e.target as HTMLInputElement).value);
+              }
             }}
             className="max-w-40"
             placeholder="Enter text..."
@@ -489,33 +522,40 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="flex items-center gap-2">
           <Plus className="h-5 w-5" />
-          {isEditingName ? (
-            <div className="flex items-center gap-2">
-              <Input
-                value={tempName}
-                onChange={(e) => setTempName(e.target.value)}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') saveNameChanges();
-                  if (e.key === 'Escape') cancelNameEdit();
-                }}
-                className="max-w-xs"
-                autoFocus
-              />
-              <Button size="sm" variant="ghost" onClick={saveNameChanges}>
-                <Save className="h-4 w-4" />
-              </Button>
-              <Button size="sm" variant="ghost" onClick={cancelNameEdit}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
+          {isHost && editingTitle ? (
+            <Input
+              value={scoreboardName}
+              onChange={(e) => setScoreboardName(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  updateScoreboardTitle(scoreboardName);
+                  setEditingTitle(false);
+                }
+              }}
+              onBlur={() => {
+                updateScoreboardTitle(scoreboardName);
+                setEditingTitle(false);
+              }}
+              className="h-8 text-lg font-semibold"
+              placeholder="Press Enter to save"
+              autoFocus
+            />
           ) : (
-            <div className="flex items-center gap-2">
-              <span>{scoreboardName}</span>
-              {isHost && (
-                <Button size="sm" variant="ghost" onClick={startEditingName}>
-                  <Edit3 className="h-4 w-4" />
-                </Button>
-              )}
+            <span 
+              className={isHost ? "cursor-pointer hover:text-primary" : ""}
+              onClick={() => isHost && setEditingTitle(true)}
+              title={isHost ? "Click to edit scoreboard name" : undefined}
+            >
+              {scoreboardName}
+            </span>
+          )}
+          {isHost && !editingTitle && (
+            <div title="Edit scoreboard name">
+              <Edit3 
+                className="h-4 w-4 ml-2 cursor-pointer hover:text-primary" 
+                onClick={() => setEditingTitle(true)}
+              />
             </div>
           )}
         </CardTitle>
@@ -667,10 +707,7 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
                      </div>
                    ) : (
                      <div className="text-sm text-muted-foreground">
-                       {(() => {
-                         console.log('Custom fields debug:', { customFields, teamCustomFields: team.custom_fields, isHost });
-                         return isHost ? 'No template fields defined. Use the Template button to add fields.' : 'No fields to display.';
-                       })()}
+                       {isHost ? 'No template fields defined. Use the Template button to add fields.' : 'No fields to display.'}
                      </div>
                    )}
                 </CardContent>
