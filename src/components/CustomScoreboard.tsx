@@ -99,6 +99,12 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
               const newTeam = payload.new as CustomTeam;
               console.log('Current teams before insert:', prev);
               console.log('Adding team:', newTeam);
+              // Check if team already exists to prevent duplicates
+              const exists = prev.find(t => t.id === newTeam.id);
+              if (exists) {
+                console.log('Team already exists, skipping insert');
+                return prev;
+              }
               return [...prev, newTeam];
             });
           } else if (payload.eventType === 'UPDATE') {
@@ -143,6 +149,7 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
       });
 
     return () => {
+      console.log('CustomScoreboard cleanup - removing channel');
       supabase.removeChannel(channel);
     };
   }, [eventId]);
@@ -312,7 +319,16 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
            field.type === 'toggle' ? false : '');
       });
 
-      const { error } = await supabase.functions.invoke('scoreboard-operations', {
+      console.log('Creating team with data:', {
+        action: 'create',
+        eventId,
+        teamName: newTeamName,
+        teamColor,
+        customFields: initialCustomFields,
+        scoreboardType: 'custom'
+      });
+
+      const { data, error } = await supabase.functions.invoke('scoreboard-operations', {
         body: {
           action: 'create',
           eventId,
@@ -325,7 +341,12 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
 
       if (error) throw error;
 
+      console.log('Team creation response:', data);
       setNewTeamName('');
+      
+      // Immediately fetch updated teams to ensure consistency
+      await fetchTeams();
+      
       toast({
         title: "Success",
         description: "Team added successfully",
@@ -439,23 +460,55 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
       [fieldId]: value
     };
 
-    // Update local state immediately
-    setTeams(prev => prev.map(t => 
-      t.id === teamId 
-        ? { ...t, custom_fields: updatedFields }
-        : t
-    ));
+    console.log('Updating team field:', { teamId, fieldId, value, updatedFields });
 
-    // Clear local input for this field after successful update
-    setLocalInputValues(prev => ({
-      ...prev,
-      [teamId]: {
-        ...prev[teamId],
-        [fieldId]: undefined
-      }
-    }));
+    try {
+      // Update database first
+      const { data, error } = await supabase.functions.invoke('scoreboard-operations', {
+        body: {
+          action: 'updateTeam',
+          teamId,
+          custom_fields: updatedFields,
+          team_name: team.team_name,
+          team_color: team.team_color,
+          score: team.score || 0
+        }
+      });
 
-    await updateTeam(teamId, { custom_fields: updatedFields });
+      if (error) throw error;
+
+      console.log('Team field update response:', data);
+
+      // Update local state immediately
+      setTeams(prev => prev.map(t => 
+        t.id === teamId 
+          ? { ...t, custom_fields: updatedFields }
+          : t
+      ));
+
+      // Clear local input for this field after successful update
+      setLocalInputValues(prev => ({
+        ...prev,
+        [teamId]: {
+          ...prev[teamId],
+          [fieldId]: undefined
+        }
+      }));
+
+      toast({
+        title: "Success",
+        description: "Field updated",
+      });
+    } catch (error) {
+      console.error('Error updating team field:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update field",
+        variant: "destructive",
+      });
+      // Revert optimistic update on error
+      fetchTeams();
+    }
   };
 
   const openEditDialog = (team: CustomTeam) => {
