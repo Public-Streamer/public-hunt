@@ -92,7 +92,7 @@ const EventPage: React.FC = () => {
     }
   }, [currentUser, eventData]);
 
-  // // Set up real-time subscription for live status updates
+  // Set up real-time subscription for live status updates (excluding pinned message updates)
   useEffect(() => {
     if (!eventId) return;
 
@@ -107,8 +107,14 @@ const EventPage: React.FC = () => {
           filter: `id=eq.${eventId}`,
         },
         (payload) => {
-          if (payload.new) {
-            setEventData((prev) => (prev ? { ...prev, ...payload.new } : null));
+          if (payload.new && payload.old) {
+            // Only update if fields other than pinned_message have changed
+            const oldWithoutPinnedMessage = { ...payload.old, pinned_message: null };
+            const newWithoutPinnedMessage = { ...payload.new, pinned_message: null };
+            
+            if (JSON.stringify(oldWithoutPinnedMessage) !== JSON.stringify(newWithoutPinnedMessage)) {
+              setEventData((prev) => (prev ? { ...prev, ...payload.new } : null));
+            }
           }
         }
       )
