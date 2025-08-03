@@ -820,17 +820,99 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
                     )}
                   </div>
 
-                   {/* Custom fields */}
-                   {customFields.length > 0 ? (
-                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                       {customFields.map((field) => (
-                         <div key={field.id} className="space-y-1">
-                           <Label className="text-sm font-medium">{field.label}</Label>
-                           {renderFieldValue(team, field)}
-                         </div>
-                       ))}
+                   {/* Template-based custom fields */}
+                   {customFields.length > 0 && (
+                     <div className="space-y-4">
+                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                         {customFields.map((field) => (
+                           <div key={field.id} className="space-y-1">
+                             <Label className="text-sm font-medium">{field.label}</Label>
+                             {renderFieldValue(team, field)}
+                           </div>
+                         ))}
+                       </div>
                      </div>
-                   ) : (
+                   )}
+
+                   {/* Team-specific custom fields */}
+                   {team.custom_fields && Object.entries(team.custom_fields)
+                     .filter(([fieldId]) => !customFields.find(f => f.id === fieldId))
+                     .length > 0 && (
+                     <div className="space-y-3 mt-4 pt-4 border-t border-muted/30">
+                       <Label className="text-sm font-medium text-muted-foreground">Team-Specific Fields</Label>
+                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                         {Object.entries(team.custom_fields)
+                           .filter(([fieldId]) => !customFields.find(f => f.id === fieldId))
+                           .map(([fieldId, value]) => {
+                             const fieldType = typeof value === 'boolean' ? 'toggle' : 
+                                              typeof value === 'number' ? 'score' : 'text';
+                             const fieldLabel = fieldId.replace(/^team_field_/, '').replace(/_/g, ' ');
+                             
+                             return (
+                               <div key={fieldId} className="space-y-1">
+                                 <Label className="text-sm font-medium capitalize">{fieldLabel}</Label>
+                                 {fieldType === 'toggle' ? (
+                                   <div className="flex items-center gap-2">
+                                     <Switch
+                                       checked={Boolean(value)}
+                                       onCheckedChange={(checked) => isHost && updateTeamField(team.id, fieldId, checked)}
+                                       disabled={!isHost}
+                                     />
+                                     <span className="text-sm">{value ? 'Yes' : 'No'}</span>
+                                   </div>
+                                 ) : fieldType === 'score' ? (
+                                   <div className="flex items-center gap-2">
+                                     {isHost ? (
+                                       <Input
+                                         type="number"
+                                         value={getCurrentFieldValue(team.id, fieldId, value)}
+                                         onChange={(e) => handleFieldChange(team.id, fieldId, parseInt(e.target.value) || 0)}
+                                         onKeyPress={(e) => {
+                                           if (e.key === 'Enter') {
+                                             e.preventDefault();
+                                             updateTeamField(team.id, fieldId, parseInt(e.currentTarget.value) || 0);
+                                           }
+                                         }}
+                                         onBlur={(e) => updateTeamField(team.id, fieldId, parseInt(e.target.value) || 0)}
+                                         className="w-20"
+                                         min="0"
+                                         placeholder="Press Enter to save"
+                                       />
+                                     ) : (
+                                       <span className="font-bold text-lg">{value || 0}</span>
+                                     )}
+                                   </div>
+                                 ) : (
+                                   <div>
+                                     {isHost ? (
+                                       <Input
+                                         value={getCurrentFieldValue(team.id, fieldId, value)}
+                                         onChange={(e) => handleFieldChange(team.id, fieldId, e.target.value)}
+                                         onKeyPress={(e) => {
+                                           if (e.key === 'Enter') {
+                                             e.preventDefault();
+                                             updateTeamField(team.id, fieldId, e.currentTarget.value);
+                                           }
+                                         }}
+                                         onBlur={(e) => updateTeamField(team.id, fieldId, e.target.value)}
+                                         className="max-w-40"
+                                         placeholder="Enter text..."
+                                       />
+                                     ) : (
+                                       <span className="text-sm">{value || '-'}</span>
+                                     )}
+                                   </div>
+                                 )}
+                               </div>
+                             );
+                           })}
+                       </div>
+                     </div>
+                   )}
+
+                   {/* Empty state when no fields exist */}
+                   {customFields.length === 0 && (!team.custom_fields || 
+                     Object.entries(team.custom_fields).filter(([fieldId]) => !customFields.find(f => f.id === fieldId)).length === 0) && (
                      <div className="text-sm text-muted-foreground">
                        {isHost ? 'No template fields defined. Use the Template button to add fields.' : 'No fields to display.'}
                      </div>
@@ -880,62 +962,153 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
                   </div>
                 </div>
 
-                {/* Custom fields editing */}
+                {/* Template-based custom fields (read-only display) */}
                 {customFields.length > 0 && (
                   <div className="space-y-3">
-                    <Label className="text-base font-medium">Custom Fields</Label>
-                    {customFields.map((field) => (
-                      <div key={field.id} className="space-y-1">
-                        <Label className="text-sm">{field.label}</Label>
-                        {field.type === 'toggle' ? (
-                          <div className="flex items-center gap-2">
-                            <Switch
-                              checked={Boolean(editingTeam.custom_fields?.[field.id])}
-                              onCheckedChange={(checked) => setEditingTeam({
+                    <Label className="text-base font-medium">Template Fields (Read-only)</Label>
+                    <div className="bg-muted/30 p-3 rounded-lg space-y-2">
+                      {customFields.map((field) => (
+                        <div key={field.id} className="flex justify-between items-center">
+                          <Label className="text-sm font-medium">{field.label}</Label>
+                          <div className="text-sm text-muted-foreground">
+                            {field.type === 'toggle' 
+                              ? (editingTeam.custom_fields?.[field.id] ? 'Yes' : 'No')
+                              : (editingTeam.custom_fields?.[field.id] || 
+                                 (field.type === 'score' ? '0' : '-'))
+                            }
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Team-specific custom fields */}
+                <div className="space-y-3">
+                  <Label className="text-base font-medium">Team-Specific Fields</Label>
+                  
+                  {/* Show existing team-specific fields */}
+                  {editingTeam && Object.entries(editingTeam.custom_fields || {})
+                    .filter(([fieldId]) => !customFields.find(f => f.id === fieldId))
+                    .map(([fieldId, value]) => {
+                      // Determine field type based on value
+                      const fieldType = typeof value === 'boolean' ? 'toggle' : 
+                                       typeof value === 'number' ? 'score' : 'text';
+                      const fieldLabel = fieldId.replace(/^team_field_/, '').replace(/_/g, ' ');
+                      
+                      return (
+                        <div key={fieldId} className="space-y-1 p-3 border rounded-lg">
+                          <div className="flex justify-between items-center">
+                            <Label className="text-sm font-medium capitalize">{fieldLabel}</Label>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                const updatedFields = { ...editingTeam.custom_fields };
+                                delete updatedFields[fieldId];
+                                setEditingTeam({
+                                  ...editingTeam,
+                                  custom_fields: updatedFields
+                                });
+                              }}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          {fieldType === 'toggle' ? (
+                            <div className="flex items-center gap-2">
+                              <Switch
+                                checked={Boolean(value)}
+                                onCheckedChange={(checked) => setEditingTeam({
+                                  ...editingTeam,
+                                  custom_fields: {
+                                    ...editingTeam.custom_fields,
+                                    [fieldId]: checked
+                                  }
+                                })}
+                              />
+                              <span className="text-sm">{value ? 'Yes' : 'No'}</span>
+                            </div>
+                          ) : fieldType === 'score' ? (
+                            <Input
+                              type="number"
+                              value={value || 0}
+                              onChange={(e) => setEditingTeam({
                                 ...editingTeam,
                                 custom_fields: {
                                   ...editingTeam.custom_fields,
-                                  [field.id]: checked
+                                  [fieldId]: parseInt(e.target.value) || 0
                                 }
                               })}
+                              min="0"
+                              className="w-full"
                             />
-                            <span className="text-sm">
-                              {editingTeam.custom_fields?.[field.id] ? 'Yes' : 'No'}
-                            </span>
-                          </div>
-                        ) : field.type === 'score' ? (
-                          <Input
-                            type="number"
-                            value={editingTeam.custom_fields?.[field.id] || 0}
-                            onChange={(e) => setEditingTeam({
-                              ...editingTeam,
-                              custom_fields: {
-                                ...editingTeam.custom_fields,
-                                [field.id]: parseInt(e.target.value) || 0
-                              }
-                            })}
-                            min="0"
-                            className="w-full"
-                          />
-                        ) : (
-                          <Input
-                            type="text"
-                            value={editingTeam.custom_fields?.[field.id] || ''}
-                            onChange={(e) => setEditingTeam({
-                              ...editingTeam,
-                              custom_fields: {
-                                ...editingTeam.custom_fields,
-                                [field.id]: e.target.value
-                              }
-                            })}
-                            className="w-full"
-                            placeholder="Enter text..."
-                          />
-                        )}
-                      </div>
-                    ))}
+                          ) : (
+                            <Input
+                              type="text"
+                              value={value || ''}
+                              onChange={(e) => setEditingTeam({
+                                ...editingTeam,
+                                custom_fields: {
+                                  ...editingTeam.custom_fields,
+                                  [fieldId]: e.target.value
+                                }
+                              })}
+                              className="w-full"
+                              placeholder="Enter text..."
+                            />
+                          )}
+                        </div>
+                      );
+                    })}
+
+                  {/* Add new team-specific field */}
+                  <div className="border-2 border-dashed border-muted-foreground/20 rounded-lg p-4 space-y-3">
+                    <Label className="text-sm font-medium">Add New Field</Label>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <Input
+                        placeholder="Field name"
+                        value={newFieldLabel}
+                        onChange={(e) => setNewFieldLabel(e.target.value)}
+                      />
+                      <Select value={newFieldType} onValueChange={(value: any) => setNewFieldType(value)}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="text">Text</SelectItem>
+                          <SelectItem value="score">Score (Number)</SelectItem>
+                          <SelectItem value="toggle">Toggle (Yes/No)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Button 
+                        onClick={() => {
+                          if (!newFieldLabel.trim() || !editingTeam) return;
+                          
+                          const fieldId = `team_field_${Date.now()}`;
+                          const defaultValue = newFieldType === 'score' ? 0 : 
+                                             newFieldType === 'toggle' ? false : '';
+                          
+                          setEditingTeam({
+                            ...editingTeam,
+                            custom_fields: {
+                              ...editingTeam.custom_fields,
+                              [fieldId]: defaultValue
+                            }
+                          });
+                          
+                          setNewFieldLabel('');
+                          setNewFieldType('text');
+                        }}
+                        disabled={!newFieldLabel.trim()}
+                        size="sm"
+                      >
+                        <Plus className="h-4 w-4 mr-1" />
+                        Add
+                      </Button>
+                    </div>
                   </div>
-                )}
+                </div>
 
                 <div className="flex justify-end gap-2">
                   <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
