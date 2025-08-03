@@ -58,6 +58,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
 
   useEffect(() => {
     fetchTeams();
+    fetchScoreboardTitle();
     
     // Set up real-time subscription for both hosts and viewers
     const channel = supabase
@@ -71,8 +72,21 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
           filter: `event_id=eq.${eventId}`
         },
         (payload) => {
-          console.log('Real-time update received:', payload);
+          console.log('Real-time scoreboard update received:', payload);
           fetchTeams();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'events',
+          filter: `id=eq.${eventId}`
+        },
+        (payload) => {
+          console.log('Real-time event update received:', payload);
+          fetchScoreboardTitle();
         }
       )
       .subscribe();
@@ -92,6 +106,61 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
       setTeams(data || []);
     } catch (error) {
       console.error('Error fetching teams:', error);
+    }
+  };
+
+  const fetchScoreboardTitle = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('events')
+        .select('metadata')
+        .eq('id', eventId)
+        .single();
+
+      if (error) throw error;
+      
+      const metadata = data?.metadata as Record<string, any> | null;
+      const title = metadata?.scoreboardTitle || 'OMCBA Coon Hunt Scoreboard';
+      setScoreboardTitle(title);
+    } catch (error) {
+      console.error('Error fetching scoreboard title:', error);
+    }
+  };
+
+  const updateScoreboardTitle = async (newTitle: string) => {
+    try {
+      const { data: eventData, error: fetchError } = await supabase
+        .from('events')
+        .select('metadata')
+        .eq('id', eventId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      const currentMetadata = (eventData.metadata as Record<string, any>) || {};
+      const updatedMetadata = {
+        ...currentMetadata,
+        scoreboardTitle: newTitle
+      };
+
+      const { error } = await supabase
+        .from('events')
+        .update({ metadata: updatedMetadata })
+        .eq('id', eventId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Scoreboard title updated",
+      });
+    } catch (error) {
+      console.error('Error updating scoreboard title:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update scoreboard title",
+        variant: "destructive",
+      });
     }
   };
 
@@ -376,10 +445,14 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                 onKeyPress={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
+                    updateScoreboardTitle(scoreboardTitle);
                     setEditingTitle(false);
                   }
                 }}
-                onBlur={() => setEditingTitle(false)}
+                onBlur={() => {
+                  updateScoreboardTitle(scoreboardTitle);
+                  setEditingTitle(false);
+                }}
                 className="h-8 text-lg font-semibold"
                 placeholder="Press Enter to save"
                 autoFocus
