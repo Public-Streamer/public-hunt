@@ -75,7 +75,7 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
             event: '*',
             schema: 'public',
             table: 'event_scoreboard',
-            filter: `event_id=eq.${eventId}`
+            filter: `event_id=eq.${eventId} AND scoreboard_type=eq.custom`
           },
           () => {
             fetchTeams();
@@ -99,7 +99,8 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
         },
         body: JSON.stringify({
           action: 'fetch',
-          eventId
+          eventId,
+          scoreboardType: 'custom'
         })
       });
 
@@ -208,7 +209,8 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
           eventId,
           teamName: newTeamName,
           teamColor,
-          customFields: initialCustomFields
+          customFields: initialCustomFields,
+          scoreboardType: 'custom'
         })
       });
 

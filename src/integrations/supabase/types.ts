@@ -892,6 +892,7 @@ export type Database = {
           id: string
           is_editable: boolean | null
           score: number
+          scoreboard_type: string | null
           team_color: string | null
           team_name: string
           updated_at: string | null
@@ -904,6 +905,7 @@ export type Database = {
           id?: string
           is_editable?: boolean | null
           score?: number
+          scoreboard_type?: string | null
           team_color?: string | null
           team_name: string
           updated_at?: string | null
@@ -916,6 +918,7 @@ export type Database = {
           id?: string
           is_editable?: boolean | null
           score?: number
+          scoreboard_type?: string | null
           team_color?: string | null
           team_name?: string
           updated_at?: string | null

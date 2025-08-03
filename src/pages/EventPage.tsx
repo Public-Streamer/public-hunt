@@ -521,9 +521,17 @@ const EventPage: React.FC = () => {
                 <PinnedMessageSection eventId={eventId} isHost={false} />
               </div>
 
-                   {/* Coon Hunt Scoreboard */}
+                    {/* Scoreboard - Show based on event metadata */}
              <div className="p-5">
-             {currentUser ? <CoonHuntScoreboard eventId={eventId} isHost={false} /> : <div className="p-6">Please sign in to view the scoreboard</div>}
+             {currentUser ? (
+               eventData?.metadata?.selectedGameType === 'custom' ? (
+                 <CustomScoreboard eventId={eventId} isHost={false} />
+               ) : (
+                 <CoonHuntScoreboard eventId={eventId} isHost={false} />
+               )
+             ) : (
+               <div className="p-6">Please sign in to view the scoreboard</div>
+             )}
              </div>
 
                   {/* Show full viewer interface below if user has access */}

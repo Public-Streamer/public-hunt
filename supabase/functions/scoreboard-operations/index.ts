@@ -17,14 +17,16 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { action, eventId, teamName, teamColor, teamId, score, customFields, pinnedMessage } = await req.json()
+    const { action, eventId, teamName, teamColor, teamId, score, customFields, pinnedMessage, scoreboardType } = await req.json()
 
     switch (action) {
       case 'fetch':
+        const requestedType = scoreboardType || 'coon_hunt'
         const { data: teams, error: fetchError } = await supabaseClient
           .from('event_scoreboard')
           .select('*')
           .eq('event_id', eventId)
+          .eq('scoreboard_type', requestedType)
           .order('created_at', { ascending: true })
 
         if (fetchError) throw fetchError
@@ -33,6 +35,7 @@ serve(async (req) => {
         })
 
       case 'create':
+        const createType = scoreboardType || 'coon_hunt'
         const { error: createError } = await supabaseClient
           .from('event_scoreboard')
           .insert({
@@ -41,6 +44,7 @@ serve(async (req) => {
             score: 0,
             team_color: teamColor,
             custom_fields: customFields || {},
+            scoreboard_type: createType,
           })
 
         if (createError) throw createError

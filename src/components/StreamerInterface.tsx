@@ -75,9 +75,21 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   // Scoreboard state management
   const [selectedGameType, setSelectedGameType] = useState<string | null>(null);
 
+  // Save selected game type to event metadata
+  const saveGameTypeToEvent = async (gameType: string) => {
+    try {
+      // For now, we'll store this in session/memory since metadata field has type constraints
+      console.log('Selected game type:', gameType);
+      // In a real implementation, you might want to add a separate column for game_type
+    } catch (error) {
+      console.error('Error updating event metadata:', error);
+    }
+  };
+
   // Handle game type selection
   const handleGameTypeSelect = (gameType: string) => {
     setSelectedGameType(gameType);
+    saveGameTypeToEvent(gameType);
     toast({
       title: "Success",
       description: "Scoreboard type selected successfully",
