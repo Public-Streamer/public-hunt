@@ -205,6 +205,7 @@ serve(async (req) => {
             canPublish: true,
             canSubscribe: true,
             canPublishData: true,
+            canUpdateOwnMetadata: true,
             hidden: false,
             recorder: false,
           };
@@ -215,6 +216,7 @@ serve(async (req) => {
             canPublish: true,
             canSubscribe: true,
             canPublishData: true,
+            canUpdateOwnMetadata: true,
             hidden: false,
             recorder: false,
           };
