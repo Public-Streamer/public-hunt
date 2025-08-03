@@ -479,9 +479,11 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
               value={getCurrentFieldValue(team.id, field.id, value)}
               onChange={(e) => handleFieldChange(team.id, field.id, parseInt(e.target.value) || 0)}
               onBlur={(e) => updateTeamField(team.id, field.id, parseInt(e.target.value) || 0)}
-              onKeyPress={(e) => {
+              onKeyDown={(e) => {
                 if (e.key === 'Enter') {
-                  updateTeamField(team.id, field.id, parseInt((e.target as HTMLInputElement).value) || 0);
+                  const currentValue = getCurrentFieldValue(team.id, field.id, value);
+                  updateTeamField(team.id, field.id, currentValue);
+                  (e.target as HTMLInputElement).blur();
                 }
               }}
               className="w-20"
@@ -502,9 +504,11 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
             value={getCurrentFieldValue(team.id, field.id, value)}
             onChange={(e) => handleFieldChange(team.id, field.id, e.target.value)}
             onBlur={(e) => updateTeamField(team.id, field.id, e.target.value)}
-            onKeyPress={(e) => {
+            onKeyDown={(e) => {
               if (e.key === 'Enter') {
-                updateTeamField(team.id, field.id, (e.target as HTMLInputElement).value);
+                const currentValue = getCurrentFieldValue(team.id, field.id, value);
+                updateTeamField(team.id, field.id, currentValue);
+                (e.target as HTMLInputElement).blur();
               }
             }}
             className="max-w-40"
