@@ -595,7 +595,7 @@ const EventPage: React.FC = () => {
                         </Badge>
                       )}
                       <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-black/70 text-white px-2 py-1 rounded text-xs sm:text-sm">
-                        {currentUserProfile?.cam_name}
+                        Multi-camera
                       </div>
                     </>
                   )}

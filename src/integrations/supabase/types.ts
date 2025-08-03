@@ -1692,7 +1692,6 @@ export type Database = {
         Row: {
           bio: string | null
           birthday: string | null
-          cam_name: string | null
           company_id: string | null
           company_name: string | null
           cover_photo_url: string | null
@@ -1717,7 +1716,6 @@ export type Database = {
         Insert: {
           bio?: string | null
           birthday?: string | null
-          cam_name?: string | null
           company_id?: string | null
           company_name?: string | null
           cover_photo_url?: string | null
@@ -1742,7 +1740,6 @@ export type Database = {
         Update: {
           bio?: string | null
           birthday?: string | null
-          cam_name?: string | null
           company_id?: string | null
           company_name?: string | null
           cover_photo_url?: string | null

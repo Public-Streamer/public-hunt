@@ -74,10 +74,6 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   const [editValue, setEditValue] = useState(eventTitle);
   const [isSaving, setIsSaving] = useState(false);
   
-  // Camera name edit state management
-  const [isCamNameEditing, setIsCamNameEditing] = useState(false);
-  const [camNameValue, setCamNameValue] = useState("Camera 01");
-  const [isCamNameSaving, setIsCamNameSaving] = useState(false);
   
   // Scoreboard state management
   const [selectedGameType, setSelectedGameType] = useState<string | null>(null);
@@ -136,32 +132,10 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     }
   };
 
-  // Load user profile and cam_name
-  const loadUserProfile = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data: profile, error } = await supabase
-        .from('user_profiles')
-        .select('cam_name')
-        .eq('user_id', user.id)
-        .single();
-
-      if (error) throw error;
-
-      if (profile?.cam_name) {
-        setCamNameValue(profile.cam_name);
-      }
-    } catch (error) {
-      console.error('Error loading user profile:', error);
-    }
-  };
 
   // Load event data on mount
   useEffect(() => {
     loadEventData();
-    loadUserProfile();
   }, [eventId]);
 
   // Save selected game type to event metadata
@@ -295,64 +269,6 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     }
   };
 
-  // Camera name edit handlers
-  const handleCamNameEditClick = () => {
-    setCamNameValue(camNameValue);
-    setIsCamNameEditing(true);
-  };
-
-  const handleCamNameSaveClick = async () => {
-    if (!camNameValue.trim()) {
-      toast({
-        title: "Error",
-        description: "Camera name cannot be empty",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsCamNameSaving(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      const { error } = await supabase
-        .from("user_profiles")
-        .update({ cam_name: camNameValue.trim() })
-        .eq("user_id", user.id);
-
-      if (error) throw error;
-
-      setIsCamNameEditing(false);
-      toast({
-        title: "Success",
-        description: "Camera name updated successfully",
-      });
-    } catch (error) {
-      console.error("Error updating camera name:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update camera name",
-        variant: "destructive",
-      });
-    } finally {
-      setIsCamNameSaving(false);
-    }
-  };
-
-  const handleCamNameCancelClick = () => {
-    // Reset to last saved value
-    loadUserProfile();
-    setIsCamNameEditing(false);
-  };
-
-  const handleCamNameKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      handleCamNameSaveClick();
-    } else if (e.key === "Escape") {
-      handleCamNameCancelClick();
-    }
-  };
 
   // Get local camera track
   const localCameraTracks = useTracks([Track.Source.Camera], {
@@ -471,49 +387,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
           >
             <Card>
               <CardHeader className="p-3 sm:p-6">
-                <CardTitle className="text-sm sm:text-base flex items-center gap-2">
-                  {isCamNameEditing ? (
-                    <div className="flex items-center gap-2 min-w-0 flex-1">
-                      <Input
-                        value={camNameValue}
-                        onChange={(e) => setCamNameValue(e.target.value)}
-                        onKeyDown={handleCamNameKeyPress}
-                        className="text-sm sm:text-base h-8 min-w-0 flex-1"
-                        autoFocus
-                        disabled={isCamNameSaving}
-                      />
-                      <Button
-                        size="sm"
-                        onClick={handleCamNameSaveClick}
-                        disabled={isCamNameSaving}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Check className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={handleCamNameCancelClick}
-                        disabled={isCamNameSaving}
-                        className="h-8 w-8 p-0"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ) : (
-                    <>
-                      <span className="truncate">{camNameValue}</span>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={handleCamNameEditClick}
-                        className="h-8 w-8 p-0 ml-auto"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    </>
-                  )}
-                </CardTitle>
+                <CardTitle className="text-sm sm:text-base">Your Stream Preview</CardTitle>
               </CardHeader>
               <CardContent className="p-3 sm:p-6">
                 <div className="aspect-video bg-muted rounded-lg overflow-hidden relative">

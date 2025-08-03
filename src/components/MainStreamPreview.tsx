@@ -10,7 +10,6 @@ import { Video, MessageCircle, X, Plane, Maximize, Minimize } from "lucide-react
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useSupabaseChatMessages } from "@/hooks/useSupabaseChatMessages";
-import { useAppContext } from "@/contexts/AppContext";
 
 interface MainStreamPreviewProps {
   track?: TrackReference;
@@ -39,7 +38,6 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const hideControlsTimer = useRef<NodeJS.Timeout | null>(null);
-  const { userProfile } = useAppContext();
 
   // Detect iOS Safari
   const isIOSSafari = () => {
@@ -254,7 +252,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
           </Badge>
         )}
         <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-black/70 text-white px-2 py-1 rounded text-xs sm:text-sm">
-          {userProfile?.cam_name}
+          Multi-camera
         </div>
       </div>
     );
@@ -304,7 +302,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
 
         {/* Multi-camera indicator */}
         <div className={`absolute top-2 right-2 sm:top-4 sm:right-4 bg-black/70 text-white px-2 py-1 rounded text-xs sm:text-sm transition-opacity duration-300 ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100'}`}>
-          {userProfile?.cam_name}
+          Multi-camera
         </div>
 
 
@@ -404,7 +402,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
         <div className="absolute bottom-2 right-2 flex justify-end items-start z-10">
           <p className="flex-1 text-xs md:text-sm text-white text-shadow-lg
            truncate font-medium bg-black/20 px-2 py-1 rounded backdrop-blur-sm max-w-[150px]">
-            {userProfile?.display_name}
+            {participant?.name || participant?.identity}
           </p>
         </div>
       </div>
