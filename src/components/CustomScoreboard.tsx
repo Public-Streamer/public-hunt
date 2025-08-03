@@ -56,6 +56,7 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
   const [editingTeam, setEditingTeam] = useState<CustomTeam | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
+  const [fieldInputValues, setFieldInputValues] = useState<Record<string, Record<string, any>>>({});
   
   // Scoreboard naming states
   const [scoreboardName, setScoreboardName] = useState('Custom Scoreboard');
@@ -386,10 +387,26 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
     const team = teams.find(t => t.id === teamId);
     if (!team) return;
 
+    // Update local state immediately for better UX
+    setFieldInputValues(prev => ({
+      ...prev,
+      [teamId]: {
+        ...prev[teamId],
+        [fieldId]: value
+      }
+    }));
+
     const updatedFields = {
       ...team.custom_fields,
       [fieldId]: value
     };
+
+    // Update the teams state immediately
+    setTeams(prev => prev.map(t => 
+      t.id === teamId 
+        ? { ...t, custom_fields: updatedFields }
+        : t
+    ));
 
     await updateTeam(teamId, { custom_fields: updatedFields });
   };
@@ -435,7 +452,7 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
           {isHost ? (
             <Input
               type="number"
-              defaultValue={value || 0}
+              value={fieldInputValues[team.id]?.[field.id] ?? value ?? 0}
               onChange={(e) => updateTeamField(team.id, field.id, parseInt(e.target.value) || 0)}
               className="w-20"
               min="0"
@@ -452,7 +469,7 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
       <div>
         {isHost ? (
           <Input
-            defaultValue={value || ''}
+            value={fieldInputValues[team.id]?.[field.id] ?? value ?? ''}
             onChange={(e) => {
               console.log('Text field change:', e.target.value, 'isHost:', isHost);
               updateTeamField(team.id, field.id, e.target.value);
