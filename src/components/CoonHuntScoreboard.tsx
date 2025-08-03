@@ -54,26 +54,28 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
   useEffect(() => {
     fetchTeams();
     
-    if (isHost) {
-      const channel = supabase
-        .channel('coon-hunt-scoreboard')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'event_scoreboard',
-            filter: `event_id=eq.${eventId}`
-          },
-          () => fetchTeams()
-        )
-        .subscribe();
+    // Set up real-time subscription for both hosts and viewers
+    const channel = supabase
+      .channel('coon-hunt-scoreboard')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'event_scoreboard',
+          filter: `event_id=eq.${eventId}`
+        },
+        (payload) => {
+          console.log('Real-time update received:', payload);
+          fetchTeams();
+        }
+      )
+      .subscribe();
 
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    }
-  }, [eventId, isHost]);
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [eventId]);
 
   const fetchTeams = async () => {
     try {
