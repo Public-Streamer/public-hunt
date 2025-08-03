@@ -56,6 +56,11 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   
+  // Scoreboard naming states
+  const [scoreboardName, setScoreboardName] = useState('Custom Scoreboard');
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [tempName, setTempName] = useState('');
+  
   // Template field creation states
   const [newFieldLabel, setNewFieldLabel] = useState('');
   const [newFieldType, setNewFieldType] = useState<'score' | 'text' | 'toggle'>('score');
@@ -65,29 +70,39 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
     fetchTeams();
     fetchCustomFields();
     
-    if (isHost) {
-      // Set up real-time subscription for teams
-      const channel = supabase
-        .channel(`custom_scoreboard_${eventId}`)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'event_scoreboard',
-            filter: `event_id=eq.${eventId} AND scoreboard_type=eq.custom`
-          },
-          () => {
-            fetchTeams();
-          }
-        )
-        .subscribe();
+    // Set up real-time subscription for both hosts and viewers
+    const channel = supabase
+      .channel(`custom_scoreboard_${eventId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'event_scoreboard',
+          filter: `event_id=eq.${eventId} AND scoreboard_type=eq.custom`
+        },
+        () => {
+          fetchTeams();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'events',
+          filter: `id=eq.${eventId}`
+        },
+        () => {
+          fetchCustomFields(); // Refresh metadata including scoreboard name and fields
+        }
+      )
+      .subscribe();
 
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    }
-  }, [eventId, isHost]);
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [eventId]);
 
   const fetchTeams = async () => {
     try {
@@ -124,6 +139,10 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
       if (event?.metadata?.customFields) {
         setCustomFields(event.metadata.customFields);
       }
+      
+      if (event?.metadata?.scoreboardName) {
+        setScoreboardName(event.metadata.scoreboardName);
+      }
     } catch (error) {
       console.error('Error fetching custom fields:', error);
     }
@@ -131,10 +150,23 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
 
   const saveCustomFields = async (fields: CustomField[]) => {
     try {
+      // Get current metadata and preserve other fields
+      const { data: event } = await supabase
+        .from('events')
+        .select('metadata')
+        .eq('id', eventId)
+        .single();
+
+      const currentMetadata = event?.metadata || {};
+      
       const { error } = await supabase
         .from('events')
         .update({
-          metadata: { customFields: fields }
+          metadata: { 
+            ...currentMetadata, 
+            customFields: fields,
+            scoreboardName 
+          }
         })
         .eq('id', eventId);
 
@@ -152,6 +184,54 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
       console.error('Error saving custom fields:', error);
       toast.error('Failed to update template');
     }
+  };
+
+  const saveScoreboardName = async (name: string) => {
+    try {
+      // Get current metadata and preserve other fields
+      const { data: event } = await supabase
+        .from('events')
+        .select('metadata')
+        .eq('id', eventId)
+        .single();
+
+      const currentMetadata = event?.metadata || {};
+      
+      const { error } = await supabase
+        .from('events')
+        .update({
+          metadata: { 
+            ...currentMetadata, 
+            scoreboardName: name 
+          }
+        })
+        .eq('id', eventId);
+
+      if (error) throw error;
+      
+      setScoreboardName(name);
+      toast.success('Scoreboard name updated');
+    } catch (error) {
+      console.error('Error saving scoreboard name:', error);
+      toast.error('Failed to update scoreboard name');
+    }
+  };
+
+  const startEditingName = () => {
+    setTempName(scoreboardName);
+    setIsEditingName(true);
+  };
+
+  const saveNameChanges = () => {
+    if (tempName.trim()) {
+      saveScoreboardName(tempName.trim());
+    }
+    setIsEditingName(false);
+  };
+
+  const cancelNameEdit = () => {
+    setTempName('');
+    setIsEditingName(false);
   };
 
   const applyFieldsToAllTeams = async (fields: CustomField[]) => {
@@ -386,7 +466,35 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="flex items-center gap-2">
           <Plus className="h-5 w-5" />
-          Custom Scoreboard
+          {isEditingName ? (
+            <div className="flex items-center gap-2">
+              <Input
+                value={tempName}
+                onChange={(e) => setTempName(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') saveNameChanges();
+                  if (e.key === 'Escape') cancelNameEdit();
+                }}
+                className="max-w-xs"
+                autoFocus
+              />
+              <Button size="sm" variant="ghost" onClick={saveNameChanges}>
+                <Save className="h-4 w-4" />
+              </Button>
+              <Button size="sm" variant="ghost" onClick={cancelNameEdit}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <span>{scoreboardName}</span>
+              {isHost && (
+                <Button size="sm" variant="ghost" onClick={startEditingName}>
+                  <Edit3 className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          )}
         </CardTitle>
         
         {isHost && (
