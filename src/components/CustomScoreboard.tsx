@@ -71,6 +71,7 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
   const [newFieldDefault, setNewFieldDefault] = useState<string | number | boolean>('');
 
   useEffect(() => {
+    console.log('CustomScoreboard mounted for eventId:', eventId);
     fetchTeams();
     fetchCustomFields();
     
@@ -548,45 +549,51 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="flex items-center gap-2">
-          <Plus className="h-5 w-5" />
-          {isHost && editingTitle ? (
-            <Input
-              value={scoreboardName}
-              onChange={(e) => setScoreboardName(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  updateScoreboardTitle(scoreboardName);
-                  setEditingTitle(false);
-                }
-              }}
-              onBlur={() => {
-                updateScoreboardTitle(scoreboardName);
-                setEditingTitle(false);
-              }}
-              className="h-8 text-lg font-semibold"
-              placeholder="Press Enter to save"
-              autoFocus
-            />
-          ) : (
-            <span 
-              className={isHost ? "cursor-pointer hover:text-primary" : ""}
-              onClick={() => isHost && setEditingTitle(true)}
-              title={isHost ? "Click to edit scoreboard name" : undefined}
-            >
-              {scoreboardName}
-            </span>
-          )}
-          {isHost && !editingTitle && (
-            <div title="Edit scoreboard name">
-              <Edit3 
-                className="h-4 w-4 ml-2 cursor-pointer hover:text-primary" 
-                onClick={() => setEditingTitle(true)}
-              />
-            </div>
-          )}
-        </CardTitle>
+         <div className="flex items-center gap-3">
+           <CardTitle className="flex items-center gap-2">
+             <Plus className="h-5 w-5" />
+             {isHost && editingTitle ? (
+               <Input
+                 value={scoreboardName}
+                 onChange={(e) => setScoreboardName(e.target.value)}
+                 onKeyPress={(e) => {
+                   if (e.key === 'Enter') {
+                     e.preventDefault();
+                     updateScoreboardTitle(scoreboardName);
+                     setEditingTitle(false);
+                   }
+                 }}
+                 onBlur={() => {
+                   updateScoreboardTitle(scoreboardName);
+                   setEditingTitle(false);
+                 }}
+                 className="h-8 text-lg font-semibold"
+                 placeholder="Press Enter to save"
+                 autoFocus
+               />
+             ) : (
+               <span 
+                 className={isHost ? "cursor-pointer hover:text-primary" : ""}
+                 onClick={() => isHost && setEditingTitle(true)}
+                 title={isHost ? "Click to edit scoreboard name" : undefined}
+               >
+                 {scoreboardName}
+               </span>
+             )}
+             {isHost && !editingTitle && (
+               <div title="Edit scoreboard name">
+                 <Edit3 
+                   className="h-4 w-4 ml-2 cursor-pointer hover:text-primary" 
+                   onClick={() => setEditingTitle(true)}
+                 />
+               </div>
+             )}
+           </CardTitle>
+           {/* Connection status indicator */}
+           <Badge variant={isConnected ? "default" : "destructive"} className="ml-2">
+             {isConnected ? "Live" : "Connecting..."}
+           </Badge>
+         </div>
         
         {isHost && (
           <div className="flex gap-2">
