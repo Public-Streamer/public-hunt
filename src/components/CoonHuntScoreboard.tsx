@@ -409,10 +409,10 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                           onKeyPress={(e) => {
                             if (e.key === 'Enter') {
                               e.preventDefault();
-                              updateTeamField(team.id, 'strike_points', parseInt(e.currentTarget.value) || null);
+                              updateTeamField(team.id, 'strike_points', parseInt(e.currentTarget.value) || 0);
                             }
                           }}
-                          onBlur={(e) => updateTeamField(team.id, 'strike_points', parseInt(e.target.value) || null)}
+                          onBlur={(e) => updateTeamField(team.id, 'strike_points', parseInt(e.target.value) || 0)}
                           className="h-8 text-center"
                           min="0"
                           placeholder="Press Enter to save"
