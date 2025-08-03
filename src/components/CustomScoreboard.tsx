@@ -74,6 +74,7 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
     fetchCustomFields();
     
     // Set up real-time subscription for both hosts and viewers
+    console.log('Setting up real-time subscription for eventId:', eventId);
     const channel = supabase
       .channel(`custom_scoreboard_${eventId}`)
       .on(
@@ -86,14 +87,25 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
         },
         (payload) => {
           console.log('Custom scoreboard real-time update:', payload);
+          console.log('Event type:', payload.eventType);
+          console.log('New data:', payload.new);
+          console.log('Old data:', payload.old);
           
           if (payload.eventType === 'INSERT') {
-            setTeams(prev => [...prev, payload.new as CustomTeam]);
+            console.log('Adding new team to state:', payload.new);
+            setTeams(prev => {
+              const newTeam = payload.new as CustomTeam;
+              console.log('Current teams before insert:', prev);
+              console.log('Adding team:', newTeam);
+              return [...prev, newTeam];
+            });
           } else if (payload.eventType === 'UPDATE') {
+            console.log('Updating team in state:', payload.new.id);
             setTeams(prev => prev.map(team => 
               team.id === payload.new.id ? payload.new as CustomTeam : team
             ));
           } else if (payload.eventType === 'DELETE') {
+            console.log('Deleting team from state:', payload.old.id);
             setTeams(prev => prev.filter(team => team.id !== payload.old.id));
           }
         }
