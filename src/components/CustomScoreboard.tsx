@@ -77,8 +77,8 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
     
     // Set up real-time subscription for both hosts and viewers
     console.log('Setting up real-time subscription for eventId:', eventId);
-    const channelName = `custom-scoreboard-${eventId}-${Date.now()}`;
-    console.log('Creating unique channel name:', channelName);
+    const channelName = `custom-scoreboard-${eventId}`;
+    console.log('Creating shared channel name:', channelName);
     
     const channel = supabase
       .channel(channelName)
