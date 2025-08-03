@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import {
   Video,
   VideoOff,
@@ -26,6 +27,7 @@ import {
   Edit,
   Check,
   X,
+  Trash2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -74,15 +76,84 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   
   // Scoreboard state management
   const [selectedGameType, setSelectedGameType] = useState<string | null>(null);
+  const [teams, setTeams] = useState<any[]>([]);
+  const [loadingScoreboard, setLoadingScoreboard] = useState(true);
+
+  // Load event metadata and selected game type
+  const loadEventData = async () => {
+    try {
+      const { data: event, error } = await supabase
+        .from('events')
+        .select('metadata')
+        .eq('id', eventId)
+        .single();
+
+      if (error) throw error;
+
+      const gameType = (event?.metadata as any)?.selectedGameType;
+      if (gameType) {
+        setSelectedGameType(gameType);
+        // Load teams for this game type
+        await fetchTeams(gameType);
+      }
+    } catch (error) {
+      console.error('Error loading event data:', error);
+    } finally {
+      setLoadingScoreboard(false);
+    }
+  };
+
+  // Fetch teams for the selected scoreboard type
+  const fetchTeams = async (gameType?: string) => {
+    const scoreboardType = gameType || selectedGameType;
+    if (!scoreboardType) return;
+
+    try {
+      const response = await fetch('https://zmfugicftfwvuudensdo.supabase.co/functions/v1/scoreboard-operations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptZnVnaWNmdGZ3dnV1ZGVuc2RvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwNjU2ODUsImV4cCI6MjA2NzY0MTY4NX0.J8CA_K_oxhcd2wlQf0KvEarwi0ejq0nBgAVMEhQlXE8'
+        },
+        body: JSON.stringify({
+          action: 'fetch',
+          eventId,
+          scoreboardType
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setTeams(data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching teams:', error);
+    }
+  };
+
+  // Load event data on mount
+  useEffect(() => {
+    loadEventData();
+  }, [eventId]);
 
   // Save selected game type to event metadata
   const saveGameTypeToEvent = async (gameType: string) => {
     try {
-      // For now, we'll store this in session/memory since metadata field has type constraints
-      console.log('Selected game type:', gameType);
-      // In a real implementation, you might want to add a separate column for game_type
+      const { error } = await supabase
+        .from('events')
+        .update({
+          metadata: { selectedGameType: gameType }
+        })
+        .eq('id', eventId);
+
+      if (error) throw error;
     } catch (error) {
-      console.error('Error updating event metadata:', error);
+      console.error('Error saving game type:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save scoreboard type",
+        variant: "destructive",
+      });
     }
   };
 
@@ -90,10 +161,55 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   const handleGameTypeSelect = (gameType: string) => {
     setSelectedGameType(gameType);
     saveGameTypeToEvent(gameType);
+    setTeams([]); // Clear existing teams
     toast({
       title: "Success",
       description: "Scoreboard type selected successfully",
     });
+  };
+
+  // Delete entire scoreboard
+  const handleDeleteScoreboard = async () => {
+    if (!selectedGameType) return;
+
+    try {
+      const response = await fetch('https://zmfugicftfwvuudensdo.supabase.co/functions/v1/scoreboard-operations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptZnVnaWNmdGZ3dnV1ZGVuc2RvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwNjU2ODUsImV4cCI6MjA2NzY0MTY4NX0.J8CA_K_oxhcd2wlQf0KvEarwi0ejq0nBgAVMEhQlXE8'
+        },
+        body: JSON.stringify({
+          action: 'deleteAll',
+          eventId,
+          scoreboardType: selectedGameType
+        })
+      });
+
+      if (response.ok) {
+        // Clear metadata
+        await supabase
+          .from('events')
+          .update({
+            metadata: {}
+          })
+          .eq('id', eventId);
+
+        setSelectedGameType(null);
+        setTeams([]);
+        toast({
+          title: "Success",
+          description: "Scoreboard deleted successfully",
+        });
+      }
+    } catch (error) {
+      console.error('Error deleting scoreboard:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete scoreboard",
+        variant: "destructive",
+      });
+    }
   };
 
   // Edit handlers
@@ -354,11 +470,43 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
             {/* Scoreboard Section - Only for hosts */}
             {userRole === "host" && (
               <Card>
-                <CardHeader>
+                <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle>Event Scoreboard</CardTitle>
+                  {selectedGameType && (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          <Trash2 className="h-4 w-4" />
+                          Delete
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Scoreboard</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete this scoreboard? This will permanently remove all teams and scores. This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={handleDeleteScoreboard}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Delete Scoreboard
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
                 </CardHeader>
                 <CardContent>
-                  {!selectedGameType ? (
+                  {loadingScoreboard ? (
+                    <div className="text-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                      <p className="text-muted-foreground">Loading scoreboard...</p>
+                    </div>
+                  ) : !selectedGameType ? (
                     <div className="text-center py-8">
                       <div className="space-y-4">
                         <p className="text-muted-foreground">

@@ -158,8 +158,8 @@ const EventPage: React.FC = () => {
       
       // Fetch event data by UUID or slug
       const eventQuery = isUuid 
-        ? supabase.from("events").select("*").eq("id", identifier)
-        : supabase.from("events").select("*").eq("slug", identifier);
+        ? supabase.from("events").select("*, metadata").eq("id", identifier)
+        : supabase.from("events").select("*, metadata").eq("slug", identifier);
         
       const { data: eventData, error: eventError } = await eventQuery.single();
 
@@ -521,14 +521,14 @@ const EventPage: React.FC = () => {
                 <PinnedMessageSection eventId={eventId} isHost={false} />
               </div>
 
-                    {/* Scoreboard - Show based on event metadata */}
+                     {/* Scoreboard - Show based on event metadata */}
              <div className="p-5">
              {currentUser ? (
                eventData?.metadata?.selectedGameType === 'custom' ? (
                  <CustomScoreboard eventId={eventId} isHost={false} />
-               ) : (
+               ) : eventData?.metadata?.selectedGameType === 'coon_hunt' ? (
                  <CoonHuntScoreboard eventId={eventId} isHost={false} />
-               )
+               ) : null
              ) : (
                <div className="p-6">Please sign in to view the scoreboard</div>
              )}

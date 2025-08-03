@@ -1027,6 +1027,7 @@ export type Database = {
           location: string | null
           max_participants: number | null
           media_urls: string[] | null
+          metadata: Json | null
           name: string
           payment_enabled: boolean | null
           pinned_message: string | null
@@ -1053,6 +1054,7 @@ export type Database = {
           location?: string | null
           max_participants?: number | null
           media_urls?: string[] | null
+          metadata?: Json | null
           name: string
           payment_enabled?: boolean | null
           pinned_message?: string | null
@@ -1079,6 +1081,7 @@ export type Database = {
           location?: string | null
           max_participants?: number | null
           media_urls?: string[] | null
+          metadata?: Json | null
           name?: string
           payment_enabled?: boolean | null
           pinned_message?: string | null
