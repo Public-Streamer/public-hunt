@@ -98,10 +98,10 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({ eventId, eventName, fallb
       </LiveKitRoom>
       
       {showOverlay && (
-        <div className="absolute inset-0 bg-black/60 flex pt-2 justify-center transition-opacity duration-500">
-          <div className="text-center text-white p-4">
-            <div className="text-lg font-semibold">Preview Ended</div>
-            <div className="text-sm opacity-90">Click "Watch Now" to continue viewing</div>
+        <div className="absolute inset-0 bg-black/80 flex items-center justify-center transition-opacity duration-500 z-10">
+          <div className="text-center text-white p-6 max-w-xs">
+            <div className="text-xl font-semibold mb-2">Preview Ended</div>
+            <div className="text-sm opacity-90 leading-relaxed">Click "Watch Now" to continue viewing</div>
           </div>
         </div>
       )}
@@ -253,41 +253,65 @@ const LiveEventSpotlight: React.FC = () => {
                   eventName={event.title}
                   fallbackImage={event.thumbnail}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                 
                 {/* Live badge */}
-                <Badge className="absolute top-3 left-3 bg-red-600 hover:bg-red-700">
+                <Badge className="absolute top-3 left-3 bg-red-600 hover:bg-red-700 z-20 shadow-lg">
                   LIVE
                 </Badge>
                 
                 {/* Content overlay */}
-                <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-                  <h3 className="font-semibold mb-2 line-clamp-2">{event.title}</h3>
-                  
-                  <div className="flex items-center justify-between text-sm mb-3">
-                    <div className="flex items-center gap-1">
-                      <Eye className="h-4 w-4" />
-                      <span>{event.viewers.toLocaleString()} watching now</span>
-                    </div>
-                    {event.timeRemaining && (
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-4 w-4" />
-                        <span>Ends in {event.timeRemaining}</span>
+                <div className="absolute bottom-0 left-0 right-0 p-4 text-white z-10">
+                  <div className="space-y-3">
+                    {/* Title with proper truncation */}
+                    <h3 
+                      className="font-semibold text-sm leading-tight"
+                      style={{
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        maxHeight: '2.5rem'
+                      }}
+                      title={event.title}
+                    >
+                      {event.title}
+                    </h3>
+                    
+                    {/* Stats row with proper spacing */}
+                    <div className="flex items-center justify-between text-xs gap-2">
+                      <div className="flex items-center gap-1 min-w-0 flex-1">
+                        <Eye className="h-3 w-3 flex-shrink-0" />
+                        <span className="truncate">{event.viewers.toLocaleString()} watching</span>
                       </div>
+                      {event.timeRemaining && (
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          <Clock className="h-3 w-3" />
+                          <span className="whitespace-nowrap text-xs">{event.timeRemaining}</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Location with truncation */}
+                    {event.location && (
+                      <p 
+                        className="text-xs text-white/80 truncate" 
+                        title={event.location}
+                      >
+                        {event.location}
+                      </p>
                     )}
+                    
+                    {/* Button with spacing */}
+                    <Button 
+                      size="sm" 
+                      className="w-full mt-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
+                      onClick={() => handleWatchNow(event.id)}
+                    >
+                      Watch Now
+                    </Button>
                   </div>
-                  
-                  {event.location && (
-                    <p className="text-xs text-white/80 mb-3">{event.location}</p>
-                  )}
-                  
-                  <Button 
-                    size="sm" 
-                    className="w-full"
-                    onClick={() => handleWatchNow(event.id)}
-                  >
-                    Watch Now
-                  </Button>
                 </div>
               </div>
             </div>
