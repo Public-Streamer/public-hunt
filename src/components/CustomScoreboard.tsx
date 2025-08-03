@@ -478,16 +478,16 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
               type="number"
               value={getCurrentFieldValue(team.id, field.id, value)}
               onChange={(e) => handleFieldChange(team.id, field.id, parseInt(e.target.value) || 0)}
-              onBlur={(e) => updateTeamField(team.id, field.id, parseInt(e.target.value) || 0)}
-              onKeyDown={(e) => {
+              onKeyPress={(e) => {
                 if (e.key === 'Enter') {
-                  const currentValue = getCurrentFieldValue(team.id, field.id, value);
-                  updateTeamField(team.id, field.id, currentValue);
-                  (e.target as HTMLInputElement).blur();
+                  e.preventDefault();
+                  updateTeamField(team.id, field.id, parseInt(e.currentTarget.value) || 0);
                 }
               }}
+              onBlur={(e) => updateTeamField(team.id, field.id, parseInt(e.target.value) || 0)}
               className="w-20"
               min="0"
+              placeholder="Press Enter to save"
             />
           ) : (
             <span className="font-bold text-lg">{value || 0}</span>
@@ -503,14 +503,13 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
           <Input
             value={getCurrentFieldValue(team.id, field.id, value)}
             onChange={(e) => handleFieldChange(team.id, field.id, e.target.value)}
-            onBlur={(e) => updateTeamField(team.id, field.id, e.target.value)}
-            onKeyDown={(e) => {
+            onKeyPress={(e) => {
               if (e.key === 'Enter') {
-                const currentValue = getCurrentFieldValue(team.id, field.id, value);
-                updateTeamField(team.id, field.id, currentValue);
-                (e.target as HTMLInputElement).blur();
+                e.preventDefault();
+                updateTeamField(team.id, field.id, e.currentTarget.value);
               }
             }}
+            onBlur={(e) => updateTeamField(team.id, field.id, e.target.value)}
             className="max-w-40"
             placeholder="Enter text..."
           />
