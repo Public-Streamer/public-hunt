@@ -60,11 +60,23 @@ const Events: React.FC = () => {
       setTimeout(() => setHighlightedEvent(null), 3000);
     }
     
-    // Set up real-time subscription for live events
+    // Set up real-time subscription for live events (excluding pinned message updates)
     const subscription = supabase
       .channel('events-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'events' }, () => {
-        fetchEvents();
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'events' 
+      }, (payload) => {
+        // Only refetch if it's not just a pinned message update
+        if (payload.new && payload.old && 
+            JSON.stringify({...payload.old, pinned_message: null}) !== 
+            JSON.stringify({...payload.new, pinned_message: null})) {
+          fetchEvents();
+        } else if (payload.eventType !== 'UPDATE') {
+          // Always refetch for INSERT/DELETE
+          fetchEvents();
+        }
       })
       .subscribe();
 
