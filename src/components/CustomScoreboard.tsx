@@ -82,7 +82,7 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
           event: '*',
           schema: 'public',
           table: 'event_scoreboard',
-          filter: `event_id=eq.${eventId} AND scoreboard_type=eq.custom`
+          filter: `event_id=eq.${eventId}.and.scoreboard_type=eq.custom`
         },
         (payload) => {
           console.log('Custom scoreboard real-time update:', payload);
