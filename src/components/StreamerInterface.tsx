@@ -41,6 +41,7 @@ import LiveChatSection from "@/components/LiveChatSection";
 import { useMobileMediaPermissions } from "@/hooks/useMobileMediaPermissions";
 import { CoonHuntScoreboard } from "@/components/CoonHuntScoreboard";
 import { ScoreboardGameSelector } from "@/components/ScoreboardGameSelector";
+import { PinnedMessageSection } from "@/components/PinnedMessageSection";
 import EventProductionTeam from "@/components/EventProductionTeam";
 
 interface StreamerInterfaceProps {
@@ -324,6 +325,9 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                 </CardContent>
               </Card>
             )}
+
+            {/* Pinned Message Section */}
+            <PinnedMessageSection eventId={eventId} isHost={userRole === "host"} />
 
             {/* Scoreboard Section - Only for hosts */}
             {userRole === "host" && (

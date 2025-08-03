@@ -29,6 +29,7 @@ import SocialShareMenu from "@/components/SocialShareMenu";
 import TicketPurchaseModal from "@/components/TicketPurchaseModal";
 import StreamPreviewContainer from "@/components/StreamPreviewContainer";
 import { CoonHuntScoreboard } from "@/components/CoonHuntScoreboard";
+import { PinnedMessageSection } from "@/components/PinnedMessageSection";
 import EventStreamPreview from "@/components/EventStreamPreview";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
@@ -577,7 +578,10 @@ const EventPage: React.FC = () => {
                 </div>
               )}
 
-             
+              {/* Pinned Message Section */}
+              <div className="px-4 pb-4">
+                <PinnedMessageSection eventId={eventId} isHost={false} />
+              </div>
 
               {/* Pre-Stream Chat Archive for scheduled events */}
               {!eventData.is_live && (hasTicket || canEnterStage) && (

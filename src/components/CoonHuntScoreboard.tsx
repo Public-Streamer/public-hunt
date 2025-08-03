@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Minus, Edit3, Trash2, Settings, X, Save, Target, Pin, Check } from 'lucide-react';
+import { Plus, Minus, Edit3, Trash2, Settings, X, Save, Target } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -50,13 +50,9 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
   const [customFields, setCustomFields] = useState<{ key: string; label: string; value: any; type: 'text' | 'number' }[]>([]);
   const [newFieldLabel, setNewFieldLabel] = useState('');
   const [newFieldType, setNewFieldType] = useState<'text' | 'number'>('text');
-  const [pinnedMessage, setPinnedMessage] = useState('');
-  const [editingPinnedMessage, setEditingPinnedMessage] = useState(false);
-  const [tempPinnedMessage, setTempPinnedMessage] = useState('');
 
   useEffect(() => {
     fetchTeams();
-    fetchPinnedMessage();
     
     if (isHost) {
       const channel = supabase
@@ -69,10 +65,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
             table: 'event_scoreboard',
             filter: `event_id=eq.${eventId}`
           },
-          () => {
-            fetchTeams();
-            fetchPinnedMessage();
-          }
+          () => fetchTeams()
         )
         .subscribe();
 
@@ -92,41 +85,6 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
       setTeams(data || []);
     } catch (error) {
       console.error('Error fetching teams:', error);
-    }
-  };
-
-  const fetchPinnedMessage = async () => {
-    try {
-      const { data, error } = await supabase.functions.invoke('scoreboard-operations', {
-        body: { action: 'fetchPinnedMessage', eventId }
-      });
-
-      if (error) throw error;
-      setPinnedMessage(data?.pinned_message || '');
-    } catch (error) {
-      console.error('Error fetching pinned message:', error);
-    }
-  };
-
-  const updatePinnedMessage = async (message: string) => {
-    try {
-      const { error } = await supabase.functions.invoke('scoreboard-operations', {
-        body: { action: 'updatePinnedMessage', eventId, pinnedMessage: message }
-      });
-
-      if (error) throw error;
-      setPinnedMessage(message);
-      toast({
-        title: "Success",
-        description: "Pinned message updated",
-      });
-    } catch (error) {
-      console.error('Error updating pinned message:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update pinned message",
-        variant: "destructive",
-      });
     }
   };
 
@@ -327,21 +285,6 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
     setCustomFields([]);
   };
 
-  const startEditingPinnedMessage = () => {
-    setTempPinnedMessage(pinnedMessage);
-    setEditingPinnedMessage(true);
-  };
-
-  const savePinnedMessage = () => {
-    updatePinnedMessage(tempPinnedMessage);
-    setEditingPinnedMessage(false);
-  };
-
-  const cancelEditingPinnedMessage = () => {
-    setTempPinnedMessage('');
-    setEditingPinnedMessage(false);
-  };
-
   const sortedTeams = [...teams].sort((a, b) => b.score - a.score);
 
   if (!isHost && teams.length === 0) {
@@ -358,47 +301,6 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
 
   return (
     <div className="space-y-4">
-      {/* Pinned Message */}
-      {(pinnedMessage || isHost) && (
-        <Card>
-          <CardContent className="py-3">
-            <div className="flex items-center gap-3">
-              <Pin className="h-4 w-4 text-primary flex-shrink-0" />
-              {editingPinnedMessage ? (
-                <div className="flex items-center gap-2 flex-1">
-                  <Input
-                    value={tempPinnedMessage}
-                    onChange={(e) => setTempPinnedMessage(e.target.value)}
-                    placeholder="Enter pinned message..."
-                    className="flex-1"
-                    onKeyPress={(e) => e.key === 'Enter' && savePinnedMessage()}
-                  />
-                  <Button size="sm" variant="outline" onClick={savePinnedMessage}>
-                    <Check className="h-3 w-3" />
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={cancelEditingPinnedMessage}>
-                    <X className="h-3 w-3" />
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 flex-1">
-                  {pinnedMessage ? (
-                    <span className="text-sm font-medium">{pinnedMessage}</span>
-                  ) : isHost ? (
-                    <span className="text-sm text-muted-foreground italic">Click to add a pinned message</span>
-                  ) : null}
-                  {isHost && (
-                    <Button size="sm" variant="ghost" onClick={startEditingPinnedMessage} className="ml-auto">
-                      <Edit3 className="h-3 w-3" />
-                    </Button>
-                  )}
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Host Controls */}
       {isHost && (
         <Card>
