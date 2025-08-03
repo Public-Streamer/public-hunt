@@ -50,6 +50,7 @@ const FIELD_TYPE_ICONS = {
 export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isHost }) => {
   console.log('CustomScoreboard - isHost:', isHost);
   const [teams, setTeams] = useState<CustomTeam[]>([]);
+  const [isConnected, setIsConnected] = useState(false);
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [loading, setLoading] = useState(false);
   const [newTeamName, setNewTeamName] = useState('');
@@ -135,7 +136,10 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Custom scoreboard subscription status:', status);
+        setIsConnected(status === 'SUBSCRIBED');
+      });
 
     return () => {
       supabase.removeChannel(channel);
