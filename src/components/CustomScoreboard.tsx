@@ -86,7 +86,16 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
         },
         (payload) => {
           console.log('Custom scoreboard real-time update:', payload);
-          fetchTeams();
+          
+          if (payload.eventType === 'INSERT') {
+            setTeams(prev => [...prev, payload.new as CustomTeam]);
+          } else if (payload.eventType === 'UPDATE') {
+            setTeams(prev => prev.map(team => 
+              team.id === payload.new.id ? payload.new as CustomTeam : team
+            ));
+          } else if (payload.eventType === 'DELETE') {
+            setTeams(prev => prev.filter(team => team.id !== payload.old.id));
+          }
         }
       )
       .on(
