@@ -467,12 +467,14 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
             {/* Pinned Message Section */}
             <PinnedMessageSection eventId={eventId} isHost={userRole === "host"} />
 
-            {/* Scoreboard Section - Only for hosts */}
-            {userRole === "host" && (
+            {/* Scoreboard Section - For hosts (editable) and streamers (read-only) */}
+            {(userRole === "host" || userRole === "streamer") && (
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle>Event Scoreboard</CardTitle>
-                  {selectedGameType && (
+                  <CardTitle>
+                    {userRole === "host" ? "Event Scoreboard" : "Live Scoreboard"}
+                  </CardTitle>
+                  {userRole === "host" && selectedGameType && (
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button variant="outline" size="sm">
@@ -507,28 +509,38 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                       <p className="text-muted-foreground">Loading scoreboard...</p>
                     </div>
                   ) : !selectedGameType ? (
-                    <div className="text-center py-8">
-                      <div className="space-y-4">
-                        <p className="text-muted-foreground">
-                          Create a specialized scoreboard for your competition
-                        </p>
-                        <ScoreboardGameSelector onGameSelect={handleGameTypeSelect} />
+                    userRole === "host" ? (
+                      <div className="text-center py-8">
+                        <div className="space-y-4">
+                          <p className="text-muted-foreground">
+                            Create a specialized scoreboard for your competition
+                          </p>
+                          <ScoreboardGameSelector onGameSelect={handleGameTypeSelect} />
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <p className="text-muted-foreground">
+                          No scoreboard has been created for this event yet.
+                        </p>
+                      </div>
+                    )
                   ) : selectedGameType === 'coon_hunt' ? (
-                    <CoonHuntScoreboard eventId={eventId} isHost={true} />
+                    <CoonHuntScoreboard eventId={eventId} isHost={userRole === "host"} />
                   ) : selectedGameType === 'custom' ? (
-                    <CustomScoreboard eventId={eventId} isHost={true} />
+                    <CustomScoreboard eventId={eventId} isHost={userRole === "host"} />
                   ) : (
                     <div className="text-center py-8 text-muted-foreground">
                       <p>This game type is not yet supported.</p>
-                      <Button 
-                        variant="outline" 
-                        onClick={() => setSelectedGameType(null)}
-                        className="mt-4"
-                      >
-                        Choose Different Game
-                      </Button>
+                      {userRole === "host" && (
+                        <Button 
+                          variant="outline" 
+                          onClick={() => setSelectedGameType(null)}
+                          className="mt-4"
+                        >
+                          Choose Different Game
+                        </Button>
+                      )}
                     </div>
                   )}
                 </CardContent>
