@@ -139,6 +139,12 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
               console.log('Teams after update:', updated);
               return updated;
             });
+            
+            // Clear local input values for this team to ensure real-time updates show immediately
+            setLocalInputValues(prev => ({
+              ...prev,
+              [payload.new.id]: {}
+            }));
           } else if (payload.eventType === 'DELETE') {
             console.log('🗑️ Deleting team from state:', payload.old.id);
             setTeams(prev => {
