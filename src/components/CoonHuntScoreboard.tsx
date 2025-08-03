@@ -288,15 +288,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
   const sortedTeams = [...teams].sort((a, b) => b.score - a.score);
 
   if (!isHost && teams.length === 0) {
-    return (
-      <Card className="w-full">
-        <CardContent className="py-8">
-          <div className="text-center text-muted-foreground">
-            No teams in this Coon Hunt competition yet.
-          </div>
-        </CardContent>
-      </Card>
-    );
+    return null;
   }
 
   return (
