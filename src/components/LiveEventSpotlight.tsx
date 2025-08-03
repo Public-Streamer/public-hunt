@@ -28,6 +28,11 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({ eventId, eventName, fallb
   const [serverUrl, setServerUrl] = useState<string>('');
   const [isBlurred, setIsBlurred] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
+  const navigate = useNavigate();
+
+  const handleWatchNow = (eventId: string) => {
+    navigate(`/event/${eventId}`);
+  };
 
   useEffect(() => {
     const fetchToken = async () => {
@@ -102,6 +107,14 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({ eventId, eventName, fallb
           <div className="text-center text-white p-6 max-w-xs">
             <div className="text-xl font-semibold mb-2">Preview Ended</div>
             <div className="text-sm opacity-90 leading-relaxed">Click "Watch Now" to continue viewing</div>
+            {/* Button with spacing */}
+            <Button 
+                      size="sm" 
+                      className="w-full mt-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
+                      onClick={() => handleWatchNow(eventId)}
+                    >
+                      Watch Now
+                    </Button>
           </div>
         </div>
       )}
@@ -145,9 +158,15 @@ const StreamContent: React.FC<{ eventName: string; fallbackImage: string; isBlur
 };
 
 const LiveEventSpotlight: React.FC = () => {
-  const navigate = useNavigate();
+ 
   const [liveEvents, setLiveEvents] = useState<LiveEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const handleWatchNow = (eventId: string) => {
+    navigate(`/event/${eventId}`);
+  };
+
+ 
 
   useEffect(() => {
     fetchLiveEvents();
@@ -207,9 +226,7 @@ const LiveEventSpotlight: React.FC = () => {
     }
   };
 
-  const handleWatchNow = (eventId: string) => {
-    navigate(`/event/${eventId}`);
-  };
+  
 
   if (loading) {
     return (
@@ -246,22 +263,19 @@ const LiveEventSpotlight: React.FC = () => {
         <h2 className="text-2xl font-bold mb-6">🔥 Live Now - Trending</h2>
         <div className="grid md:grid-cols-3 gap-6">
           {liveEvents.map((event) => (
-            <div key={event.id} className="relative group cursor-pointer">
-              <div className="aspect-video bg-gradient-to-br from-primary/20 to-secondary/20 rounded-lg overflow-hidden">
-                <StreamPreview 
-                  eventId={event.id}
-                  eventName={event.title}
-                  fallbackImage={event.thumbnail}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                
-                {/* Live badge */}
-                <Badge className="absolute top-3 left-3 bg-red-600 hover:bg-red-700 z-20 shadow-lg">
-                  LIVE
-                </Badge>
-                
-                {/* Content overlay */}
+
+            <div key={event.id} className="relative group cursor-pointer ">    
+              {/* Content overlay */}
                 <div className="absolute bottom-0 left-0 right-0 p-4 text-white z-10">
+                  {/* Button with spacing */}
+               <Button 
+               variant='outline'
+                      size="sm" 
+                      className="text-right my-5 bg-white text-black"
+                      onClick={() => handleWatchNow(event.id)}
+                    >
+                      Watch Now
+                    </Button>
                   <div className="space-y-3">
                     {/* Title with proper truncation */}
                     <h3 
@@ -281,10 +295,6 @@ const LiveEventSpotlight: React.FC = () => {
                     
                     {/* Stats row with proper spacing */}
                     <div className="flex items-center justify-between text-xs gap-2">
-                      <div className="flex items-center gap-1 min-w-0 flex-1">
-                        <Eye className="h-3 w-3 flex-shrink-0" />
-                        <span className="truncate">{event.viewers.toLocaleString()} watching</span>
-                      </div>
                       {event.timeRemaining && (
                         <div className="flex items-center gap-1 flex-shrink-0">
                           <Clock className="h-3 w-3" />
@@ -303,20 +313,33 @@ const LiveEventSpotlight: React.FC = () => {
                       </p>
                     )}
                     
-                    {/* Button with spacing */}
-                    <Button 
-                      size="sm" 
-                      className="w-full mt-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
-                      onClick={() => handleWatchNow(event.id)}
-                    >
-                      Watch Now
-                    </Button>
+                   
                   </div>
                 </div>
+                
+              <div className="aspect-video bg-gradient-to-br from-primary/20 to-secondary/20 rounded-lg overflow-hidden">
+                <StreamPreview 
+                  eventId={event.id}
+                  eventName={event.title}
+                  fallbackImage={event.thumbnail}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                
+                
+                {/* Live badge */}
+                {/* <Badge className="absolute top-3 left-3 bg-red-600 hover:bg-red-700 z-20 shadow-lg">
+                  LIVE
+                </Badge> */}
+                
+                
               </div>
+               
             </div>
+            
           ))}
+          
         </div>
+        
       </div>
     </div>
   );
