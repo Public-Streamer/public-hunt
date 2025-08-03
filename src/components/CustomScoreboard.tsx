@@ -100,10 +100,18 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
           // Only process custom scoreboard updates
           const newRecord = payload.new as any;
           const oldRecord = payload.old as any;
-          const isCustomUpdate = newRecord?.scoreboard_type === 'custom' || oldRecord?.scoreboard_type === 'custom';
-          if (!isCustomUpdate) {
-            console.log('Ignoring non-custom scoreboard update');
-            return;
+          
+          // For DELETE events, we only have limited data in 'old' record
+          // Since we're filtering by event_id in the subscription, we can assume these are relevant
+          if (payload.eventType === 'DELETE') {
+            console.log('Processing DELETE event for custom scoreboard');
+          } else {
+            // For INSERT/UPDATE, check scoreboard_type
+            const isCustomUpdate = newRecord?.scoreboard_type === 'custom' || oldRecord?.scoreboard_type === 'custom';
+            if (!isCustomUpdate) {
+              console.log('Ignoring non-custom scoreboard update');
+              return;
+            }
           }
           
           if (payload.eventType === 'INSERT') {
