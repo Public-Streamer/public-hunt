@@ -402,7 +402,14 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
         <div className="absolute bottom-2 right-2 flex justify-end items-start z-10">
           <p className="flex-1 text-xs md:text-sm text-white text-shadow-lg
            truncate font-medium bg-black/20 px-2 py-1 rounded backdrop-blur-sm max-w-[150px]">
-            {participant?.name || participant?.identity}
+            {(() => {
+              try {
+                const metadata = participant?.metadata ? JSON.parse(participant.metadata) : {};
+                return metadata.streamName || participant?.name || participant?.identity;
+              } catch {
+                return participant?.name || participant?.identity;
+              }
+            })()}
           </p>
         </div>
       </div>

@@ -74,6 +74,11 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   const [editValue, setEditValue] = useState(eventTitle);
   const [isSaving, setIsSaving] = useState(false);
   
+  // Stream name edit state
+  const [isEditingStreamName, setIsEditingStreamName] = useState(false);
+  const [streamNameValue, setStreamNameValue] = useState("");
+  const [isSavingStreamName, setIsSavingStreamName] = useState(false);
+  
   
   // Scoreboard state management
   const [selectedGameType, setSelectedGameType] = useState<string | null>(null);
@@ -269,6 +274,56 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     }
   };
 
+  // Stream name edit handlers
+  const handleEditStreamName = () => {
+    const currentStreamName = localParticipant?.metadata ? JSON.parse(localParticipant.metadata).streamName || "" : "";
+    setStreamNameValue(currentStreamName);
+    setIsEditingStreamName(true);
+  };
+
+  const handleSaveStreamName = async () => {
+    if (!localParticipant) return;
+    
+    setIsSavingStreamName(true);
+    try {
+      const currentMetadata = localParticipant.metadata ? JSON.parse(localParticipant.metadata) : {};
+      const newMetadata = {
+        ...currentMetadata,
+        streamName: streamNameValue.trim() || undefined
+      };
+      
+      await localParticipant.setMetadata(JSON.stringify(newMetadata));
+      setIsEditingStreamName(false);
+      toast({
+        title: "Success",
+        description: "Stream name updated successfully",
+      });
+    } catch (error) {
+      console.error("Error updating stream name:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update stream name",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingStreamName(false);
+    }
+  };
+
+  const handleCancelStreamName = () => {
+    const currentStreamName = localParticipant?.metadata ? JSON.parse(localParticipant.metadata).streamName || "" : "";
+    setStreamNameValue(currentStreamName);
+    setIsEditingStreamName(false);
+  };
+
+  const handleStreamNameKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleSaveStreamName();
+    } else if (e.key === "Escape") {
+      handleCancelStreamName();
+    }
+  };
+
 
   // Get local camera track
   const localCameraTracks = useTracks([Track.Source.Camera], {
@@ -387,7 +442,50 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
           >
             <Card>
               <CardHeader className="p-3 sm:p-6">
-                <CardTitle className="text-sm sm:text-base">Your Stream Preview</CardTitle>
+                <div className="flex items-center justify-between">
+                  {isEditingStreamName ? (
+                    <div className="flex items-center gap-2 flex-1">
+                      <Input
+                        value={streamNameValue}
+                        onChange={(e) => setStreamNameValue(e.target.value)}
+                        onKeyDown={handleStreamNameKeyPress}
+                        placeholder="Enter stream name (e.g., Camera 01)"
+                        className="text-sm h-8 flex-1"
+                        autoFocus
+                        disabled={isSavingStreamName}
+                      />
+                      <Button
+                        size="sm"
+                        onClick={handleSaveStreamName}
+                        disabled={isSavingStreamName}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Check className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleCancelStreamName}
+                        disabled={isSavingStreamName}
+                        className="h-8 w-8 p-0"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <>
+                      <CardTitle className="text-sm sm:text-base">Your Stream Preview</CardTitle>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={handleEditStreamName}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    </>
+                  )}
+                </div>
               </CardHeader>
               <CardContent className="p-3 sm:p-6">
                 <div className="aspect-video bg-muted rounded-lg overflow-hidden relative">
@@ -454,8 +552,14 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                         />
                         <div className="absolute bottom-2 left-2">
                           <Badge variant="secondary" className="text-xs">
-                            {trackRef.participant.name ||
-                              trackRef.participant.identity}
+                            {(() => {
+                              try {
+                                const metadata = trackRef.participant.metadata ? JSON.parse(trackRef.participant.metadata) : {};
+                                return metadata.streamName || trackRef.participant.name || trackRef.participant.identity;
+                              } catch {
+                                return trackRef.participant.name || trackRef.participant.identity;
+                              }
+                            })()}
                           </Badge>
                         </div>
                       </div>
