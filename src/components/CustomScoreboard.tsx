@@ -880,6 +880,63 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
                   </div>
                 </div>
 
+                {/* Custom fields editing */}
+                {customFields.length > 0 && (
+                  <div className="space-y-3">
+                    <Label className="text-base font-medium">Custom Fields</Label>
+                    {customFields.map((field) => (
+                      <div key={field.id} className="space-y-1">
+                        <Label className="text-sm">{field.label}</Label>
+                        {field.type === 'toggle' ? (
+                          <div className="flex items-center gap-2">
+                            <Switch
+                              checked={Boolean(editingTeam.custom_fields?.[field.id])}
+                              onCheckedChange={(checked) => setEditingTeam({
+                                ...editingTeam,
+                                custom_fields: {
+                                  ...editingTeam.custom_fields,
+                                  [field.id]: checked
+                                }
+                              })}
+                            />
+                            <span className="text-sm">
+                              {editingTeam.custom_fields?.[field.id] ? 'Yes' : 'No'}
+                            </span>
+                          </div>
+                        ) : field.type === 'score' ? (
+                          <Input
+                            type="number"
+                            value={editingTeam.custom_fields?.[field.id] || 0}
+                            onChange={(e) => setEditingTeam({
+                              ...editingTeam,
+                              custom_fields: {
+                                ...editingTeam.custom_fields,
+                                [field.id]: parseInt(e.target.value) || 0
+                              }
+                            })}
+                            min="0"
+                            className="w-full"
+                          />
+                        ) : (
+                          <Input
+                            type="text"
+                            value={editingTeam.custom_fields?.[field.id] || ''}
+                            onChange={(e) => setEditingTeam({
+                              ...editingTeam,
+                              custom_fields: {
+                                ...editingTeam.custom_fields,
+                                [field.id]: e.target.value
+                              }
+                            })}
+                            className="w-full"
+                            placeholder="Enter text..."
+                          />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 <div className="flex justify-end gap-2">
                   <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
                     Cancel
