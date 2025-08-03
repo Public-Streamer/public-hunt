@@ -76,7 +76,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   
   // Camera name edit state management
   const [isCamNameEditing, setIsCamNameEditing] = useState(false);
-  const [camNameValue, setCamNameValue] = useState("Your Stream Preview");
+  const [camNameValue, setCamNameValue] = useState("Camera 01");
   const [isCamNameSaving, setIsCamNameSaving] = useState(false);
   
   // Scoreboard state management

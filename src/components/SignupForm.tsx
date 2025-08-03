@@ -481,7 +481,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
            followers_count: 0,
            following_count: 0,
            friends_count: 0,
-           cam_name: 'Your Stream Preview',
+           cam_name: 'Camera 01',
            created_at: new Date().toISOString(),
            updated_at: new Date().toISOString()
          }

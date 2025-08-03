@@ -77,7 +77,7 @@ const Profile: React.FC = () => {
         following_count: userProfile?.following_count || 0,
         friends_count: userProfile?.friends_count || 0,
         is_company_account: userProfile?.is_company_account || false,
-        cam_name: userProfile?.cam_name || 'Your Stream Preview',
+        cam_name: userProfile?.cam_name || 'Camera 01',
         created_at: userProfile?.created_at || new Date().toISOString(),
         updated_at: userProfile?.updated_at || new Date().toISOString()
       };
