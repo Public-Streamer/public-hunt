@@ -49,8 +49,8 @@ const StreamerPreview: React.FC<StreamerPreviewProps> = ({
         </div>
 
         {/* Participant info overlay */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
-          <p className="text-white text-sm font-medium truncate">
+        <div className="absolute bottom-4  bg-gradient-to-t from-black/70 to-transparent p-2">
+           <Badge variant="secondary" className="text-xs">    
             {(() => {
               try {
                 const metadata = participant?.metadata ? JSON.parse(participant.metadata) : {};
@@ -59,7 +59,7 @@ const StreamerPreview: React.FC<StreamerPreviewProps> = ({
                 return participant?.name || participant?.identity;
               }
             })()}
-          </p>
+          </Badge>
         </div>
       </div>
     </Card>

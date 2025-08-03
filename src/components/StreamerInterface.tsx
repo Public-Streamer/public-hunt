@@ -46,6 +46,7 @@ import { CustomScoreboard } from "@/components/CustomScoreboard";
 import { ScoreboardGameSelector } from "@/components/ScoreboardGameSelector";
 import { PinnedMessageSection } from "@/components/PinnedMessageSection";
 import EventProductionTeam from "@/components/EventProductionTeam";
+import { useStreamName } from "@/hooks/useStreamName";
 
 interface StreamerInterfaceProps {
   eventId: string;
@@ -78,6 +79,10 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   const [isEditingStreamName, setIsEditingStreamName] = useState(false);
   const [streamNameValue, setStreamNameValue] = useState("");
   const [isSavingStreamName, setIsSavingStreamName] = useState(false);
+
+  // livekit stream name
+  const track = useTracks();
+  const streamName = useStreamName(track[0]?.participant);
   
   
   // Scoreboard state management
@@ -473,8 +478,8 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                       </Button>
                     </div>
                   ) : (
-                    <>
-                      <CardTitle className="text-sm sm:text-base">Your Stream Preview</CardTitle>
+                    <div className="flex items-center gap-2">
+                      <CardTitle className="text-sm sm:text-base">{streamName} <span className="text-xs text-muted-foreground">(click to edit)</span></CardTitle>
                       <Button
                         size="sm"
                         variant="ghost"
@@ -483,7 +488,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
-                    </>
+                    </div>
                   )}
                 </div>
               </CardHeader>

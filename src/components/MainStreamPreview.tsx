@@ -6,10 +6,11 @@ import {
   TrackReference,
 } from "@livekit/components-core";
 import { Badge } from "@/components/ui/badge";
-import { Video, MessageCircle, X, Plane, Maximize, Minimize } from "lucide-react";
+import { Video, MessageCircle, X, Plane, Maximize, Minimize, Eye } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useSupabaseChatMessages } from "@/hooks/useSupabaseChatMessages";
+import { useStreamingControls } from "@/hooks/useStreamingControls";
 
 interface MainStreamPreviewProps {
   track?: TrackReference;
@@ -38,6 +39,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const hideControlsTimer = useRef<NodeJS.Timeout | null>(null);
+  const controls = useStreamingControls(eventId);
 
   // Detect iOS Safari
   const isIOSSafari = () => {
@@ -251,9 +253,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
             LIVE
           </Badge>
         )}
-        <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-black/70 text-white px-2 py-1 rounded text-xs sm:text-sm">
-          Multi-camera
-        </div>
+
       </div>
     );
   }
@@ -302,7 +302,16 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
 
         {/* Multi-camera indicator */}
         <div className={`absolute top-2 right-2 sm:top-4 sm:right-4 bg-black/70 text-white px-2 py-1 rounded text-xs sm:text-sm transition-opacity duration-300 ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100'}`}>
-          Multi-camera
+          {/* Viewer Count */}
+          <div className="absolute top-2 right-2">
+                    <Badge
+                      variant="secondary"
+                      className="flex items-center gap-1 text-xs"
+                    >
+                      <Eye className="h-3 w-3" />
+                      {controls?.participantCount - 1}
+                    </Badge>
+                  </div>
         </div>
 
 
@@ -400,17 +409,17 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
 
         {/* Participant info */}
         <div className="absolute bottom-2 right-2 flex justify-end items-start z-10">
-          <p className="flex-1 text-xs md:text-sm text-white text-shadow-lg
-           truncate font-medium bg-black/20 px-2 py-1 rounded backdrop-blur-sm max-w-[150px]">
+          <Badge variant="default">
             {(() => {
               try {
-                const metadata = participant?.metadata ? JSON.parse(participant.metadata) : {};
-                return metadata.streamName || participant?.name || participant?.identity;
+                const metadata = track?.participant?.metadata ? JSON.parse(track?.participant?.metadata) : {};
+                return metadata.streamName || track?.participant?.name || track?.participant?.identity;
               } catch {
-                return participant?.name || participant?.identity;
+                return track?.participant?.name || track?.participant?.identity;
               }
             })()}
-          </p>
+            {/* {track?.participant?.name || track?.participant?.identity} */}
+          </Badge>
         </div>
       </div>
     </>
