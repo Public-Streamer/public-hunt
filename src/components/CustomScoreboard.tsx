@@ -839,7 +839,6 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
                      .filter(([fieldId]) => !customFields.find(f => f.id === fieldId))
                      .length > 0 && (
                      <div className="space-y-3 mt-4 pt-4 border-t border-muted/30">
-                       <Label className="text-sm font-medium text-muted-foreground">Team-Specific Fields</Label>
                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                           {Object.entries(team.custom_fields)
                             .filter(([fieldId]) => !customFields.find(f => f.id === fieldId))
