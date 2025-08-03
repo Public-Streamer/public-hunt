@@ -22,26 +22,30 @@ export const PinnedMessageSection: React.FC<PinnedMessageSectionProps> = ({
   useEffect(() => {
     fetchPinnedMessage();
     
-    if (isHost) {
-      const channel = supabase
-        .channel('pinned-message')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'events',
-            filter: `id=eq.${eventId}`
-          },
-          () => fetchPinnedMessage()
-        )
-        .subscribe();
+    // Set up real-time subscription for all users (not just hosts)
+    const channel = supabase
+      .channel(`pinned-message-${eventId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'events',
+          filter: `id=eq.${eventId}`
+        },
+        (payload) => {
+          // Only update if pinned_message actually changed
+          if (payload.new && 'pinned_message' in payload.new) {
+            setPinnedMessage(payload.new.pinned_message || '');
+          }
+        }
+      )
+      .subscribe();
 
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    }
-  }, [eventId, isHost]);
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [eventId]);
 
   const fetchPinnedMessage = async () => {
     try {
