@@ -90,6 +90,19 @@ serve(async (req) => {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })
 
+      case 'deleteAll':
+        const deleteType = scoreboardType || 'coon_hunt'
+        const { error: deleteAllError } = await supabaseClient
+          .from('event_scoreboard')
+          .delete()
+          .eq('event_id', eventId)
+          .eq('scoreboard_type', deleteType)
+
+        if (deleteAllError) throw deleteAllError
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+
       case 'fetchPinnedMessage':
         const { data: eventData, error: eventError } = await supabaseClient
           .from('events')
