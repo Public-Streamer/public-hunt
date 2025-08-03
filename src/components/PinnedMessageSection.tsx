@@ -244,12 +244,12 @@ export const PinnedMessageSection: React.FC<PinnedMessageSectionProps> = ({
   return (
     <Card className='border-none shadow-none hover:shadow-none'>
       <CardContent className="p-3">
-        <div className="space-y-3">
+        <div className="space-y-2">
           {/* Header */}
           <div className="flex items-center gap-3">
             <Pin className="h-5 w-5 text-primary flex-shrink-0" />
-            <span className="text-lg font-medium">
-              {messages.length === 0 ? 'Pinned Messages (v2.0)' : `Pinned Messages (${messages.length}) (v2.0)`}
+            <span className="text-sm font-bold">
+              {messages.length === 0 ? 'Pinned Messages' : `Pinned Messages (${messages.length})`}
             </span>
             {isHost && (
               <Button 
@@ -303,7 +303,7 @@ export const PinnedMessageSection: React.FC<PinnedMessageSectionProps> = ({
                         onKeyPress={(e) => e.key === 'Enter' && saveMessage(message.id)}
                       />
                     ) : (
-                      <span className="text-sm font-medium">{message.content}</span>
+                      <span className="text-md font-medium">{message.content}</span>
                     )}
                   </div>
 
