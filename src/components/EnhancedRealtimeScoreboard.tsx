@@ -37,7 +37,7 @@ export const EnhancedRealtimeScoreboard: React.FC<EnhancedRealtimeScoreboardProp
           event: '*',
           schema: 'public',
           table: 'event_scoreboard',
-          filter: `event_id=eq.${eventId}`
+          filter: `event_id=eq.${eventId}.and.scoreboard_type=eq.custom`
         },
         (payload) => {
           console.log('[Enhanced Scoreboard] Realtime update received:', payload);
@@ -67,7 +67,7 @@ export const EnhancedRealtimeScoreboard: React.FC<EnhancedRealtimeScoreboardProp
   const fetchTeams = async () => {
     try {
       const { data, error } = await supabase.functions.invoke('scoreboard-operations', {
-        body: { action: 'fetch', eventId }
+        body: { action: 'fetch', eventId, scoreboardType: 'custom' }
       });
 
       if (error) throw error;
