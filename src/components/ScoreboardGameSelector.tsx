@@ -32,11 +32,11 @@ const GAME_TYPES: GameType[] = [
     available: false,
   },
   {
-    id: 'custom_sport',
-    name: 'Custom Sport',
-    description: 'Build your own custom scoreboard template (Coming Soon)',
+    id: 'custom',
+    name: 'Custom',
+    description: 'Build your own custom scoreboard template with flexible field types',
     icon: <Plus className="h-8 w-8" />,
-    available: false,
+    available: true,
   },
 ];
 

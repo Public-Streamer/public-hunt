@@ -29,6 +29,7 @@ import SocialShareMenu from "@/components/SocialShareMenu";
 import TicketPurchaseModal from "@/components/TicketPurchaseModal";
 import StreamPreviewContainer from "@/components/StreamPreviewContainer";
 import { CoonHuntScoreboard } from "@/components/CoonHuntScoreboard";
+import { CustomScoreboard } from "@/components/CustomScoreboard";
 import { PinnedMessageSection } from "@/components/PinnedMessageSection";
 import EventStreamPreview from "@/components/EventStreamPreview";
 import { supabase } from "@/lib/supabase";
@@ -55,6 +56,10 @@ interface EventData {
   host_stripe_account_id?: string;
   slug?: string;
   slug_counter?: number;
+  metadata?: {
+    selectedGameType?: string;
+    customFields?: any[];
+  };
 }
 
 const EventPage: React.FC = () => {

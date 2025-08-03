@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   VideoTrack,
   AudioTrack,
@@ -40,6 +40,7 @@ import TorchButton from "@/components/TorchButton";
 import LiveChatSection from "@/components/LiveChatSection";
 import { useMobileMediaPermissions } from "@/hooks/useMobileMediaPermissions";
 import { CoonHuntScoreboard } from "@/components/CoonHuntScoreboard";
+import { CustomScoreboard } from "@/components/CustomScoreboard";
 import { ScoreboardGameSelector } from "@/components/ScoreboardGameSelector";
 import { PinnedMessageSection } from "@/components/PinnedMessageSection";
 import EventProductionTeam from "@/components/EventProductionTeam";
@@ -73,6 +74,15 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   
   // Scoreboard state management
   const [selectedGameType, setSelectedGameType] = useState<string | null>(null);
+
+  // Handle game type selection
+  const handleGameTypeSelect = (gameType: string) => {
+    setSelectedGameType(gameType);
+    toast({
+      title: "Success",
+      description: "Scoreboard type selected successfully",
+    });
+  };
 
   // Edit handlers
   const handleEditClick = () => {
@@ -342,11 +352,13 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                         <p className="text-muted-foreground">
                           Create a specialized scoreboard for your competition
                         </p>
-                        <ScoreboardGameSelector onGameSelect={setSelectedGameType} />
+                        <ScoreboardGameSelector onGameSelect={handleGameTypeSelect} />
                       </div>
                     </div>
                   ) : selectedGameType === 'coon_hunt' ? (
                     <CoonHuntScoreboard eventId={eventId} isHost={true} />
+                  ) : selectedGameType === 'custom' ? (
+                    <CustomScoreboard eventId={eventId} isHost={true} />
                   ) : (
                     <div className="text-center py-8 text-muted-foreground">
                       <p>This game type is not yet supported.</p>
