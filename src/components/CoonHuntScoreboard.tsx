@@ -50,6 +50,9 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
   const [customFields, setCustomFields] = useState<{ key: string; label: string; value: any; type: 'text' | 'number' }[]>([]);
   const [newFieldLabel, setNewFieldLabel] = useState('');
   const [newFieldType, setNewFieldType] = useState<'text' | 'number'>('text');
+  
+  // Local state for input values to prevent constant API calls
+  const [localInputValues, setLocalInputValues] = useState<Record<string, Record<string, any>>>({});
 
   useEffect(() => {
     fetchTeams();
@@ -165,9 +168,20 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
 
       if (error) throw error;
       
-      setTeams(prev => prev.map(t => 
-        t.id === teamId ? { ...t, custom_fields: updatedFields, score: newScore } : t
-      ));
+      // Clear local input for this field after successful save
+      setLocalInputValues(prev => ({
+        ...prev,
+        [teamId]: {
+          ...prev[teamId],
+          [field]: undefined
+        }
+      }));
+
+      toast({
+        title: "Score Updated",
+        description: `${field.replace('_points', '').replace('_', ' ')} updated successfully`,
+      });
+      
     } catch (error) {
       console.error('Error updating team:', error);
       toast({
@@ -176,6 +190,23 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
         variant: "destructive",
       });
     }
+  };
+
+  // Function to handle local input changes without saving
+  const handleFieldChange = (teamId: string, field: string, value: any) => {
+    setLocalInputValues(prev => ({
+      ...prev,
+      [teamId]: {
+        ...prev[teamId],
+        [field]: value
+      }
+    }));
+  };
+
+  // Function to get the current value for an input (local or from database)
+  const getCurrentFieldValue = (teamId: string, field: string, dbValue: any) => {
+    const localValue = localInputValues[teamId]?.[field];
+    return localValue !== undefined ? localValue : (dbValue || 0);
   };
 
   const deleteTeam = async (teamId: string) => {
@@ -373,10 +404,18 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                       {isHost ? (
                         <Input
                           type="number"
-                          value={team.custom_fields?.strike_points || 0}
-                          onChange={(e) => updateTeamField(team.id, 'strike_points', parseInt(e.target.value) || 0)}
+                          value={getCurrentFieldValue(team.id, 'strike_points', team.custom_fields?.strike_points)}
+                          onChange={(e) => handleFieldChange(team.id, 'strike_points', parseInt(e.target.value) || 0)}
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              updateTeamField(team.id, 'strike_points', parseInt(e.currentTarget.value) || 0);
+                            }
+                          }}
+                          onBlur={(e) => updateTeamField(team.id, 'strike_points', parseInt(e.target.value) || 0)}
                           className="h-8 text-center"
                           min="0"
+                          placeholder="Press Enter to save"
                         />
                       ) : (
                         <div className="text-lg font-bold" style={{ color: team.team_color }}>
@@ -390,10 +429,18 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                       {isHost ? (
                         <Input
                           type="number"
-                          value={team.custom_fields?.tree_points || 0}
-                          onChange={(e) => updateTeamField(team.id, 'tree_points', parseInt(e.target.value) || 0)}
+                          value={getCurrentFieldValue(team.id, 'tree_points', team.custom_fields?.tree_points)}
+                          onChange={(e) => handleFieldChange(team.id, 'tree_points', parseInt(e.target.value) || 0)}
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              updateTeamField(team.id, 'tree_points', parseInt(e.currentTarget.value) || 0);
+                            }
+                          }}
+                          onBlur={(e) => updateTeamField(team.id, 'tree_points', parseInt(e.target.value) || 0)}
                           className="h-8 text-center"
                           min="0"
+                          placeholder="Press Enter to save"
                         />
                       ) : (
                         <div className="text-lg font-bold" style={{ color: team.team_color }}>
@@ -407,10 +454,18 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                       {isHost ? (
                         <Input
                           type="number"
-                          value={team.custom_fields?.circle_points || 0}
-                          onChange={(e) => updateTeamField(team.id, 'circle_points', parseInt(e.target.value) || 0)}
+                          value={getCurrentFieldValue(team.id, 'circle_points', team.custom_fields?.circle_points)}
+                          onChange={(e) => handleFieldChange(team.id, 'circle_points', parseInt(e.target.value) || 0)}
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              updateTeamField(team.id, 'circle_points', parseInt(e.currentTarget.value) || 0);
+                            }
+                          }}
+                          onBlur={(e) => updateTeamField(team.id, 'circle_points', parseInt(e.target.value) || 0)}
                           className="h-8 text-center"
                           min="0"
+                          placeholder="Press Enter to save"
                         />
                       ) : (
                         <div className="text-lg font-bold" style={{ color: team.team_color }}>
@@ -424,10 +479,18 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                       {isHost ? (
                         <Input
                           type="number"
-                          value={team.custom_fields?.minus_points || 0}
-                          onChange={(e) => updateTeamField(team.id, 'minus_points', parseInt(e.target.value) || 0)}
+                          value={getCurrentFieldValue(team.id, 'minus_points', team.custom_fields?.minus_points)}
+                          onChange={(e) => handleFieldChange(team.id, 'minus_points', parseInt(e.target.value) || 0)}
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              updateTeamField(team.id, 'minus_points', parseInt(e.currentTarget.value) || 0);
+                            }
+                          }}
+                          onBlur={(e) => updateTeamField(team.id, 'minus_points', parseInt(e.target.value) || 0)}
                           className="h-8 text-center"
                           min="0"
+                          placeholder="Press Enter to save"
                         />
                       ) : (
                         <div className="text-lg font-bold text-destructive">
