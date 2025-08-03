@@ -17,7 +17,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { action, eventId, teamName, teamColor, teamId, score, customFields } = await req.json()
+    const { action, eventId, teamName, teamColor, teamId, score, customFields, pinnedMessage } = await req.json()
 
     switch (action) {
       case 'fetch':
@@ -82,6 +82,29 @@ serve(async (req) => {
           .eq('id', teamId)
 
         if (deleteError) throw deleteError
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+
+      case 'fetchPinnedMessage':
+        const { data: eventData, error: eventError } = await supabaseClient
+          .from('events')
+          .select('pinned_message')
+          .eq('id', eventId)
+          .single()
+
+        if (eventError) throw eventError
+        return new Response(JSON.stringify(eventData), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+
+      case 'updatePinnedMessage':
+        const { error: updatePinnedError } = await supabaseClient
+          .from('events')
+          .update({ pinned_message: pinnedMessage })
+          .eq('id', eventId)
+
+        if (updatePinnedError) throw updatePinnedError
         return new Response(JSON.stringify({ success: true }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })

@@ -1026,6 +1026,7 @@ export type Database = {
           media_urls: string[] | null
           name: string
           payment_enabled: boolean | null
+          pinned_message: string | null
           slug: string | null
           slug_counter: number | null
           stream_quality: string | null
@@ -1051,6 +1052,7 @@ export type Database = {
           media_urls?: string[] | null
           name: string
           payment_enabled?: boolean | null
+          pinned_message?: string | null
           slug?: string | null
           slug_counter?: number | null
           stream_quality?: string | null
@@ -1076,6 +1078,7 @@ export type Database = {
           media_urls?: string[] | null
           name?: string
           payment_enabled?: boolean | null
+          pinned_message?: string | null
           slug?: string | null
           slug_counter?: number | null
           stream_quality?: string | null
