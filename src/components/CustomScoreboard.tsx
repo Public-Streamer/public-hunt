@@ -175,7 +175,7 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
   const fetchCustomFields = async () => {
     try {
       const { data: event } = await supabase
-        .from('events')
+        .from('events')  // FIXME: it should not be events..  
         .select('metadata')
         .eq('id', eventId)
         .single();

@@ -17,7 +17,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { action, eventId, teamName, teamColor, teamId, score, customFields, pinnedMessage, scoreboardType } = await req.json()
+    const { action, eventId, teamName, teamColor, teamId, score, custom_fields, pinnedMessage, scoreboardType } = await req.json()
 
     switch (action) {
       case 'fetch':
@@ -43,7 +43,7 @@ serve(async (req) => {
             team_name: teamName,
             score: 0,
             team_color: teamColor,
-            custom_fields: customFields || {},
+            custom_fields: custom_fields || {},
             scoreboard_type: createType,
           })
 
@@ -66,11 +66,11 @@ serve(async (req) => {
       case 'updateTeam':
         const { error: updateTeamError } = await supabaseClient
           .from('event_scoreboard')
-          .update({ 
+          .update({
             team_name: teamName,
             score: score,
             team_color: teamColor,
-            custom_fields: customFields || {}
+            custom_fields: custom_fields || {}
           })
           .eq('id', teamId)
 
