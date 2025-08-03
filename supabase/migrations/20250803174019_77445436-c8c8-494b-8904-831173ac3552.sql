@@ -1,0 +1,1 @@
+ALTER TABLE public.event_scoreboard REPLICA IDENTITY FULL;
