@@ -452,7 +452,7 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
       <div>
         {isHost ? (
           <Input
-            value={value || ''}
+            defaultValue={value || ''}
             onChange={(e) => {
               console.log('Text field change:', e.target.value, 'isHost:', isHost);
               updateTeamField(team.id, field.id, e.target.value);
