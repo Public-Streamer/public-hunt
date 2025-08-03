@@ -86,7 +86,15 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
         },
         (payload) => {
           console.log('Real-time event update received:', payload);
-          fetchScoreboardTitle();
+          // Only update title from real-time if it's different from current local state
+          // This prevents unnecessary updates when the current user made the change
+          if (payload.new && payload.new.metadata) {
+            const metadata = payload.new.metadata as Record<string, any>;
+            const newTitle = metadata?.scoreboardTitle;
+            if (newTitle && newTitle !== scoreboardTitle) {
+              setScoreboardTitle(newTitle);
+            }
+          }
         }
       )
       .subscribe();
@@ -150,12 +158,17 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
 
       if (error) throw error;
 
+      // Update local state immediately (don't wait for real-time update)
+      // Real-time updates will handle syncing for other users
+      
       toast({
         title: "Success",
         description: "Scoreboard title updated",
       });
     } catch (error) {
       console.error('Error updating scoreboard title:', error);
+      // Revert local state if save failed
+      fetchScoreboardTitle();
       toast({
         title: "Error",
         description: "Failed to update scoreboard title",
