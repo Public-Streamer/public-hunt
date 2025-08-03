@@ -53,6 +53,8 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
   
   // Local state for input values to prevent constant API calls
   const [localInputValues, setLocalInputValues] = useState<Record<string, Record<string, any>>>({});
+  const [scoreboardTitle, setScoreboardTitle] = useState('OMCBA Coon Hunt Scoreboard');
+  const [editingTitle, setEditingTitle] = useState(false);
 
   useEffect(() => {
     fetchTeams();
@@ -367,7 +369,38 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Target className="h-5 w-5" />
-            OMCBA Coon Hunt Scoreboard
+            {isHost && editingTitle ? (
+              <Input
+                value={scoreboardTitle}
+                onChange={(e) => setScoreboardTitle(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    setEditingTitle(false);
+                  }
+                }}
+                onBlur={() => setEditingTitle(false)}
+                className="h-8 text-lg font-semibold"
+                placeholder="Press Enter to save"
+                autoFocus
+              />
+            ) : (
+              <span 
+                className={isHost ? "cursor-pointer hover:text-primary" : ""}
+                onClick={() => isHost && setEditingTitle(true)}
+                title={isHost ? "Click to edit scoreboard name" : undefined}
+              >
+                {scoreboardTitle}
+              </span>
+            )}
+            {isHost && !editingTitle && (
+              <div title="Edit scoreboard name">
+                <Edit3 
+                  className="h-4 w-4 ml-2 cursor-pointer hover:text-primary" 
+                  onClick={() => setEditingTitle(true)}
+                />
+              </div>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent>
