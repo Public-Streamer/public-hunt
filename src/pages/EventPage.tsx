@@ -511,6 +511,11 @@ const EventPage: React.FC = () => {
                   />
                   <RoomAudioRenderer />
 
+                   {/* Pinned Message Section */}
+              <div className="">
+                <PinnedMessageSection eventId={eventId} isHost={false} />
+              </div>
+
                    {/* Coon Hunt Scoreboard */}
              <div className="p-5">
              {currentUser ? <CoonHuntScoreboard eventId={eventId} isHost={false} /> : <div className="p-6">Please sign in to view the scoreboard</div>}
@@ -583,15 +588,13 @@ const EventPage: React.FC = () => {
                   )}
                 </div>
               )}
-
-              {/* Pinned Message Section */}
-              <div className="px-4 pb-4">
-                <PinnedMessageSection eventId={eventId} isHost={false} />
-              </div>
-
+            
               {/* Pre-Stream Chat Archive for scheduled events */}
               {!eventData.is_live && (hasTicket || canEnterStage) && (
                 <div className="p-4 border-t border-border/30">
+                  <div className="">
+                <PinnedMessageSection eventId={eventId} isHost={false} />
+              </div>  
                   <PreStreamChatArchive eventId={eventId!} />
                 </div>
               )}

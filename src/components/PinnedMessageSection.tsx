@@ -103,10 +103,10 @@ export const PinnedMessageSection: React.FC<PinnedMessageSectionProps> = ({
   }
 
   return (
-    <Card>
-      <CardContent className="py-3">
+    <Card className='border-none shadow-none hover:shadow-none '>
+      <CardContent className="p-3 ">
         <div className="flex items-center gap-3">
-          <Pin className="h-4 w-4 text-primary flex-shrink-0" />
+          <Pin className="h-5 w-5 text-primary flex-shrink-0" />
           {editingPinnedMessage ? (
             <div className="flex items-center gap-2 flex-1">
               <Input
@@ -126,9 +126,9 @@ export const PinnedMessageSection: React.FC<PinnedMessageSectionProps> = ({
           ) : (
             <div className="flex items-center gap-2 flex-1">
               {pinnedMessage ? (
-                <span className="text-sm font-medium">{pinnedMessage}</span>
+                <span className="text-lg font-medium ">{pinnedMessage}</span>
               ) : isHost ? (
-                <span className="text-sm text-muted-foreground italic">Click to add a pinned message</span>
+                <span className="text-lg text-muted-foreground italic">Click to add a pinned message</span>
               ) : null}
               {isHost && (
                 <Button size="sm" variant="ghost" onClick={startEditingPinnedMessage} className="ml-auto">
