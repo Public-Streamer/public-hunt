@@ -77,24 +77,37 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
     
     // Set up real-time subscription for both hosts and viewers
     console.log('Setting up real-time subscription for eventId:', eventId);
+    const channelName = `custom-scoreboard-${eventId}-${Date.now()}`;
+    console.log('Creating unique channel name:', channelName);
+    
     const channel = supabase
-      .channel(`custom_scoreboard_${eventId}`)
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'event_scoreboard',
-          filter: `event_id=eq.${eventId}.and.scoreboard_type=eq.custom`
+          filter: `event_id=eq.${eventId}`
         },
         (payload) => {
-          console.log('Custom scoreboard real-time update:', payload);
+          console.log('📊 Custom scoreboard real-time update received:', payload);
           console.log('Event type:', payload.eventType);
+          console.log('Table:', payload.table);
           console.log('New data:', payload.new);
           console.log('Old data:', payload.old);
           
+          // Only process custom scoreboard updates
+          const newRecord = payload.new as any;
+          const oldRecord = payload.old as any;
+          const isCustomUpdate = newRecord?.scoreboard_type === 'custom' || oldRecord?.scoreboard_type === 'custom';
+          if (!isCustomUpdate) {
+            console.log('Ignoring non-custom scoreboard update');
+            return;
+          }
+          
           if (payload.eventType === 'INSERT') {
-            console.log('Adding new team to state:', payload.new);
+            console.log('🆕 Adding new team to state:', payload.new);
             setTeams(prev => {
               const newTeam = payload.new as CustomTeam;
               console.log('Current teams before insert:', prev);
@@ -105,16 +118,26 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
                 console.log('Team already exists, skipping insert');
                 return prev;
               }
-              return [...prev, newTeam];
+              const updated = [...prev, newTeam];
+              console.log('Teams after insert:', updated);
+              return updated;
             });
           } else if (payload.eventType === 'UPDATE') {
-            console.log('Updating team in state:', payload.new.id);
-            setTeams(prev => prev.map(team => 
-              team.id === payload.new.id ? payload.new as CustomTeam : team
-            ));
+            console.log('🔄 Updating team in state:', payload.new.id);
+            setTeams(prev => {
+              const updated = prev.map(team => 
+                team.id === payload.new.id ? { ...team, ...payload.new } as CustomTeam : team
+              );
+              console.log('Teams after update:', updated);
+              return updated;
+            });
           } else if (payload.eventType === 'DELETE') {
-            console.log('Deleting team from state:', payload.old.id);
-            setTeams(prev => prev.filter(team => team.id !== payload.old.id));
+            console.log('🗑️ Deleting team from state:', payload.old.id);
+            setTeams(prev => {
+              const updated = prev.filter(team => team.id !== payload.old.id);
+              console.log('Teams after delete:', updated);
+              return updated;
+            });
           }
         }
       )
