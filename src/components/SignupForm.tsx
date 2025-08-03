@@ -461,29 +461,30 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
       const result = await signUp(
         formattedData.email,
         formattedData.password,
-        {
-          user_id: '', // This will be set by the signUp function
-          display_name: `${formattedData.firstName} ${formattedData.lastName}`,
-          username: formattedData.email.split('@')[0],
-          location: formattedData.location || '',
-          bio: formattedData.bio || '',
-          birthday: formattedData.birthDate,
-          company_id: formattedData.accountType !== 'individual' ? formattedData.companyAccountMaster || '' : '',
-          company_name: formattedData.accountType !== 'individual' ? formattedData.companyName || '' : '',
-          is_company_account: formattedData.accountType !== 'individual',
-          cover_photo_url: '',
-          profile_picture_url: '',
-          education: '',
-          website: '',
-          relationship_status: '',
-          occupation: '',
-          interests: [],
-          followers_count: 0,
-          following_count: 0,
-          friends_count: 0,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
+         {
+           user_id: '', // This will be set by the signUp function
+           display_name: `${formattedData.firstName} ${formattedData.lastName}`,
+           username: formattedData.email.split('@')[0],
+           location: formattedData.location || '',
+           bio: formattedData.bio || '',
+           birthday: formattedData.birthDate,
+           company_id: formattedData.accountType !== 'individual' ? formattedData.companyAccountMaster || '' : '',
+           company_name: formattedData.accountType !== 'individual' ? formattedData.companyName || '' : '',
+           is_company_account: formattedData.accountType !== 'individual',
+           cover_photo_url: '',
+           profile_picture_url: '',
+           education: '',
+           website: '',
+           relationship_status: '',
+           occupation: '',
+           interests: [],
+           followers_count: 0,
+           following_count: 0,
+           friends_count: 0,
+           cam_name: 'Your Stream Preview',
+           created_at: new Date().toISOString(),
+           updated_at: new Date().toISOString()
+         }
       );
       
       if (result && !result.error) {
