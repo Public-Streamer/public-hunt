@@ -40,7 +40,7 @@ import TorchButton from "@/components/TorchButton";
 import LiveChatSection from "@/components/LiveChatSection";
 import { useMobileMediaPermissions } from "@/hooks/useMobileMediaPermissions";
 import { ScoreboardControls } from "@/components/ScoreboardControls";
-import StreamerSelector from "@/components/StreamerSelector";
+import EventProductionTeam from "@/components/EventProductionTeam";
 
 interface StreamerInterfaceProps {
   eventId: string;
@@ -328,12 +328,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
 
             {/* Event Production Team - Only for hosts */}
             {userRole === "host" && (
-              <StreamerSelector
-                onStreamersChange={() => {
-                  // Refresh logic if needed
-                }}
-                initialStreamers={[]}
-              />
+              <EventProductionTeam eventId={eventId} />
             )}
 
           </div>
