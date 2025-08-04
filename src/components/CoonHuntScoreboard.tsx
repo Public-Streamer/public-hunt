@@ -73,7 +73,26 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
         },
         (payload) => {
           console.log('Real-time scoreboard update received:', payload);
-          fetchTeams();
+          
+          // Handle different types of real-time updates without full refetch
+          if (payload.eventType === 'INSERT') {
+            // New team added - refetch to get the new team
+            fetchTeams();
+          } else if (payload.eventType === 'DELETE') {
+            // Team deleted - remove from local state
+            const deletedId = payload.old?.id;
+            if (deletedId) {
+              setTeams(prev => prev.filter(team => team.id !== deletedId));
+            }
+          } else if (payload.eventType === 'UPDATE') {
+            // Team updated - update specific team without clearing local inputs
+            const updatedTeam = payload.new as CoonHuntTeam;
+            if (updatedTeam) {
+              setTeams(prev => prev.map(team => 
+                team.id === updatedTeam.id ? updatedTeam : team
+              ));
+            }
+          }
         }
       )
       .on(
