@@ -677,44 +677,19 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                         <div className="text-xs sm:text-sm space-y-1">
                           <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                             <span className="text-muted-foreground shrink-0">Handler:</span>
-                            {isHost ? (
-                              <Input
-                                value={getCurrentFieldValue(team.id, 'handler_name', team.custom_fields?.handler_name)}
-                                onChange={(e) => handleFieldChange(team.id, 'handler_name', e.target.value)}
-                                onKeyPress={(e) => {
-                                  if (e.key === 'Enter') {
-                                    e.preventDefault();
-                                    updateTeamField(team.id, 'handler_name', e.currentTarget.value);
-                                  }
-                                }}
-                                onBlur={(e) => updateTeamField(team.id, 'handler_name', e.target.value)}
-                                className="h-6 text-xs sm:text-sm flex-1 min-w-0"
-                                placeholder="Handler name..."
-                              />
-                            ) : (
-                              <span className="font-medium text-xs sm:text-sm break-words">{team.custom_fields?.handler_name || 'Not set'}</span>
-                            )}
+                            <span className="font-medium text-xs sm:text-sm break-words">{team.custom_fields?.handler_name || 'Not set'}</span>
                           </div>
                           <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                             <span className="text-muted-foreground shrink-0">Dog:</span>
-                            {isHost ? (
-                              <Input
-                                value={getCurrentFieldValue(team.id, 'dog_name', team.custom_fields?.dog_name)}
-                                onChange={(e) => handleFieldChange(team.id, 'dog_name', e.target.value)}
-                                onKeyPress={(e) => {
-                                  if (e.key === 'Enter') {
-                                    e.preventDefault();
-                                    updateTeamField(team.id, 'dog_name', e.currentTarget.value);
-                                  }
-                                }}
-                                onBlur={(e) => updateTeamField(team.id, 'dog_name', e.target.value)}
-                                className="h-6 text-xs sm:text-sm flex-1 min-w-0"
-                                placeholder="Dog name..."
-                              />
-                            ) : (
-                              <span className="font-medium text-xs sm:text-sm break-words">{team.custom_fields?.dog_name || 'Not set'}</span>
-                            )}
+                            <span className="font-medium text-xs sm:text-sm break-words">{team.custom_fields?.dog_name || 'Not set'}</span>
                           </div>
+                          {/* Optional Registration Number - only show if exists */}
+                          {team.custom_fields?.registration_number && (
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                              <span className="text-muted-foreground shrink-0">Registration:</span>
+                              <span className="font-medium text-xs sm:text-sm break-words">{team.custom_fields.registration_number}</span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
