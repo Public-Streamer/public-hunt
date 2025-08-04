@@ -412,7 +412,10 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
 
   const updateTeamField = async (teamId: string, fieldId: string, value: any) => {
     const team = teams.find(t => t.id === teamId);
-    if (!team) return;
+    if (!team) {
+      console.error('Team not found for update:', teamId);
+      return;
+    }
 
     const updatedFields = {
       ...team.custom_fields,
@@ -422,7 +425,14 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
     // Recalculate total score
     const newScore = calculateTotalScore(updatedFields);
 
-    console.log('Updating Coon Hunt team field:', { teamId, fieldId, value, updatedFields, newScore });
+    console.log('🔄 Updating Coon Hunt team field:', { 
+      teamId, 
+      fieldId, 
+      value, 
+      currentFields: team.custom_fields,
+      updatedFields, 
+      newScore 
+    });
 
     try {
       const { data, error } = await supabase.functions.invoke('scoreboard-operations', {
@@ -436,9 +446,12 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Scoreboard operation error:', error);
+        throw error;
+      }
 
-      console.log('Coon Hunt team field update response:', data);
+      console.log('✅ Coon Hunt team field update response:', data);
 
       // Update local state immediately
       setTeams(prev => prev.map(t => 
@@ -456,15 +469,24 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
         }
       }));
 
+      // More specific toast messages
+      const fieldName = fieldId === 'registration_number' ? 'Registration Number' :
+                       fieldId === 'handler_name' ? 'Handler Name' :
+                       fieldId === 'dog_name' ? 'Dog Name' :
+                       fieldId === 'warnings_notes' ? 'Warnings/Notes' :
+                       fieldId === 'judge_comments' ? 'Judge Comments' :
+                       fieldId === 'disqualified' ? 'Team Status' :
+                       fieldId.replace('_points', '').replace('_', ' ');
+
       toast({
-        title: "Score Updated",
-        description: `${fieldId.replace('_points', '').replace('_', ' ')} updated successfully`,
+        title: "Updated Successfully",
+        description: `${fieldName} updated successfully`,
       });
     } catch (error) {
-      console.error('Error updating Coon Hunt team field:', error);
+      console.error('❌ Error updating Coon Hunt team field:', error);
       toast({
         title: "Error",
-        description: "Failed to update score",
+        description: `Failed to update ${fieldId.replace('_', ' ')}`,
         variant: "destructive",
       });
       // Revert optimistic update on error
