@@ -75,8 +75,8 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
     fetchTeams();
     fetchCustomFields();
     
-    // Set up real-time subscription for both hosts and viewers
-    console.log('Setting up real-time subscription for eventId:', eventId);
+    // Set up real-time subscription for both hosts and streamers
+    console.log('Setting up real-time subscription for eventId:', eventId, 'isHost:', isHost);
     const channelName = `custom-scoreboard-${eventId}`;
     console.log('Creating shared channel name:', channelName);
     
@@ -181,7 +181,12 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
         }
       )
       .subscribe((status) => {
-        console.log('Leaderboard subscription status:', status);
+        console.log('📡 Leaderboard subscription status:', status, 'isHost:', isHost, 'eventId:', eventId);
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ Real-time connection established for', isHost ? 'HOST' : 'STREAMER', 'on event:', eventId);
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('❌ Real-time connection error for', isHost ? 'HOST' : 'STREAMER', 'on event:', eventId);
+        }
         setIsConnected(status === 'SUBSCRIBED');
       });
 
