@@ -12,6 +12,7 @@ import {
   MapPin,
   ArrowLeft,
   Loader2,
+  Eye,
 } from "lucide-react";
 import {
   LiveKitRoom,
@@ -36,6 +37,7 @@ import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { useAppContext } from "@/contexts/AppContext";
 import { updateEventMetaTags, resetDefaultMetaTags } from "@/lib/metaTags";
+import { useStreamingControls } from "@/hooks/useStreamingControls";
 
 interface EventData {
   id: string;
@@ -67,6 +69,7 @@ const EventPage: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user: currentUser, userProfile: currentUserProfile } = useAppContext();
+  const controls = useStreamingControls(eventId);
 
   const [eventData, setEventData] = useState<EventData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -594,9 +597,16 @@ const EventPage: React.FC = () => {
                           LIVE
                         </Badge>
                       )}
-                      <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-black/70 text-white px-2 py-1 rounded text-xs sm:text-sm">
-                        {/* Multi-camera */}
-                      </div>
+                      {/* Viewer Count */}
+                      <div className="absolute top-2 right-2">
+                    <Badge
+                      variant="secondary"
+                      className="flex items-center gap-1 text-xs"
+                    >
+                      <Eye className="h-3 w-3" />
+                      {controls?.participantCount - 1}
+                    </Badge>
+                  </div>
                     </>
                   )}
                 </div>
