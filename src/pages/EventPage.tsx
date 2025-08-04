@@ -152,6 +152,10 @@ const EventPage: React.FC = () => {
                 if (payload.new.viewer_count !== payload.old.viewer_count) {
                   updatedEvent.viewer_count = payload.new.viewer_count;
                 }
+                // Update metadata for scoreboard changes
+                if (JSON.stringify(payload.new.metadata) !== JSON.stringify(payload.old.metadata)) {
+                  updatedEvent.metadata = payload.new.metadata;
+                }
                 
                 return updatedEvent;
               });

@@ -71,9 +71,13 @@ export const useScoreboardTeams = (eventId: string, scoreboardType?: string): Us
             }
             
             if (payload.eventType === 'DELETE') {
-              // For DELETE, we need to check if the deleted record was of our type
-              // Since we can't get the full record from DELETE, we'll refetch
-              fetchTeamCount();
+              // For DELETE events, always decrement count since filter ensures it matches our event
+              setTeamCount(prev => {
+                const newCount = Math.max(0, prev - 1);
+                setHasTeams(newCount > 0);
+                console.log('[useScoreboardTeams] DELETE - new count:', newCount);
+                return newCount;
+              });
               return;
             }
           }
@@ -82,12 +86,7 @@ export const useScoreboardTeams = (eventId: string, scoreboardType?: string): Us
             setTeamCount(prev => {
               const newCount = prev + 1;
               setHasTeams(newCount > 0);
-              return newCount;
-            });
-          } else if (payload.eventType === 'DELETE') {
-            setTeamCount(prev => {
-              const newCount = Math.max(0, prev - 1);
-              setHasTeams(newCount > 0);
+              console.log('[useScoreboardTeams] INSERT - new count:', newCount);
               return newCount;
             });
           }
