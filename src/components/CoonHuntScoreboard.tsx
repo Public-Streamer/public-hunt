@@ -827,91 +827,40 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                     </div>
                   </div>
 
-                  {/* Warnings/Notes Section */}
-                  {(isHost || team.custom_fields?.warnings_notes) && (
+                  {/* Viewer-only sections for warnings/notes and judge comments */}
+                  {!isHost && team.custom_fields?.warnings_notes && (
                     <div className="mt-4 space-y-2">
                       <Label className="text-xs sm:text-sm font-medium text-yellow-800">Warnings/Notes:</Label>
-                      {isHost ? (
-                        <Textarea
-                          value={getCurrentFieldValue(team.id, 'warnings_notes', team.custom_fields?.warnings_notes)}
-                          onChange={(e) => handleFieldChange(team.id, 'warnings_notes', e.target.value)}
-                          onKeyPress={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                              e.preventDefault();
-                              updateTeamField(team.id, 'warnings_notes', e.currentTarget.value);
-                            }
-                          }}
-                          onBlur={(e) => updateTeamField(team.id, 'warnings_notes', e.target.value)}
-                          className="min-h-[60px] text-xs sm:text-sm border-yellow-200 bg-yellow-50/50 resize-none"
-                          placeholder="Judge warnings, rule violations, notes... (Press Enter to save)"
-                        />
-                      ) : (
-                        <div className="p-2 sm:p-3 bg-yellow-50 border border-yellow-200 rounded">
-                          <p className="text-xs sm:text-sm text-yellow-700 break-words">{team.custom_fields.warnings_notes}</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Judge Comments Section */}
-                  {(isHost || team.custom_fields?.judge_comments) && (
-                    <div className="mt-4 space-y-2">
-                      <Label className="text-xs sm:text-sm font-medium text-blue-800">Judge Comments:</Label>
-                      {isHost ? (
-                        <Textarea
-                          value={getCurrentFieldValue(team.id, 'judge_comments', team.custom_fields?.judge_comments)}
-                          onChange={(e) => handleFieldChange(team.id, 'judge_comments', e.target.value)}
-                          onKeyPress={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                              e.preventDefault();
-                              updateTeamField(team.id, 'judge_comments', e.currentTarget.value);
-                            }
-                          }}
-                          onBlur={(e) => updateTeamField(team.id, 'judge_comments', e.target.value)}
-                          className="min-h-[60px] text-xs sm:text-sm border-blue-200 bg-blue-50/50 resize-none"
-                          placeholder="Official judge remarks... (Press Enter to save)"
-                        />
-                      ) : (
-                        <div className="p-2 sm:p-3 bg-blue-50 border border-blue-200 rounded">
-                          <p className="text-xs sm:text-sm text-blue-700 break-words">{team.custom_fields.judge_comments}</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Team Status */}
-                  <div className="mt-4 space-y-2">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                      <Label className="text-xs sm:text-sm font-medium">Team Status:</Label>
-                      <div className="flex items-center gap-3">
-                        {isHost ? (
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="checkbox"
-                              id={`disqualified-${team.id}`}
-                              checked={getCurrentFieldValue(team.id, 'disqualified', team.custom_fields?.disqualified) || false}
-                              onChange={(e) => {
-                                handleFieldChange(team.id, 'disqualified', e.target.checked);
-                                updateTeamField(team.id, 'disqualified', e.target.checked);
-                              }}
-                              className="w-4 h-4"
-                            />
-                            <Label htmlFor={`disqualified-${team.id}`} className="text-xs sm:text-sm cursor-pointer">
-                              Scratched/Disqualified
-                            </Label>
-                          </div>
-                        ) : (
-                          <span className="text-xs sm:text-sm">
-                            {team.custom_fields?.disqualified ? (
-                              <Badge variant="destructive" className="text-xs">SCRATCHED/DISQUALIFIED</Badge>
-                            ) : (
-                              <Badge variant="default" className="text-xs">Active</Badge>
-                            )}
-                          </span>
-                        )}
+                      <div className="p-2 sm:p-3 bg-yellow-50 border border-yellow-200 rounded">
+                        <p className="text-xs sm:text-sm text-yellow-700 break-words">{team.custom_fields.warnings_notes}</p>
                       </div>
                     </div>
-                  </div>
+                  )}
+
+                  {!isHost && team.custom_fields?.judge_comments && (
+                    <div className="mt-4 space-y-2">
+                      <Label className="text-xs sm:text-sm font-medium text-blue-800">Judge Comments:</Label>
+                      <div className="p-2 sm:p-3 bg-blue-50 border border-blue-200 rounded">
+                        <p className="text-xs sm:text-sm text-blue-700 break-words">{team.custom_fields.judge_comments}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Viewer-only team status */}
+                  {!isHost && (
+                    <div className="mt-4 flex items-center gap-2">
+                      <Label className="text-xs sm:text-sm font-medium">Team Status:</Label>
+                      {team.custom_fields?.disqualified ? (
+                        <Badge variant="destructive" className="text-xs">
+                          Scratched/Disqualified
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary" className="text-xs">
+                          Active
+                        </Badge>
+                      )}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}
@@ -952,56 +901,116 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                   </div>
                 </div>
 
-                {/* Handler & Dog Info */}
+                {/* Handler & Dog Info - Real-time Editable */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label className="text-sm">Handler Name</Label>
                     <Input
                       value={editingTeam.custom_fields?.handler_name || ''}
-                      onChange={(e) => setEditingTeam(prev => prev ? { 
-                        ...prev, 
-                        custom_fields: { ...prev.custom_fields, handler_name: e.target.value }
-                      } : null)}
+                      onChange={(e) => {
+                        const newValue = e.target.value;
+                        setEditingTeam(prev => prev ? { 
+                          ...prev, 
+                          custom_fields: { ...prev.custom_fields, handler_name: newValue }
+                        } : null);
+                      }}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          const newValue = e.currentTarget.value;
+                          updateTeamField(editingTeam.id, 'handler_name', newValue);
+                        }
+                      }}
+                      onBlur={(e) => {
+                        const newValue = e.target.value;
+                        updateTeamField(editingTeam.id, 'handler_name', newValue);
+                      }}
                       className="text-sm"
+                      placeholder="Handler name..."
                     />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm">Dog Name</Label>
                     <Input
                       value={editingTeam.custom_fields?.dog_name || ''}
-                      onChange={(e) => setEditingTeam(prev => prev ? { 
-                        ...prev, 
-                        custom_fields: { ...prev.custom_fields, dog_name: e.target.value }
-                      } : null)}
+                      onChange={(e) => {
+                        const newValue = e.target.value;
+                        setEditingTeam(prev => prev ? { 
+                          ...prev, 
+                          custom_fields: { ...prev.custom_fields, dog_name: newValue }
+                        } : null);
+                      }}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          const newValue = e.currentTarget.value;
+                          updateTeamField(editingTeam.id, 'dog_name', newValue);
+                        }
+                      }}
+                      onBlur={(e) => {
+                        const newValue = e.target.value;
+                        updateTeamField(editingTeam.id, 'dog_name', newValue);
+                      }}
                       className="text-sm"
+                      placeholder="Dog name..."
                     />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm">Registration Number</Label>
                     <Input
                       value={editingTeam.custom_fields?.registration_number || ''}
-                      onChange={(e) => setEditingTeam(prev => prev ? { 
-                        ...prev, 
-                        custom_fields: { ...prev.custom_fields, registration_number: e.target.value }
-                      } : null)}
+                      onChange={(e) => {
+                        const newValue = e.target.value;
+                        setEditingTeam(prev => prev ? { 
+                          ...prev, 
+                          custom_fields: { ...prev.custom_fields, registration_number: newValue }
+                        } : null);
+                      }}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          const newValue = e.currentTarget.value;
+                          updateTeamField(editingTeam.id, 'registration_number', newValue);
+                        }
+                      }}
+                      onBlur={(e) => {
+                        const newValue = e.target.value;
+                        updateTeamField(editingTeam.id, 'registration_number', newValue);
+                      }}
                       className="text-sm"
+                      placeholder="Registration number..."
                     />
                   </div>
                 </div>
 
-                {/* Scoring */}
+                {/* Scoring - Real-time Editable */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label className="text-sm">Strike Points</Label>
                     <Input
                       type="number"
                       value={editingTeam.custom_fields?.strike_points || 0}
-                      onChange={(e) => setEditingTeam(prev => prev ? { 
-                        ...prev, 
-                        custom_fields: { ...prev.custom_fields, strike_points: parseInt(e.target.value) || 0 }
-                      } : null)}
+                      onChange={(e) => {
+                        const newValue = parseInt(e.target.value) || 0;
+                        setEditingTeam(prev => prev ? { 
+                          ...prev, 
+                          custom_fields: { ...prev.custom_fields, strike_points: newValue }
+                        } : null);
+                      }}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          const newValue = parseInt(e.currentTarget.value) || 0;
+                          updateTeamField(editingTeam.id, 'strike_points', newValue);
+                        }
+                      }}
+                      onBlur={(e) => {
+                        const newValue = parseInt(e.target.value) || 0;
+                        updateTeamField(editingTeam.id, 'strike_points', newValue);
+                      }}
                       min="0"
-                      className="text-sm"
+                      max="400"
+                      className="text-sm text-center font-bold"
                     />
                   </div>
                   <div className="space-y-2">
@@ -1009,12 +1018,27 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                     <Input
                       type="number"
                       value={editingTeam.custom_fields?.tree_points || 0}
-                      onChange={(e) => setEditingTeam(prev => prev ? { 
-                        ...prev, 
-                        custom_fields: { ...prev.custom_fields, tree_points: parseInt(e.target.value) || 0 }
-                      } : null)}
+                      onChange={(e) => {
+                        const newValue = parseInt(e.target.value) || 0;
+                        setEditingTeam(prev => prev ? { 
+                          ...prev, 
+                          custom_fields: { ...prev.custom_fields, tree_points: newValue }
+                        } : null);
+                      }}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          const newValue = parseInt(e.currentTarget.value) || 0;
+                          updateTeamField(editingTeam.id, 'tree_points', newValue);
+                        }
+                      }}
+                      onBlur={(e) => {
+                        const newValue = parseInt(e.target.value) || 0;
+                        updateTeamField(editingTeam.id, 'tree_points', newValue);
+                      }}
                       min="0"
-                      className="text-sm"
+                      max="500"
+                      className="text-sm text-center font-bold"
                     />
                   </div>
                   <div className="space-y-2">
@@ -1022,80 +1046,140 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                     <Input
                       type="number"
                       value={editingTeam.custom_fields?.circle_points || 0}
-                      onChange={(e) => setEditingTeam(prev => prev ? { 
-                        ...prev, 
-                        custom_fields: { ...prev.custom_fields, circle_points: parseInt(e.target.value) || 0 }
-                      } : null)}
+                      onChange={(e) => {
+                        const newValue = parseInt(e.target.value) || 0;
+                        setEditingTeam(prev => prev ? { 
+                          ...prev, 
+                          custom_fields: { ...prev.custom_fields, circle_points: newValue }
+                        } : null);
+                      }}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          const newValue = parseInt(e.currentTarget.value) || 0;
+                          updateTeamField(editingTeam.id, 'circle_points', newValue);
+                        }
+                      }}
+                      onBlur={(e) => {
+                        const newValue = parseInt(e.target.value) || 0;
+                        updateTeamField(editingTeam.id, 'circle_points', newValue);
+                      }}
                       min="0"
-                      className="text-sm"
+                      max="500"
+                      className="text-sm text-center font-bold"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-sm">Minus Points</Label>
+                    <Label className="text-sm text-destructive">Minus Points</Label>
                     <Input
                       type="number"
                       value={editingTeam.custom_fields?.minus_points || 0}
-                      onChange={(e) => setEditingTeam(prev => prev ? { 
-                        ...prev, 
-                        custom_fields: { ...prev.custom_fields, minus_points: parseInt(e.target.value) || 0 }
-                      } : null)}
+                      onChange={(e) => {
+                        const newValue = parseInt(e.target.value) || 0;
+                        setEditingTeam(prev => prev ? { 
+                          ...prev, 
+                          custom_fields: { ...prev.custom_fields, minus_points: newValue }
+                        } : null);
+                      }}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          const newValue = parseInt(e.currentTarget.value) || 0;
+                          updateTeamField(editingTeam.id, 'minus_points', newValue);
+                        }
+                      }}
+                      onBlur={(e) => {
+                        const newValue = parseInt(e.target.value) || 0;
+                        updateTeamField(editingTeam.id, 'minus_points', newValue);
+                      }}
                       min="0"
-                      className="text-sm"
+                      max="1000"
+                      className="text-sm text-center font-bold border-destructive"
                     />
                   </div>
                 </div>
 
-                {/* Notes & Comments */}
+                {/* Notes & Comments - Real-time Editable */}
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label className="text-sm">Warnings/Notes</Label>
+                    <Label className="text-sm text-yellow-800">Warnings/Notes</Label>
                     <Textarea
                       value={editingTeam.custom_fields?.warnings_notes || ''}
-                      onChange={(e) => setEditingTeam(prev => prev ? { 
-                        ...prev, 
-                        custom_fields: { ...prev.custom_fields, warnings_notes: e.target.value }
-                      } : null)}
-                      placeholder="Judge warnings, rule violations, notes..."
+                      onChange={(e) => {
+                        const newValue = e.target.value;
+                        setEditingTeam(prev => prev ? { 
+                          ...prev, 
+                          custom_fields: { ...prev.custom_fields, warnings_notes: newValue }
+                        } : null);
+                      }}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          const newValue = e.currentTarget.value;
+                          updateTeamField(editingTeam.id, 'warnings_notes', newValue);
+                        }
+                      }}
+                      onBlur={(e) => {
+                        const newValue = e.target.value;
+                        updateTeamField(editingTeam.id, 'warnings_notes', newValue);
+                      }}
+                      placeholder="Judge warnings, rule violations, notes... (Press Enter to save)"
                       rows={3}
-                      className="text-sm resize-none"
+                      className="text-sm resize-none border-yellow-200 bg-yellow-50/50"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-sm">Judge Comments</Label>
+                    <Label className="text-sm text-blue-800">Judge Comments</Label>
                     <Textarea
                       value={editingTeam.custom_fields?.judge_comments || ''}
-                      onChange={(e) => setEditingTeam(prev => prev ? { 
-                        ...prev, 
-                        custom_fields: { ...prev.custom_fields, judge_comments: e.target.value }
-                      } : null)}
-                      placeholder="Official judge remarks..."
+                      onChange={(e) => {
+                        const newValue = e.target.value;
+                        setEditingTeam(prev => prev ? { 
+                          ...prev, 
+                          custom_fields: { ...prev.custom_fields, judge_comments: newValue }
+                        } : null);
+                      }}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          const newValue = e.currentTarget.value;
+                          updateTeamField(editingTeam.id, 'judge_comments', newValue);
+                        }
+                      }}
+                      onBlur={(e) => {
+                        const newValue = e.target.value;
+                        updateTeamField(editingTeam.id, 'judge_comments', newValue);
+                      }}
+                      placeholder="Official judge remarks... (Press Enter to save)"
                       rows={2}
-                      className="text-sm resize-none"
+                      className="text-sm resize-none border-blue-200 bg-blue-50/50"
                     />
                   </div>
                 </div>
 
-                {/* Action Buttons */}
+                {/* Team Status - Real-time Editable */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-4 border-t">
                   <div className="flex items-center gap-2">
                     <Label className="text-sm">Scratched/Disqualified:</Label>
                     <input
                       type="checkbox"
                       checked={editingTeam.custom_fields?.disqualified || false}
-                      onChange={(e) => setEditingTeam(prev => prev ? { 
-                        ...prev, 
-                        custom_fields: { ...prev.custom_fields, disqualified: e.target.checked }
-                      } : null)}
+                      onChange={(e) => {
+                        const newValue = e.target.checked;
+                        setEditingTeam(prev => prev ? { 
+                          ...prev, 
+                          custom_fields: { ...prev.custom_fields, disqualified: newValue }
+                        } : null);
+                        // Immediately update the database
+                        updateTeamField(editingTeam.id, 'disqualified', newValue);
+                      }}
+                      className="rounded border-gray-300 text-destructive focus:ring-destructive"
                     />
                   </div>
                   <div className="flex gap-2 w-full sm:w-auto">
                     <Button variant="outline" onClick={() => setEditDialogOpen(false)} className="flex-1 sm:flex-none text-sm">
                       <X className="h-4 w-4 mr-2" />
-                      Cancel
-                    </Button>
-                    <Button onClick={saveTeamChanges} className="flex-1 sm:flex-none text-sm">
-                      <Save className="h-4 w-4 mr-2" />
-                      Save Changes
+                      Close
                     </Button>
                   </div>
                 </div>
