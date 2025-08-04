@@ -62,7 +62,7 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
   const [localInputValues, setLocalInputValues] = useState<Record<string, Record<string, any>>>({});
   
   // Scoreboard naming states
-  const [scoreboardName, setScoreboardName] = useState('Custom Scoreboard');
+  const [scoreboardName, setScoreboardName] = useState('Leaderboard');
   const [editingTitle, setEditingTitle] = useState(false);
   
   // Template field creation states
@@ -91,25 +91,25 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
           filter: `event_id=eq.${eventId}`
         },
         (payload) => {
-          console.log('📊 Custom scoreboard real-time update received:', payload);
+          console.log('📊 Leaderboard real-time update received:', payload);
           console.log('Event type:', payload.eventType);
           console.log('Table:', payload.table);
           console.log('New data:', payload.new);
           console.log('Old data:', payload.old);
           
-          // Only process custom scoreboard updates
+          // Only process Leaderboard updates
           const newRecord = payload.new as any;
           const oldRecord = payload.old as any;
           
           // For DELETE events, we only have limited data in 'old' record
           // Since we're filtering by event_id in the subscription, we can assume these are relevant
           if (payload.eventType === 'DELETE') {
-            console.log('Processing DELETE event for custom scoreboard');
+            console.log('Processing DELETE event for Leaderboard');
           } else {
             // For INSERT/UPDATE, check scoreboard_type
             const isCustomUpdate = newRecord?.scoreboard_type === 'custom' || oldRecord?.scoreboard_type === 'custom';
             if (!isCustomUpdate) {
-              console.log('Ignoring non-custom scoreboard update');
+              console.log('Ignoring non-Leaderboard update');
               return;
             }
           }
@@ -181,7 +181,7 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
         }
       )
       .subscribe((status) => {
-        console.log('Custom scoreboard subscription status:', status);
+        console.log('Leaderboard subscription status:', status);
         setIsConnected(status === 'SUBSCRIBED');
       });
 
@@ -222,7 +222,7 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
       console.log('Fetched custom fields:', fields);
       setCustomFields(fields);
       
-      const title = metadata?.scoreboardName || 'Custom Scoreboard';
+      const title = metadata?.scoreboardName || 'Leaderboard';
       setScoreboardName(title);
     } catch (error) {
       console.error('Error fetching custom fields:', error);
