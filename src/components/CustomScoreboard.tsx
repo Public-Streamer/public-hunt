@@ -302,13 +302,16 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
 
       if (error) throw error;
 
+      // Update local state immediately to prevent flicker
+      setScoreboardName(newTitle);
+
       toast({
         title: "Success",
         description: "Scoreboard title updated",
       });
     } catch (error) {
       console.error('Error updating scoreboard title:', error);
-      fetchCustomFields();
+      // Don't refetch, just keep the current state
       toast({
         title: "Error",
         description: "Failed to update scoreboard title",
