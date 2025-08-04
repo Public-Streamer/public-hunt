@@ -72,25 +72,59 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
           filter: `event_id=eq.${eventId}`
         },
         (payload) => {
-          console.log('Real-time scoreboard update received:', payload);
+          console.log('Real-time Coon Hunt scoreboard update received:', payload);
+          
+          // Only process Coon Hunt updates
+          const newRecord = payload.new as any;
+          const oldRecord = payload.old as any;
+          
+          // For DELETE events, we only have limited data in 'old' record
+          // Since we're filtering by event_id in the subscription, check if this belongs to Coon Hunt
+          if (payload.eventType === 'DELETE') {
+            console.log('Processing DELETE event for Coon Hunt');
+          } else {
+            // For INSERT/UPDATE, check scoreboard_type
+            const isCoonHuntUpdate = newRecord?.scoreboard_type === 'coon_hunt' || oldRecord?.scoreboard_type === 'coon_hunt';
+            if (!isCoonHuntUpdate) {
+              console.log('Ignoring non-Coon Hunt update');
+              return;
+            }
+          }
           
           // Handle different types of real-time updates without full refetch
           if (payload.eventType === 'INSERT') {
-            // New team added - refetch to get the new team
-            fetchTeams();
+            console.log('🆕 Adding new Coon Hunt team to state:', payload.new);
+            setTeams(prev => {
+              const newTeam = payload.new as CoonHuntTeam;
+              // Check if team already exists to prevent duplicates
+              const exists = prev.find(t => t.id === newTeam.id);
+              if (exists) {
+                console.log('Team already exists, skipping insert');
+                return prev;
+              }
+              return [...prev, newTeam];
+            });
           } else if (payload.eventType === 'DELETE') {
             // Team deleted - remove from local state
             const deletedId = payload.old?.id;
             if (deletedId) {
+              console.log('🗑️ Deleting Coon Hunt team from state:', deletedId);
               setTeams(prev => prev.filter(team => team.id !== deletedId));
             }
           } else if (payload.eventType === 'UPDATE') {
             // Team updated - update specific team without clearing local inputs
             const updatedTeam = payload.new as CoonHuntTeam;
             if (updatedTeam) {
+              console.log('🔄 Updating Coon Hunt team in state:', updatedTeam.id);
               setTeams(prev => prev.map(team => 
                 team.id === updatedTeam.id ? updatedTeam : team
               ));
+              
+              // Clear local input values for this team to ensure real-time updates show immediately
+              setLocalInputValues(prev => ({
+                ...prev,
+                [updatedTeam.id]: {}
+              }));
             }
           }
         }
@@ -126,11 +160,16 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
   const fetchTeams = async () => {
     try {
       const { data, error } = await supabase.functions.invoke('scoreboard-operations', {
-        body: { action: 'fetch', eventId }
+        body: { 
+          action: 'fetch', 
+          eventId,
+          scoreboardType: 'coon_hunt'
+        }
       });
 
       if (error) throw error;
-      setTeams(data || []);
+      console.log('Fetched Coon Hunt teams:', data);
+      setTeams(Array.isArray(data) ? data : data?.teams || []);
     } catch (error) {
       console.error('Error fetching teams:', error);
     }
@@ -226,7 +265,8 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
           eventId,
           teamName: newTeamName.trim(),
           teamColor,
-          customFields: initialFields
+          customFields: initialFields,
+          scoreboardType: 'coon_hunt'
         }
       });
 
@@ -257,8 +297,11 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
     const updatedFields = { ...team.custom_fields, [field]: value };
     const newScore = calculateTotalScore(updatedFields);
 
+    console.log('Updating Coon Hunt team field:', { teamId, field, value, updatedFields, newScore });
+
     try {
-      const { error } = await supabase.functions.invoke('scoreboard-operations', {
+      // Update database first
+      const { data, error } = await supabase.functions.invoke('scoreboard-operations', {
         body: {
           action: 'updateTeam',
           teamId,
@@ -271,7 +314,16 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
 
       if (error) throw error;
       
-      // Clear local input for this field after successful save
+      console.log('Coon Hunt team field update response:', data);
+
+      // Update local state immediately for optimistic updates
+      setTeams(prev => prev.map(t => 
+        t.id === teamId 
+          ? { ...t, custom_fields: updatedFields, score: newScore }
+          : t
+      ));
+
+      // Clear local input for this field after successful update
       setLocalInputValues(prev => ({
         ...prev,
         [teamId]: {
@@ -292,6 +344,8 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
         description: "Failed to update score",
         variant: "destructive",
       });
+      // Revert optimistic update on error
+      fetchTeams();
     }
   };
 
