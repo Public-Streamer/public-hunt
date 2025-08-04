@@ -47,6 +47,7 @@ import { ScoreboardGameSelector } from "@/components/ScoreboardGameSelector";
 import { PinnedMessageSection } from "@/components/PinnedMessageSection";
 import EventProductionTeam from "@/components/EventProductionTeam";
 import { useStreamName } from "@/hooks/useStreamName";
+import { useScoreboardTeams } from "@/hooks/useScoreboardTeams";
 
 interface StreamerInterfaceProps {
   eventId: string;
@@ -89,6 +90,16 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   const [selectedGameType, setSelectedGameType] = useState<string | null>(null);
   const [teams, setTeams] = useState<any[]>([]);
   const [loadingScoreboard, setLoadingScoreboard] = useState(true);
+
+  // Hook to track scoreboard teams for conditional rendering
+  const { hasTeams: hasCustomTeams } = useScoreboardTeams(
+    eventId, 
+    selectedGameType === 'custom' ? 'custom' : undefined
+  );
+  const { hasTeams: hasCoonHuntTeams } = useScoreboardTeams(
+    eventId, 
+    selectedGameType === 'coon_hunt' ? 'coon_hunt' : undefined
+  );
 
   // Load event metadata and selected game type
   const loadEventData = async () => {
@@ -577,8 +588,16 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
             {/* Pinned Message Section */}
             <PinnedMessageSection eventId={eventId} isHost={userRole === "host"} />
 
-            {/* Scoreboard Section - For hosts (editable) and streamers (read-only) */}
+            {/* Scoreboard Section - Only show when there are teams or when host is creating */}
             {(userRole === "host" || userRole === "streamer") && (
+              // Show scoreboard card only if:
+              // 1. Host and no game type selected (to allow creation)
+              // 2. Host and has teams for the selected game type
+              // 3. Streamer and has teams for the selected game type
+              (!selectedGameType && userRole === "host") ||
+              (selectedGameType === 'custom' && hasCustomTeams) ||
+              (selectedGameType === 'coon_hunt' && hasCoonHuntTeams)
+            ) && (
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle>
@@ -619,22 +638,14 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                       <p className="text-muted-foreground">Loading scoreboard...</p>
                     </div>
                   ) : !selectedGameType ? (
-                    userRole === "host" ? (
-                      <div className="text-center py-8">
-                        <div className="space-y-4">
-                          <p className="text-muted-foreground">
-                            Create a specialized scoreboard for your competition
-                          </p>
-                          <ScoreboardGameSelector onGameSelect={handleGameTypeSelect} />
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="text-center py-8">
+                    <div className="text-center py-8">
+                      <div className="space-y-4">
                         <p className="text-muted-foreground">
-                          No scoreboard has been created for this event yet.
+                          Create a specialized scoreboard for your competition
                         </p>
+                        <ScoreboardGameSelector onGameSelect={handleGameTypeSelect} />
                       </div>
-                    )
+                    </div>
                   ) : selectedGameType === 'coon_hunt' ? (
                     <CoonHuntScoreboard eventId={eventId} isHost={userRole === "host"} />
                   ) : selectedGameType === 'custom' ? (

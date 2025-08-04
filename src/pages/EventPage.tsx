@@ -38,6 +38,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAppContext } from "@/contexts/AppContext";
 import { updateEventMetaTags, resetDefaultMetaTags } from "@/lib/metaTags";
 import { useStreamingControls } from "@/hooks/useStreamingControls";
+import { useScoreboardTeams } from "@/hooks/useScoreboardTeams";
 
 interface EventData {
   id: string;
@@ -80,6 +81,16 @@ const EventPage: React.FC = () => {
   const [roomName, setRoomName] = useState<string | null>(null);
   const [serverUrl, setServerUrl] = useState<string | null>(null);
   const [isStreamer, setIsStreamer] = useState(false);
+
+  // Hook to track scoreboard teams for conditional rendering
+  const { hasTeams: hasCustomTeams } = useScoreboardTeams(
+    eventData?.id || '', 
+    eventData?.metadata?.selectedGameType === 'custom' ? 'custom' : undefined
+  );
+  const { hasTeams: hasCoonHuntTeams } = useScoreboardTeams(
+    eventData?.id || '', 
+    eventData?.metadata?.selectedGameType === 'coon_hunt' ? 'coon_hunt' : undefined
+  );
 
   useEffect(() => {
     if (!eventId) return;
@@ -548,18 +559,19 @@ const EventPage: React.FC = () => {
                 <PinnedMessageSection eventId={eventData.id} isHost={false} />
               </div>
 
-                     {/* Scoreboard - Show based on event metadata */}
-             <div className="p-5">
-              {currentUser ? (
-                eventData?.metadata?.selectedGameType === 'custom' ? (
-                  <CustomScoreboard eventId={eventData.id} isHost={false} />
-                ) : eventData?.metadata?.selectedGameType === 'coon_hunt' ? (
-                  <CoonHuntScoreboard eventId={eventData.id} isHost={false} />
-                ) : null
-              ) : (
-               <div className="p-6">Please sign in to view the scoreboard</div>
-             )}
-             </div>
+                     {/* Scoreboard - Show only when there are teams */}
+              {currentUser && (
+                (eventData?.metadata?.selectedGameType === 'custom' && hasCustomTeams) || 
+                (eventData?.metadata?.selectedGameType === 'coon_hunt' && hasCoonHuntTeams)
+              ) && (
+                <div className="p-5">
+                  {eventData?.metadata?.selectedGameType === 'custom' ? (
+                    <CustomScoreboard eventId={eventData.id} isHost={false} />
+                  ) : eventData?.metadata?.selectedGameType === 'coon_hunt' ? (
+                    <CoonHuntScoreboard eventId={eventData.id} isHost={false} />
+                  ) : null}
+                </div>
+              )}
 
                   {/* Show full viewer interface below if user has access */}
                   {/* {(hasTicket || canEnterStage) && (
