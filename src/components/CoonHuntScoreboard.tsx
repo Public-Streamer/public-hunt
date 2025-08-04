@@ -823,57 +823,60 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                   </div>
 
                   {/* Warnings/Notes Section */}
-                  <div className="mt-4 space-y-3">
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium text-yellow-800">Warnings/Notes:</Label>
-                      {isHost ? (
-                        <Textarea
-                          value={getCurrentFieldValue(team.id, 'warnings_notes', team.custom_fields?.warnings_notes)}
-                          onChange={(e) => handleFieldChange(team.id, 'warnings_notes', e.target.value)}
-                          onKeyPress={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                              e.preventDefault();
-                              updateTeamField(team.id, 'warnings_notes', e.currentTarget.value);
-                            }
-                          }}
-                          onBlur={(e) => updateTeamField(team.id, 'warnings_notes', e.target.value)}
-                          className="min-h-[60px] text-sm border-yellow-200 bg-yellow-50/50"
-                          placeholder="Judge warnings, rule violations, notes... (Press Enter to save)"
-                        />
-                      ) : team.custom_fields?.warnings_notes ? (
-                        <div className="p-3 bg-yellow-50 border border-yellow-200 rounded">
-                          <p className="text-sm text-yellow-700">{team.custom_fields.warnings_notes}</p>
-                        </div>
-                      ) : (
-                        <p className="text-sm text-muted-foreground italic">No warnings or notes</p>
-                      )}
+                  {(isHost || team.custom_fields?.warnings_notes) && (
+                    <div className="mt-4 space-y-3">
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-yellow-800">Warnings/Notes:</Label>
+                        {isHost ? (
+                          <Textarea
+                            value={getCurrentFieldValue(team.id, 'warnings_notes', team.custom_fields?.warnings_notes)}
+                            onChange={(e) => handleFieldChange(team.id, 'warnings_notes', e.target.value)}
+                            onKeyPress={(e) => {
+                              if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault();
+                                updateTeamField(team.id, 'warnings_notes', e.currentTarget.value);
+                              }
+                            }}
+                            onBlur={(e) => updateTeamField(team.id, 'warnings_notes', e.target.value)}
+                            className="min-h-[60px] text-sm border-yellow-200 bg-yellow-50/50"
+                            placeholder="Judge warnings, rule violations, notes... (Press Enter to save)"
+                          />
+                        ) : (
+                          <div className="p-3 bg-yellow-50 border border-yellow-200 rounded">
+                            <p className="text-sm text-yellow-700">{team.custom_fields.warnings_notes}</p>
+                          </div>
+                        )}
+                      </div>
                     </div>
+                  )}
 
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium text-blue-800">Judge Comments:</Label>
-                      {isHost ? (
-                        <Textarea
-                          value={getCurrentFieldValue(team.id, 'judge_comments', team.custom_fields?.judge_comments)}
-                          onChange={(e) => handleFieldChange(team.id, 'judge_comments', e.target.value)}
-                          onKeyPress={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                              e.preventDefault();
-                              updateTeamField(team.id, 'judge_comments', e.currentTarget.value);
-                            }
-                          }}
-                          onBlur={(e) => updateTeamField(team.id, 'judge_comments', e.target.value)}
-                          className="min-h-[60px] text-sm border-blue-200 bg-blue-50/50"
-                          placeholder="Official judge remarks... (Press Enter to save)"
-                        />
-                      ) : team.custom_fields?.judge_comments ? (
-                        <div className="p-3 bg-blue-50 border border-blue-200 rounded">
-                          <p className="text-sm text-blue-700">{team.custom_fields.judge_comments}</p>
-                        </div>
-                      ) : (
-                        <p className="text-sm text-muted-foreground italic">No judge comments</p>
-                      )}
+                  {/* Judge Comments Section */}
+                  {(isHost || team.custom_fields?.judge_comments) && (
+                    <div className="mt-4 space-y-3">
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-blue-800">Judge Comments:</Label>
+                        {isHost ? (
+                          <Textarea
+                            value={getCurrentFieldValue(team.id, 'judge_comments', team.custom_fields?.judge_comments)}
+                            onChange={(e) => handleFieldChange(team.id, 'judge_comments', e.target.value)}
+                            onKeyPress={(e) => {
+                              if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault();
+                                updateTeamField(team.id, 'judge_comments', e.currentTarget.value);
+                              }
+                            }}
+                            onBlur={(e) => updateTeamField(team.id, 'judge_comments', e.target.value)}
+                            className="min-h-[60px] text-sm border-blue-200 bg-blue-50/50"
+                            placeholder="Official judge remarks... (Press Enter to save)"
+                          />
+                        ) : (
+                          <div className="p-3 bg-blue-50 border border-blue-200 rounded">
+                            <p className="text-sm text-blue-700">{team.custom_fields.judge_comments}</p>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Disqualified Status */}
                   <div className="mt-4 space-y-2">
