@@ -8,14 +8,23 @@ interface UseScoreboardTeamsResult {
 }
 
 export const useScoreboardTeams = (eventId: string, scoreboardType?: string): UseScoreboardTeamsResult => {
+  console.log('[useScoreboardTeams] Hook called with eventId:', eventId, 'scoreboardType:', scoreboardType);
+  
   const [hasTeams, setHasTeams] = useState(false);
   const [teamCount, setTeamCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!eventId) return;
+    if (!eventId) {
+      console.log('[useScoreboardTeams] No eventId provided, skipping');
+      setLoading(false);
+      return;
+    }
+
+    console.log('[useScoreboardTeams] Setting up subscription for eventId:', eventId, 'scoreboardType:', scoreboardType);
 
     const fetchTeamCount = async () => {
+      console.log('[useScoreboardTeams] Fetching initial team count');
       try {
         let query = supabase
           .from('event_scoreboard')
@@ -29,15 +38,17 @@ export const useScoreboardTeams = (eventId: string, scoreboardType?: string): Us
         const { count, error } = await query;
 
         if (error) {
-          console.error('Error fetching team count:', error);
+          console.error('[useScoreboardTeams] Error fetching team count:', error);
           return;
         }
 
-        const currentCount = count || 0;
-        setTeamCount(currentCount);
-        setHasTeams(currentCount > 0);
+        const teamCount = count || 0;
+        console.log('[useScoreboardTeams] Initial team count:', teamCount);
+        
+        setTeamCount(teamCount);
+        setHasTeams(teamCount > 0);
       } catch (error) {
-        console.error('Error fetching team count:', error);
+        console.error('[useScoreboardTeams] Error fetching team count:', error);
       } finally {
         setLoading(false);
       }
@@ -45,9 +56,10 @@ export const useScoreboardTeams = (eventId: string, scoreboardType?: string): Us
 
     fetchTeamCount();
 
-    // Set up real-time subscription to track team count changes
+    // Set up real-time subscription with unique channel name
+    const channelName = `teams-${eventId}-${scoreboardType || 'all'}`;
     const channel = supabase
-      .channel(`team-count-${eventId}`)
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
@@ -57,30 +69,28 @@ export const useScoreboardTeams = (eventId: string, scoreboardType?: string): Us
           filter: `event_id=eq.${eventId}`
         },
         (payload) => {
-          console.log('[useScoreboardTeams] Team count change:', payload);
+          console.log('[useScoreboardTeams] Real-time teams update received:', payload);
           
-          // Only process events for the specified scoreboard type (if provided)
-          if (scoreboardType) {
+          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE' || payload.eventType === 'DELETE') {
             const newRecord = payload.new as any;
-            const oldRecord = payload.old as any;
             
-            if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
-              if (newRecord?.scoreboard_type !== scoreboardType) {
-                console.log('[useScoreboardTeams] Ignoring event for different scoreboard type:', newRecord?.scoreboard_type, 'vs', scoreboardType);
-                return; // Ignore changes for different scoreboard types
+            // For INSERT and UPDATE, check if the scoreboard type matches our filter
+            if (scoreboardType) {
+              if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+                if (newRecord?.scoreboard_type !== scoreboardType) {
+                  console.log('[useScoreboardTeams] Ignoring event for different scoreboard type:', newRecord?.scoreboard_type, 'vs', scoreboardType);
+                  return; // Ignore changes for different scoreboard types
+                }
               }
-            }
-            
-            if (payload.eventType === 'DELETE') {
-              // For DELETE events, always decrement count since filter ensures it matches our event
-              console.log('[useScoreboardTeams] Team deleted, updating count');
-              setTeamCount(prev => {
-                const newCount = Math.max(0, prev - 1);
-                setHasTeams(newCount > 0);
-                console.log('[useScoreboardTeams] DELETE - new count:', newCount);
-                return newCount;
-              });
-              return;
+              
+              if (payload.eventType === 'DELETE') {
+                // For DELETE events, check if the deleted record matches our scoreboard type
+                const oldRecord = payload.old as any;
+                if (oldRecord?.scoreboard_type !== scoreboardType) {
+                  console.log('[useScoreboardTeams] Ignoring DELETE for different scoreboard type:', oldRecord?.scoreboard_type, 'vs', scoreboardType);
+                  return;
+                }
+              }
             }
           }
           
@@ -89,16 +99,23 @@ export const useScoreboardTeams = (eventId: string, scoreboardType?: string): Us
             setTeamCount(prev => {
               const newCount = prev + 1;
               setHasTeams(newCount > 0);
-              console.log('[useScoreboardTeams] INSERT - new count:', newCount);
+              return newCount;
+            });
+          } else if (payload.eventType === 'DELETE') {
+            console.log('[useScoreboardTeams] Team deleted, updating count');
+            setTeamCount(prev => {
+              const newCount = Math.max(0, prev - 1);
+              setHasTeams(newCount > 0);
               return newCount;
             });
           }
-          // For UPDATE, count doesn't change, just refresh to be safe
+          // For UPDATE events, team count doesn't change, only team data
         }
       )
       .subscribe();
 
     return () => {
+      console.log('[useScoreboardTeams] Cleaning up subscription for eventId:', eventId, 'scoreboardType:', scoreboardType);
       supabase.removeChannel(channel);
     };
   }, [eventId, scoreboardType]);

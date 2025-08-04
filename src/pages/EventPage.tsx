@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -67,11 +67,12 @@ interface EventData {
 }
 
 const EventPage: React.FC = () => {
+  console.log('[EventPage] Component render started');
+  
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user: currentUser, userProfile: currentUserProfile } = useAppContext();
-  // const controls = useStreamingControls(eventId);
 
   const [eventData, setEventData] = useState<EventData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -82,6 +83,10 @@ const EventPage: React.FC = () => {
   const [roomName, setRoomName] = useState<string | null>(null);
   const [serverUrl, setServerUrl] = useState<string | null>(null);
   const [isStreamer, setIsStreamer] = useState(false);
+  
+  // Separate state for frequently changing data to prevent full re-renders
+  const [viewerCount, setViewerCount] = useState(0);
+  const [isLive, setIsLive] = useState(false);
 
   // Hook to track scoreboard metadata changes (creation/deletion of scoreboards)
   const { selectedGameType, scoreboardName } = useEventScoreboardMeta(eventData?.id || '');
@@ -121,12 +126,14 @@ const EventPage: React.FC = () => {
     }
   }, [currentUser, eventData]);
 
-  // Set up real-time subscription for live status updates (excluding pinned message updates)
+  // Optimized real-time subscription for essential event updates only
   useEffect(() => {
     if (!eventData?.id) return;
+    
+    console.log('[EventPage] Setting up real-time subscription for event:', eventData.id);
 
     const subscription = supabase
-      .channel(`event-${eventData.id}`)
+      .channel(`event-page-${eventData.id}`)
       .on(
         "postgres_changes",
         {
@@ -136,36 +143,50 @@ const EventPage: React.FC = () => {
           filter: `id=eq.${eventData.id}`,
         },
         (payload) => {
+          console.log('[EventPage] Real-time event update received:', payload);
+          
           if (payload.new && payload.old) {
-            // Only update if fields other than pinned_message have changed
-            const oldWithoutPinnedMessage = { ...payload.old, pinned_message: null };
-            const newWithoutPinnedMessage = { ...payload.new, pinned_message: null };
+            // Handle essential event fields with granular updates to prevent unnecessary re-renders
             
-            if (JSON.stringify(oldWithoutPinnedMessage) !== JSON.stringify(newWithoutPinnedMessage)) {
-              // Don't completely replace eventData, just update the changed fields
+            // Update viewer count separately to avoid re-rendering entire component
+            if (payload.new.viewer_count !== payload.old.viewer_count) {
+              console.log('[EventPage] Viewer count changed:', payload.old.viewer_count, '->', payload.new.viewer_count);
+              setViewerCount(payload.new.viewer_count || 0);
+            }
+            
+            // Update live status separately
+            if (payload.new.is_live !== payload.old.is_live) {
+              console.log('[EventPage] Live status changed:', payload.old.is_live, '->', payload.new.is_live);
+              setIsLive(payload.new.is_live || false);
+            }
+            
+            // Only update eventData for core event properties (NOT metadata or frequently changing fields)
+            const coreFieldsChanged = (
+              payload.new.name !== payload.old.name ||
+              payload.new.description !== payload.old.description ||
+              payload.new.location !== payload.old.location ||
+              payload.new.date !== payload.old.date ||
+              payload.new.time !== payload.old.time ||
+              payload.new.ticket_price !== payload.old.ticket_price
+            );
+            
+            if (coreFieldsChanged) {
+              console.log('[EventPage] Core event fields changed, updating eventData');
               setEventData((prev) => {
                 if (!prev) return null;
                 
-                // Only update specific fields that matter for the event page display
-                const updatedEvent = { ...prev };
-                
-                // Update only essential event display fields
-                if (payload.new.name !== payload.old.name) {
-                  updatedEvent.name = payload.new.name;
-                }
-                if (payload.new.description !== payload.old.description) {
-                  updatedEvent.description = payload.new.description;
-                }
-                if (payload.new.is_live !== payload.old.is_live) {
-                  updatedEvent.is_live = payload.new.is_live;
-                }
-                if (payload.new.viewer_count !== payload.old.viewer_count) {
-                  updatedEvent.viewer_count = payload.new.viewer_count;
-                }
-                // Remove metadata updates from here since useEventScoreboardMeta handles them
-                // This prevents duplicate updates and reduces re-renders
-                
-                return updatedEvent;
+                return {
+                  ...prev,
+                  name: payload.new.name,
+                  description: payload.new.description,
+                  location: payload.new.location,
+                  date: payload.new.date,
+                  time: payload.new.time,
+                  ticket_price: payload.new.ticket_price,
+                  // Keep current live status and viewer count from separate state
+                  is_live: isLive,
+                  viewer_count: viewerCount
+                };
               });
             }
           }
@@ -174,14 +195,21 @@ const EventPage: React.FC = () => {
       .subscribe();
 
     return () => {
+      console.log('[EventPage] Cleaning up real-time subscription');
       subscription.unsubscribe();
     };
-  }, [eventData?.id]);
+  }, [eventData?.id]); // Remove isLive and viewerCount from deps to prevent re-subscription
 
-  // Derived variables
-  const isEventHost =
-    currentUser && eventData && currentUser.id === eventData.created_by;
-  const canEnterStage = isEventHost || isStreamer;
+  // Memoized derived variables to prevent unnecessary re-calculations
+  const isEventHost = useMemo(() => 
+    currentUser && eventData && currentUser.id === eventData.created_by,
+    [currentUser, eventData?.created_by]
+  );
+  
+  const canEnterStage = useMemo(() => 
+    isEventHost || isStreamer,
+    [isEventHost, isStreamer]
+  );
 
   // Generate LiveKit token for viewers when they have access
   useEffect(() => {
@@ -240,6 +268,9 @@ const EventPage: React.FC = () => {
       };
 
       setEventData(eventWithStripeAccount);
+      // Set initial state for separated values
+      setViewerCount(eventWithStripeAccount.viewer_count || 0);
+      setIsLive(eventWithStripeAccount.is_live || false);
       
       // Update meta tags for social media sharing
       const eventMetaData = {
@@ -353,11 +384,15 @@ const EventPage: React.FC = () => {
     }
   };
 
-  const eventUrl = eventData?.slug 
-    ? `${window.location.origin}/event/${eventData.slug}`
-    : `${window.location.origin}/event/${eventId}`;
+  // Memoized event URL to prevent recalculation
+  const eventUrl = useMemo(() => 
+    eventData?.slug 
+      ? `${window.location.origin}/event/${eventData.slug}`
+      : `${window.location.origin}/event/${eventId}`,
+    [eventData?.slug, eventId]
+  );
 
-  const handlePayment = () => {
+  const handlePayment = useCallback(() => {
     if (!currentUser) {
       toast({
         title: "Sign In Required",
@@ -370,9 +405,9 @@ const EventPage: React.FC = () => {
       return;
     }
     setShowPurchaseModal(true);
-  };
+  }, [currentUser, navigate, toast]);
 
-  const handleWatchNow = () => {
+  const handleWatchNow = useCallback(() => {
     if (!currentUser) {
       navigate(
         `/login?redirect=${encodeURIComponent(window.location.pathname)}`
@@ -383,7 +418,7 @@ const EventPage: React.FC = () => {
     if (!hasTicket && eventData?.ticket_price && eventData.ticket_price > 0) {
       handlePayment();
     }
-  };
+  }, [currentUser, navigate, hasTicket, eventData?.ticket_price, handlePayment]);
 
   const handlePurchaseSuccess = () => {
     setHasTicket(true);
@@ -504,11 +539,13 @@ const EventPage: React.FC = () => {
       thumbnail: url.endsWith(".mp4") ? "/placeholder.svg" : url,
     })) || [];
 
-  console.log({
-    isLive: eventData.is_live,
-    hasToken: livekitToken,
+  console.log('[EventPage] Render state:', {
+    isLive,
+    hasToken: !!livekitToken,
     roomName,
     serverUrl,
+    eventDataId: eventData?.id,
+    viewerCount
   });
 
   return (
@@ -547,7 +584,7 @@ const EventPage: React.FC = () => {
 
 
 
-              {eventData.is_live && roomName && livekitToken && serverUrl ? (
+              {isLive && roomName && livekitToken && serverUrl ? (
                 <LiveKitRoom
                   token={livekitToken}
                   serverUrl={serverUrl}
@@ -773,9 +810,9 @@ const EventPage: React.FC = () => {
                   <p className="font-semibold text-sm sm:text-base">
                     Current Viewers
                   </p>
-                  <p className="text-gray-600 text-sm sm:text-base">
-                    {(eventData.viewer_count || 0).toLocaleString()}
-                  </p>
+                   <p className="text-gray-600 text-sm sm:text-base">
+                     {viewerCount.toLocaleString()}
+                   </p>
                 </div>
                 {hasTicket && eventData.ticket_price && eventData.ticket_price > 0 && (
                   <div>
