@@ -242,6 +242,7 @@ serve(async (req) => {
       canPublish: permissions.canPublish ?? false,
       canSubscribe: permissions.canSubscribe ?? true,
       canPublishData: permissions.canPublishData ?? true,
+      canUpdateOwnMetadata: true,
       hidden: false,
       recorder: false,
     } : getPermissions(actualRole, hasTicket);

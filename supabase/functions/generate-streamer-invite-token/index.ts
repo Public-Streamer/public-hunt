@@ -76,6 +76,7 @@ serve(async (req) => {
       canPublish: true,
       canSubscribe: true,
       canPublishData: true,
+      canUpdateOwnMetadata: true,
     });
 
     const inviteToken = await at.toJwt();
