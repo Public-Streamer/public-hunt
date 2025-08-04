@@ -17,6 +17,7 @@ interface Event {
   category: string;
   viewer_count: number;
   created_at: string;
+  slug?: string;
 }
 
 interface UserEventsListProps {
@@ -121,7 +122,7 @@ const UserEventsList: React.FC<UserEventsListProps> = ({ userId }) => {
                     </div>
                     <span>{event.viewer_count || 0} viewers</span>
                   </div>
-                  <Link to={`/event/${event.id}`}>
+                  <Link to={event.slug ? `/event/${event.slug}` : `/event/${event.id}`}>
                     <Button variant="outline" size="sm">
                       <ExternalLink className="w-4 h-4 mr-1" />
                       View

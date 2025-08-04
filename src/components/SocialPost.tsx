@@ -58,6 +58,7 @@ interface SocialPostProps {
   events?: {
     id: string;
     name: string;
+    slug?: string;
   }[];
   taggedUsers?: {
     id: string;
@@ -521,7 +522,8 @@ const SocialPost: React.FC<SocialPostProps> = ({
                     e.preventDefault();
                     e.stopPropagation();
                     // Open in new tab to preserve post visibility
-                    window.open(`/event/${event.id}`, "_blank");
+                    const eventUrl = event.slug ? `/event/${event.slug}` : `/event/${event.id}`;
+                    window.open(eventUrl, "_blank");
                   }}
                 >
                   <Calendar className="h-3 w-3" />

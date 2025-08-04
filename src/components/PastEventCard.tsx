@@ -43,7 +43,8 @@ const PastEventCard: React.FC<PastEventCardProps> = ({ event, onPlay, onPurchase
   };
 
   const handleCardClick = () => {
-    navigate(`/event/${event.id}`);
+    const eventUrl = (event as any).slug ? `/event/${(event as any).slug}` : `/event/${event.id}`;
+    navigate(eventUrl);
   };
 
   const handlePlayClick = (e: React.MouseEvent) => {

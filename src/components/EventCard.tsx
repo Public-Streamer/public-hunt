@@ -70,7 +70,8 @@ const EventCard: React.FC<EventCardProps> = ({ event, onPurchase, onWatch }) => 
   }, [user, isAuthenticated, event.id]);
 
   const handleCardClick = () => {
-    navigate(`/event/${event.id}`);
+    const eventUrl = (event as any).slug ? `/event/${(event as any).slug}` : `/event/${event.id}`;
+    navigate(eventUrl);
   };
 
   const handleAction = (e: React.MouseEvent) => {
@@ -86,7 +87,8 @@ const EventCard: React.FC<EventCardProps> = ({ event, onPurchase, onWatch }) => 
       if (event.isLive) {
         onWatch?.(event.id);
       } else {
-        navigate(`/event/${event.id}`);
+        const eventUrl = (event as any).slug ? `/event/${(event as any).slug}` : `/event/${event.id}`;
+        navigate(eventUrl);
       }
     } else {
       // For paid events without tickets, open purchase modal

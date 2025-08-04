@@ -29,6 +29,7 @@ interface Event {
   created_by: string;
   created_at: string;
   updated_at: string;
+  slug?: string;
 }
 
 const Events: React.FC = () => {
@@ -201,8 +202,9 @@ const Events: React.FC = () => {
   const filteredLiveEvents = sortEvents(filterEvents(liveEvents), sortBy);
   const filteredMyEvents = sortEvents(filterEvents(myEvents), mySortBy);
   
-  const handleEventClick = (eventId: string) => {
-    navigate(`/event/${eventId}`);
+  const handleEventClick = (event: Event & { slug?: string }) => {
+    const eventUrl = event.slug ? `/event/${event.slug}` : `/event/${event.id}`;
+    navigate(eventUrl);
   };
 
   const handleEditEvent = (eventId: string) => {
@@ -315,7 +317,7 @@ const Events: React.FC = () => {
                       className={`hover:shadow-lg transition-all cursor-pointer relative ${
                         highlightedEvent === event.id ? 'ring-4 ring-purple-500 ring-opacity-50 shadow-xl' : ''
                       }`}
-                      onClick={() => handleEventClick(event.id)}
+                      onClick={() => handleEventClick(event)}
                     >
                       <div className="absolute top-2 left-2 bg-purple-500 text-white text-xs px-2 py-1 rounded-full font-bold">
                         #{index + 1}
@@ -442,7 +444,7 @@ const Events: React.FC = () => {
                          className={`hover:shadow-lg transition-all cursor-pointer relative ${
                            highlightedEvent === event.id ? 'ring-4 ring-green-500 ring-opacity-50 shadow-xl' : ''
                          }`}
-                         onClick={() => handleEventClick(event.id)}
+                         onClick={() => handleEventClick(event)}
                        >
                          <div className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold">
                            #{index + 1}

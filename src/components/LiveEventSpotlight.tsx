@@ -15,23 +15,25 @@ interface LiveEvent {
   location?: string;
   timeRemaining?: string;
   thumbnail: string;
+  slug?: string;
 }
 
 interface StreamPreviewProps {
-  eventId: string;
+  event: any;
   eventName: string;
   fallbackImage: string;
 }
 
-const StreamPreview: React.FC<StreamPreviewProps> = ({ eventId, eventName, fallbackImage }) => {
+const StreamPreview: React.FC<StreamPreviewProps> = ({ event, eventName, fallbackImage }) => {
   const [token, setToken] = useState<string | null>(null);
   const [serverUrl, setServerUrl] = useState<string>('');
   const [isBlurred, setIsBlurred] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
   const navigate = useNavigate();
 
-  const handleWatchNow = (eventId: string) => {
-    navigate(`/event/${eventId}`);
+  const handleWatchNow = (event: any) => {
+    const eventUrl = event.slug ? `/event/${event.slug}` : `/event/${event.id}`;
+    navigate(eventUrl);
   };
 
   useEffect(() => {
@@ -39,7 +41,7 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({ eventId, eventName, fallb
       try {
         const { data, error } = await supabase.functions.invoke('create-livekit-token', {
           body: {
-            eventId,
+            eventId: event.id,
             userRole: 'viewer',
             permissions: {
               canPublish: false,
@@ -62,7 +64,7 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({ eventId, eventName, fallb
     };
 
     fetchToken();
-  }, [eventId]);
+  }, [event.id]);
 
   // 5-second preview timer
   useEffect(() => {
@@ -98,7 +100,7 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({ eventId, eventName, fallb
           eventName={eventName} 
           fallbackImage={fallbackImage} 
           isBlurred={isBlurred}
-          eventId={eventId}
+          event={event}
         />
       </LiveKitRoom>
       
@@ -111,7 +113,7 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({ eventId, eventName, fallb
             <Button 
                       size="sm" 
                       className="w-full mt-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
-                      onClick={() => handleWatchNow(eventId)}
+                      onClick={() => handleWatchNow(event)}
                     >
                       Watch Now
                     </Button>
@@ -122,7 +124,7 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({ eventId, eventName, fallb
   );
 };
 
-const StreamContent: React.FC<{ eventName: string; fallbackImage: string; isBlurred: boolean; eventId: string }> = ({ eventName, fallbackImage, isBlurred, eventId }) => {
+const StreamContent: React.FC<{ eventName: string; fallbackImage: string; isBlurred: boolean; event: any }> = ({ eventName, fallbackImage, isBlurred, event }) => {
   const [isMuted, setIsMuted] = useState(false);
   const videoTracks = useTracks([Track.Source.Camera, Track.Source.ScreenShare], {
     updateOnlyOn: [],
@@ -151,7 +153,7 @@ const StreamContent: React.FC<{ eventName: string; fallbackImage: string; isBlur
         isLive={true}
         isMuted={isMuted}
         setIsMuted={setIsMuted}
-        eventId={eventId}
+        eventId={event.id}
       />
     </div>
   );
@@ -162,8 +164,9 @@ const LiveEventSpotlight: React.FC = () => {
   const [liveEvents, setLiveEvents] = useState<LiveEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const handleWatchNow = (eventId: string) => {
-    navigate(`/event/${eventId}`);
+  const handleWatchNow = (event: any) => {
+    const eventUrl = event.slug ? `/event/${event.slug}` : `/event/${event.id}`;
+    navigate(eventUrl);
   };
 
  
@@ -192,7 +195,8 @@ const LiveEventSpotlight: React.FC = () => {
         viewers: event.viewer_count || 0,
         location: event.location,
         timeRemaining: calculateTimeRemaining(event.date, event.time),
-        thumbnail: event.media_urls?.[0] || '/placeholder.svg'
+        thumbnail: event.media_urls?.[0] || '/placeholder.svg',
+        slug: event.slug
       })) || [];
 
       setLiveEvents(formattedEvents);
@@ -272,7 +276,7 @@ const LiveEventSpotlight: React.FC = () => {
                variant='outline'
                       size="sm" 
                       className="text-right my-5 bg-white text-black"
-                      onClick={() => handleWatchNow(event.id)}
+                      onClick={() => handleWatchNow(event)}
                     >
                       Watch Now
                     </Button>
@@ -319,7 +323,7 @@ const LiveEventSpotlight: React.FC = () => {
                 
               <div className="aspect-video bg-gradient-to-br from-primary/20 to-secondary/20 rounded-lg overflow-hidden">
                 <StreamPreview 
-                  eventId={event.id}
+                  event={event}
                   eventName={event.title}
                   fallbackImage={event.thumbnail}
                 />

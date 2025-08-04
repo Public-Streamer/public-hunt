@@ -31,7 +31,8 @@ const ScheduledEventCard: React.FC<ScheduledEventCardProps> = ({ event, onPurcha
   const navigate = useNavigate();
 
   const handleClick = () => {
-    navigate(`/event/${event.id}`);
+    const eventUrl = (event as any).slug ? `/event/${(event as any).slug}` : `/event/${event.id}`;
+    navigate(eventUrl);
   };
 
   const handleBuyTicket = (e: React.MouseEvent) => {

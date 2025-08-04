@@ -1259,11 +1259,18 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
               Authorization: `Bearer ${session.access_token}`,
             },
           });
-          navigate(`/event/${eventId}`);
           console.log(`room closed for event: ${eventId}`);
-        } else {
-          navigate(`/event/${eventId}`);
         }
+        
+        // Fetch event data to get slug for navigation
+        const { data: eventData } = await supabase
+          .from('events')
+          .select('slug')
+          .eq('id', eventId)
+          .single();
+        
+        const eventUrl = eventData?.slug ? `/event/${eventData.slug}` : `/event/${eventId}`;
+        navigate(eventUrl);
 
         // Modify your code at line 663 to this:
       }, 10);
