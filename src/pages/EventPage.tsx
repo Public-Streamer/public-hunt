@@ -121,7 +121,29 @@ const EventPage: React.FC = () => {
             const newWithoutPinnedMessage = { ...payload.new, pinned_message: null };
             
             if (JSON.stringify(oldWithoutPinnedMessage) !== JSON.stringify(newWithoutPinnedMessage)) {
-              setEventData((prev) => (prev ? { ...prev, ...payload.new } : null));
+              // Don't completely replace eventData, just update the changed fields
+              setEventData((prev) => {
+                if (!prev) return null;
+                
+                // Only update specific fields that matter for the event page display
+                const updatedEvent = { ...prev };
+                
+                // Update only essential event display fields
+                if (payload.new.name !== payload.old.name) {
+                  updatedEvent.name = payload.new.name;
+                }
+                if (payload.new.description !== payload.old.description) {
+                  updatedEvent.description = payload.new.description;
+                }
+                if (payload.new.is_live !== payload.old.is_live) {
+                  updatedEvent.is_live = payload.new.is_live;
+                }
+                if (payload.new.viewer_count !== payload.old.viewer_count) {
+                  updatedEvent.viewer_count = payload.new.viewer_count;
+                }
+                
+                return updatedEvent;
+              });
             }
           }
         }
