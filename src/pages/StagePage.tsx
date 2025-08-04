@@ -30,11 +30,16 @@ const StagePage: React.FC = () => {
         throw new Error("Event ID is required");
       }
 
-      const { data, error } = await supabase
-        .from("events")
-        .select("*")
-        .eq("id", eventId)
-        .single();
+      // Import utility functions to handle both UUID and slug
+      const { parseEventIdentifier } = await import("@/lib/eventUtils");
+      const { isUuid, identifier } = parseEventIdentifier(eventId);
+      
+      // Fetch event data by UUID or slug
+      const eventQuery = isUuid 
+        ? supabase.from("events").select("*").eq("id", identifier)
+        : supabase.from("events").select("*").eq("slug", identifier);
+        
+      const { data, error } = await eventQuery.single();
 
       if (error) {
         toast.error("Event not found");
@@ -83,11 +88,11 @@ const StagePage: React.FC = () => {
           return;
         }
 
-        // Check if user is assigned as streamer
+        // Check if user is assigned as streamer (use actual event UUID)
         const { data: streamerData } = await supabase
           .from("event_streamers")
           .select("*")
-          .eq("event_id", eventId)
+          .eq("event_id", event.id)
           .eq("streamer_id", currentUser.id)
           .single();
 
@@ -121,7 +126,7 @@ const StagePage: React.FC = () => {
   // Generate LiveKit token when event and user role are available
   useEffect(() => {
     const generateToken = async () => {
-      if (!eventId || !userRole || !user || tokenGenerated.current) return;
+      if (!event?.id || !userRole || !user || tokenGenerated.current) return;
 
       try {
         setTokenLoading(true);
@@ -155,7 +160,7 @@ const StagePage: React.FC = () => {
             const { data: tokenData, error: tokenError } =
               await supabase.functions.invoke("create-livekit-token", {
                 body: {
-                  eventId,
+                  eventId: event.id,
                   userRole: "streamer",
                   permissions: {
                     roomJoin: true,
@@ -211,7 +216,7 @@ const StagePage: React.FC = () => {
           "create-livekit-token",
           {
             body: {
-              eventId,
+              eventId: event.id,
               userRole,
             },
             headers: {
@@ -254,7 +259,7 @@ const StagePage: React.FC = () => {
       console.log("Generating token...");
       generateToken();
     }
-  }, [eventId, userRole, user, inviteToken]);
+  }, [event?.id, userRole, user, inviteToken]);
 
   // Cleanup token generation flag on unmount
   useEffect(() => {
@@ -338,7 +343,7 @@ const StagePage: React.FC = () => {
     >
       <RoomAudioRenderer />
       <StreamerInterface
-        eventId={eventId}
+        eventId={event.id}
         eventTitle={event.name}
         isLive={event.is_live}
         userRole={userRole}

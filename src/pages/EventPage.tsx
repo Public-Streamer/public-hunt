@@ -102,17 +102,17 @@ const EventPage: React.FC = () => {
 
   // Set up real-time subscription for live status updates (excluding pinned message updates)
   useEffect(() => {
-    if (!eventId) return;
+    if (!eventData?.id) return;
 
     const subscription = supabase
-      .channel(`event-${eventId}`)
+      .channel(`event-${eventData.id}`)
       .on(
         "postgres_changes",
         {
           event: "UPDATE",
           schema: "public",
           table: "events",
-          filter: `id=eq.${eventId}`,
+          filter: `id=eq.${eventData.id}`,
         },
         (payload) => {
           if (payload.new && payload.old) {
@@ -131,7 +131,7 @@ const EventPage: React.FC = () => {
     return () => {
       subscription.unsubscribe();
     };
-  }, [eventId]);
+  }, [eventData?.id]);
 
   // Derived variables
   const isEventHost =
@@ -350,7 +350,9 @@ const EventPage: React.FC = () => {
   };
 
   const goToStage = () => {
-    navigate(`/stage/${eventId}`);
+    // Use the actual event UUID for stage navigation, not the URL parameter
+    const targetEventId = eventData?.id || eventId;
+    navigate(`/stage/${targetEventId}`);
   };
 
   const goBackToEvents = () => {
