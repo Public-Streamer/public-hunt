@@ -211,7 +211,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
         .from('events')
         .select('metadata')
         .eq('id', eventId)
-        .single();
+        .maybeSingle();
 
       const metadata = event?.metadata as Record<string, any> | null;
       const title = metadata?.coonHuntScoreboardName || 'OMCBA Coon Hunt Scoreboard';
@@ -227,11 +227,11 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
         .from('events')
         .select('metadata')
         .eq('id', eventId)
-        .single();
+        .maybeSingle();
 
       if (fetchError) throw fetchError;
 
-      const currentMetadata = (eventData.metadata as Record<string, any>) || {};
+      const currentMetadata = (eventData?.metadata as Record<string, any>) || {};
       const updatedMetadata = {
         ...currentMetadata,
         coonHuntScoreboardName: newTitle
@@ -402,7 +402,12 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
 
   const getCurrentFieldValue = (teamId: string, fieldId: string, dbValue: any) => {
     const localValue = localInputValues[teamId]?.[fieldId];
-    return localValue !== undefined ? localValue : (dbValue || 0);
+    if (localValue !== undefined) return localValue;
+    
+    // Return appropriate default based on field type
+    if (fieldId.includes('points') || fieldId === 'score') return dbValue || 0;
+    if (fieldId === 'disqualified') return dbValue || false;
+    return dbValue || '';
   };
 
   const updateTeamField = async (teamId: string, fieldId: string, value: any) => {
@@ -641,9 +646,47 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                         </Badge>
                         <div>
                           <h3 className="font-bold text-lg">{team.team_name}</h3>
-                          <div className="text-sm text-muted-foreground">
-                            Handler: {team.custom_fields?.handler_name || 'Not set'} | 
-                            Dog: {team.custom_fields?.dog_name || 'Not set'}
+                          <div className="text-sm space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-muted-foreground">Handler:</span>
+                              {isHost ? (
+                                <Input
+                                  value={getCurrentFieldValue(team.id, 'handler_name', team.custom_fields?.handler_name)}
+                                  onChange={(e) => handleFieldChange(team.id, 'handler_name', e.target.value)}
+                                  onKeyPress={(e) => {
+                                    if (e.key === 'Enter') {
+                                      e.preventDefault();
+                                      updateTeamField(team.id, 'handler_name', e.currentTarget.value);
+                                    }
+                                  }}
+                                  onBlur={(e) => updateTeamField(team.id, 'handler_name', e.target.value)}
+                                  className="h-6 text-sm flex-1 max-w-32"
+                                  placeholder="Handler name..."
+                                />
+                              ) : (
+                                <span className="font-medium">{team.custom_fields?.handler_name || 'Not set'}</span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-muted-foreground">Dog:</span>
+                              {isHost ? (
+                                <Input
+                                  value={getCurrentFieldValue(team.id, 'dog_name', team.custom_fields?.dog_name)}
+                                  onChange={(e) => handleFieldChange(team.id, 'dog_name', e.target.value)}
+                                  onKeyPress={(e) => {
+                                    if (e.key === 'Enter') {
+                                      e.preventDefault();
+                                      updateTeamField(team.id, 'dog_name', e.currentTarget.value);
+                                    }
+                                  }}
+                                  onBlur={(e) => updateTeamField(team.id, 'dog_name', e.target.value)}
+                                  className="h-6 text-sm flex-1 max-w-32"
+                                  placeholder="Dog name..."
+                                />
+                              ) : (
+                                <span className="font-medium">{team.custom_fields?.dog_name || 'Not set'}</span>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -779,20 +822,92 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                     </div>
                   </div>
 
-                  {/* Warnings/Notes (if any) */}
-                  {team.custom_fields?.warnings_notes && (
-                    <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
+                  {/* Warnings/Notes Section */}
+                  <div className="mt-4 space-y-3">
+                    <div className="space-y-2">
                       <Label className="text-sm font-medium text-yellow-800">Warnings/Notes:</Label>
-                      <p className="text-sm text-yellow-700 mt-1">{team.custom_fields.warnings_notes}</p>
+                      {isHost ? (
+                        <Textarea
+                          value={getCurrentFieldValue(team.id, 'warnings_notes', team.custom_fields?.warnings_notes)}
+                          onChange={(e) => handleFieldChange(team.id, 'warnings_notes', e.target.value)}
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault();
+                              updateTeamField(team.id, 'warnings_notes', e.currentTarget.value);
+                            }
+                          }}
+                          onBlur={(e) => updateTeamField(team.id, 'warnings_notes', e.target.value)}
+                          className="min-h-[60px] text-sm border-yellow-200 bg-yellow-50/50"
+                          placeholder="Judge warnings, rule violations, notes... (Press Enter to save)"
+                        />
+                      ) : team.custom_fields?.warnings_notes ? (
+                        <div className="p-3 bg-yellow-50 border border-yellow-200 rounded">
+                          <p className="text-sm text-yellow-700">{team.custom_fields.warnings_notes}</p>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground italic">No warnings or notes</p>
+                      )}
                     </div>
-                  )}
+
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-blue-800">Judge Comments:</Label>
+                      {isHost ? (
+                        <Textarea
+                          value={getCurrentFieldValue(team.id, 'judge_comments', team.custom_fields?.judge_comments)}
+                          onChange={(e) => handleFieldChange(team.id, 'judge_comments', e.target.value)}
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault();
+                              updateTeamField(team.id, 'judge_comments', e.currentTarget.value);
+                            }
+                          }}
+                          onBlur={(e) => updateTeamField(team.id, 'judge_comments', e.target.value)}
+                          className="min-h-[60px] text-sm border-blue-200 bg-blue-50/50"
+                          placeholder="Official judge remarks... (Press Enter to save)"
+                        />
+                      ) : team.custom_fields?.judge_comments ? (
+                        <div className="p-3 bg-blue-50 border border-blue-200 rounded">
+                          <p className="text-sm text-blue-700">{team.custom_fields.judge_comments}</p>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground italic">No judge comments</p>
+                      )}
+                    </div>
+                  </div>
 
                   {/* Disqualified Status */}
-                  {team.custom_fields?.disqualified && (
-                    <div className="mt-2">
-                      <Badge variant="destructive">SCRATCHED/DISQUALIFIED</Badge>
+                  <div className="mt-4 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-sm font-medium">Team Status:</Label>
+                      <div className="flex items-center gap-3">
+                        {isHost ? (
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              id={`disqualified-${team.id}`}
+                              checked={getCurrentFieldValue(team.id, 'disqualified', team.custom_fields?.disqualified) || false}
+                              onChange={(e) => {
+                                handleFieldChange(team.id, 'disqualified', e.target.checked);
+                                updateTeamField(team.id, 'disqualified', e.target.checked);
+                              }}
+                              className="w-4 h-4"
+                            />
+                            <Label htmlFor={`disqualified-${team.id}`} className="text-sm cursor-pointer">
+                              Scratched/Disqualified
+                            </Label>
+                          </div>
+                        ) : (
+                          <span className="text-sm">
+                            {team.custom_fields?.disqualified ? (
+                              <Badge variant="destructive">SCRATCHED/DISQUALIFIED</Badge>
+                            ) : (
+                              <Badge variant="default">Active</Badge>
+                            )}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  )}
+                  </div>
                 </CardContent>
               </Card>
             ))}
