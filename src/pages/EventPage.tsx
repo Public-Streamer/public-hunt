@@ -517,24 +517,24 @@ const EventPage: React.FC = () => {
                     isLive={eventData.is_live}
                     hasAccess={hasTicket || canEnterStage}
                     isLoggedIn={!!currentUser}
-                    eventId={eventId}
+                    eventId={eventData.id}
                   />
                   <RoomAudioRenderer />
 
                    {/* Pinned Message Section */}
-              <div className="">
-                <PinnedMessageSection eventId={eventId} isHost={false} />
+               <div className="">
+                <PinnedMessageSection eventId={eventData.id} isHost={false} />
               </div>
 
                      {/* Scoreboard - Show based on event metadata */}
              <div className="p-5">
-             {currentUser ? (
-               eventData?.metadata?.selectedGameType === 'custom' ? (
-                 <CustomScoreboard eventId={eventId} isHost={false} />
-               ) : eventData?.metadata?.selectedGameType === 'coon_hunt' ? (
-                 <CoonHuntScoreboard eventId={eventId} isHost={false} />
-               ) : null
-             ) : (
+              {currentUser ? (
+                eventData?.metadata?.selectedGameType === 'custom' ? (
+                  <CustomScoreboard eventId={eventData.id} isHost={false} />
+                ) : eventData?.metadata?.selectedGameType === 'coon_hunt' ? (
+                  <CoonHuntScoreboard eventId={eventData.id} isHost={false} />
+                ) : null
+              ) : (
                <div className="p-6">Please sign in to view the scoreboard</div>
              )}
              </div>
@@ -554,8 +554,8 @@ const EventPage: React.FC = () => {
                   {eventData.is_live &&
                     livekitToken &&
                     (hasTicket || canEnterStage) && (
-                      <LiveDiscussionSection 
-                        eventId={eventId}
+                       <LiveDiscussionSection 
+                        eventId={eventData.id}
                         userProfile={currentUserProfile ? {
                           id: currentUserProfile.id,
                           username: currentUserProfile.display_name || 'User',
@@ -618,9 +618,9 @@ const EventPage: React.FC = () => {
               {!eventData.is_live && (hasTicket || canEnterStage) && (
                 <div className="p-4 border-t border-border/30">
                   <div className="">
-                <PinnedMessageSection eventId={eventId} isHost={false} />
+                 <PinnedMessageSection eventId={eventData.id} isHost={false} />
               </div>  
-                  <PreStreamChatArchive eventId={eventId!} />
+                  <PreStreamChatArchive eventId={eventData.id} />
                 </div>
               )}
               

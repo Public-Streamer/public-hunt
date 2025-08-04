@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -20,7 +20,29 @@ const StageShareMenu: React.FC<StageShareMenuProps> = ({
 }) => {
   const [copiedStates, setCopiedStates] = useState<{ [key: string]: boolean }>({});
   const [isGeneratingToken, setIsGeneratingToken] = useState(false);
+  const [eventSlug, setEventSlug] = useState<string>('');
   const screenSize = useScreenSize();
+
+  // Fetch event slug for better URLs
+  useEffect(() => {
+    const fetchEventSlug = async () => {
+      try {
+        const { data } = await supabase
+          .from('events')
+          .select('slug')
+          .eq('id', eventId)
+          .single();
+        
+        if (data?.slug) {
+          setEventSlug(data.slug);
+        }
+      } catch (error) {
+        console.log('Could not fetch event slug:', error);
+      }
+    };
+    
+    fetchEventSlug();
+  }, [eventId]);
 
   const generateSecureInviteLink = async (): Promise<string> => {
     try {
@@ -42,18 +64,20 @@ const StageShareMenu: React.FC<StageShareMenuProps> = ({
         throw new Error(error.message || 'Failed to generate secure invite link');
       }
 
-      return `${window.location.origin}/stage/${eventId}?token=${data.token}`;
+      const stageIdentifier = eventSlug || eventId;
+      return `${window.location.origin}/stage/${stageIdentifier}?token=${data.token}`;
     } catch (error) {
       console.error('Error generating secure invite link:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to generate secure invite link');
       // Fallback to basic URL
-      return `${window.location.origin}/stage/${eventId}`;
+      const stageIdentifier = eventSlug || eventId;
+      return `${window.location.origin}/stage/${stageIdentifier}`;
     } finally {
       setIsGeneratingToken(false);
     }
   };
 
-  const stageUrl = `${window.location.origin}/stage/${eventId}`;
+  const stageUrl = `${window.location.origin}/stage/${eventSlug || eventId}`;
   
   // Create secure share message function that generates token for each use
   const createSecureShareMessage = async (): Promise<string> => {
