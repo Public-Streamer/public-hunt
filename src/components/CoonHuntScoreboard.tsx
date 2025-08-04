@@ -577,9 +577,9 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
       <CardContent className="space-y-4">
         {/* Host Controls - Add Team */}
         {isHost && (
-          <div className="border rounded-lg p-4 space-y-3">
-            <h4 className="font-semibold">Add New Team</h4>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <div className="border rounded-lg p-3 sm:p-4 space-y-3">
+            <h4 className="font-semibold text-sm sm:text-base">Add New Team</h4>
+            <div className="flex flex-col space-y-2 sm:space-y-0 sm:grid sm:grid-cols-4 sm:gap-3">
               <Input
                 placeholder="Team/Entry name..."
                 value={newTeamName}
@@ -591,6 +591,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                   }
                 }}
                 disabled={loading}
+                className="text-sm"
               />
               <Input
                 placeholder="Handler name..."
@@ -603,6 +604,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                   }
                 }}
                 disabled={loading}
+                className="text-sm"
               />
               <Input
                 placeholder="Dog name..."
@@ -615,8 +617,13 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                   }
                 }}
                 disabled={loading}
+                className="text-sm"
               />
-              <Button onClick={createTeam} disabled={loading || !newTeamName.trim()}>
+              <Button 
+                onClick={createTeam} 
+                disabled={loading || !newTeamName.trim()}
+                className="w-full sm:w-auto text-sm"
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Team
               </Button>
@@ -633,78 +640,76 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
           <div className="space-y-4">
             {sortedTeams.map((team, index) => (
               <Card key={team.id} className="relative">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-2">
-                        <Badge 
-                          variant="secondary" 
-                          className="text-lg font-bold px-3 py-1"
-                          style={{ backgroundColor: `${team.team_color}20`, color: team.team_color }}
-                        >
-                          #{index + 1}
-                        </Badge>
-                        <div>
-                          <h3 className="font-bold text-lg">{team.team_name}</h3>
-                          <div className="text-sm space-y-1">
-                            <div className="flex items-center gap-2">
-                              <span className="text-muted-foreground">Handler:</span>
-                              {isHost ? (
-                                <Input
-                                  value={getCurrentFieldValue(team.id, 'handler_name', team.custom_fields?.handler_name)}
-                                  onChange={(e) => handleFieldChange(team.id, 'handler_name', e.target.value)}
-                                  onKeyPress={(e) => {
-                                    if (e.key === 'Enter') {
-                                      e.preventDefault();
-                                      updateTeamField(team.id, 'handler_name', e.currentTarget.value);
-                                    }
-                                  }}
-                                  onBlur={(e) => updateTeamField(team.id, 'handler_name', e.target.value)}
-                                  className="h-6 text-sm flex-1 max-w-32"
-                                  placeholder="Handler name..."
-                                />
-                              ) : (
-                                <span className="font-medium">{team.custom_fields?.handler_name || 'Not set'}</span>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-muted-foreground">Dog:</span>
-                              {isHost ? (
-                                <Input
-                                  value={getCurrentFieldValue(team.id, 'dog_name', team.custom_fields?.dog_name)}
-                                  onChange={(e) => handleFieldChange(team.id, 'dog_name', e.target.value)}
-                                  onKeyPress={(e) => {
-                                    if (e.key === 'Enter') {
-                                      e.preventDefault();
-                                      updateTeamField(team.id, 'dog_name', e.currentTarget.value);
-                                    }
-                                  }}
-                                  onBlur={(e) => updateTeamField(team.id, 'dog_name', e.target.value)}
-                                  className="h-6 text-sm flex-1 max-w-32"
-                                  placeholder="Dog name..."
-                                />
-                              ) : (
-                                <span className="font-medium">{team.custom_fields?.dog_name || 'Not set'}</span>
-                              )}
-                            </div>
+                <CardContent className="p-3 sm:p-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 space-y-3 sm:space-y-0">
+                    <div className="flex items-start gap-3">
+                      <Badge 
+                        variant="secondary" 
+                        className="text-base sm:text-lg font-bold px-2 sm:px-3 py-1 shrink-0"
+                        style={{ backgroundColor: `${team.team_color}20`, color: team.team_color }}
+                      >
+                        #{index + 1}
+                      </Badge>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-bold text-base sm:text-lg break-words">{team.team_name}</h3>
+                        <div className="text-xs sm:text-sm space-y-1">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                            <span className="text-muted-foreground shrink-0">Handler:</span>
+                            {isHost ? (
+                              <Input
+                                value={getCurrentFieldValue(team.id, 'handler_name', team.custom_fields?.handler_name)}
+                                onChange={(e) => handleFieldChange(team.id, 'handler_name', e.target.value)}
+                                onKeyPress={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    updateTeamField(team.id, 'handler_name', e.currentTarget.value);
+                                  }
+                                }}
+                                onBlur={(e) => updateTeamField(team.id, 'handler_name', e.target.value)}
+                                className="h-6 text-xs sm:text-sm flex-1 min-w-0"
+                                placeholder="Handler name..."
+                              />
+                            ) : (
+                              <span className="font-medium text-xs sm:text-sm break-words">{team.custom_fields?.handler_name || 'Not set'}</span>
+                            )}
+                          </div>
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                            <span className="text-muted-foreground shrink-0">Dog:</span>
+                            {isHost ? (
+                              <Input
+                                value={getCurrentFieldValue(team.id, 'dog_name', team.custom_fields?.dog_name)}
+                                onChange={(e) => handleFieldChange(team.id, 'dog_name', e.target.value)}
+                                onKeyPress={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    updateTeamField(team.id, 'dog_name', e.currentTarget.value);
+                                  }
+                                }}
+                                onBlur={(e) => updateTeamField(team.id, 'dog_name', e.target.value)}
+                                className="h-6 text-xs sm:text-sm flex-1 min-w-0"
+                                placeholder="Dog name..."
+                              />
+                            ) : (
+                              <span className="font-medium text-xs sm:text-sm break-words">{team.custom_fields?.dog_name || 'Not set'}</span>
+                            )}
                           </div>
                         </div>
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <div className="text-2xl font-bold">{team.score}</div>
-                        <div className="text-sm text-muted-foreground">Total Score</div>
+                    <div className="flex flex-row sm:flex-col items-center justify-between sm:justify-center gap-4 sm:gap-2">
+                      <div className="text-center">
+                        <div className="text-xl sm:text-2xl font-bold">{team.score}</div>
+                        <div className="text-xs sm:text-sm text-muted-foreground">Total Score</div>
                       </div>
                       
                       {isHost && (
                         <div className="flex gap-2">
-                          <Button variant="outline" size="sm" onClick={() => openEditDialog(team)}>
-                            <Edit3 className="h-4 w-4" />
+                          <Button variant="outline" size="sm" onClick={() => openEditDialog(team)} className="h-8 w-8 p-0">
+                            <Edit3 className="h-3 w-3" />
                           </Button>
-                          <Button variant="outline" size="sm" onClick={() => deleteTeam(team.id)}>
-                            <Trash2 className="h-4 w-4" />
+                          <Button variant="outline" size="sm" onClick={() => deleteTeam(team.id)} className="h-8 w-8 p-0">
+                            <Trash2 className="h-3 w-3" />
                           </Button>
                         </div>
                       )}
@@ -712,10 +717,10 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                   </div>
 
                   {/* OMCBA Scoring Grid */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 gap-3 sm:gap-4">
                     {/* Strike Points */}
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium">Strike Points</Label>
+                      <Label className="text-xs sm:text-sm font-medium block">Strike Points</Label>
                       {isHost ? (
                         <Input
                           type="number"
@@ -728,13 +733,13 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                             }
                           }}
                           onBlur={(e) => updateTeamField(team.id, 'strike_points', parseInt(e.target.value) || 0)}
-                          className="text-center font-bold"
+                          className="text-center font-bold text-sm sm:text-base h-10 sm:h-11"
                           min="0"
                           max="400"
                           placeholder="0"
                         />
                       ) : (
-                        <div className="text-center font-bold text-lg p-2 bg-muted rounded">
+                        <div className="text-center font-bold text-base sm:text-lg p-2 sm:p-3 bg-muted rounded h-10 sm:h-11 flex items-center justify-center">
                           {team.custom_fields?.strike_points || 0}
                         </div>
                       )}
@@ -742,7 +747,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
 
                     {/* Tree Points */}
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium">Tree Points</Label>
+                      <Label className="text-xs sm:text-sm font-medium block">Tree Points</Label>
                       {isHost ? (
                         <Input
                           type="number"
@@ -755,13 +760,13 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                             }
                           }}
                           onBlur={(e) => updateTeamField(team.id, 'tree_points', parseInt(e.target.value) || 0)}
-                          className="text-center font-bold"
+                          className="text-center font-bold text-sm sm:text-base h-10 sm:h-11"
                           min="0"
                           max="500"
                           placeholder="0"
                         />
                       ) : (
-                        <div className="text-center font-bold text-lg p-2 bg-muted rounded">
+                        <div className="text-center font-bold text-base sm:text-lg p-2 sm:p-3 bg-muted rounded h-10 sm:h-11 flex items-center justify-center">
                           {team.custom_fields?.tree_points || 0}
                         </div>
                       )}
@@ -769,7 +774,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
 
                     {/* Circle Points */}
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium">Circle Points</Label>
+                      <Label className="text-xs sm:text-sm font-medium block">Circle Points</Label>
                       {isHost ? (
                         <Input
                           type="number"
@@ -782,13 +787,13 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                             }
                           }}
                           onBlur={(e) => updateTeamField(team.id, 'circle_points', parseInt(e.target.value) || 0)}
-                          className="text-center font-bold"
+                          className="text-center font-bold text-sm sm:text-base h-10 sm:h-11"
                           min="0"
                           max="500"
                           placeholder="0"
                         />
                       ) : (
-                        <div className="text-center font-bold text-lg p-2 bg-muted rounded">
+                        <div className="text-center font-bold text-base sm:text-lg p-2 sm:p-3 bg-muted rounded h-10 sm:h-11 flex items-center justify-center">
                           {team.custom_fields?.circle_points || 0}
                         </div>
                       )}
@@ -796,7 +801,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
 
                     {/* Minus Points */}
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium text-destructive">Minus Points</Label>
+                      <Label className="text-xs sm:text-sm font-medium text-destructive block">Minus Points</Label>
                       {isHost ? (
                         <Input
                           type="number"
@@ -809,13 +814,13 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                             }
                           }}
                           onBlur={(e) => updateTeamField(team.id, 'minus_points', parseInt(e.target.value) || 0)}
-                          className="text-center font-bold border-destructive"
+                          className="text-center font-bold border-destructive text-sm sm:text-base h-10 sm:h-11"
                           min="0"
                           max="1000"
                           placeholder="0"
                         />
                       ) : (
-                        <div className="text-center font-bold text-lg p-2 bg-destructive/10 text-destructive rounded">
+                        <div className="text-center font-bold text-base sm:text-lg p-2 sm:p-3 bg-destructive/10 text-destructive rounded h-10 sm:h-11 flex items-center justify-center">
                           {team.custom_fields?.minus_points || 0}
                         </div>
                       )}
@@ -824,64 +829,60 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
 
                   {/* Warnings/Notes Section */}
                   {(isHost || team.custom_fields?.warnings_notes) && (
-                    <div className="mt-4 space-y-3">
-                      <div className="space-y-2">
-                        <Label className="text-sm font-medium text-yellow-800">Warnings/Notes:</Label>
-                        {isHost ? (
-                          <Textarea
-                            value={getCurrentFieldValue(team.id, 'warnings_notes', team.custom_fields?.warnings_notes)}
-                            onChange={(e) => handleFieldChange(team.id, 'warnings_notes', e.target.value)}
-                            onKeyPress={(e) => {
-                              if (e.key === 'Enter' && !e.shiftKey) {
-                                e.preventDefault();
-                                updateTeamField(team.id, 'warnings_notes', e.currentTarget.value);
-                              }
-                            }}
-                            onBlur={(e) => updateTeamField(team.id, 'warnings_notes', e.target.value)}
-                            className="min-h-[60px] text-sm border-yellow-200 bg-yellow-50/50"
-                            placeholder="Judge warnings, rule violations, notes... (Press Enter to save)"
-                          />
-                        ) : (
-                          <div className="p-3 bg-yellow-50 border border-yellow-200 rounded">
-                            <p className="text-sm text-yellow-700">{team.custom_fields.warnings_notes}</p>
-                          </div>
-                        )}
-                      </div>
+                    <div className="mt-4 space-y-2">
+                      <Label className="text-xs sm:text-sm font-medium text-yellow-800">Warnings/Notes:</Label>
+                      {isHost ? (
+                        <Textarea
+                          value={getCurrentFieldValue(team.id, 'warnings_notes', team.custom_fields?.warnings_notes)}
+                          onChange={(e) => handleFieldChange(team.id, 'warnings_notes', e.target.value)}
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault();
+                              updateTeamField(team.id, 'warnings_notes', e.currentTarget.value);
+                            }
+                          }}
+                          onBlur={(e) => updateTeamField(team.id, 'warnings_notes', e.target.value)}
+                          className="min-h-[60px] text-xs sm:text-sm border-yellow-200 bg-yellow-50/50 resize-none"
+                          placeholder="Judge warnings, rule violations, notes... (Press Enter to save)"
+                        />
+                      ) : (
+                        <div className="p-2 sm:p-3 bg-yellow-50 border border-yellow-200 rounded">
+                          <p className="text-xs sm:text-sm text-yellow-700 break-words">{team.custom_fields.warnings_notes}</p>
+                        </div>
+                      )}
                     </div>
                   )}
 
                   {/* Judge Comments Section */}
                   {(isHost || team.custom_fields?.judge_comments) && (
-                    <div className="mt-4 space-y-3">
-                      <div className="space-y-2">
-                        <Label className="text-sm font-medium text-blue-800">Judge Comments:</Label>
-                        {isHost ? (
-                          <Textarea
-                            value={getCurrentFieldValue(team.id, 'judge_comments', team.custom_fields?.judge_comments)}
-                            onChange={(e) => handleFieldChange(team.id, 'judge_comments', e.target.value)}
-                            onKeyPress={(e) => {
-                              if (e.key === 'Enter' && !e.shiftKey) {
-                                e.preventDefault();
-                                updateTeamField(team.id, 'judge_comments', e.currentTarget.value);
-                              }
-                            }}
-                            onBlur={(e) => updateTeamField(team.id, 'judge_comments', e.target.value)}
-                            className="min-h-[60px] text-sm border-blue-200 bg-blue-50/50"
-                            placeholder="Official judge remarks... (Press Enter to save)"
-                          />
-                        ) : (
-                          <div className="p-3 bg-blue-50 border border-blue-200 rounded">
-                            <p className="text-sm text-blue-700">{team.custom_fields.judge_comments}</p>
-                          </div>
-                        )}
-                      </div>
+                    <div className="mt-4 space-y-2">
+                      <Label className="text-xs sm:text-sm font-medium text-blue-800">Judge Comments:</Label>
+                      {isHost ? (
+                        <Textarea
+                          value={getCurrentFieldValue(team.id, 'judge_comments', team.custom_fields?.judge_comments)}
+                          onChange={(e) => handleFieldChange(team.id, 'judge_comments', e.target.value)}
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault();
+                              updateTeamField(team.id, 'judge_comments', e.currentTarget.value);
+                            }
+                          }}
+                          onBlur={(e) => updateTeamField(team.id, 'judge_comments', e.target.value)}
+                          className="min-h-[60px] text-xs sm:text-sm border-blue-200 bg-blue-50/50 resize-none"
+                          placeholder="Official judge remarks... (Press Enter to save)"
+                        />
+                      ) : (
+                        <div className="p-2 sm:p-3 bg-blue-50 border border-blue-200 rounded">
+                          <p className="text-xs sm:text-sm text-blue-700 break-words">{team.custom_fields.judge_comments}</p>
+                        </div>
+                      )}
                     </div>
                   )}
 
-                  {/* Disqualified Status */}
+                  {/* Team Status */}
                   <div className="mt-4 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-sm font-medium">Team Status:</Label>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                      <Label className="text-xs sm:text-sm font-medium">Team Status:</Label>
                       <div className="flex items-center gap-3">
                         {isHost ? (
                           <div className="flex items-center gap-2">
@@ -895,16 +896,16 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                               }}
                               className="w-4 h-4"
                             />
-                            <Label htmlFor={`disqualified-${team.id}`} className="text-sm cursor-pointer">
+                            <Label htmlFor={`disqualified-${team.id}`} className="text-xs sm:text-sm cursor-pointer">
                               Scratched/Disqualified
                             </Label>
                           </div>
                         ) : (
-                          <span className="text-sm">
+                          <span className="text-xs sm:text-sm">
                             {team.custom_fields?.disqualified ? (
-                              <Badge variant="destructive">SCRATCHED/DISQUALIFIED</Badge>
+                              <Badge variant="destructive" className="text-xs">SCRATCHED/DISQUALIFIED</Badge>
                             ) : (
-                              <Badge variant="default">Active</Badge>
+                              <Badge variant="default" className="text-xs">Active</Badge>
                             )}
                           </span>
                         )}
@@ -919,25 +920,26 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
 
         {/* Edit Team Dialog */}
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto mx-4">
             <DialogHeader>
-              <DialogTitle>Edit Team: {editingTeam?.team_name}</DialogTitle>
+              <DialogTitle className="text-base sm:text-lg">Edit Team: {editingTeam?.team_name}</DialogTitle>
             </DialogHeader>
             
             {editingTeam && (
               <div className="space-y-4">
                 {/* Basic Info */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Team/Entry Name</Label>
+                    <Label className="text-sm">Team/Entry Name</Label>
                     <Input
                       value={editingTeam.team_name}
                       onChange={(e) => setEditingTeam(prev => prev ? { ...prev, team_name: e.target.value } : null)}
+                      className="text-sm"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Team Color</Label>
-                    <div className="flex gap-2">
+                    <Label className="text-sm">Team Color</Label>
+                    <div className="flex flex-wrap gap-2">
                       {TEAM_COLORS.map(color => (
                         <div
                           key={color}
@@ -951,43 +953,46 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                 </div>
 
                 {/* Handler & Dog Info */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label>Handler Name</Label>
+                    <Label className="text-sm">Handler Name</Label>
                     <Input
                       value={editingTeam.custom_fields?.handler_name || ''}
                       onChange={(e) => setEditingTeam(prev => prev ? { 
                         ...prev, 
                         custom_fields: { ...prev.custom_fields, handler_name: e.target.value }
                       } : null)}
+                      className="text-sm"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Dog Name</Label>
+                    <Label className="text-sm">Dog Name</Label>
                     <Input
                       value={editingTeam.custom_fields?.dog_name || ''}
                       onChange={(e) => setEditingTeam(prev => prev ? { 
                         ...prev, 
                         custom_fields: { ...prev.custom_fields, dog_name: e.target.value }
                       } : null)}
+                      className="text-sm"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Registration Number</Label>
+                    <Label className="text-sm">Registration Number</Label>
                     <Input
                       value={editingTeam.custom_fields?.registration_number || ''}
                       onChange={(e) => setEditingTeam(prev => prev ? { 
                         ...prev, 
                         custom_fields: { ...prev.custom_fields, registration_number: e.target.value }
                       } : null)}
+                      className="text-sm"
                     />
                   </div>
                 </div>
 
                 {/* Scoring */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Strike Points</Label>
+                    <Label className="text-sm">Strike Points</Label>
                     <Input
                       type="number"
                       value={editingTeam.custom_fields?.strike_points || 0}
@@ -996,10 +1001,11 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                         custom_fields: { ...prev.custom_fields, strike_points: parseInt(e.target.value) || 0 }
                       } : null)}
                       min="0"
+                      className="text-sm"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Tree Points</Label>
+                    <Label className="text-sm">Tree Points</Label>
                     <Input
                       type="number"
                       value={editingTeam.custom_fields?.tree_points || 0}
@@ -1008,10 +1014,11 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                         custom_fields: { ...prev.custom_fields, tree_points: parseInt(e.target.value) || 0 }
                       } : null)}
                       min="0"
+                      className="text-sm"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Circle Points</Label>
+                    <Label className="text-sm">Circle Points</Label>
                     <Input
                       type="number"
                       value={editingTeam.custom_fields?.circle_points || 0}
@@ -1020,10 +1027,11 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                         custom_fields: { ...prev.custom_fields, circle_points: parseInt(e.target.value) || 0 }
                       } : null)}
                       min="0"
+                      className="text-sm"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Minus Points</Label>
+                    <Label className="text-sm">Minus Points</Label>
                     <Input
                       type="number"
                       value={editingTeam.custom_fields?.minus_points || 0}
@@ -1032,6 +1040,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                         custom_fields: { ...prev.custom_fields, minus_points: parseInt(e.target.value) || 0 }
                       } : null)}
                       min="0"
+                      className="text-sm"
                     />
                   </div>
                 </div>
@@ -1039,7 +1048,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                 {/* Notes & Comments */}
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label>Warnings/Notes</Label>
+                    <Label className="text-sm">Warnings/Notes</Label>
                     <Textarea
                       value={editingTeam.custom_fields?.warnings_notes || ''}
                       onChange={(e) => setEditingTeam(prev => prev ? { 
@@ -1048,10 +1057,11 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                       } : null)}
                       placeholder="Judge warnings, rule violations, notes..."
                       rows={3}
+                      className="text-sm resize-none"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Judge Comments</Label>
+                    <Label className="text-sm">Judge Comments</Label>
                     <Textarea
                       value={editingTeam.custom_fields?.judge_comments || ''}
                       onChange={(e) => setEditingTeam(prev => prev ? { 
@@ -1060,14 +1070,15 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                       } : null)}
                       placeholder="Official judge remarks..."
                       rows={2}
+                      className="text-sm resize-none"
                     />
                   </div>
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex justify-between pt-4">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-4 border-t">
                   <div className="flex items-center gap-2">
-                    <Label>Scratched/Disqualified:</Label>
+                    <Label className="text-sm">Scratched/Disqualified:</Label>
                     <input
                       type="checkbox"
                       checked={editingTeam.custom_fields?.disqualified || false}
@@ -1077,12 +1088,12 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                       } : null)}
                     />
                   </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+                  <div className="flex gap-2 w-full sm:w-auto">
+                    <Button variant="outline" onClick={() => setEditDialogOpen(false)} className="flex-1 sm:flex-none text-sm">
                       <X className="h-4 w-4 mr-2" />
                       Cancel
                     </Button>
-                    <Button onClick={saveTeamChanges}>
+                    <Button onClick={saveTeamChanges} className="flex-1 sm:flex-none text-sm">
                       <Save className="h-4 w-4 mr-2" />
                       Save Changes
                     </Button>
