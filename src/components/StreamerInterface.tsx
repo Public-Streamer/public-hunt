@@ -582,7 +582,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle>
-                    {userRole === "host" ? "Event Scoreboard" : "Live Scoreboard"}
+                    {userRole === "host" ? " Leaderboard" : " Leaderboard"}
                   </CardTitle>
                   {userRole === "host" && selectedGameType && (
                     <AlertDialog>

@@ -90,7 +90,7 @@ export const RealtimeScoreboard: React.FC<RealtimeScoreboardProps> = ({ eventId 
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Trophy className="h-5 w-5" />
-          Live Scoreboard
+          Live Leaderboard
           {isConnected && (
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse ml-auto" />
           )}
