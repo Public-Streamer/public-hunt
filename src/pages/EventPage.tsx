@@ -152,8 +152,10 @@ const EventPage: React.FC = () => {
                 if (payload.new.viewer_count !== payload.old.viewer_count) {
                   updatedEvent.viewer_count = payload.new.viewer_count;
                 }
-                // Update metadata for scoreboard changes
-                if (JSON.stringify(payload.new.metadata) !== JSON.stringify(payload.old.metadata)) {
+                // Only update metadata if scoreboard title changed (affects UI display)
+                const oldScoreboardTitle = payload.old.metadata?.scoreboard_title;
+                const newScoreboardTitle = payload.new.metadata?.scoreboard_title;
+                if (oldScoreboardTitle !== newScoreboardTitle) {
                   updatedEvent.metadata = payload.new.metadata;
                 }
                 
