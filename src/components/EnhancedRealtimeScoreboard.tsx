@@ -30,23 +30,49 @@ export const EnhancedRealtimeScoreboard: React.FC<EnhancedRealtimeScoreboardProp
     fetchTeams();
     
     const channel = supabase
-      .channel('enhanced-scoreboard-changes')
+      .channel(`enhanced-scoreboard-${eventId}`)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'event_scoreboard',
-          filter: `event_id=eq.${eventId}.and.scoreboard_type=eq.custom`
+          filter: `event_id=eq.${eventId}`
         },
         (payload) => {
           console.log('[Enhanced Scoreboard] Realtime update received:', payload);
           console.log('[Enhanced Scoreboard] Event type:', payload.eventType);
           console.log('[Enhanced Scoreboard] New data:', payload.new);
           
+          // Only process custom scoreboard updates
+          const newRecord = payload.new as any;
+          const oldRecord = payload.old as any;
+          
+          if (payload.eventType === 'DELETE') {
+            // For DELETE events, we only have limited data in 'old' record
+            // Since we're filtering by event_id in the subscription, we can assume these are relevant
+            console.log('[Enhanced Scoreboard] Processing DELETE event');
+          } else {
+            // For INSERT/UPDATE, check scoreboard_type
+            const isCustomUpdate = newRecord?.scoreboard_type === 'custom';
+            if (!isCustomUpdate) {
+              console.log('[Enhanced Scoreboard] Ignoring non-custom scoreboard update');
+              return;
+            }
+          }
+          
           if (payload.eventType === 'INSERT') {
             console.log('[Enhanced Scoreboard] Adding new team:', payload.new);
-            setTeams(prev => [...prev, payload.new as Team]);
+            setTeams(prev => {
+              const newTeam = payload.new as Team;
+              // Check if team already exists to prevent duplicates
+              const exists = prev.find(t => t.id === newTeam.id);
+              if (exists) {
+                console.log('[Enhanced Scoreboard] Team already exists, skipping insert');
+                return prev;
+              }
+              return [...prev, newTeam];
+            });
           } else if (payload.eventType === 'UPDATE') {
             console.log('[Enhanced Scoreboard] Updating team:', payload.new.id);
             setTeams(prev => prev.map(team => 
