@@ -6,8 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, Target, Edit3, Trash2, Save, X } from 'lucide-react';
+import { Plus, Target, Edit3, Trash2, Save, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 // OMCBA Coon Hunt Team Interface - Based on Official Rules
@@ -72,6 +73,9 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
   // Scoreboard naming
   const [scoreboardName, setScoreboardName] = useState('OMCBA Coon Hunt Scoreboard');
   const [editingTitle, setEditingTitle] = useState(false);
+  
+  // Collapse state for viewers - track which teams are expanded
+  const [expandedTeams, setExpandedTeams] = useState<Set<string>>(new Set());
 
   // Real-time subscription setup (exact same pattern as CustomScoreboard)
   useEffect(() => {
@@ -542,6 +546,21 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
   // Sort teams by total score (highest first)
   const sortedTeams = [...teams].sort((a, b) => b.score - a.score);
 
+  // Helper functions for collapsible teams (viewers only)
+  const toggleTeamExpanded = (teamId: string) => {
+    setExpandedTeams(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(teamId)) {
+        newSet.delete(teamId);
+      } else {
+        newSet.add(teamId);
+      }
+      return newSet;
+    });
+  };
+
+  const isTeamExpanded = (teamId: string) => expandedTeams.has(teamId);
+
   // Early return for viewers when no teams
   if (!isHost && teams.length === 0) {
     return null;
@@ -661,205 +680,251 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
         ) : (
           <div className="space-y-4">
             {sortedTeams.map((team, index) => (
-              <Card key={team.id} className="relative">
-                <CardContent className="p-3 sm:p-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 space-y-3 sm:space-y-0">
-                    <div className="flex items-start gap-3">
-                      <Badge 
-                        variant="secondary" 
-                        className="text-base sm:text-lg font-bold px-2 sm:px-3 py-1 shrink-0"
-                        style={{ backgroundColor: `${team.team_color}20`, color: team.team_color }}
-                      >
-                        #{index + 1}
-                      </Badge>
-                      <div className="min-w-0 flex-1">
-                        <h3 className="font-bold text-base sm:text-lg break-words">{team.team_name}</h3>
-                        <div className="text-xs sm:text-sm space-y-1">
-                          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                            <span className="text-muted-foreground shrink-0">Handler:</span>
-                            <span className="font-medium text-xs sm:text-sm break-words">{team.custom_fields?.handler_name || 'Not set'}</span>
+              <Collapsible
+                key={team.id}
+                open={isHost || isTeamExpanded(team.id)}
+                onOpenChange={() => !isHost && toggleTeamExpanded(team.id)}
+                className="relative"
+              >
+                <Card>
+                  <CardContent className="p-3 sm:p-4">
+                    <CollapsibleTrigger asChild>
+                      <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 space-y-3 sm:space-y-0 ${!isHost ? 'cursor-pointer hover:bg-muted/30 -m-1 p-1 rounded' : ''}`}>
+                        <div className="flex items-start gap-3">
+                          <Badge 
+                            variant="secondary" 
+                            className="text-base sm:text-lg font-bold px-2 sm:px-3 py-1 shrink-0"
+                            style={{ backgroundColor: `${team.team_color}20`, color: team.team_color }}
+                          >
+                            #{index + 1}
+                          </Badge>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 justify-between">
+                              <h3 className="font-bold text-base sm:text-lg break-words">{team.team_name}</h3>
+                              {!isHost && (
+                                <div className="flex items-center gap-2">
+                                  {isTeamExpanded(team.id) ? (
+                                    <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                                  ) : (
+                                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                            {/* Collapsed view info for viewers */}
+                            {!isHost && !isTeamExpanded(team.id) && (
+                              <div className="text-xs sm:text-sm space-y-1 mt-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-muted-foreground">Handler:</span>
+                                  <span className="font-medium">{team.custom_fields?.handler_name || 'Not set'}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-muted-foreground">Status:</span>
+                                  {team.custom_fields?.disqualified ? (
+                                    <Badge variant="destructive" className="text-xs">
+                                      Scratched/Disqualified
+                                    </Badge>
+                                  ) : (
+                                    <Badge variant="secondary" className="text-xs">
+                                      Active
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                            {/* Expanded/Host view info */}
+                            {(isHost || isTeamExpanded(team.id)) && (
+                              <div className="text-xs sm:text-sm space-y-1">
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                                  <span className="text-muted-foreground shrink-0">Handler:</span>
+                                  <span className="font-medium text-xs sm:text-sm break-words">{team.custom_fields?.handler_name || 'Not set'}</span>
+                                </div>
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                                  <span className="text-muted-foreground shrink-0">Dog:</span>
+                                  <span className="font-medium text-xs sm:text-sm break-words">{team.custom_fields?.dog_name || 'Not set'}</span>
+                                </div>
+                                {/* Optional Registration Number - only show if exists */}
+                                {team.custom_fields?.registration_number && (
+                                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                                    <span className="text-muted-foreground shrink-0">Registration:</span>
+                                    <span className="font-medium text-xs sm:text-sm break-words">{team.custom_fields.registration_number}</span>
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
-                          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                            <span className="text-muted-foreground shrink-0">Dog:</span>
-                            <span className="font-medium text-xs sm:text-sm break-words">{team.custom_fields?.dog_name || 'Not set'}</span>
+                        </div>
+                        
+                        <div className="flex flex-row sm:flex-col items-center justify-between sm:justify-center gap-4 sm:gap-2">
+                          <div className="text-center">
+                            <div className="text-xl sm:text-2xl font-bold">{team.score}</div>
+                            <div className="text-xs sm:text-sm text-muted-foreground">Total Score</div>
                           </div>
-                          {/* Optional Registration Number - only show if exists */}
-                          {team.custom_fields?.registration_number && (
-                            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                              <span className="text-muted-foreground shrink-0">Registration:</span>
-                              <span className="font-medium text-xs sm:text-sm break-words">{team.custom_fields.registration_number}</span>
+                          
+                          {isHost && (
+                            <div className="flex gap-2">
+                              <Button variant="outline" size="sm" onClick={() => openEditDialog(team)} className="h-8 w-8 p-0">
+                                <Edit3 className="h-3 w-3" />
+                              </Button>
+                              <Button variant="outline" size="sm" onClick={() => deleteTeam(team.id)} className="h-8 w-8 p-0">
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
                             </div>
                           )}
                         </div>
                       </div>
-                    </div>
-                    
-                    <div className="flex flex-row sm:flex-col items-center justify-between sm:justify-center gap-4 sm:gap-2">
-                      <div className="text-center">
-                        <div className="text-xl sm:text-2xl font-bold">{team.score}</div>
-                        <div className="text-xs sm:text-sm text-muted-foreground">Total Score</div>
+                    </CollapsibleTrigger>
+
+                    <CollapsibleContent className="space-y-4 animate-fade-in">
+                      {/* OMCBA Scoring Grid */}
+                      <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                        {/* Strike Points */}
+                        <div className="space-y-2">
+                          <Label className="text-xs sm:text-sm font-medium block">Strike Points</Label>
+                          {isHost ? (
+                            <Input
+                              type="number"
+                              value={getCurrentFieldValue(team.id, 'strike_points', team.custom_fields?.strike_points)}
+                              onChange={(e) => handleFieldChange(team.id, 'strike_points', parseInt(e.target.value) || 0)}
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  updateTeamField(team.id, 'strike_points', parseInt(e.currentTarget.value) || 0);
+                                }
+                              }}
+                              onBlur={(e) => updateTeamField(team.id, 'strike_points', parseInt(e.target.value) || 0)}
+                              className="text-center font-bold text-sm sm:text-base h-10 sm:h-11"
+                              min="0"
+                              max="400"
+                              placeholder="0"
+                            />
+                          ) : (
+                            <div className="text-center font-bold text-base sm:text-lg p-2 sm:p-3 bg-muted rounded h-10 sm:h-11 flex items-center justify-center">
+                              {team.custom_fields?.strike_points || 0}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Tree Points */}
+                        <div className="space-y-2">
+                          <Label className="text-xs sm:text-sm font-medium block">Tree Points</Label>
+                          {isHost ? (
+                            <Input
+                              type="number"
+                              value={getCurrentFieldValue(team.id, 'tree_points', team.custom_fields?.tree_points)}
+                              onChange={(e) => handleFieldChange(team.id, 'tree_points', parseInt(e.target.value) || 0)}
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  updateTeamField(team.id, 'tree_points', parseInt(e.currentTarget.value) || 0);
+                                }
+                              }}
+                              onBlur={(e) => updateTeamField(team.id, 'tree_points', parseInt(e.target.value) || 0)}
+                              className="text-center font-bold text-sm sm:text-base h-10 sm:h-11"
+                              min="0"
+                              max="500"
+                              placeholder="0"
+                            />
+                          ) : (
+                            <div className="text-center font-bold text-base sm:text-lg p-2 sm:p-3 bg-muted rounded h-10 sm:h-11 flex items-center justify-center">
+                              {team.custom_fields?.tree_points || 0}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Circle Points */}
+                        <div className="space-y-2">
+                          <Label className="text-xs sm:text-sm font-medium block">Circle Points</Label>
+                          {isHost ? (
+                            <Input
+                              type="number"
+                              value={getCurrentFieldValue(team.id, 'circle_points', team.custom_fields?.circle_points)}
+                              onChange={(e) => handleFieldChange(team.id, 'circle_points', parseInt(e.target.value) || 0)}
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  updateTeamField(team.id, 'circle_points', parseInt(e.currentTarget.value) || 0);
+                                }
+                              }}
+                              onBlur={(e) => updateTeamField(team.id, 'circle_points', parseInt(e.target.value) || 0)}
+                              className="text-center font-bold text-sm sm:text-base h-10 sm:h-11"
+                              min="0"
+                              max="500"
+                              placeholder="0"
+                            />
+                          ) : (
+                            <div className="text-center font-bold text-base sm:text-lg p-2 sm:p-3 bg-muted rounded h-10 sm:h-11 flex items-center justify-center">
+                              {team.custom_fields?.circle_points || 0}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Minus Points */}
+                        <div className="space-y-2">
+                          <Label className="text-xs sm:text-sm font-medium text-destructive block">Minus Points</Label>
+                          {isHost ? (
+                            <Input
+                              type="number"
+                              value={getCurrentFieldValue(team.id, 'minus_points', team.custom_fields?.minus_points)}
+                              onChange={(e) => handleFieldChange(team.id, 'minus_points', parseInt(e.target.value) || 0)}
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  updateTeamField(team.id, 'minus_points', parseInt(e.currentTarget.value) || 0);
+                                }
+                              }}
+                              onBlur={(e) => updateTeamField(team.id, 'minus_points', parseInt(e.target.value) || 0)}
+                              className="text-center font-bold border-destructive text-sm sm:text-base h-10 sm:h-11"
+                              min="0"
+                              max="1000"
+                              placeholder="0"
+                            />
+                          ) : (
+                            <div className="text-center font-bold text-base sm:text-lg p-2 sm:p-3 bg-destructive/10 text-destructive rounded h-10 sm:h-11 flex items-center justify-center">
+                              {team.custom_fields?.minus_points || 0}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      
-                      {isHost && (
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm" onClick={() => openEditDialog(team)} className="h-8 w-8 p-0">
-                            <Edit3 className="h-3 w-3" />
-                          </Button>
-                          <Button variant="outline" size="sm" onClick={() => deleteTeam(team.id)} className="h-8 w-8 p-0">
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
+
+                      {/* Viewer-only sections for warnings/notes and judge comments */}
+                      {!isHost && team.custom_fields?.warnings_notes && (
+                        <div className="mt-4 space-y-2">
+                          <Label className="text-xs sm:text-sm font-medium text-yellow-800">Warnings/Notes:</Label>
+                          <div className="p-2 sm:p-3 bg-yellow-50 border border-yellow-200 rounded">
+                            <p className="text-xs sm:text-sm text-yellow-700 break-words">{team.custom_fields.warnings_notes}</p>
+                          </div>
                         </div>
                       )}
-                    </div>
-                  </div>
 
-                  {/* OMCBA Scoring Grid */}
-                  <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                    {/* Strike Points */}
-                    <div className="space-y-2">
-                      <Label className="text-xs sm:text-sm font-medium block">Strike Points</Label>
-                      {isHost ? (
-                        <Input
-                          type="number"
-                          value={getCurrentFieldValue(team.id, 'strike_points', team.custom_fields?.strike_points)}
-                          onChange={(e) => handleFieldChange(team.id, 'strike_points', parseInt(e.target.value) || 0)}
-                          onKeyPress={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              updateTeamField(team.id, 'strike_points', parseInt(e.currentTarget.value) || 0);
-                            }
-                          }}
-                          onBlur={(e) => updateTeamField(team.id, 'strike_points', parseInt(e.target.value) || 0)}
-                          className="text-center font-bold text-sm sm:text-base h-10 sm:h-11"
-                          min="0"
-                          max="400"
-                          placeholder="0"
-                        />
-                      ) : (
-                        <div className="text-center font-bold text-base sm:text-lg p-2 sm:p-3 bg-muted rounded h-10 sm:h-11 flex items-center justify-center">
-                          {team.custom_fields?.strike_points || 0}
+                      {!isHost && team.custom_fields?.judge_comments && (
+                        <div className="mt-4 space-y-2">
+                          <Label className="text-xs sm:text-sm font-medium text-blue-800">Judge Comments:</Label>
+                          <div className="p-2 sm:p-3 bg-blue-50 border border-blue-200 rounded">
+                            <p className="text-xs sm:text-sm text-blue-700 break-words">{team.custom_fields.judge_comments}</p>
+                          </div>
                         </div>
                       )}
-                    </div>
 
-                    {/* Tree Points */}
-                    <div className="space-y-2">
-                      <Label className="text-xs sm:text-sm font-medium block">Tree Points</Label>
-                      {isHost ? (
-                        <Input
-                          type="number"
-                          value={getCurrentFieldValue(team.id, 'tree_points', team.custom_fields?.tree_points)}
-                          onChange={(e) => handleFieldChange(team.id, 'tree_points', parseInt(e.target.value) || 0)}
-                          onKeyPress={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              updateTeamField(team.id, 'tree_points', parseInt(e.currentTarget.value) || 0);
-                            }
-                          }}
-                          onBlur={(e) => updateTeamField(team.id, 'tree_points', parseInt(e.target.value) || 0)}
-                          className="text-center font-bold text-sm sm:text-base h-10 sm:h-11"
-                          min="0"
-                          max="500"
-                          placeholder="0"
-                        />
-                      ) : (
-                        <div className="text-center font-bold text-base sm:text-lg p-2 sm:p-3 bg-muted rounded h-10 sm:h-11 flex items-center justify-center">
-                          {team.custom_fields?.tree_points || 0}
+                      {/* Viewer-only team status */}
+                      {!isHost && (
+                        <div className="mt-4 flex items-center gap-2">
+                          <Label className="text-xs sm:text-sm font-medium">Team Status:</Label>
+                          {team.custom_fields?.disqualified ? (
+                            <Badge variant="destructive" className="text-xs">
+                              Scratched/Disqualified
+                            </Badge>
+                          ) : (
+                            <Badge variant="secondary" className="text-xs">
+                              Active
+                            </Badge>
+                          )}
                         </div>
                       )}
-                    </div>
-
-                    {/* Circle Points */}
-                    <div className="space-y-2">
-                      <Label className="text-xs sm:text-sm font-medium block">Circle Points</Label>
-                      {isHost ? (
-                        <Input
-                          type="number"
-                          value={getCurrentFieldValue(team.id, 'circle_points', team.custom_fields?.circle_points)}
-                          onChange={(e) => handleFieldChange(team.id, 'circle_points', parseInt(e.target.value) || 0)}
-                          onKeyPress={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              updateTeamField(team.id, 'circle_points', parseInt(e.currentTarget.value) || 0);
-                            }
-                          }}
-                          onBlur={(e) => updateTeamField(team.id, 'circle_points', parseInt(e.target.value) || 0)}
-                          className="text-center font-bold text-sm sm:text-base h-10 sm:h-11"
-                          min="0"
-                          max="500"
-                          placeholder="0"
-                        />
-                      ) : (
-                        <div className="text-center font-bold text-base sm:text-lg p-2 sm:p-3 bg-muted rounded h-10 sm:h-11 flex items-center justify-center">
-                          {team.custom_fields?.circle_points || 0}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Minus Points */}
-                    <div className="space-y-2">
-                      <Label className="text-xs sm:text-sm font-medium text-destructive block">Minus Points</Label>
-                      {isHost ? (
-                        <Input
-                          type="number"
-                          value={getCurrentFieldValue(team.id, 'minus_points', team.custom_fields?.minus_points)}
-                          onChange={(e) => handleFieldChange(team.id, 'minus_points', parseInt(e.target.value) || 0)}
-                          onKeyPress={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              updateTeamField(team.id, 'minus_points', parseInt(e.currentTarget.value) || 0);
-                            }
-                          }}
-                          onBlur={(e) => updateTeamField(team.id, 'minus_points', parseInt(e.target.value) || 0)}
-                          className="text-center font-bold border-destructive text-sm sm:text-base h-10 sm:h-11"
-                          min="0"
-                          max="1000"
-                          placeholder="0"
-                        />
-                      ) : (
-                        <div className="text-center font-bold text-base sm:text-lg p-2 sm:p-3 bg-destructive/10 text-destructive rounded h-10 sm:h-11 flex items-center justify-center">
-                          {team.custom_fields?.minus_points || 0}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Viewer-only sections for warnings/notes and judge comments */}
-                  {!isHost && team.custom_fields?.warnings_notes && (
-                    <div className="mt-4 space-y-2">
-                      <Label className="text-xs sm:text-sm font-medium text-yellow-800">Warnings/Notes:</Label>
-                      <div className="p-2 sm:p-3 bg-yellow-50 border border-yellow-200 rounded">
-                        <p className="text-xs sm:text-sm text-yellow-700 break-words">{team.custom_fields.warnings_notes}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {!isHost && team.custom_fields?.judge_comments && (
-                    <div className="mt-4 space-y-2">
-                      <Label className="text-xs sm:text-sm font-medium text-blue-800">Judge Comments:</Label>
-                      <div className="p-2 sm:p-3 bg-blue-50 border border-blue-200 rounded">
-                        <p className="text-xs sm:text-sm text-blue-700 break-words">{team.custom_fields.judge_comments}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Viewer-only team status */}
-                  {!isHost && (
-                    <div className="mt-4 flex items-center gap-2">
-                      <Label className="text-xs sm:text-sm font-medium">Team Status:</Label>
-                      {team.custom_fields?.disqualified ? (
-                        <Badge variant="destructive" className="text-xs">
-                          Scratched/Disqualified
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary" className="text-xs">
-                          Active
-                        </Badge>
-                      )}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                    </CollapsibleContent>
+                  </CardContent>
+                </Card>
+              </Collapsible>
             ))}
           </div>
         )}
