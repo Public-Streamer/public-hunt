@@ -39,6 +39,7 @@ import { useAppContext } from "@/contexts/AppContext";
 import { updateEventMetaTags, resetDefaultMetaTags } from "@/lib/metaTags";
 import { useStreamingControls } from "@/hooks/useStreamingControls";
 import { useScoreboardTeams } from "@/hooks/useScoreboardTeams";
+import { useEventScoreboardMeta } from "@/hooks/useEventScoreboardMeta";
 
 interface EventData {
   id: string;
@@ -82,14 +83,17 @@ const EventPage: React.FC = () => {
   const [serverUrl, setServerUrl] = useState<string | null>(null);
   const [isStreamer, setIsStreamer] = useState(false);
 
+  // Hook to track scoreboard metadata changes (creation/deletion of scoreboards)
+  const { selectedGameType, scoreboardName } = useEventScoreboardMeta(eventData?.id || '');
+  
   // Hook to track scoreboard teams for conditional rendering
   const { hasTeams: hasCustomTeams } = useScoreboardTeams(
     eventData?.id || '', 
-    eventData?.metadata?.selectedGameType === 'custom' ? 'custom' : undefined
+    selectedGameType === 'custom' ? 'custom' : undefined
   );
   const { hasTeams: hasCoonHuntTeams } = useScoreboardTeams(
     eventData?.id || '', 
-    eventData?.metadata?.selectedGameType === 'coon_hunt' ? 'coon_hunt' : undefined
+    selectedGameType === 'coon_hunt' ? 'coon_hunt' : undefined
   );
 
   useEffect(() => {
@@ -152,12 +156,8 @@ const EventPage: React.FC = () => {
                 if (payload.new.viewer_count !== payload.old.viewer_count) {
                   updatedEvent.viewer_count = payload.new.viewer_count;
                 }
-                // Only update metadata if scoreboard title changed (affects UI display)
-                const oldScoreboardTitle = payload.old.metadata?.scoreboard_title;
-                const newScoreboardTitle = payload.new.metadata?.scoreboard_title;
-                if (oldScoreboardTitle !== newScoreboardTitle) {
-                  updatedEvent.metadata = payload.new.metadata;
-                }
+                // Remove metadata updates from here since useEventScoreboardMeta handles them
+                // This prevents duplicate updates and reduces re-renders
                 
                 return updatedEvent;
               });
@@ -567,13 +567,13 @@ const EventPage: React.FC = () => {
 
                      {/* Scoreboard - Show only when there are teams */}
               {currentUser && (
-                (eventData?.metadata?.selectedGameType === 'custom' && hasCustomTeams) || 
-                (eventData?.metadata?.selectedGameType === 'coon_hunt' && hasCoonHuntTeams)
+                (selectedGameType === 'custom' && hasCustomTeams) || 
+                (selectedGameType === 'coon_hunt' && hasCoonHuntTeams)
               ) && (
                 <div className="p-5">
-                  {eventData?.metadata?.selectedGameType === 'custom' ? (
+                  {selectedGameType === 'custom' ? (
                     <CustomScoreboard eventId={eventData.id} isHost={false} />
-                  ) : eventData?.metadata?.selectedGameType === 'coon_hunt' ? (
+                  ) : selectedGameType === 'coon_hunt' ? (
                     <CoonHuntScoreboard eventId={eventData.id} isHost={false} />
                   ) : null}
                 </div>

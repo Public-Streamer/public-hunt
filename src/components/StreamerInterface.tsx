@@ -48,6 +48,7 @@ import { PinnedMessageSection } from "@/components/PinnedMessageSection";
 import EventProductionTeam from "@/components/EventProductionTeam";
 import { useStreamName } from "@/hooks/useStreamName";
 import { useScoreboardTeams } from "@/hooks/useScoreboardTeams";
+import { useEventScoreboardMeta } from "@/hooks/useEventScoreboardMeta";
 
 interface StreamerInterfaceProps {
   eventId: string;
@@ -86,8 +87,14 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   const streamName = useStreamName(track[0]?.participant);
   
   
-  // Scoreboard state management
-  const [selectedGameType, setSelectedGameType] = useState<string | null>(null);
+  // Real-time scoreboard metadata tracking
+  const { selectedGameType: realtimeGameType, scoreboardName } = useEventScoreboardMeta(eventId);
+  
+  // Local state for game type (prioritize real-time data)
+  const [localSelectedGameType, setLocalSelectedGameType] = useState<string | null>(null);
+  const selectedGameType = realtimeGameType || localSelectedGameType;
+  
+  // Legacy state (kept for compatibility)
   const [teams, setTeams] = useState<any[]>([]);
   const [loadingScoreboard, setLoadingScoreboard] = useState(true);
 
@@ -114,7 +121,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
 
       const gameType = (event?.metadata as any)?.selectedGameType;
       if (gameType) {
-        setSelectedGameType(gameType);
+        setLocalSelectedGameType(gameType);
         // Load teams for this game type
         await fetchTeams(gameType);
       }
@@ -181,8 +188,8 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   };
 
   // Handle game type selection
-  const handleGameTypeSelect = (gameType: string) => {
-    setSelectedGameType(gameType);
+  const handleGameTypeSelect = async (gameType: string) => {
+    setLocalSelectedGameType(gameType);
     saveGameTypeToEvent(gameType);
     setTeams([]); // Clear existing teams
     toast({
@@ -218,7 +225,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
           })
           .eq('id', eventId);
 
-        setSelectedGameType(null);
+        setLocalSelectedGameType(null);
         setTeams([]);
         toast({
           title: "Success",
@@ -658,7 +665,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                       {userRole === "host" && (
                         <Button 
                           variant="outline" 
-                          onClick={() => setSelectedGameType(null)}
+                          onClick={() => setLocalSelectedGameType(null)}
                           className="mt-4"
                         >
                           Choose Different Game
