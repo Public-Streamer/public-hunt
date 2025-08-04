@@ -69,7 +69,7 @@ const EventPage: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user: currentUser, userProfile: currentUserProfile } = useAppContext();
-  const controls = useStreamingControls(eventId);
+  // const controls = useStreamingControls(eventId);
 
   const [eventData, setEventData] = useState<EventData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -599,13 +599,13 @@ const EventPage: React.FC = () => {
                       )}
                       {/* Viewer Count */}
                       <div className="absolute top-2 right-2">
-                    <Badge
+                    {/* <Badge
                       variant="secondary"
                       className="flex items-center gap-1 text-xs"
                     >
                       <Eye className="h-3 w-3" />
                       {controls?.participantCount - 1}
-                    </Badge>
+                    </Badge> */}
                   </div>
                     </>
                   )}
