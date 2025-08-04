@@ -399,7 +399,8 @@ const Events: React.FC = () => {
                   timeUntilStart: getTimeUntilStart(new Date(`${event.date}T${event.time}`)),
                   participants: [],
                   description: event.description || '',
-                  subscribers: 0
+                  subscribers: 0,
+                  slug: event.slug
                 }))}
                 searchTerm={searchTerm}
                 memberSearch={memberSearch}

@@ -17,6 +17,7 @@ interface ScheduledEvent {
   participants: string[];
   description?: string;
   subscribers?: number;
+  slug?: string;
 }
 
 interface ScheduledEventsGridProps {
