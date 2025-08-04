@@ -588,15 +588,17 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
             {/* Pinned Message Section */}
             <PinnedMessageSection eventId={eventId} isHost={userRole === "host"} />
 
-            {/* Scoreboard Section - Only show when there are teams or when host is creating */}
+            {/* Scoreboard Section - Show for hosts (when creating or managing) and streamers (when teams exist) */}
             {(userRole === "host" || userRole === "streamer") && (
-              // Show scoreboard card only if:
-              // 1. Host and no game type selected (to allow creation)
-              // 2. Host and has teams for the selected game type
+              // Show scoreboard card if:
+              // 1. Host and no game type selected (to allow creation) OR
+              // 2. Host and has selected a game type (to allow team management) OR  
               // 3. Streamer and has teams for the selected game type
-              (!selectedGameType && userRole === "host") ||
-              (selectedGameType === 'custom' && hasCustomTeams) ||
-              (selectedGameType === 'coon_hunt' && hasCoonHuntTeams)
+              (userRole === "host" && (!selectedGameType || selectedGameType)) ||
+              (userRole === "streamer" && (
+                (selectedGameType === 'custom' && hasCustomTeams) ||
+                (selectedGameType === 'coon_hunt' && hasCoonHuntTeams)
+              ))
             ) && (
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
