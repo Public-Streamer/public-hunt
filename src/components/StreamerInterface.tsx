@@ -93,12 +93,8 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   // Local state for game type (prioritize real-time data)
   const [localSelectedGameType, setLocalSelectedGameType] = useState<string | null>(null);
   const selectedGameType = realtimeGameType || localSelectedGameType;
-  
-  // Legacy state (kept for compatibility)
-  const [teams, setTeams] = useState<any[]>([]);
-  const [loadingScoreboard, setLoadingScoreboard] = useState(true);
 
-  // Hook to track scoreboard teams for conditional rendering
+  // Real-time team count tracking
   const { hasTeams: hasCustomTeams } = useScoreboardTeams(
     eventId, 
     selectedGameType === 'custom' ? 'custom' : undefined
@@ -107,6 +103,11 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     eventId, 
     selectedGameType === 'coon_hunt' ? 'coon_hunt' : undefined
   );
+  
+  // Legacy state (kept for compatibility)
+  const [teams, setTeams] = useState<any[]>([]);
+  const [loadingScoreboard, setLoadingScoreboard] = useState(true);
+
 
   // Load event metadata and selected game type
   const loadEventData = async () => {

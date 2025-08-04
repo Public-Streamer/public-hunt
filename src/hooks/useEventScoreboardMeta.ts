@@ -64,6 +64,7 @@ export const useEventScoreboardMeta = (eventId: string): UseEventScoreboardMetaR
             const oldScoreboardName = oldMetadata.scoreboardName;
             const newScoreboardName = newMetadata.scoreboardName;
             
+            // Only update if actually changed to prevent unnecessary re-renders
             if (oldGameType !== newGameType) {
               console.log('[useEventScoreboardMeta] Game type changed:', oldGameType, '->', newGameType);
               setSelectedGameType(newGameType || null);

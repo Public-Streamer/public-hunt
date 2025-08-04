@@ -66,12 +66,14 @@ export const useScoreboardTeams = (eventId: string, scoreboardType?: string): Us
             
             if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
               if (newRecord?.scoreboard_type !== scoreboardType) {
+                console.log('[useScoreboardTeams] Ignoring event for different scoreboard type:', newRecord?.scoreboard_type, 'vs', scoreboardType);
                 return; // Ignore changes for different scoreboard types
               }
             }
             
             if (payload.eventType === 'DELETE') {
               // For DELETE events, always decrement count since filter ensures it matches our event
+              console.log('[useScoreboardTeams] Team deleted, updating count');
               setTeamCount(prev => {
                 const newCount = Math.max(0, prev - 1);
                 setHasTeams(newCount > 0);
@@ -83,6 +85,7 @@ export const useScoreboardTeams = (eventId: string, scoreboardType?: string): Us
           }
           
           if (payload.eventType === 'INSERT') {
+            console.log('[useScoreboardTeams] Team inserted, updating count');
             setTeamCount(prev => {
               const newCount = prev + 1;
               setHasTeams(newCount > 0);

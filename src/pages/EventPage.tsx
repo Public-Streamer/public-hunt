@@ -96,6 +96,12 @@ const EventPage: React.FC = () => {
     selectedGameType === 'coon_hunt' ? 'coon_hunt' : undefined
   );
 
+  // Determine if scoreboard should be visible
+  const showScoreboard = selectedGameType && (
+    (selectedGameType === 'custom' && hasCustomTeams) || 
+    (selectedGameType === 'coon_hunt' && hasCoonHuntTeams)
+  );
+
   useEffect(() => {
     if (!eventId) return;
 
@@ -566,10 +572,7 @@ const EventPage: React.FC = () => {
               </div>
 
                      {/* Scoreboard - Show only when there are teams */}
-              {currentUser && (
-                (selectedGameType === 'custom' && hasCustomTeams) || 
-                (selectedGameType === 'coon_hunt' && hasCoonHuntTeams)
-              ) && (
+              {currentUser && showScoreboard && (
                 <div className="p-5">
                   {selectedGameType === 'custom' ? (
                     <CustomScoreboard eventId={eventData.id} isHost={false} />
