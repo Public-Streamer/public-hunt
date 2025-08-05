@@ -380,13 +380,48 @@ export const EnhancedScoreboardControls: React.FC<EnhancedScoreboardControlsProp
                           <div>
                             <Label htmlFor="teamColor">Team Color</Label>
                             <div className="grid grid-cols-6 gap-2 mt-2">
-                              {TEAM_COLORS.map((color) => (
-                                <button
-                                  key={color}
-                                  type="button"
-                                  className={`w-8 h-8 rounded border-2 ${editingTeam.team_color === color ? 'border-black' : 'border-gray-300'}`}
-                                  style={{ backgroundColor: color }}
-                                  onClick={() => setEditingTeam(prev => prev ? { ...prev, team_color: color } : null)}
+                               {TEAM_COLORS.map((color) => (
+                                 <button
+                                   key={color}
+                                   type="button"
+                                   className={`w-8 h-8 rounded border-2 ${editingTeam.team_color === color ? 'border-foreground' : 'border-transparent'}`}
+                                   style={{ backgroundColor: color }}
+                                   onClick={async () => {
+                                     if (!editingTeam) return;
+                                     
+                                     // Update local state immediately for instant feedback
+                                     setEditingTeam(prev => prev ? { ...prev, team_color: color } : null);
+                                     
+                                     // Update in database for real-time sync across all users
+                                     try {
+                                       const { error } = await supabase.functions.invoke('scoreboard-operations', {
+                                         body: {
+                                           action: 'updateTeam',
+                                           teamId: editingTeam.id,
+                                           teamName: editingTeam.team_name,
+                                           score: editingTeam.score,
+                                           teamColor: color,
+                                           customFields: editingTeam.custom_fields
+                                         }
+                                       });
+
+                                       if (error) throw error;
+
+                                       // Update teams list to reflect change
+                                       setTeams(prev => prev.map(team => 
+                                         team.id === editingTeam.id ? { ...team, team_color: color } : team
+                                       ));
+                                     } catch (error) {
+                                       console.error('Error updating team color:', error);
+                                       toast({
+                                         title: "Error",
+                                         description: "Failed to update team color",
+                                         variant: "destructive",
+                                       });
+                                       // Revert local state on error
+                                       setEditingTeam(prev => prev ? { ...prev, team_color: editingTeam.team_color } : null);
+                                     }
+                                   }}
                                 />
                               ))}
                             </div>

@@ -970,20 +970,46 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
                 <div>
                   <Label>Team Color</Label>
                   <div className="flex gap-2 mt-2">
-                    {TEAM_COLORS.map((color) => (
-                      <button
-                        key={color}
-                        className={`w-8 h-8 rounded-full border-2 ${
-                          editingTeam.team_color === color ? 'border-foreground' : 'border-transparent'
-                        }`}
-                        style={{ backgroundColor: color }}
-                        onClick={() => setEditingTeam({
-                          ...editingTeam,
-                          team_color: color
-                        })}
-                      />
-                    ))}
-                  </div>
+                     {TEAM_COLORS.map((color) => (
+                       <button
+                         key={color}
+                         className={`w-8 h-8 rounded-full border-2 ${
+                           editingTeam.team_color === color ? 'border-foreground' : 'border-transparent'
+                         }`}
+                         style={{ backgroundColor: color }}
+                         onClick={async () => {
+                           if (!editingTeam) return;
+                           
+                           // Update local state immediately for instant feedback
+                           setEditingTeam({
+                             ...editingTeam,
+                             team_color: color
+                           });
+                           
+                           // Update in database for real-time sync across all users
+                           try {
+                             await updateTeam(editingTeam.id, {
+                               team_name: editingTeam.team_name,
+                               team_color: color,
+                               custom_fields: editingTeam.custom_fields
+                             });
+                           } catch (error) {
+                             console.error('Error updating team color:', error);
+                             toast({
+                               title: "Error",
+                               description: "Failed to update team color",
+                               variant: "destructive",
+                             });
+                             // Revert local state on error
+                             setEditingTeam({
+                               ...editingTeam,
+                               team_color: editingTeam.team_color
+                             });
+                           }
+                         }}
+                        />
+                     ))}
+                   </div>
                 </div>
 
                 {/* Template-based custom fields (read-only display) */}
