@@ -634,32 +634,6 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                 disabled={loading}
                 className="text-sm"
               />
-              <Input
-                placeholder="Handler name..."
-                value={newHandlerName}
-                onChange={(e) => setNewHandlerName(e.target.value)}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    createTeam();
-                  }
-                }}
-                disabled={loading}
-                className="text-sm"
-              />
-              <Input
-                placeholder="Dog name..."
-                value={newDogName}
-                onChange={(e) => setNewDogName(e.target.value)}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    createTeam();
-                  }
-                }}
-                disabled={loading}
-                className="text-sm"
-              />
               <Button 
                 onClick={createTeam} 
                 disabled={loading || !newTeamName.trim()}
