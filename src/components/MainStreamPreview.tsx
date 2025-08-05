@@ -33,11 +33,11 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const videoContainerRef = useRef<HTMLDivElement>(null);
   const videoElementRef = useRef<HTMLVideoElement>(null);
-  const [visibleMessages, setVisibleMessages] = useState<any[]>([]);
   const [chatMessage, setChatMessage] = useState("");
   const [isChatVisible, setIsChatVisible] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
+  const [isScrolledToBottom, setIsScrolledToBottom] = useState(true);
   const hideControlsTimer = useRef<NodeJS.Timeout | null>(null);
   const controls = useStreamingControls(eventId);
 
@@ -49,19 +49,21 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
            !(window as any).MSStream;
   };
 
-  // Auto-scroll to bottom when new messages arrive
+  // Auto-scroll to bottom only if user is already at bottom when new messages arrive
   useEffect(() => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop =
-        chatContainerRef.current.scrollHeight;
+    if (chatContainerRef.current && isScrolledToBottom) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, isScrolledToBottom]);
 
-  // Show only the latest 5 messages for better readability
-  useEffect(() => {
-    const latest = messages.slice(-5);
-    setVisibleMessages(latest);
-  }, [messages]);
+  // Handle scroll events to detect if user is at bottom
+  const handleChatScroll = () => {
+    if (chatContainerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+      const isAtBottom = scrollHeight - scrollTop - clientHeight < 50; // 50px threshold
+      setIsScrolledToBottom(isAtBottom);
+    }
+  };
 
   const handleSendMessage = async () => {
     if (chatMessage.trim()) {
@@ -315,42 +317,73 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
         </div>
 
 
-        {/* Chat Messages Overlay - Facebook Live Style */}
-        {isChatVisible && visibleMessages.length > 0 && (
+        {/* Chat Messages Overlay - Enhanced with Full History */}
+        {isChatVisible && (
           <div
             ref={chatContainerRef}
-            className={`flex flex-col justify-end absolute bottom-0  h-full  w-2/4 overflow-y-scroll space-y-1 sm:space-y-3 pointer-events-auto transition-opacity duration-300 bg-[linear-gradient(90deg,_rgba(0,60,84,1)_0%,_rgba(87,199,133,0)_99%)] ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100  z-0'}`}
+            onScroll={handleChatScroll}
+            className={`absolute bottom-0 left-0 h-full w-2/4 overflow-y-auto pointer-events-auto transition-opacity duration-300 bg-[linear-gradient(90deg,_rgba(0,60,84,0.8)_0%,_rgba(87,199,133,0)_99%)] ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100 z-0'}`}
             style={{ 
               scrollBehavior: "smooth",
               scrollbarWidth: "thin",
               scrollbarColor: "rgba(255, 255, 255, 0.3) transparent"
             }}
           >
-            <div className="pb-16">
-            {visibleMessages.map((message, index) => {
-              const opacity = Math.max(0.4, 1 - (visibleMessages.length - 1 - index) * 0.15);
-              return (
-                <div
-                  key={`${message.id}-${index}`}
-                  className=" py-2  text-white px-2  sm:px-3  rounded-lg max-w-[45vw] sm:max-w-xs md:max-w-sm shadow-lg animate-fade-in transition-opacity duration-300 "
-                  style={{
-                    wordWrap: "break-word",
-                    hyphens: "auto",
-                    opacity: opacity,
-                  }}
-                >
-                  <div className="flex flex-col">
-                    <span className="font-semibold text-blue-200 text-xs sm:text-sm leading-tight truncate max-w-full">
-                      {message.display_name || "Anonymous"}
-                    </span>
-                    <span className="text-white text-xs sm:text-sm leading-relaxed break-words">
-                      {message.message}
-                    </span>
-                  </div>
+            {/* Scroll indicator for more messages above */}
+            {messages.length > 0 && !isScrolledToBottom && (
+              <div className="sticky top-0 z-10 bg-black/40 backdrop-blur-sm text-white text-xs text-center py-1 border-b border-white/20">
+                ↑ Scroll up for more messages
+              </div>
+            )}
+            
+            <div className="flex flex-col p-2 pb-16 space-y-1 sm:space-y-2 min-h-full justify-end">
+              {messages.length === 0 ? (
+                <div className="text-white/60 text-xs text-center py-4">
+                  No messages yet. Be the first to chat!
                 </div>
-              );
-            })}
+              ) : (
+                messages.map((message, index) => {
+                  // Calculate opacity based on scroll position and message age
+                  const isRecent = index >= messages.length - 5;
+                  const baseOpacity = isRecent ? 1 : 0.8;
+                  
+                  return (
+                    <div
+                      key={`${message.id}-${index}`}
+                      className="py-1.5 px-2 sm:px-3 text-white rounded-lg max-w-[45vw] sm:max-w-xs md:max-w-sm shadow-lg animate-fade-in transition-all duration-300 hover:bg-black/20"
+                      style={{
+                        wordWrap: "break-word",
+                        hyphens: "auto",
+                        opacity: baseOpacity,
+                      }}
+                    >
+                      <div className="flex flex-col">
+                        <span className="font-semibold text-blue-200 text-xs sm:text-sm leading-tight truncate max-w-full">
+                          {message.display_name || "Anonymous"}
+                        </span>
+                        <span className="text-white text-xs sm:text-sm leading-relaxed break-words">
+                          {message.message}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
+
+            {/* Scroll to bottom indicator */}
+            {!isScrolledToBottom && messages.length > 0 && (
+              <div 
+                className="absolute bottom-20 right-2 bg-black/60 backdrop-blur-sm text-white rounded-full p-2 cursor-pointer hover:bg-black/80 transition-all duration-200 shadow-lg"
+                onClick={() => {
+                  if (chatContainerRef.current) {
+                    chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+                  }
+                }}
+              >
+                <span className="text-xs">↓</span>
+              </div>
+            )}
           </div>
         )}
 
