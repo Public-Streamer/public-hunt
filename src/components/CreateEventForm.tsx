@@ -8,7 +8,7 @@ import MediaUploader from "@/components/MediaUploader";
 import StreamerSelector from "@/components/StreamerSelector";
 import PriceSlider from "@/components/PriceSlider";
 import CreateEventFormButtons from "@/components/CreateEventFormButtons";
-import ChannelSelector from "@/components/ChannelSelector";
+// import ChannelSelector from "@/components/ChannelSelector"; // Temporarily disabled
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 
@@ -61,10 +61,11 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
     []
   );
   const [teamConfirmed, setTeamConfirmed] = useState(false);
-  const [selectedChannelId, setSelectedChannelId] = useState(
-    formData.channelId || ""
-  );
-  const [channelRequiresApproval, setChannelRequiresApproval] = useState(false);
+  // Channel functionality temporarily disabled
+  // const [selectedChannelId, setSelectedChannelId] = useState(
+  //   formData.channelId || ""
+  // );
+  // const [channelRequiresApproval, setChannelRequiresApproval] = useState(false);
   const { toast } = useToast();
 
   const handleStreamersChange = (streamers: SelectedMember[]) => {
@@ -81,14 +82,15 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
     onInputChange("ticketPrice", clampedValue);
   };
 
-  const handleChannelChange = (
-    channelId: string,
-    requiresApproval: boolean
-  ) => {
-    setSelectedChannelId(channelId);
-    setChannelRequiresApproval(requiresApproval);
-    onInputChange("channelId", channelId);
-  };
+  // Channel functionality temporarily disabled
+  // const handleChannelChange = (
+  //   channelId: string,
+  //   requiresApproval: boolean
+  // ) => {
+  //   setSelectedChannelId(channelId);
+  //   setChannelRequiresApproval(requiresApproval);
+  //   onInputChange("channelId", channelId);
+  // };
 
   const handleMediaUpload = (files: MediaFile[]) => {
     setMediaFiles(files);
@@ -198,7 +200,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       media_urls: mediaFiles.map((f) => f.url).filter(Boolean),
       is_live: false,
       created_by: userData.user.id,
-      channel_id: selectedChannelId || null,
+      // channel_id: selectedChannelId || null, // Temporarily disabled
     };
 
     toast({
@@ -276,9 +278,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
           media_urls: mediaFiles.map((f) => f.url).filter(Boolean),
           is_live: false,
           created_by: userData.user.id,
-          channel_id: channelRequiresApproval
-            ? null
-            : selectedChannelId || null,
+          // channel_id: channelRequiresApproval ? null : selectedChannelId || null, // Temporarily disabled
         })
         .select()
         .single();
@@ -298,48 +298,39 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         await supabase.from("event_streamers").insert(streamerData);
       }
 
-      // Handle channel assignment requests only if approval is required
-      if (channelRequiresApproval && selectedChannelId) {
-        // Create the approval request
-        await supabase.from("event_channel_requests").insert({
-          event_id: data.id,
-          channel_id: selectedChannelId,
-          requested_by: userData.user.id,
-          message: `Event "${formData.name}" requesting assignment to channel`,
-        });
+      // Channel assignment functionality temporarily disabled
+      // if (channelRequiresApproval && selectedChannelId) {
+      //   await supabase.from("event_channel_requests").insert({
+      //     event_id: data.id,
+      //     channel_id: selectedChannelId,
+      //     requested_by: userData.user.id,
+      //     message: `Event "${formData.name}" requesting assignment to channel`,
+      //   });
+      //   
+      //   const { data: channelMasters, error: mastersError } = await supabase
+      //     .from("channel_permissions")
+      //     .select("user_id")
+      //     .eq("channel_id", selectedChannelId)
+      //     .in("role", ["channel_master", "channel_admin"]);
+      //
+      //   if (!mastersError && channelMasters) {
+      //     const notifications = channelMasters.map((master) => ({
+      //       user_id: master.user_id,
+      //       type: "channel_assignment_request",
+      //       title: "New Channel Assignment Request",
+      //       content: `Event "${formData.name}" is requesting assignment to your channel`,
+      //       related_type: "event_channel_request",
+      //       related_id: data.id,
+      //     }));
+      //
+      //     await supabase.from("notifications").insert(notifications);
+      //   }
+      // }
 
-        // Send notification to channel masters/admins
-        const { data: channelMasters, error: mastersError } = await supabase
-          .from("channel_permissions")
-          .select("user_id")
-          .eq("channel_id", selectedChannelId)
-          .in("role", ["channel_master", "channel_admin"]);
-
-        if (!mastersError && channelMasters) {
-          const notifications = channelMasters.map((master) => ({
-            user_id: master.user_id,
-            type: "channel_assignment_request",
-            title: "New Channel Assignment Request",
-            content: `Event "${formData.name}" is requesting assignment to your channel`,
-            related_type: "event_channel_request",
-            related_id: data.id,
-          }));
-
-          await supabase.from("notifications").insert(notifications);
-        }
-
-        toast({
-          title: "Event Created!",
-          description:
-            "Your event has been created and a channel assignment request has been sent for approval.",
-          variant: "default",
-        });
-      } else {
-        toast({
-          title: "Event Created!",
-          description: "Your event has been created successfully.",
-        });
-      }
+      toast({
+        title: "Event Created!",
+        description: "Your event has been created successfully.",
+      });
 
       onSubmit(e);
     } catch (error) {
@@ -417,12 +408,14 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
               />
             </div>
 
+            {/* Channel selector temporarily disabled
             <div>
               <ChannelSelector
                 selectedChannelId={selectedChannelId}
                 onChannelChange={handleChannelChange}
               />
             </div>
+            */}
 
             <div>
               <Label className="text-base font-bold mb-4 block">

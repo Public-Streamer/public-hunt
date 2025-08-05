@@ -1,4 +1,9 @@
 /* 
+Channels functionality temporarily disabled - Channel creation UI has been commented out 
+as requested. All channel-related functionality should remain commented (not deleted) 
+for future restoration when needed. This prevents the "Failed to load your channels
+and companies" error that was occurring in the Create Event page. 
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -242,7 +247,6 @@ const Channels: React.FC = () => {
                   #{index + 1}
                 </div>
                 
-                {/* Channel Thumbnail */}
                 {channel.media_urls && channel.media_urls.length > 0 && (
                   <div className="h-40 overflow-hidden">
                     <img 
@@ -294,6 +298,25 @@ const Channels: React.FC = () => {
           ))}
         </div>
       )}
+    </div>
+  );
+};
+
+export default Channels;
+*/
+
+// Temporary placeholder component while channels are disabled
+import React from 'react';
+
+const Channels: React.FC = () => {
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="text-center">
+        <h1 className="text-3xl font-bold mb-4">Channels Feature</h1>
+        <p className="text-lg text-muted-foreground">
+          Channels functionality is temporarily disabled while we improve the system.
+        </p>
+      </div>
     </div>
   );
 };
