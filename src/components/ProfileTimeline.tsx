@@ -346,7 +346,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
           if (post.event_id) {
             const { data: event } = await supabase
               .from("events")
-              .select("id, name")
+              .select("id, name, slug")
               .eq("id", post.event_id)
               .single();
             eventData = event;
