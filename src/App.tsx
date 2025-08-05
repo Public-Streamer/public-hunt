@@ -46,8 +46,8 @@ const App = () => (
                 <Route path="/" element={<Index />} />
                 <Route path="/create" element={<Create />} />
                 <Route path="/create-episode" element={<CreateEpisode />} />
-                <Route path="/channels" element={<Channels />} />
-                <Route path="/channel/:channelId" element={<ChannelPage />} />
+                {/* <Route path="/channels" element={<Channels />} /> */}
+                {/* <Route path="/channel/:channelId" element={<ChannelPage />} /> */}
                 <Route path="/events" element={<Events />} />
                 <Route path="/event/:eventId" element={<EventPage />} />
                 <Route path="/stage/:eventId" element={<StagePage />} />

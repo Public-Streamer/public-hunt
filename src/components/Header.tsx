@@ -411,7 +411,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                     Create
                   </Link>
                 </TooltipWrapper>
-                <TooltipWrapper content="View and manage all streaming channels on the platform">
+                {/* <TooltipWrapper content="View and manage all streaming channels on the platform">
                   <Link
                     to="/channels"
                     className={`px-2 md:px-3 lg:px-4 py-2 rounded-lg font-semibold text-white border-2 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl drop-shadow-lg text-center text-sm lg:text-base ${
@@ -423,7 +423,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                   >
                     Channels
                   </Link>
-                </TooltipWrapper>
+                </TooltipWrapper> */}
                 <TooltipWrapper content="Browse and join live streaming events">
                   <Link
                     to="/events"

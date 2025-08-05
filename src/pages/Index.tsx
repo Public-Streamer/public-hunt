@@ -160,7 +160,7 @@ const Index: React.FC = () => {
       </div>
 
       {/* Ad Data and Analytics - Moved to bottom (deprioritized) */}
-      <div className="bg-muted/30 py-8">
+      {/* <div className="bg-muted/30 py-8">
         <div className="container mx-auto px-4">
           <h2 className="text-xl font-semibold mb-6 text-muted-foreground">Advertisement Performance</h2>
           <FeaturedAdsCarousel />
@@ -168,7 +168,7 @@ const Index: React.FC = () => {
             <TrendingAnalyticsPanel />
           </div>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };

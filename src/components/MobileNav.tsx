@@ -61,10 +61,10 @@ const MobileNav: React.FC<MobileNavProps> = ({ isOpen, onClose, onLoginClick }) 
             <span className="font-medium">Create</span>
           </Link>
           
-          <Link to="/channels" onClick={onClose} className="flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-gray-100 transition-colors">
+          {/* <Link to="/channels" onClick={onClose} className="flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-gray-100 transition-colors">
             <Tv className="h-5 w-5 text-gray-600" />
             <span className="font-medium">Channels</span>
-          </Link>
+          </Link> */}
           
           <Link to="/events" onClick={onClose} className="flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-gray-100 transition-colors">
             <Calendar className="h-5 w-5 text-gray-600" />
