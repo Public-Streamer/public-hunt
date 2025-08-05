@@ -371,19 +371,21 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
               )}
             </div>
 
-            {/* Scroll to bottom indicator */}
-            {!isScrolledToBottom && messages.length > 0 && (
-              <div 
-                className="absolute bottom-20 right-2 bg-black/60 backdrop-blur-sm text-white rounded-full p-2 cursor-pointer hover:bg-black/80 transition-all duration-200 shadow-lg"
-                onClick={() => {
-                  if (chatContainerRef.current) {
-                    chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-                  }
-                }}
-              >
-                <span className="text-xs">↓</span>
-              </div>
-            )}
+            
+          </div>
+        )}
+
+        {/* Scroll to bottom button - Fixed position */}
+        {isChatVisible && !isScrolledToBottom && messages.length > 0 && (
+          <div 
+            className={`absolute bottom-16 left-2 bg-black/60 backdrop-blur-sm text-white rounded-full p-2 cursor-pointer hover:bg-black/80 transition-all duration-200 shadow-lg z-30 ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100'}`}
+            onClick={() => {
+              if (chatContainerRef.current) {
+                chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+              }
+            }}
+          >
+            <span className="text-xs">↓</span>
           </div>
         )}
 
