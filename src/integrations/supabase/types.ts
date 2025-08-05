@@ -1625,6 +1625,8 @@ export type Database = {
       }
       user_posts: {
         Row: {
+          author_avatar: string | null
+          author_name: string | null
           channel_id: string | null
           comments: number | null
           content: string
@@ -1643,6 +1645,8 @@ export type Database = {
           user_name: string
         }
         Insert: {
+          author_avatar?: string | null
+          author_name?: string | null
           channel_id?: string | null
           comments?: number | null
           content: string
@@ -1661,6 +1665,8 @@ export type Database = {
           user_name: string
         }
         Update: {
+          author_avatar?: string | null
+          author_name?: string | null
           channel_id?: string | null
           comments?: number | null
           content?: string

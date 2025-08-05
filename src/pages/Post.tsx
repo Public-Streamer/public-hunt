@@ -29,6 +29,7 @@ interface UserPost {
   event?: {
     id: string;
     name: string;
+    slug?: string;
     is_live?: boolean;
   };
   channel?: {
@@ -74,7 +75,7 @@ const Post: React.FC = () => {
         if (postData.event_id) {
           const { data } = await supabase
             .from("events")
-            .select("id, name, is_live")
+            .select("id, name, slug, is_live")
             .eq("id", postData.event_id)
             .single();
           eventData = data;
@@ -101,6 +102,7 @@ const Post: React.FC = () => {
             event: data.events ? {
               id: data.events.id,
               name: data.events.name,
+              slug: data.events.slug,
               is_live: data.events.is_live
             } : undefined,
             channel: data.channels ? {
@@ -345,8 +347,8 @@ const Post: React.FC = () => {
       <SocialPost
         postId={post.id}
         author={{
-          name: post.user_name,
-          avatar: undefined,
+          name: (post as any).author_name || post.user_name,
+          avatar: (post as any).author_avatar,
           username: post.user_name,
         }}
         content={post.content}
@@ -360,7 +362,7 @@ const Post: React.FC = () => {
         onLike={handleLike}
         onComment={handleComment}
         onShare={handleShare}
-events={post.event ? [post.event] : []}
+        events={post.event ? [post.event] : []}
         channels={post.channel ? [post.channel] : []}
       />
     </div>
