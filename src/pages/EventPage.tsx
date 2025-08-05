@@ -453,9 +453,9 @@ const EventPage: React.FC = () => {
   };
 
   const goToStage = () => {
-    // Use the actual event UUID for stage navigation, not the URL parameter
-    const targetEventId = eventData?.id || eventId;
-    navigate(`/stage/${targetEventId}`);
+    // Use slug if available, otherwise use event ID
+    const stageUrl = eventData?.slug ? `/stage/${eventData.slug}` : `/stage/${eventData?.id || eventId}`;
+    navigate(stageUrl);
   };
 
   const goBackToEvents = () => {

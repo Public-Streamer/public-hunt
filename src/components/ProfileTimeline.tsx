@@ -846,7 +846,8 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
 
       // Navigate to the event page after a short delay
       setTimeout(() => {
-        window.open(`/stage/${eventResult.id}`, "_blank");
+        const stageUrl = eventResult.slug ? `/stage/${eventResult.slug}` : `/stage/${eventResult.id}`;
+        window.open(stageUrl, "_blank");
       }, 2000);
     } catch (error) {
       console.error("Error creating solo live stream:", error);

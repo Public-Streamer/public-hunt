@@ -233,7 +233,8 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
           description: "Your event is now live and streaming.",
         });
         // Navigate to the event page
-        window.location.href = `/stage/${data.id}`;
+        const stageUrl = data.slug ? `/stage/${data.slug}` : `/stage/${data.id}`;
+        window.location.href = stageUrl;
       }, 1000);
     } catch (error) {
       console.error("Error creating live event:", error);
