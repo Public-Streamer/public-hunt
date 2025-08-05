@@ -8,7 +8,7 @@ import MediaUploader from "@/components/MediaUploader";
 import StreamerSelector from "@/components/StreamerSelector";
 import PriceSlider from "@/components/PriceSlider";
 import CreateEventFormButtons from "@/components/CreateEventFormButtons";
-// import ChannelSelector from "@/components/ChannelSelector"; // Temporarily disabled
+// Channel functionality completely disabled to prevent infinite loops
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 
@@ -61,11 +61,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
     []
   );
   const [teamConfirmed, setTeamConfirmed] = useState(false);
-  // Channel functionality temporarily disabled
-  // const [selectedChannelId, setSelectedChannelId] = useState(
-  //   formData.channelId || ""
-  // );
-  // const [channelRequiresApproval, setChannelRequiresApproval] = useState(false);
+  // Channel functionality completely disabled
   const { toast } = useToast();
 
   const handleStreamersChange = (streamers: SelectedMember[]) => {

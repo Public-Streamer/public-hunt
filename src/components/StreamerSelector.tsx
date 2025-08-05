@@ -75,7 +75,9 @@ const StreamerSelector: React.FC<StreamerSelectorProps> = ({ onStreamersChange, 
 
   // Update selectedMembers when initialStreamers changes
   useEffect(() => {
-    setSelectedMembers(initialStreamers);
+    if (JSON.stringify(initialStreamers) !== JSON.stringify(selectedMembers)) {
+      setSelectedMembers(initialStreamers);
+    }
   }, [initialStreamers]);
 
   const filteredSubscribers = subscribers.filter(sub => 
