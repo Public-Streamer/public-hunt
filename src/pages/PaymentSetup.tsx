@@ -32,7 +32,7 @@ const PaymentSetup: React.FC = () => {
         description: "Your Stripe account has been set up successfully!",
       });
       // Clear URL parameters
-      window.history.replaceState({}, "", "/payment-setup");
+      window.history.replaceState({}, "", "/payments");
     } else if (refresh === "true") {
       toast({
         title: "Setup Incomplete",
@@ -40,7 +40,7 @@ const PaymentSetup: React.FC = () => {
         variant: "destructive",
       });
       // Clear URL parameters
-      window.history.replaceState({}, "", "/payment-setup");
+      window.history.replaceState({}, "", "/payments");
     } else if (error) {
       toast({
         title: "Setup Error",
@@ -48,7 +48,7 @@ const PaymentSetup: React.FC = () => {
         variant: "destructive",
       });
       // Clear URL parameters
-      window.history.replaceState({}, "", "/payment-setup");
+      window.history.replaceState({}, "", "/payments");
     }
   }, [searchParams, navigate, toast, isAuthenticated]);
 
@@ -89,7 +89,7 @@ const PaymentSetup: React.FC = () => {
         </p>
       </div>
 
-      {showWizard && <StripeAccountForm  />}
+      {showWizard && <StripeAccountForm />}
     </div>
   );
 };

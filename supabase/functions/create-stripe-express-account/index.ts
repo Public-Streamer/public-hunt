@@ -64,9 +64,7 @@ serve(async (req) => {
       if (!account.details_submitted) {
         const accountLink = await stripe.accountLinks.create({
           account: existingAccount.stripe_account_id,
-          refresh_url: `${req.headers.get(
-            "origin"
-          )}/payment-setup?refresh=true`,
+          refresh_url: `${req.headers.get("origin")}/payments?refresh=true`,
           return_url: `${req.headers.get("origin")}/payments?success=true`,
           type: "account_onboarding",
         });

@@ -1,39 +1,47 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Badge } from '@/components/ui/badge';
-import { MessageCircle, Bot, Sparkles } from 'lucide-react';
-import EnhancedQABlog from '@/components/EnhancedQABlog';
-import AIAgent from '@/components/AIAgent';
-import DynamicFAQ from '@/components/DynamicFAQ';
-import TooltipWrapper from '@/components/ui/tooltip-wrapper';
-import { useIsMobile } from '@/hooks/use-mobile';
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
+import { MessageCircle, Bot, Sparkles } from "lucide-react";
+import EnhancedQABlog from "@/components/EnhancedQABlog";
+import AIAgent from "@/components/AIAgent";
+import DynamicFAQ from "@/components/DynamicFAQ";
+import TooltipWrapper from "@/components/ui/tooltip-wrapper";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const QA = () => {
   const isMobile = useIsMobile();
   const [dynamicFAQs, setDynamicFAQs] = useState([
     {
-      id: 'payment-setup',
-      question: 'How do I set up payments for my channel?',
-      answer: 'Go to Admin page and complete the Payment Setup Wizard. You\'ll need to create or link a Stripe account and provide banking information.',
-      category: 'payments',
-      priority: 1
+      id: "payments",
+      question: "How do I set up payments for my channel?",
+      answer:
+        "Go to Admin page and complete the Payment Setup Wizard. You'll need to create or link a Stripe account and provide banking information.",
+      category: "payments",
+      priority: 1,
     },
     {
-      id: 'channel-creation',
-      question: 'What are the requirements for creating a channel?',
-      answer: 'You need to complete your profile, set up payment processing, and provide channel details including name, description, and category.',
-      category: 'channels',
-      priority: 2
+      id: "channel-creation",
+      question: "What are the requirements for creating a channel?",
+      answer:
+        "You need to complete your profile, set up payment processing, and provide channel details including name, description, and category.",
+      category: "channels",
+      priority: 2,
     },
     {
-      id: 'event-monetization',
-      question: 'How do I charge for event tickets?',
-      answer: 'After setting up your Stripe account, you can set ticket prices when creating events. Funds are automatically transferred to your linked bank account.',
-      category: 'events',
-      priority: 3
-    }
+      id: "event-monetization",
+      question: "How do I charge for event tickets?",
+      answer:
+        "After setting up your Stripe account, you can set ticket prices when creating events. Funds are automatically transferred to your linked bank account.",
+      category: "events",
+      priority: 3,
+    },
   ]);
 
   const handleFAQUpdate = (newFAQs: any[]) => {
@@ -48,7 +56,8 @@ const QA = () => {
             Q&A Center
           </h1>
           <p className="text-lg text-muted-foreground">
-            Learn about Public Streamer and get help from the community and AI assistant
+            Learn about Public Streamer and get help from the community and AI
+            assistant
           </p>
         </div>
 
@@ -59,8 +68,8 @@ const QA = () => {
         <Tabs defaultValue="faq" className="w-full">
           <TabsList className="grid w-full grid-cols-3 h-auto min-h-[44px] gap-1 p-1">
             <TooltipWrapper content="Frequently Asked Questions and User Guide">
-              <TabsTrigger 
-                value="faq" 
+              <TabsTrigger
+                value="faq"
                 className="flex items-center justify-center p-2 text-xs sm:text-sm lg:text-base min-h-[40px] text-center leading-tight"
               >
                 <span className="hidden sm:inline">FAQ & Guide</span>
@@ -68,7 +77,7 @@ const QA = () => {
               </TabsTrigger>
             </TooltipWrapper>
             <TooltipWrapper content="AI-generated Frequently Asked Questions">
-              <TabsTrigger 
+              <TabsTrigger
                 value="ai-faq"
                 className="flex items-center justify-center p-2 text-xs sm:text-sm lg:text-base min-h-[40px] text-center leading-tight"
               >
@@ -79,7 +88,7 @@ const QA = () => {
               </TabsTrigger>
             </TooltipWrapper>
             <TooltipWrapper content="Community Questions and Answers">
-              <TabsTrigger 
+              <TabsTrigger
                 value="community"
                 className="flex items-center justify-center p-2 text-xs sm:text-sm lg:text-base min-h-[40px] text-center leading-tight"
               >
@@ -88,7 +97,7 @@ const QA = () => {
               </TabsTrigger>
             </TooltipWrapper>
           </TabsList>
-          
+
           <TabsContent value="faq" className="space-y-6">
             <Card>
               <CardHeader>
@@ -99,7 +108,9 @@ const QA = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground mb-4">
-                  Public Streamer is a live streaming platform that connects creators with audiences through interactive events and channels.
+                  Public Streamer is a live streaming platform that connects
+                  creators with audiences through interactive events and
+                  channels.
                 </p>
               </CardContent>
             </Card>
@@ -122,7 +133,7 @@ const QA = () => {
                       </div>
                     </AccordionContent>
                   </AccordionItem>
-                  
+
                   <AccordionItem value="creator">
                     <AccordionTrigger>Event Creator</AccordionTrigger>
                     <AccordionContent>
@@ -135,7 +146,7 @@ const QA = () => {
                       </div>
                     </AccordionContent>
                   </AccordionItem>
-                  
+
                   <AccordionItem value="master">
                     <AccordionTrigger>Channel Master</AccordionTrigger>
                     <AccordionContent>
@@ -149,7 +160,7 @@ const QA = () => {
                       </div>
                     </AccordionContent>
                   </AccordionItem>
-                  
+
                   <AccordionItem value="admin">
                     <AccordionTrigger>Platform Admin</AccordionTrigger>
                     <AccordionContent>
@@ -182,9 +193,11 @@ const QA = () => {
                       <p>4. Choose your role (Viewer or Creator)</p>
                     </AccordionContent>
                   </AccordionItem>
-                  
+
                   <AccordionItem value="channel">
-                    <AccordionTrigger>Creating Your First Channel</AccordionTrigger>
+                    <AccordionTrigger>
+                      Creating Your First Channel
+                    </AccordionTrigger>
                     <AccordionContent>
                       <p>1. Navigate to the Create page</p>
                       <p>2. Fill out channel details and description</p>
@@ -193,9 +206,11 @@ const QA = () => {
                       <p>5. Publish your channel</p>
                     </AccordionContent>
                   </AccordionItem>
-                  
+
                   <AccordionItem value="event">
-                    <AccordionTrigger>Hosting Your First Event</AccordionTrigger>
+                    <AccordionTrigger>
+                      Hosting Your First Event
+                    </AccordionTrigger>
                     <AccordionContent>
                       <p>1. Select or create a channel</p>
                       <p>2. Set event title, description, and schedule</p>
@@ -208,11 +223,11 @@ const QA = () => {
               </CardContent>
             </Card>
           </TabsContent>
-          
+
           <TabsContent value="ai-faq" className="space-y-6">
             <DynamicFAQ faqs={dynamicFAQs} />
           </TabsContent>
-          
+
           <TabsContent value="community" className="space-y-6">
             <EnhancedQABlog />
           </TabsContent>
