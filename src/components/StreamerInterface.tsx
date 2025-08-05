@@ -374,7 +374,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   }
 
   return (
-    <div className="min-h-screen bg-background p-2 sm:p-4">
+    <div className="min-h-screen bg-background p-2 sm:p-2">
       <div className="container mx-auto space-y-3 sm:space-y-6 max-w-7xl">
         {/* Header */}
         <Card>
