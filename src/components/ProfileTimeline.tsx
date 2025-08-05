@@ -481,12 +481,19 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
           : "post";
 
       // Create post in database
+      // First get current user's profile data for accurate display
+      const { data: currentUserProfile } = await supabase
+        .from("user_profiles")
+        .select("id, username, display_name, profile_picture_url")
+        .eq("user_id", userId)
+        .single();
+
       const { data: postData, error: postError } = await supabase
         .from("user_posts")
         .insert({
           content: newPost,
           user_id: userId,
-          user_name: profileData.username,
+          user_name: currentUserProfile?.display_name || profileData.display_name,
           media_url: mediaUrl,
           media_type: mediaType,
           location: selectedLocation || null,
@@ -546,10 +553,10 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
         created_at: postData.created_at,
         user_id: postData.user_id,
         user_profile: {
-          id: profileData.id,
-          display_name: profileData.display_name,
-          username: profileData.username,
-          profile_picture_url: profileData.profile_picture_url,
+          id: currentUserProfile?.id || profileData.id,
+          display_name: currentUserProfile?.display_name || profileData.display_name,
+          username: currentUserProfile?.username || profileData.username,
+          profile_picture_url: currentUserProfile?.profile_picture_url || profileData.profile_picture_url,
         },
         likes_count: 0,
         comments_count: 0,
@@ -719,6 +726,13 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
       if (eventError) throw eventError;
 
       // Create post in database
+      // First get current user's profile data for accurate display
+      const { data: currentUserProfile } = await supabase
+        .from("user_profiles")
+        .select("id, username, display_name, profile_picture_url")
+        .eq("user_id", userId)
+        .single();
+
       const { data: postData, error: postError } = await supabase
         .from("user_posts")
         .insert({
@@ -726,7 +740,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
             ? `🔴 LIVE NOW: ${newPost}`
             : `🔴 LIVE NOW: ${eventData.name}`,
           user_id: userId,
-          user_name: profileData.username,
+          user_name: currentUserProfile?.display_name || profileData.display_name,
           media_url: mediaUrl,
           media_type: mediaType,
           location: location,
@@ -779,10 +793,10 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
         created_at: postData.created_at,
         user_id: postData.user_id,
         user_profile: {
-          id: profileData.id,
-          display_name: profileData.display_name,
-          username: profileData.username,
-          profile_picture_url: profileData.profile_picture_url,
+          id: currentUserProfile?.id || profileData.id,
+          display_name: currentUserProfile?.display_name || profileData.display_name,
+          username: currentUserProfile?.username || profileData.username,
+          profile_picture_url: currentUserProfile?.profile_picture_url || profileData.profile_picture_url,
         },
         likes_count: 0,
         comments_count: 0,
