@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -125,9 +125,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
     
     setIsUploading(false);
     
-    // Notify parent component
-    const completedFiles = files.filter(f => f.uploadProgress === 100);
-    onUpload(completedFiles);
+    
   };
 
   const removeFile = async (fileId: string) => {
@@ -147,8 +145,17 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
     
     const updatedFiles = files.filter(file => file.id !== fileId);
     setFiles(updatedFiles);
-    onUpload(updatedFiles);
   };
+
+
+  useEffect(() => {
+    // Only call onUpload when all files have a URL (i.e., upload is done)
+    // Notify parent component
+    const completedFiles = files.filter(f => f.uploadProgress === 100);
+    if (files.length > 0 && files.every(f => !!f.url)) {
+      onUpload(completedFiles);
+    }
+  }, [files, onUpload]);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
