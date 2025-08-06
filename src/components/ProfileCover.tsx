@@ -3,10 +3,10 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Camera, Settings, MessageCircle, Share2, UserPlus, MapPin, Calendar, Users, Heart, Star, Upload } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Camera, Settings, MessageCircle, Share2, UserPlus, MapPin, Calendar, Users, Heart, Star, Upload } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
 import FollowButton from '@/components/FollowButton';
@@ -199,6 +199,24 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
       });
     } finally {
       setUploading(false);
+    }
+  };
+
+
+  const handleShareProfile = async () => {
+    const profileUrl = `${window.location.origin}/profile/${profile.user_id}`;
+    try {
+      await navigator.clipboard.writeText(profileUrl);
+      toast({
+        title: 'Profile Link Copied',
+        description: 'The profile link has been copied to your clipboard.',
+      });
+    } catch (err) {
+      toast({
+        title: 'Copy Failed',
+        description: 'Could not copy the profile link to clipboard.',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -405,7 +423,7 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
               >
                 <span>
                   {uploading ? (
-                    <Upload className="w-4 h-4 mr-2 animate-spin" />
+                    <Upload className="w-4 h-4 animate-spin" />
                   ) : (
                     <Camera className="w-4 h-4 mr-2" />
                   )}
@@ -613,27 +631,13 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
                     </Form>
                   </DialogContent>
                 </Dialog>
-                <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
-                  <DialogTrigger asChild>
-                    <TooltipWrapper content="Share your profile with others">
-                      <Button variant="outline" size="sm" className="text-xs sm:text-sm px-3 py-2">
-                        <Share2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                        <span className="hidden xs:inline">Share Profile</span>
-                        <span className="xs:hidden">Share</span>
-                      </Button>
-                    </TooltipWrapper>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-md">
-                    <DialogHeader>
-                      <DialogTitle>Share Profile</DialogTitle>
-                    </DialogHeader>
-                    <SocialShareMenu
-                      title={`Check out ${profile.display_name}'s profile`}
-                      description={profile.bio}
-                      url={`${window.location.origin}/profile/${profile.id}`}
-                    />
-                  </DialogContent>
-                </Dialog>
+                <TooltipWrapper content="Share your profile with others">
+                  <Button onClick={handleShareProfile} variant="outline" size="sm" className="text-xs sm:text-sm px-3 py-2">
+                    <Share2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                    <span className="hidden xs:inline">Share Profile</span>
+                    <span className="xs:hidden">Share</span>
+                  </Button>
+                </TooltipWrapper>
               </>
             ) : (
               <>
@@ -656,25 +660,11 @@ const ProfileCover: React.FC<ProfileCoverProps> = ({
                     <span className="xs:hidden">Msg</span>
                   </Button>
                 </TooltipWrapper>
-                <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
-                  <DialogTrigger asChild>
-                    <TooltipWrapper content="Share this profile">
-                      <Button variant="outline" size="sm" className="p-2">
-                        <Share2 className="w-3 h-3 sm:w-4 sm:h-4" />
-                      </Button>
-                    </TooltipWrapper>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-md">
-                    <DialogHeader>
-                      <DialogTitle>Share Profile</DialogTitle>
-                    </DialogHeader>
-                    <SocialShareMenu
-                      title={`Check out ${profile.display_name}'s profile`}
-                      description={profile.bio}
-                      url={`${window.location.origin}/profile/${profile.id}`}
-                    />
-                  </DialogContent>
-                </Dialog>
+                <TooltipWrapper content="Share this profile">
+                  <Button onClick={handleShareProfile} variant="outline" size="sm" className="p-2">
+                    <Share2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                  </Button>
+                </TooltipWrapper>
               </>
             )}
           </div>
