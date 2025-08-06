@@ -148,7 +148,7 @@ const StreamContent: React.FC<{ eventName: string; fallbackImage: string; isBlur
   return (
     <div className={`w-full h-full transition-all duration-500 ${isBlurred ? 'blur-md' : ''}`}>
       <MainStreamPreview 
-        mediaUrls={event.mediaUrls}
+        mediaUrls={event.mediaUrls || []}
         track={activeVideoTracks[0]} 
         eventName={eventName} 
         isLive={true}
@@ -328,7 +328,6 @@ const LiveEventSpotlight: React.FC = () => {
                   event={event}
                   eventName={event.title}
                   fallbackImage={event.thumbnail}
-                  mediaUrls={event.mediaUrls}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import StreamerSelector from "@/components/StreamerSelector";
 import { useAppContext } from "@/contexts/AppContext";
+import MediaUploader from "@/components/MediaUploader";
 
 interface EditEventModalProps {
   isOpen: boolean;
@@ -27,6 +28,7 @@ interface EventData {
   location: string;
   category: string;
   ticket_price: number;
+  media_urls: string[];
 }
 
 interface SelectedMember {
@@ -52,6 +54,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
     location: "",
     category: "",
     ticket_price: 0,
+    media_urls: [],
   });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -82,6 +85,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
         location: data.location || "",
         category: data.category || "",
         ticket_price: data.ticket_price || 0,
+        media_urls: data.media_urls || [],
       });
 
       // Fetch existing streamers with user profile data
@@ -249,6 +253,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
           location: formData.location || null,
           category: formData.category,
           ticket_price: formData.ticket_price,
+          media_urls: formData.media_urls,
           updated_at: new Date().toISOString(),
         })
         .eq("id", eventId);
@@ -280,6 +285,16 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
   const handleStreamersChange = (streamers: SelectedMember[]) => {
     setSelectedStreamers(streamers);
   };
+
+  const handleMediaUpload = useCallback((files: any[]) => {
+    if (files.length > 0) {
+      const imageUrl = files[0].url;
+      setFormData(prev => ({
+        ...prev,
+        media_urls: [imageUrl] // Always replace index 0 with the new image
+      }));
+    }
+  }, []);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -391,6 +406,30 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
                     className="w-full"
                   />
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Event Thumbnail Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg font-semibold">Event Thumbnail</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <MediaUploader
+                  onUpload={handleMediaUpload}
+                  maxFiles={1}
+                  acceptedTypes={['image/jpeg', 'image/png', 'image/gif']}
+                />
+                {formData.media_urls.length > 0 && (
+                  <div className="mt-4">
+                    <Label className="text-sm font-medium mb-2 block">Current Thumbnail:</Label>
+                    <img 
+                      src={formData.media_urls[0]} 
+                      alt="Event thumbnail" 
+                      className="w-32 h-32 object-cover rounded-lg border"
+                    />
+                  </div>
+                )}
               </CardContent>
             </Card>
 
