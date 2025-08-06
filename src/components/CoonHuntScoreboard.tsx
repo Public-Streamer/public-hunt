@@ -132,7 +132,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
               return updated;
             });
           } else if (payload.eventType === 'UPDATE') {
-            console.log('🔄 Updating Coon Hunt team in state:', payload.new.id);
+            console.log('🔄 Updating Coon Hunt team in state:', payload.new);
             setTeams(prev => {
               const updated = prev.map(team => 
                 team.id === payload.new.id ? { ...team, ...payload.new } as CoonHuntTeam : team
@@ -918,7 +918,21 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                     <Label className="text-sm">Team/Entry Name</Label>
                     <Input
                       value={editingTeam.team_name}
-                      onChange={(e) => setEditingTeam(prev => prev ? { ...prev, team_name: e.target.value } : null)}
+                      onChange={(e) => {
+                        // console.log('Editing team name:', e.target.value);
+                        setEditingTeam(prev => prev ? { ...prev, team_name: e.target.value } : null)}}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          const newValue = e.currentTarget.value;
+                          // console.log(newValue)
+                          updateTeam(editingTeam.id, { teamName: newValue });
+                        }
+                      }}
+                      onBlur={(e) => {
+                        const newValue = e.target.value;
+                        updateTeam(editingTeam.id, { teamName: newValue });
+                      }}
                       className="text-sm"
                     />
                   </div>
