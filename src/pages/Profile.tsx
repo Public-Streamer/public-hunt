@@ -29,7 +29,7 @@ const Profile: React.FC = () => {
   const [followersCount, setFollowersCount] = useState(0);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { user, userProfile, isAuthenticated, authLoaded } = useAppContext();
+  const { user, isAuthenticated, authLoaded } = useAppContext();
 
   // React Query to fetch profile data
   const { data: profile, isLoading: loading, refetch } = useQuery({
@@ -45,58 +45,58 @@ const Profile: React.FC = () => {
         .eq('id', targetUserId)
         .maybeSingle(); // Use maybeSingle instead of single to handle no rows
 
-      if (error) {
-        toast({
-          title: 'Error loading profile',
-          description: error.message,
-          variant: 'destructive',
-        });
-        throw error;
-      }
+      // if (error) {
+      //   toast({
+      //     title: 'Error loading profile',
+      //     description: error.message,
+      //     variant: 'destructive',
+      //   });
+      //   throw error;
+      // }
 
       // If no profile found, create a default one
-      if (!data) {
-        // Check if we're looking at our own profile or someone else's
-        if (targetUserId === user?.id) {
-          // Create a default profile for the current user
-          const { data: newProfile, error: insertError } = await supabase
-            .from('user_profiles')
-            .insert({
-              user_id: user.id,
-              username: user.email?.split('@')[0] || 'user',
-              display_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
-              bio: 'Welcome to my profile!',
-              profile_picture_url: '/placeholder.svg',
-              location: '',
-              website: '',
-              birthday: '',
-              education: '',
-              relationship_status: '',
-              occupation: '',
-              interests: [],
-              followers_count: 0,
-              following_count: 0,
-              friends_count: 0,
-              is_company_account: false,
-            })
-            .select()
-            .single();
+      // if (!data) {
+      //   // Check if we're looking at our own profile or someone else's
+      //   if (targetUserId === user?.id) {
+      //     // Create a default profile for the current user
+      //     const { data: newProfile, error: insertError } = await supabase
+      //       .from('user_profiles')
+      //       .insert({
+      //         user_id: user.id,
+      //         username: user.email?.split('@')[0] || 'user',
+      //         display_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+      //         bio: 'Welcome to my profile!',
+      //         profile_picture_url: '/placeholder.svg',
+      //         location: '',
+      //         website: '',
+      //         birthday: '',
+      //         education: '',
+      //         relationship_status: '',
+      //         occupation: '',
+      //         interests: [],
+      //         followers_count: 0,
+      //         following_count: 0,
+      //         friends_count: 0,
+      //         is_company_account: false,
+      //       })
+      //       .select()
+      //       .single();
 
-          if (insertError) {
-            toast({
-              title: 'Error creating profile',
-              description: insertError.message,
-              variant: 'destructive',
-            });
-            throw insertError;
-          }
+      //     if (insertError) {
+      //       toast({
+      //         title: 'Error creating profile',
+      //         description: insertError.message,
+      //         variant: 'destructive',
+      //       });
+      //       throw insertError;
+      //     }
 
-          return newProfile;
-        } else {
-          // For other users, return null if no profile exists
-          return null;
-        }
-      }
+      //     return newProfile;
+      //   } else {
+      //     // For other users, return null if no profile exists
+      //     return null;
+      //   }
+      // }
 
       return data;
     },
