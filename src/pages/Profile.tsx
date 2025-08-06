@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAppContext } from '@/contexts/AppContext';
 import ProfileCover from '@/components/ProfileCover';
 import ProfileNewsfeedTab from '@/components/ProfileNewsfeedTab';
@@ -17,102 +18,132 @@ import ProfileMediaUpload from '@/components/ProfileMediaUpload';
 import Messages from '@/components/Messages';
 import Notifications from '@/components/Notifications';
 import BottomSlidePanel from '@/components/BottomSlidePanel';
+import { supabase } from '@/lib/supabase';
 import type { Database } from '@/integrations/supabase/types';
 
 type UserProfile = Database['public']['Tables']['user_profiles']['Row'];
 
 const Profile: React.FC = () => {
   const { userId } = useParams<{ userId?: string }>();
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [isOwnProfile, setIsOwnProfile] = useState(false);
   const [friendsCount, setFriendsCount] = useState(0);
   const [followersCount, setFollowersCount] = useState(0);
   const { toast } = useToast();
-  const { user, userProfile, isAuthenticated, authLoaded,  loading : profileLoading } = useAppContext();
+  const queryClient = useQueryClient();
+  const { user, userProfile, isAuthenticated, authLoaded } = useAppContext();
 
-  console.log({userProfile});
+  // React Query to fetch profile data
+  const { data: profile, isLoading: loading, refetch } = useQuery({
+    queryKey: ['profile', userId || user?.id],
+    queryFn: async () => {
+      const targetUserId = userId || user?.id;
+      if (!targetUserId) return null;
+
+      // First, try to get the user profile by user_id
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', targetUserId)
+        .maybeSingle(); // Use maybeSingle instead of single to handle no rows
+
+      if (error) {
+        toast({
+          title: 'Error loading profile',
+          description: error.message,
+          variant: 'destructive',
+        });
+        throw error;
+      }
+
+      // If no profile found, create a default one
+      if (!data) {
+        // Check if we're looking at our own profile or someone else's
+        if (targetUserId === user?.id) {
+          // Create a default profile for the current user
+          const { data: newProfile, error: insertError } = await supabase
+            .from('user_profiles')
+            .insert({
+              user_id: user.id,
+              username: user.email?.split('@')[0] || 'user',
+              display_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+              bio: 'Welcome to my profile!',
+              profile_picture_url: '/placeholder.svg',
+              location: '',
+              website: '',
+              birthday: '',
+              education: '',
+              relationship_status: '',
+              occupation: '',
+              interests: [],
+              followers_count: 0,
+              following_count: 0,
+              friends_count: 0,
+              is_company_account: false,
+            })
+            .select()
+            .single();
+
+          if (insertError) {
+            toast({
+              title: 'Error creating profile',
+              description: insertError.message,
+              variant: 'destructive',
+            });
+            throw insertError;
+          }
+
+          return newProfile;
+        } else {
+          // For other users, return null if no profile exists
+          return null;
+        }
+      }
+
+      return data;
+    },
+    enabled: !!user && authLoaded,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+  });
 
   const handleProfileUpdate = (updatedProfile: UserProfile) => {
-    setProfile(updatedProfile);
+    // Update the query cache with new profile data
+    queryClient.setQueryData(['profile', userId || user?.id], updatedProfile);
+    queryClient.invalidateQueries({ queryKey: ['profile', userId || user?.id] });
   };
 
-  useEffect(() => {
-    if (!authLoaded) return;
-    if (!isAuthenticated) {
-      window.location.href = '/login';
-      return;
-    }
-  if(userProfile) {loadProfile()};
-  }, [userId, user, userProfile, isAuthenticated, authLoaded, ]);
+  const isOwnProfile = user?.id === profile?.user_id;
 
-
-   const loadProfile = async () => {
-    try {
-      if (!user) return;
-      
-      const targetUserId = userId || userProfile.id;
-      setIsOwnProfile(targetUserId === userProfile.id);
-      
-      console.log(userProfile.cover_photo_url);
-
-      const mockProfile: UserProfile = {
-        id: userProfile.id,
-        user_id: userProfile.user_id,
-        username: user.email?.split('@')[0] || 'user',
-        display_name: userProfile ? `${userProfile.display_name}` : 'User',
-        bio: userProfile?.bio || 'Welcome to my profile! I love creating amazing content and connecting with the community.',
-        profile_picture_url: userProfile?.profile_picture_url || '/placeholder.svg',
-        cover_photo_url: userProfile?.cover_photo_url,
-        location: userProfile?.location || 'San Francisco, CA',
-        company_name: userProfile?.company_name || 'Content Creator',
-        company_id: userProfile?.company_id || '',
-        education: userProfile?.education || 'University of California',
-        relationship_status: userProfile?.relationship_status || 'Single',
-        website: userProfile?.website || 'https://example.com',
-        birthday: userProfile?.birthday || '1990-01-15',
-        occupation: userProfile?.occupation || 'Digital Creator & Influencer',
-        interests: userProfile?.interests || ['Technology', 'Photography', 'Travel', 'Gaming', 'Music'],
-        followers_count: userProfile?.followers_count || 0,
-        following_count: userProfile?.following_count || 0,
-        friends_count: userProfile?.friends_count || 0,
-        is_company_account: userProfile?.is_company_account || false,
-        created_at: userProfile?.created_at || new Date().toISOString(),
-        updated_at: userProfile?.updated_at || new Date().toISOString()
-      };
-      
-      setProfile(mockProfile);
-      setFriendsCount(Math.floor(Math.random() * 500) + 50);
-      setFollowersCount(Math.floor(Math.random() * 1000) + 100);
-      setLoading(false);
-    } catch (error) {
-      setLoading(false);
-      console.error('Error loading profile:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load profile',
-        variant: 'destructive'
-      });
-    } 
-  };
-
-  if (!authLoaded || loading || profileLoading) {
+  if (!authLoaded) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-lg">Loading profile...</div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    window.location.href = '/login';
+    return null;
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   if (!profile) {
     return (
-      <div className="text-center py-12">
-        <h2 className="text-2xl font-bold mb-4">Profile Not Found</h2>
-        <p className="text-gray-600">The profile you're looking for doesn't exist.</p>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-2">Profile Not Found</h2>
+          <p className="text-muted-foreground">The profile you're looking for doesn't exist.</p>
+        </div>
       </div>
     );
   }
-  console.log(profile);
 
   return (
     <div className="max-w-6xl mx-auto p-4 w-full overflow-hidden">
