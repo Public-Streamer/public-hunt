@@ -64,7 +64,7 @@ import SocialPost from "./SocialPost";
 import MultiSelectTags from "./MultiSelectTags";
 import LiveStreamLogo from "@/components/ui/live-stream-logo";
 
-interface UserProfile {
+interface currentUserProfile {
   id: string;
   username: string;
   display_name: string;
@@ -78,7 +78,7 @@ interface TimelinePost {
   media_type?: "image" | "video";
   created_at: string;
   user_id: string;
-  user_profile: UserProfile;
+  user_profile: currentUserProfile;
   likes_count: number;
   comments_count: number;
   shares_count: number;
@@ -109,7 +109,7 @@ interface TimelinePost {
 interface Comment {
   id: string;
   content: string;
-  user_profile: UserProfile;
+  user_profile: currentUserProfile;
   created_at: string;
   likes_count: number;
   is_liked: boolean;
@@ -118,13 +118,13 @@ interface Comment {
 interface ProfileTimelineProps {
   userId: string;
   isOwnProfile: boolean;
-  userProfile?: UserProfile;
+  currentUserProfile?: currentUserProfile;
 }
 
 const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
   userId,
   isOwnProfile,
-  userProfile,
+  currentUserProfile,
 }) => {
   const [posts, setPosts] = useState<TimelinePost[]>([]);
   const [newPost, setNewPost] = useState("");
@@ -157,10 +157,10 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
   const [showGoLivePopover, setShowGoLivePopover] = useState(false);
   const [ticketPrice, setTicketPrice] = useState(0);
   const { toast } = useToast();
-  const { user, userProfile: currentUserProfile } = useAppContext();
+  const { user } = useAppContext();
 
   // Get the appropriate user profile data
-  const profileData: UserProfile = userProfile || {
+  const profileData: currentUserProfile = currentUserProfile || {
     id: userId,
     username: user?.email?.split("@")[0] || "user",
     display_name: currentUserProfile?.display_name || "User",
@@ -903,7 +903,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
 
     try {
       // Get current user's profile info
-      const { data: userProfileData } = await supabase
+      const { data: currentUserProfileData } = await supabase
         .from("user_profiles")
         .select("id, username, display_name, profile_picture_url")
         .eq("user_id", userId)
@@ -915,12 +915,12 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
         .insert({
           content: newComment,
           post_id: selectedPost.id,
-          user_profile_id: userProfileData?.id,
+          user_profile_id: currentUserProfileData?.id,
           author_name:
-            userProfileData?.display_name || profileData.display_name,
-          author_username: userProfileData?.username || profileData.username,
+            currentUserProfileData?.display_name || profileData.display_name,
+          author_username: currentUserProfileData?.username || profileData.username,
           author_avatar:
-            userProfileData?.profile_picture_url ||
+            currentUserProfileData?.profile_picture_url ||
             profileData.profile_picture_url,
         })
         .select()
@@ -933,12 +933,12 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
         id: commentData.id,
         content: commentData.content,
         user_profile: {
-          id: userProfileData?.id || profileData.id,
+          id: currentUserProfileData?.id || profileData.id,
           display_name:
-            userProfileData?.display_name || profileData.display_name,
-          username: userProfileData?.username || profileData.username,
+            currentUserProfileData?.display_name || profileData.display_name,
+          username: currentUserProfileData?.username || profileData.username,
           profile_picture_url:
-            userProfileData?.profile_picture_url ||
+            currentUserProfileData?.profile_picture_url ||
             profileData.profile_picture_url,
         },
         created_at: commentData.created_at,

@@ -15,7 +15,7 @@ import { useSupabaseChatMessages } from "@/hooks/useSupabaseChatMessages";
 
 interface LiveDiscussionSectionProps {
   eventId: string;
-  userProfile?: {
+  currentUserProfile?: {
     id: string;
     username: string;
     display_name: string;
@@ -25,7 +25,7 @@ interface LiveDiscussionSectionProps {
 
 const LiveDiscussionSection: React.FC<LiveDiscussionSectionProps> = ({
   eventId,
-  userProfile,
+  currentUserProfile,
 }) => {
   const { messages, loading: messagesLoading, sendMessage, canSend } = useSupabaseChatMessages(eventId);
 
@@ -109,13 +109,13 @@ const LiveDiscussionSection: React.FC<LiveDiscussionSectionProps> = ({
       </CardHeader>
       <CardContent className="space-y-4 px-2 sm:px-6">
         {isAuthenticated ? (
-          userProfile && (
+          currentUserProfile && (
             <form onSubmit={handleSubmitMessage} className="space-y-3 w-full">
               <div className="flex flex-col xs:flex-row gap-2 xs:gap-3 w-full items-start">
                 <Avatar className="w-8 h-8">
-                  <AvatarImage src={userProfile.profile_picture_url} />
+                  <AvatarImage src={currentUserProfile.profile_picture_url} />
                   <AvatarFallback>
-                    {userProfile.display_name?.[0] || userProfile.username[0]}
+                    {currentUserProfile.display_name?.[0] || currentUserProfile.username[0]}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 w-full flex items-start gap-2 relative">

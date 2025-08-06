@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { UserPlus, UserCheck, MessageCircle, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-interface UserProfile {
+interface currentUserProfile {
   id: string;
   username: string;
   display_name: string;
@@ -19,24 +19,24 @@ interface UserProfile {
   friends_count: number;
 }
 
-interface UserProfileCardProps {
-  profile: UserProfile;
+interface currentUserProfileCardProps {
+  profile: currentUserProfile;
   showFollowButton?: boolean;
   compact?: boolean;
 }
 
-const UserProfileCard: React.FC<UserProfileCardProps> = ({ 
+const currentUserProfileCard: React.FC<currentUserProfileCardProps> = ({ 
   profile, 
   showFollowButton = true, 
   compact = false 
 }) => {
   const [isFollowing, setIsFollowing] = useState(false);
-  const [currentUserProfile, setCurrentUserProfile] = useState<any>(null);
+  const [currentUserProfile, setcurrentUserProfile] = useState<any>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
-    getCurrentUserProfile();
+    getcurrentUserProfile();
   }, []);
 
   useEffect(() => {
@@ -45,15 +45,15 @@ const UserProfileCard: React.FC<UserProfileCardProps> = ({
     }
   }, [currentUserProfile, profile.id]);
 
-  const getCurrentUserProfile = async () => {
+  const getcurrentUserProfile = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      const { data: userProfile } = await supabase
+      const { data: currentUserProfile } = await supabase
         .from('user_profiles')
         .select('*')
         .eq('user_id', user.id)
         .single();
-      setCurrentUserProfile(userProfile);
+      setcurrentUserProfile(currentUserProfile);
     }
   };
 
@@ -194,4 +194,4 @@ const UserProfileCard: React.FC<UserProfileCardProps> = ({
   );
 };
 
-export default UserProfileCard;
+export default currentUserProfileCard;

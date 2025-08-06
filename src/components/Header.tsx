@@ -23,7 +23,7 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
   const location = useLocation();
   const isMobile = useIsMobile();
-  const { user, userProfile, logout, isAuthenticated } = useAppContext();
+  const { user, currentUserProfile, logout, isAuthenticated } = useAppContext();
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
   // Animation cycling state (0: strobe triangle, 1: sparks, 2: lightning, 3: energy pulse)
@@ -264,16 +264,16 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                 >
                   <Menu className="h-5 w-5" />
                 </Button>
-                {isAuthenticated && user && userProfile ? (
+                {isAuthenticated && user && currentUserProfile ? (
                   <>
                     <Link
                       to="/profile"
                       className="flex items-center hover:bg-white/20 rounded-lg transition-colors space-x-1 p-1"
                     >
                       <Avatar className="h-7 w-7">
-                        <AvatarImage src={userProfile.profile_picture_url} />
+                        <AvatarImage src={currentUserProfile.profile_picture_url} />
                         <AvatarFallback className="bg-white text-purple-600 text-sm">
-                          {userProfile.display_name[0]}
+                          {currentUserProfile.display_name[0]}
                         </AvatarFallback>
                       </Avatar>
                     </Link>
@@ -479,20 +479,20 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
               </nav>
 
               <div className="flex items-center space-x-2 lg:space-x-3 ml-2 lg:ml-8 flex-shrink-0">
-                {isAuthenticated && user && userProfile ? (
+                { isAuthenticated ? (
                   <>
                     <Link
-                      to={`/profile/${userProfile.id}`}
+                      to={`/profile/${user.id}`}
                       className="flex items-center hover:bg-white/20 rounded-lg transition-colors space-x-2 p-2"
                     >
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={userProfile.profile_picture_url} />
+                        <AvatarImage src={currentUserProfile?.profile_picture_url} />
                         <AvatarFallback className="bg-white text-purple-600 text-sm">
-                          {userProfile.display_name[0]}
+                          {currentUserProfile?.display_name[0]}
                         </AvatarFallback>
                       </Avatar>
                       <span className="hidden lg:flex text-sm">
-                        {userProfile.display_name}
+                        {currentUserProfile?.display_name}
                       </span>
                     </Link>
                     <TooltipWrapper content="Sign out of your account">

@@ -7,7 +7,7 @@ import { Search, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-interface UserProfile {
+interface currentUserProfile {
   id: string;
   user_id: string;
   username: string;
@@ -18,8 +18,8 @@ interface UserProfile {
 }
 
 interface UserSearchBoxProps {
-  onUserSelect: (user: UserProfile) => void;
-  selectedUser: UserProfile | null;
+  onUserSelect: (user: currentUserProfile) => void;
+  selectedUser: currentUserProfile | null;
   placeholder?: string;
 }
 
@@ -29,7 +29,7 @@ const UserSearchBox: React.FC<UserSearchBoxProps> = ({
   placeholder = "Search for existing users..." 
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [searchResults, setSearchResults] = useState<UserProfile[]>([]);
+  const [searchResults, setSearchResults] = useState<currentUserProfile[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const { toast } = useToast();
@@ -85,7 +85,7 @@ const UserSearchBox: React.FC<UserSearchBoxProps> = ({
     }
   };
 
-  const handleUserSelect = (user: UserProfile) => {
+  const handleUserSelect = (user: currentUserProfile) => {
     onUserSelect(user);
     setSearchTerm(user.display_name || user.username);
     setShowResults(false);

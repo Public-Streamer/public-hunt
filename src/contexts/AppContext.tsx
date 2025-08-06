@@ -3,43 +3,36 @@ import  { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { toast } from '@/hooks/use-toast';
 import type { Database } from '@/integrations/supabase/types';
-import { boolean } from 'zod';
+import { useQuery } from '@tanstack/react-query';
+import { id } from 'zod/v4/locales';
 
-type UserProfile = Database['public']['Tables']['user_profiles']['Row'];
+type currentUserProfile = Database['public']['Tables']['user_profiles']['Row'];
 
-interface AppContextType {
-  sidebarOpen: boolean;
-  toggleSidebar: () => void;
-  user: User | null;
-  userProfile: UserProfile | null;
-  signIn: (email: string, password: string, redirectUrl?: string) => Promise<{error?: string}>;
-  signUp: (email: string, password: string, userData: Omit<UserProfile, 'id' | 'email'>) => Promise<{error?: string}>;
-  logout: () => Promise<void>;
-  isAuthenticated: boolean;
-  isAdminUser: boolean;
-  adminRole: string | null;
-}
 
 interface AppContextType {
   sidebarOpen: boolean;
   toggleSidebar: () => void;
   user: User | null;
-  userProfile: UserProfile | null;
+  currentUserProfile: currentUserProfile | null;
   signIn: (email: string, password: string, redirectUrl?: string) => Promise<{error?: string}>;
-  signUp: (email: string, password: string, userData: Omit<UserProfile, 'id' | 'email'>) => Promise<{error?: string}>;
+  signUp: (email: string, password: string, userData: Omit<currentUserProfile, 'id' | 'email'>) => Promise<{error?: string}>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   isAdminUser: boolean;
   adminRole: string | null;
   authLoaded: boolean;
   loading: boolean;
+  profileLoading: boolean;
+  refetchProfile: () => void;
+
+
 }
 
 const defaultAppContext: AppContextType = {
   sidebarOpen: false,
   toggleSidebar: () => {},
   user: null,
-  userProfile: null,
+  currentUserProfile: null,
   signIn: async () => ({ error: 'Not implemented' }),
   signUp: async () => ({ error: 'Not implemented' }),
   logout: async () => {},
@@ -48,6 +41,9 @@ const defaultAppContext: AppContextType = {
   adminRole: null,
   authLoaded: false,
   loading: false,
+  profileLoading: false,
+  refetchProfile: () => {},
+
 };
 
 const AppContext = createContext<AppContextType>(defaultAppContext);
@@ -57,7 +53,6 @@ export const useAppContext = () => useContext(AppContext);
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [adminRole, setAdminRole] = useState<string | null>(null);
   const [authLoaded, setAuthLoaded] = useState(false);
@@ -96,7 +91,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const signUp = async (email: string, password: string, userData: Omit<UserProfile, 'id' | 'email'>) => {
+  const signUp = async (email: string, password: string, userData: Omit<currentUserProfile, 'id' | 'email'>) => {
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -196,7 +191,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       
       // Clear state immediately
       setUser(null);
-      setUserProfile(null);
+      
       
       toast({
         title: 'Logged out',
@@ -211,7 +206,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       console.error('Error logging out:', error);
       // Even if signOut fails, clear local state
       setUser(null);
-      setUserProfile(null);
+
       window.location.href = '/';
     }
   };
@@ -260,7 +255,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           // Load user profile data from session metadata
           const metadata = session.user.user_metadata;
           // if (metadata) {
-          //   setUserProfile({
+          //   setcurrentUserProfile({
           //     id: session.user.id,
           //     email: session.user.email || '',
           //     accountType: metadata.accountType,
@@ -283,7 +278,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             checkAdminRole(session.user.id, session.user.email || '');
           }, 500);
         } else {
-          setUserProfile(null);
           setIsAdminUser(false);
           setAdminRole(null);
         }
@@ -317,34 +311,61 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, []);
 
 
+  const { data: currentUserProfile, isLoading: profileLoading, refetch: refetchProfile } = useQuery({
+    queryKey: ['currentUser-profile', user?.id],
+    queryFn: async () => {
+      const targetUserId = user?.id;
+      if (!targetUserId) return null;
+
+      // First, try to get the user profile by user_id
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', targetUserId)
+        .maybeSingle(); // Use maybeSingle instead of single to handle no rows
+
+      if (error) {
+        console.error('Error loading profile:', error);
+        throw error;
+      }
+
+      return data;
+    },
+  });
+
   
 
-  useEffect(() => {
-    const loadUserProfile = async () => {
-      setLoading(true);
-      const {data: userProfileData, error: userProfileError} = await supabase.from('user_profiles').select('*').eq('user_id', user.id).single();
-    if (userProfileData) {
-      setUserProfile(userProfileData);
-      setLoading(false);
-    }
-    if (userProfileError) {
-      console.error('Error loading user profile:', userProfileError);
-      setLoading(false);
-    }
-    }
-    if (user){
-      loadUserProfile();
-    }
-  }, [user]);
+  // useEffect(() => {
+  //   const loadcurrentUserProfile = async () => {
+  //     setLoading(true);
+  //     const {data: currentUserProfileData, error: currentUserProfileError} = await supabase.from('user_profiles').select('*').eq('user_id', user.id).single();
+  //   if (currentUserProfileData) {
+  //     setcurrentUserProfile(currentUserProfileData);
+  //     setLoading(false);
+  //   }
+  //   if (currentUserProfileError) {
+  //     console.error('Error loading user profile:', currentUserProfileError);
+  //     setLoading(false);
+  //   }
+  //   }
+  //   if (user){
+  //     loadcurrentUserProfile();
+  //   }
+  // }, [user]);
+
+  console.log('from app context: Current User Profile', currentUserProfile);
+  console.log('from app context: Current User', user);
 
   return (
     <AppContext.Provider
       value={{
         loading,
+        profileLoading,
+        refetchProfile,
         sidebarOpen,
         toggleSidebar,
         user,
-        userProfile,
+        currentUserProfile,
         signIn,
         signUp,
         logout,

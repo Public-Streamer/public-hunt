@@ -21,7 +21,7 @@ import BottomSlidePanel from '@/components/BottomSlidePanel';
 import { supabase } from '@/lib/supabase';
 import type { Database } from '@/integrations/supabase/types';
 
-type UserProfile = Database['public']['Tables']['user_profiles']['Row'];
+type currentUserProfile = Database['public']['Tables']['user_profiles']['Row'];
 
 const Profile: React.FC = () => {
   const { userId } = useParams<{ userId?: string }>();
@@ -31,6 +31,9 @@ const Profile: React.FC = () => {
   const queryClient = useQueryClient();
   const { user, isAuthenticated, authLoaded } = useAppContext();
 
+  console.log('from profile: user', user);
+
+
   // React Query to fetch profile data
   const { data: profile, isLoading: loading, refetch } = useQuery({
     queryKey: ['profile', userId || user?.id],
@@ -38,80 +41,27 @@ const Profile: React.FC = () => {
       const targetUserId = userId || user?.id;
       if (!targetUserId) return null;
 
-      // First, try to get the user profile by user_id
       const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
-        .eq('id', targetUserId)
-        .maybeSingle(); // Use maybeSingle instead of single to handle no rows
-
-      // if (error) {
-      //   toast({
-      //     title: 'Error loading profile',
-      //     description: error.message,
-      //     variant: 'destructive',
-      //   });
-      //   throw error;
-      // }
-
-      // If no profile found, create a default one
-      // if (!data) {
-      //   // Check if we're looking at our own profile or someone else's
-      //   if (targetUserId === user?.id) {
-      //     // Create a default profile for the current user
-      //     const { data: newProfile, error: insertError } = await supabase
-      //       .from('user_profiles')
-      //       .insert({
-      //         user_id: user.id,
-      //         username: user.email?.split('@')[0] || 'user',
-      //         display_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
-      //         bio: 'Welcome to my profile!',
-      //         profile_picture_url: '/placeholder.svg',
-      //         location: '',
-      //         website: '',
-      //         birthday: '',
-      //         education: '',
-      //         relationship_status: '',
-      //         occupation: '',
-      //         interests: [],
-      //         followers_count: 0,
-      //         following_count: 0,
-      //         friends_count: 0,
-      //         is_company_account: false,
-      //       })
-      //       .select()
-      //       .single();
-
-      //     if (insertError) {
-      //       toast({
-      //         title: 'Error creating profile',
-      //         description: insertError.message,
-      //         variant: 'destructive',
-      //       });
-      //       throw insertError;
-      //     }
-
-      //     return newProfile;
-      //   } else {
-      //     // For other users, return null if no profile exists
-      //     return null;
-      //   }
-      // }
+        .eq('user_id', targetUserId)
+        .maybeSingle(); 
 
       return data;
     },
-    enabled: !!user && authLoaded,
+    enabled: userId !== user?.id,
     staleTime: 0,
     refetchOnWindowFocus: true,
   });
+ 
 
-  const handleProfileUpdate = (updatedProfile: UserProfile) => {
+  const handleProfileUpdate = (updatedProfile: currentUserProfile) => {
     // Update the query cache with new profile data
     queryClient.setQueryData(['profile', userId || user?.id], updatedProfile);
     queryClient.invalidateQueries({ queryKey: ['profile', userId || user?.id] });
   };
 
-  const isOwnProfile = user?.id === profile?.user_id;
+  const isOwnProfile = userId === user?.id;
 
   if (!authLoaded) {
     return (
@@ -186,7 +136,7 @@ const Profile: React.FC = () => {
               <ProfileTimeline 
                 userId={profile.id} 
                 isOwnProfile={isOwnProfile} 
-                userProfile={{
+                currentUserProfile={{
                   id: profile.id,
                   username: profile.username,
                   display_name: profile.display_name,

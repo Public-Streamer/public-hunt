@@ -22,7 +22,7 @@ import { useAppContext } from '@/contexts/AppContext';
 const BottomSlidePanel: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
-  const { userProfile } = useAppContext();
+  const { currentUserProfile } = useAppContext();
 
   const quickActions = [
     { icon: Home, label: 'Home', path: '/', color: 'text-blue-600' },
@@ -88,14 +88,14 @@ const BottomSlidePanel: React.FC = () => {
               {/* Header */}
               <div className="flex items-center gap-3 pb-6 border-b">
                 <Avatar className="h-12 w-12">
-                  <AvatarImage src={userProfile?.profile_picture_url} />
+                  <AvatarImage src={currentUserProfile?.profile_picture_url} />
                   <AvatarFallback>
-                    {userProfile?.display_name?.[0] || 'U'}
+                    {currentUserProfile?.display_name?.[0] || 'U'}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
                   <h3 className="font-semibold text-lg">
-                    {userProfile?.display_name}
+                    {currentUserProfile?.display_name}
                   </h3>
                   <p className="text-sm text-muted-foreground">Quick Actions</p>
                 </div>

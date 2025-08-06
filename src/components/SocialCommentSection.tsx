@@ -40,15 +40,15 @@ const SocialCommentSection: React.FC<SocialCommentSectionProps> = ({
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(false);
-  const [currentUserProfile, setCurrentUserProfile] = useState<any>(null);
+  const [currentUserProfile, setcurrentUserProfile] = useState<any>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     fetchComments();
-    getCurrentUserProfile();
+    getcurrentUserProfile();
   }, [entityId]);
 
-  const getCurrentUserProfile = async () => {
+  const getcurrentUserProfile = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       const { data: profile } = await supabase
@@ -56,7 +56,7 @@ const SocialCommentSection: React.FC<SocialCommentSectionProps> = ({
         .select('*')
         .eq('user_id', user.id)
         .single();
-      setCurrentUserProfile(profile);
+      setcurrentUserProfile(profile);
     }
   };
 

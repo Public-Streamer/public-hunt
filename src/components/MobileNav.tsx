@@ -14,7 +14,7 @@ interface MobileNavProps {
 }
 
 const MobileNav: React.FC<MobileNavProps> = ({ isOpen, onClose, onLoginClick }) => {
-  const { user, userProfile, logout, isAuthenticated } = useAppContext();
+  const { user, currentUserProfile, logout, isAuthenticated } = useAppContext();
   
   const handleLoginClick = () => {
     onClose();
@@ -33,17 +33,17 @@ const MobileNav: React.FC<MobileNavProps> = ({ isOpen, onClose, onLoginClick }) 
           <SheetTitle className="text-lg font-semibold">Menu</SheetTitle>
         </SheetHeader>
         
-        {isAuthenticated && user && userProfile && (
+        {isAuthenticated && user && currentUserProfile && (
           <div className="mt-4 mb-6 p-4 bg-purple-50 rounded-lg">
             <div className="flex items-center space-x-3">
               <Avatar className="h-12 w-12 ring-2 ring-purple-200">
-                <AvatarImage src={userProfile.profile_picture_url} />
+                <AvatarImage src={currentUserProfile.profile_picture_url} />
                 <AvatarFallback className="bg-purple-600 text-white text-sm">
-                  {userProfile.display_name[0]}
+                  {currentUserProfile.display_name[0]}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm truncate">{userProfile.display_name}</p>
+                <p className="font-semibold text-sm truncate">{currentUserProfile.display_name}</p>
                 <p className="text-xs text-gray-600 truncate">{user.email}</p>
               </div>
             </div>

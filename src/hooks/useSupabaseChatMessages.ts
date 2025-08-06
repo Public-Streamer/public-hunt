@@ -17,12 +17,12 @@ export const useSupabaseChatMessages = (eventId: string) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('connecting');
-  const { userProfile, isAuthenticated } = useAppContext();
+  const { currentUserProfile, isAuthenticated } = useAppContext();
 
   // Fetch existing messages
   const fetchMessages = useCallback(async () => {
     if (!eventId) return;
-    
+
     try {
       const { data, error } = await supabase
         .from('event_chat_messages')
@@ -45,7 +45,7 @@ export const useSupabaseChatMessages = (eventId: string) => {
 
   // Send message function
   const sendMessage = useCallback(async (messageContent: string) => {
-    if (!messageContent.trim() || !userProfile || !eventId || !isAuthenticated) {
+    if (!messageContent.trim() || !currentUserProfile || !eventId || !isAuthenticated) {
       throw new Error('Cannot send message: missing required data');
     }
 
@@ -54,10 +54,10 @@ export const useSupabaseChatMessages = (eventId: string) => {
         .from('event_chat_messages')
         .insert([{
           event_id: eventId,
-          user_id: userProfile.user_id,
-          username: userProfile.username || 'unknown',
-          display_name: userProfile.display_name || 'Anonymous',
-          profile_picture_url: userProfile.profile_picture_url || null,
+          user_id: currentUserProfile.user_id,
+          username: currentUserProfile.username || 'unknown',
+          display_name: currentUserProfile.display_name || 'Anonymous',
+          profile_picture_url: currentUserProfile.profile_picture_url || null,
           message: messageContent,
           message_type: 'user'
         }]);
@@ -70,7 +70,7 @@ export const useSupabaseChatMessages = (eventId: string) => {
       console.error('Failed to send message:', error);
       throw error;
     }
-  }, [eventId, userProfile, isAuthenticated]);
+  }, [eventId, currentUserProfile, isAuthenticated]);
 
   // Set up real-time subscription
   useEffect(() => {
@@ -84,7 +84,7 @@ export const useSupabaseChatMessages = (eventId: string) => {
     // Create unique channel name per hook instance to avoid conflicts
     const channelName = `event-chat-messages-${eventId}-${Date.now()}-${Math.random()}`;
     console.log(`📡 [Chat-${eventId}] Creating channel:`, channelName);
-    
+
     const channel = supabase
       .channel(channelName)
       .on(
@@ -133,7 +133,7 @@ export const useSupabaseChatMessages = (eventId: string) => {
     messages,
     loading,
     sendMessage,
-    canSend: isAuthenticated && userProfile,
+    canSend: isAuthenticated && currentUserProfile,
     connectionStatus
   };
 };

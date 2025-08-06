@@ -115,17 +115,17 @@ const SocialMediaSection: React.FC<SocialMediaSectionProps> = ({ eventId, channe
         const formattedTaggedUsers = [];
         if (taggedUsers && taggedUsers.length > 0) {
           for (const tag of taggedUsers) {
-            const { data: userProfile } = await supabase
+            const { data: currentUserProfile } = await supabase
               .from('user_profiles')
               .select('id, display_name, username')
               .eq('id', tag.tagged_user_id)
               .single();
             
-            if (userProfile) {
+            if (currentUserProfile) {
               formattedTaggedUsers.push({
                 id: tag.tagged_user_id,
-                name: userProfile.display_name || 'Unknown User',
-                username: userProfile.username || 'unknown'
+                name: currentUserProfile.display_name || 'Unknown User',
+                username: currentUserProfile.username || 'unknown'
               });
             }
           }

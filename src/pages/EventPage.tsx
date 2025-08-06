@@ -72,7 +72,7 @@ const EventPage: React.FC = () => {
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user: currentUser, userProfile: currentUserProfile } =
+  const { user: currentUser, currentUserProfile: currentUserProfile } =
     useAppContext();
 
   const [eventData, setEventData] = useState<EventData | null>(null);
@@ -667,7 +667,7 @@ const EventPage: React.FC = () => {
                     (hasTicket || canEnterStage) && (
                       <LiveDiscussionSection
                         eventId={eventData.id}
-                        userProfile={
+                        currentUserProfile={
                           currentUserProfile
                             ? {
                                 id: currentUserProfile.id,

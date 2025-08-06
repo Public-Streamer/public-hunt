@@ -61,7 +61,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
   const [selectedStreamers, setSelectedStreamers] = useState<SelectedMember[]>([]);
   const [originalStreamers, setOriginalStreamers] = useState<SelectedMember[]>([]);
   const { toast } = useToast();
-  const { userProfile } = useAppContext();
+  const { currentUserProfile } = useAppContext();
 
   const fetchEventData = async () => {
     if (!eventId) return;
@@ -177,7 +177,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
   };
 
   const syncStreamers = async () => {
-    if (!userProfile?.user_id) return;
+    if (!currentUserProfile?.user_id) return;
 
     // Get current streamer IDs
     const currentStreamerIds = selectedStreamers.map(s => s.id);
@@ -210,7 +210,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
           streamersToAdd.map(streamer => ({
             event_id: eventId,
             streamer_id: streamer.id,
-            assigned_by: userProfile.user_id,
+            assigned_by: currentUserProfile.user_id,
             permissions: streamer.permissions,
             role_type: "Streamers"
           }))

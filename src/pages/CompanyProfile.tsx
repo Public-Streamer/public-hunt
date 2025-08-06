@@ -44,7 +44,7 @@ const CompanyProfile: React.FC = () => {
   const [isCompanyMaster, setIsCompanyMaster] = useState(false);
   const [followersCount, setFollowersCount] = useState(0);
   const { toast } = useToast();
-  const { user, userProfile, isAuthenticated } = useAppContext();
+  const { user, currentUserProfile, isAuthenticated } = useAppContext();
 
   const handleProfileUpdate = (updatedProfile: CompanyProfile) => {
     setProfile(updatedProfile);
@@ -169,7 +169,7 @@ const CompanyProfile: React.FC = () => {
               <ProfileTimeline 
                 userId={profile.company_id} 
                 isOwnProfile={isCompanyMaster} 
-                userProfile={{
+                currentUserProfile={{
                   id: profile.company_id,
                   username: profile.company_name.toLowerCase().replace(/\s+/g, ''),
                   display_name: profile.company_name,
