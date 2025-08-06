@@ -64,6 +64,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const signIn = async (email: string, password: string, redirectUrl?: string) => {
     try {
+      setLoading(true);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -87,12 +88,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       return {};
     } catch (error) {
+      setLoading(false);
       return { error: 'An unexpected error occurred' };
     }
   };
 
   const signUp = async (email: string, password: string, userData: Omit<currentUserProfile, 'id' | 'email'>) => {
     try {
+      setLoading(true);
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -129,6 +132,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
           if (profileError) {
             console.error('Error creating user profile:', profileError);
+            setLoading(false);
           }
 
           // Create company profile
@@ -143,6 +147,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
           if (companyProfileError) {
             console.error('Error creating company profile:', companyProfileError);
+            setLoading(false);
           }
 
           // Create company role for the designated master
@@ -158,9 +163,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
           if (roleError) {
             console.error('Error creating company master role:', roleError);
+            setLoading(false);
           }
         } catch (companyError) {
           console.error('Error setting up company structure:', companyError);
+          setLoading(false);
         }
       }
 
@@ -173,6 +180,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       return {};
     } catch (error) {
+      setLoading(false);
       return { error: 'An unexpected error occurred' };
     }
   };

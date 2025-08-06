@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useParams } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAppContext } from '@/contexts/AppContext';
 import ProfileCover from '@/components/ProfileCover';
@@ -26,10 +25,9 @@ type currentUserProfile = Database['public']['Tables']['user_profiles']['Row'];
 const Profile: React.FC = () => {
   const { userId } = useParams<{ userId?: string }>();
   const [friendsCount, setFriendsCount] = useState(0);
-  const [followersCount, setFollowersCount] = useState(0);
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const [followersCount, setFollowersCount] = useState(0)
   const { user, isAuthenticated, authLoaded } = useAppContext();
+  const queryClient = useQueryClient();
 
   console.log('from profile: user', user);
 
@@ -49,9 +47,10 @@ const Profile: React.FC = () => {
 
       return data;
     },
-    enabled: userId !== user?.id,
+    enabled: !!(userId || user?.id) && authLoaded ,
     staleTime: 0,
     refetchOnWindowFocus: true,
+    retry: 1,
   });
  
 
@@ -61,6 +60,14 @@ const Profile: React.FC = () => {
     queryClient.invalidateQueries({ queryKey: ['profile', userId || user?.id] });
   };
 
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
   const isOwnProfile = userId === user?.id;
 
   if (!authLoaded) {
@@ -76,13 +83,7 @@ const Profile: React.FC = () => {
     return null;
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+ 
 
   if (!profile) {
     return (
