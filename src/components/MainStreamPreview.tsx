@@ -247,13 +247,13 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
     }
   };
 
-  const fallbackUrl = '/cameraOff.jpg';
-  const bgUrl = mediaUrls?.[0] ? mediaUrls[0] : fallbackUrl;
+  const cameraOff = '/cameraOff.jpg';
+  const bgUrl = mediaUrls?.[0] ? mediaUrls[0] : cameraOff;
   if (!track) {
     return (
       <MediaBackground 
-        src={bgUrl} 
-        fallback={fallbackUrl}
+        src={cameraOff} 
+        fallback={cameraOff}
         className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100"
       >
         <div className="absolute inset-0 flex items-end justify-center">
