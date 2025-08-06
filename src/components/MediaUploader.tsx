@@ -23,10 +23,10 @@ interface MediaUploaderProps {
   acceptedTypes?: string[];
 }
 
-const MediaUploader: React.FC<MediaUploaderProps> = ({ 
-  onUpload, 
-  maxFiles = 10,
-  acceptedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf', 'video/mp4', 'video/mpeg', 'video/quicktime']
+const MediaUploader: React.FC<MediaUploaderProps> = ({
+  onUpload,
+  maxFiles = 1,
+  acceptedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf', 'video/mp4', 'video/webm', 'video/mov', 'video/mpeg', 'video/quicktime']
 }) => {
   const [files, setFiles] = useState<MediaFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -34,11 +34,23 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
   const { toast } = useToast();
 
   const handleFileSelect = async (selectedFiles: FileList) => {
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB in bytes
     const newFiles: MediaFile[] = [];
-    
-    for (let i = 0; i < selectedFiles.length && files.length + newFiles.length < maxFiles; i++) {
+  
+    for (let i = 0; i < selectedFiles.length && newFiles.length < maxFiles; i++) {
       const file = selectedFiles[i];
-      
+  
+      // Check file size limit
+      if (file.size > MAX_FILE_SIZE) {
+        toast({
+          title: "File Too Large",
+          description: `${file.name} exceeds the 10 MB size limit`,
+          variant: "destructive"
+        });
+        continue; // skip file
+      }
+  
+      // Check accepted type
       if (acceptedTypes.includes(file.type)) {
         newFiles.push({
           id: Date.now() + i + '',
@@ -50,56 +62,54 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
         });
       }
     }
-    
-    const updatedFiles = [...files, ...newFiles];
-    setFiles(updatedFiles);
-    
-    // Upload files to Supabase
+  
+    if (maxFiles === 1) {
+      if (files.length > 0) {
+        await removeFile(files[0].id);
+      }
+      setFiles(newFiles);
+    } else {
+      setFiles(prev => [...prev, ...newFiles]);
+    }
+  
     await uploadFiles(newFiles);
   };
+  
 
   const uploadFiles = async (filesToUpload: MediaFile[]) => {
     setIsUploading(true);
-    
+
     for (const mediaFile of filesToUpload) {
       try {
         if (!mediaFile.file) continue;
-        
+
         const fileExt = mediaFile.name.split('.').pop();
         const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-        
-        // Update progress
-        setFiles(prev => prev.map(f => 
+
+        setFiles(prev => prev.map(f =>
           f.id === mediaFile.id ? { ...f, uploadProgress: 50 } : f
         ));
-        
+
         const { data, error } = await supabase.storage
           .from('media')
           .upload(fileName, mediaFile.file);
-        
-        if (error) {
-          throw error;
-        }
-        
-        // Get public URL
+
+        if (error) throw error;
+
         const { data: urlData } = supabase.storage
           .from('media')
           .getPublicUrl(fileName);
-        
-        // Update file with URL and complete progress
-        setFiles(prev => prev.map(f => 
-          f.id === mediaFile.id ? { 
-            ...f, 
-            uploadProgress: 100, 
-            url: urlData.publicUrl 
-          } : f
+
+        setFiles(prev => prev.map(f =>
+          f.id === mediaFile.id
+            ? { ...f, uploadProgress: 100, url: urlData.publicUrl }
+            : f
         ));
-        
+
       } catch (error) {
         console.error('Upload error:', error);
         let errorMessage = `Failed to upload ${mediaFile.name}`;
-        
-        // Provide more specific error messages
+
         if (error instanceof Error) {
           if (error.message.includes('row-level security')) {
             errorMessage = `Permission denied: Please make sure you're logged in to upload files`;
@@ -111,29 +121,25 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
             errorMessage = `Upload failed: ${error.message}`;
           }
         }
-        
+
         toast({
           title: "Upload Failed",
           description: errorMessage,
           variant: "destructive"
         });
-        
-        // Remove failed file
+
         setFiles(prev => prev.filter(f => f.id !== mediaFile.id));
       }
     }
-    
+
     setIsUploading(false);
-    
-    
   };
 
   const removeFile = async (fileId: string) => {
     const fileToRemove = files.find(f => f.id === fileId);
-    
+
     if (fileToRemove?.url) {
       try {
-        // Extract filename from URL
         const fileName = fileToRemove.url.split('/').pop();
         if (fileName) {
           await supabase.storage.from('media').remove([fileName]);
@@ -142,20 +148,16 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
         console.error('Error removing file:', error);
       }
     }
-    
-    const updatedFiles = files.filter(file => file.id !== fileId);
-    setFiles(updatedFiles);
+
+    setFiles(prev => prev.filter(file => file.id !== fileId));
   };
 
-
   useEffect(() => {
-    // Only call onUpload when all files have a URL (i.e., upload is done)
-    // Notify parent component
     const completedFiles = files.filter(f => f.uploadProgress === 100);
     if (files.length > 0 && files.every(f => !!f.url)) {
       onUpload(completedFiles);
     }
-  }, [files]);
+  }, [files, onUpload]);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -205,24 +207,24 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
           onDrop={handleDrop}
         >
           {files.length > 0 && files.some(f => f.uploadProgress === 100) ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+            <div className="grid grid-cols-1 gap-4 mb-4">
               {files.filter(f => f.uploadProgress === 100).map(file => (
                 <div key={file.id} className="relative group">
                   {file.type.startsWith('image/') ? (
-                    <img 
-                      src={file.url} 
+                    <img
+                      src={file.url}
                       alt={file.name}
-                      className="w-full h-24 object-cover rounded border"
+                      className="aspect-video object-cover rounded border"
                     />
                   ) : file.type.startsWith('video/') ? (
-                    <video 
+                    <video
                       src={file.url}
-                      className="w-full h-24 object-cover rounded border"
+                      className="aspect-video object-cover rounded border"
                       controls={false}
                       muted
                     />
                   ) : (
-                    <div className="w-full h-24 bg-gray-100 rounded border flex items-center justify-center">
+                    <div className="aspect-video bg-gray-100 rounded border flex items-center justify-center">
                       {getFileIcon(file.type)}
                     </div>
                   )}
@@ -242,14 +244,14 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
               <Upload className="h-12 w-12 mx-auto mb-4 text-gray-400" />
               <p className="text-lg font-medium mb-2">Drop files here or click to upload</p>
               <p className="text-sm text-gray-500 mb-4">
-                Supported formats: JPG, PNG, GIF, PDF, MP4, MPEG, MOV
+                Supported formats: JPG, PNG, GIF, PDF, MP4, MPEG, MOV <br />
+                Max file size: 10 MB
               </p>
             </>
           )}
-          
+
           <input
             type="file"
-            multiple
             accept={acceptedTypes.join(',')}
             onChange={(e) => e.target.files && handleFileSelect(e.target.files)}
             className="hidden"
@@ -258,14 +260,14 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
           />
           <Label htmlFor="file-upload" className="cursor-pointer">
             <div className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
-              {isUploading ? 'Uploading...' : files.length > 0 ? 'Add More Files' : 'Select Files'}
+              {isUploading ? 'Uploading...' : files.length > 0 ? 'Replace File' : 'Select File'}
             </div>
           </Label>
         </div>
 
         {files.length > 0 && (
           <div className="space-y-2">
-            <h4 className="font-medium">Uploaded Files ({files.length}/{maxFiles})</h4>
+            <h4 className="font-medium">Uploaded File</h4>
             {files.map(file => (
               <div key={file.id} className="flex items-center gap-3 p-3 border rounded-lg">
                 <div className="text-gray-500">

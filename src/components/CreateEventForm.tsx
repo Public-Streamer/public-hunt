@@ -508,7 +508,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       <div className="space-y-6 max-w-full">
         <MediaUploader
           onUpload={handleMediaUpload}
-          maxFiles={5}
+          maxFiles={1}
           acceptedTypes={[
             "image/jpeg",
             "image/png",
