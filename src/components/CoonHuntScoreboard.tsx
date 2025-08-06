@@ -288,10 +288,10 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
         handler_name: newHandlerName.trim(),
         dog_name: newDogName.trim(),
         registration_number: '',
-        strike_points: 0,
-        tree_points: 0,
-        circle_points: 0,
-        minus_points: 0,
+        strike_points: '',
+        tree_points: '',
+        circle_points: '',
+        minus_points: '',
         warnings_notes: '',
         judge_comments: '',
         disqualified: false
@@ -757,7 +757,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                           <Label className="text-xs sm:text-sm font-medium block">Strike Points</Label>
                           {isHost ? (
                             <Input
-                              type="number"
+                              type="text"
                               value={getCurrentFieldValue(team.id, 'strike_points', team.custom_fields?.strike_points)}
                               onChange={(e) => handleFieldChange(team.id, 'strike_points', parseInt(e.target.value) || 0)}
                               onKeyPress={(e) => {
@@ -784,7 +784,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                           <Label className="text-xs sm:text-sm font-medium block">Tree Points</Label>
                           {isHost ? (
                             <Input
-                              type="number"
+                              type="text"
                               value={getCurrentFieldValue(team.id, 'tree_points', team.custom_fields?.tree_points)}
                               onChange={(e) => handleFieldChange(team.id, 'tree_points', parseInt(e.target.value) || 0)}
                               onKeyPress={(e) => {
@@ -811,7 +811,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                           <Label className="text-xs sm:text-sm font-medium block">Circle Points</Label>
                           {isHost ? (
                             <Input
-                              type="number"
+                              type="text"
                               value={getCurrentFieldValue(team.id, 'circle_points', team.custom_fields?.circle_points)}
                               onChange={(e) => handleFieldChange(team.id, 'circle_points', parseInt(e.target.value) || 0)}
                               onKeyPress={(e) => {
@@ -838,7 +838,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                           <Label className="text-xs sm:text-sm font-medium text-destructive block">Minus Points</Label>
                           {isHost ? (
                             <Input
-                              type="number"
+                              type="text"
                               value={getCurrentFieldValue(team.id, 'minus_points', team.custom_fields?.minus_points)}
                               onChange={(e) => handleFieldChange(team.id, 'minus_points', parseInt(e.target.value) || 0)}
                               onKeyPress={(e) => {
@@ -1059,7 +1059,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                   <div className="space-y-2">
                     <Label className="text-sm">Strike Points</Label>
                     <Input
-                      type="number"
+                      type="text"
                       value={editingTeam.custom_fields?.strike_points || 0}
                       onChange={(e) => {
                         const newValue = parseInt(e.target.value) || 0;
@@ -1087,7 +1087,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                   <div className="space-y-2">
                     <Label className="text-sm">Tree Points</Label>
                     <Input
-                      type="number"
+                      type="text"
                       value={editingTeam.custom_fields?.tree_points || 0}
                       onChange={(e) => {
                         const newValue = parseInt(e.target.value) || 0;
@@ -1115,7 +1115,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                   <div className="space-y-2">
                     <Label className="text-sm">Circle Points</Label>
                     <Input
-                      type="number"
+                      type="text"
                       value={editingTeam.custom_fields?.circle_points || 0}
                       onChange={(e) => {
                         const newValue = parseInt(e.target.value) || 0;
@@ -1143,7 +1143,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                   <div className="space-y-2">
                     <Label className="text-sm text-destructive">Minus Points</Label>
                     <Input
-                      type="number"
+                      type="text"
                       value={editingTeam.custom_fields?.minus_points || 0}
                       onChange={(e) => {
                         const newValue = parseInt(e.target.value) || 0;
