@@ -66,7 +66,7 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({ event, eventName, fallbac
     fetchToken();
   }, [event.id]);
 
-  // 5-second preview timer
+  // 15-second preview timer
   useEffect(() => {
     if (token && serverUrl) {
       const timer = setTimeout(() => {
