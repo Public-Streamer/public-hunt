@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { LiveKitRoom, useTracks } from '@livekit/components-react';
 import { Track } from 'livekit-client';
 import MainStreamPreview from '@/components/MainStreamPreview';
+import MediaBackground from '@/components/MediaBackground';
 
 interface LiveEvent {
   id: string;
@@ -80,10 +81,10 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({ event, eventName, fallbac
 
   if (!token || !serverUrl) {
     return (
-      <img 
-        src={fallbackImage} 
+      <MediaBackground
+        src={fallbackImage}
         alt={eventName}
-        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+        className="w-full h-full group-hover:scale-105 transition-transform duration-300"
       />
     );
   }
@@ -137,10 +138,10 @@ const StreamContent: React.FC<{ eventName: string; fallbackImage: string; isBlur
 
   if (activeVideoTracks.length === 0) {
     return (
-      <img 
-        src={fallbackImage} 
+      <MediaBackground
+        src={fallbackImage}
         alt={eventName}
-        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+        className="w-full h-full group-hover:scale-105 transition-transform duration-300"
       />
     );
   }
