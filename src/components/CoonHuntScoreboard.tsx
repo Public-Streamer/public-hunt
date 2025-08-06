@@ -720,12 +720,12 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                                   <span className="font-medium text-xs sm:text-sm break-words">{team.custom_fields?.dog_name || 'Not set'}</span>
                                 </div>
                                 {/* Optional Registration Number - only show if exists */}
-                                {team.custom_fields?.registration_number && (
+                                {/* {team.custom_fields?.registration_number && (
                                   <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                                     <span className="text-muted-foreground shrink-0">Registration:</span>
                                     <span className="font-medium text-xs sm:text-sm break-words">{team.custom_fields.registration_number}</span>
                                   </div>
-                                )}
+                                )} */}
                               </div>
                             )}
                           </div>
@@ -1042,32 +1042,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                       placeholder="Dog name..."
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm">Registration Number</Label>
-                    <Input
-                      value={editingTeam.custom_fields?.registration_number || ''}
-                      onChange={(e) => {
-                        const newValue = e.target.value;
-                        setEditingTeam(prev => prev ? { 
-                          ...prev, 
-                          custom_fields: { ...prev.custom_fields, registration_number: newValue }
-                        } : null);
-                      }}
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          const newValue = e.currentTarget.value;
-                          updateTeamField(editingTeam.id, 'registration_number', newValue);
-                        }
-                      }}
-                      onBlur={(e) => {
-                        const newValue = e.target.value;
-                        updateTeamField(editingTeam.id, 'registration_number', newValue);
-                      }}
-                      className="text-sm"
-                      placeholder="Registration number..."
-                    />
-                  </div>
+                  
                 </div>
 
                 {/* Scoring - Real-time Editable */}
