@@ -14,6 +14,8 @@ import { toast } from '@/hooks/use-toast';
 // OMCBA Coon Hunt Team Interface - Based on Official Rules
 interface CoonHuntTeam {
   id: string;
+  team_id: string;
+  teamName: string;
   team_name: string;
   team_color: string;
   event_id: string;
