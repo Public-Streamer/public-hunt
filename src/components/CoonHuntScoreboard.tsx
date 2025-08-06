@@ -274,7 +274,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
     const minus = customFields?.minus_points || 0;
     
     // OMCBA Rule: Total = Strike + Tree + Circle - Minus
-    return strike + tree + circle - minus;
+    return strike + tree  - minus;
   };
 
   const createTeam = async () => {
