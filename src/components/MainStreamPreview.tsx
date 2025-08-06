@@ -19,6 +19,7 @@ interface MainStreamPreviewProps {
   setIsMuted: any;
   isMuted: boolean;
   eventId: string;
+  mediaUrls: string[];
 }
 
 const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
@@ -28,6 +29,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
   setIsMuted,
   isMuted,
   eventId,
+  mediaUrls
 }) => {
   const { messages, sendMessage } = useSupabaseChatMessages(eventId);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -243,15 +245,19 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
       resetHideTimer();
     }
   };
+
+  const fallbackUrl = '/cameraOff.jpg';
+const bgUrl = mediaUrls?.[0] ? mediaUrls[0] : fallbackUrl;
   if (!track) {
     return (
-      <div className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100 relative">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <Video className="h-12 w-12 sm:h-16 sm:w-16 lg:h-24 lg:w-24 text-purple-500" />
+      <div style={{backgroundImage: `url(${bgUrl})`, backgroundSize: "cover", backgroundPosition: "center"}} className="aspect-video  bg-gradient-to-br from-purple-100 to-pink-100 relative">
+        <div className="absolute inset-0 flex items-end justify-center">
+          <h1 className="p-10 text-2xl font-thin text-white">Camera/Screen is Off</h1>
+          {/* <Video className="h-12 w-12 sm:h-16 sm:w-16 lg:h-24 lg:w-24 text-purple-500" /> */}
         </div>
         {isLive && (
           <Badge className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-red-600 text-white text-xs">
-            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full mr-1 animate-pulse" />
+            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-white mr-1 animate-pulse" />
             LIVE
           </Badge>
         )}

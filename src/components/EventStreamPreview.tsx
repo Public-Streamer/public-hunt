@@ -13,15 +13,17 @@ interface EventStreamPreviewProps {
   isLive: boolean;
   fallbackImage?: string;
   hasAccess: boolean;
+  mediaUrls: string[];
 }
 
 interface StreamPreviewProps {
   eventId: string;
   eventName: string;
   fallbackImage: string;
+  mediaUrls: string[];
 }
 
-const StreamPreview: React.FC<StreamPreviewProps> = ({ eventId, eventName, fallbackImage }) => {
+const StreamPreview: React.FC<StreamPreviewProps> = ({ eventId, eventName, fallbackImage, mediaUrls }) => {
   const [token, setToken] = useState<string | null>(null);
   const [serverUrl, setServerUrl] = useState<string>('');
   const [isBlurred, setIsBlurred] = useState(false);
@@ -88,6 +90,7 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({ eventId, eventName, fallb
         className="w-full h-full"
       >
         <StreamContent 
+          mediaUrls={mediaUrls}
           eventName={eventName} 
           fallbackImage={fallbackImage} 
           isBlurred={isBlurred}
@@ -107,7 +110,7 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({ eventId, eventName, fallb
   );
 };
 
-const StreamContent: React.FC<{ eventName: string; fallbackImage: string; isBlurred: boolean; eventId: string }> = ({ eventName, fallbackImage, isBlurred, eventId }) => {
+const StreamContent: React.FC<{ eventName: string; fallbackImage: string; isBlurred: boolean; eventId: string; mediaUrls: string[] }> = ({ eventName, fallbackImage, isBlurred, eventId, mediaUrls }) => {
   const [isMuted, setIsMuted] = useState(true);
   const videoTracks = useTracks([Track.Source.Camera, Track.Source.ScreenShare], {
     updateOnlyOn: [],
@@ -131,6 +134,7 @@ const StreamContent: React.FC<{ eventName: string; fallbackImage: string; isBlur
   return (
     <div className={`w-full h-full transition-all duration-500 ${isBlurred ? 'blur-md' : ''}`}>
       <MainStreamPreview 
+        mediaUrls={mediaUrls}
         track={activeVideoTracks[0]} 
         eventName={eventName} 
         isLive={true}
@@ -147,7 +151,8 @@ const EventStreamPreview: React.FC<EventStreamPreviewProps> = ({
   eventName, 
   isLive, 
   fallbackImage = '/placeholder.svg',
-  hasAccess 
+  hasAccess, 
+  mediaUrls
 }) => {
   const [showPreview, setShowPreview] = useState(false);
 
@@ -170,6 +175,7 @@ const EventStreamPreview: React.FC<EventStreamPreviewProps> = ({
               eventId={eventId}
               eventName={eventName}
               fallbackImage={fallbackImage}
+              mediaUrls={mediaUrls}
             />
           ) : (
             <div className="flex flex-col items-center justify-center h-full space-y-4">

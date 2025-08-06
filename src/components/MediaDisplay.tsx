@@ -51,7 +51,7 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ media }) => {
                 </div>
               )}
               {item.title && (
-                <p className="mt-2 text-sm text-gray-600 truncate">{item.title}</p>
+                <p className="mt-2 text-sm text-gray-600 truncate">{}</p>
               )}
             </div>
           ))}

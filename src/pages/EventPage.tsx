@@ -559,7 +559,7 @@ const EventPage: React.FC = () => {
       type: url.endsWith(".mp4") ? ("video" as const) : ("image" as const),
       url,
       title: `Media ${index + 1}`,
-      thumbnail: url.endsWith(".mp4") ? "/placeholder.svg" : url,
+      thumbnail: url.endsWith(".mp4") ? "/placeholder.gif" : url,
     })) || [];
 
   console.log("[EventPage] Render state:", {
@@ -569,6 +569,7 @@ const EventPage: React.FC = () => {
     serverUrl,
     eventDataId: eventData?.id,
     viewerCount,
+    mediaData,
   });
 
   return (
@@ -603,7 +604,7 @@ const EventPage: React.FC = () => {
           {/* Left Column - Main Event Content */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             {/* Event Preview Card - Always show StreamPreviewContainer in pink area */}
-            <Card className="overflow-hidden">
+            <Card  className="overflow-hidden">
               {isLive && roomName && livekitToken && serverUrl ? (
                 <LiveKitRoom
                   token={livekitToken}
@@ -615,6 +616,7 @@ const EventPage: React.FC = () => {
                   connect={true}
                 >
                   <StreamPreviewContainer
+                    mediaUrls={eventData.media_urls || ["/placeholder.gif"]}
                     eventName={eventData.name}
                     isLive={eventData.is_live}
                     hasAccess={hasTicket || canEnterStage}
@@ -682,7 +684,7 @@ const EventPage: React.FC = () => {
                     )}
                 </LiveKitRoom>
               ) : (
-                <div className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100 relative">
+                <div style={{backgroundImage: `url(${eventData.media_urls?.[0] || "/placeholder.gif"})`, backgroundSize: "cover", backgroundPosition: "center"}} className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100 relative">
                   {/* Show 10-Second Preview for Paid Live Events */}
                   {currentUser &&
                   eventData.ticket_price &&
@@ -691,11 +693,12 @@ const EventPage: React.FC = () => {
                   !canEnterStage &&
                   eventData.is_live ? (
                     <EventStreamPreview
+                      mediaUrls={eventData.media_urls || ["/placeholder.gif"]}
                       eventId={eventData.id}
                       eventName={eventData.name}
                       isLive={eventData.is_live}
                       fallbackImage={
-                        eventData.media_urls?.[0] || "/placeholder.svg"
+                        eventData.media_urls?.[0] || "/placeholder.gif"
                       }
                       hasAccess={hasTicket || canEnterStage}
                     />
@@ -714,7 +717,8 @@ const EventPage: React.FC = () => {
                         </div>
                       )}
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <Video className="h-12 w-12 sm:h-16 sm:w-16 lg:h-24 lg:w-24 text-purple-500" />
+                        
+                        {/* <Video className="h-12 w-12 sm:h-16 sm:w-16 lg:h-24 lg:w-24 text-purple-500" /> */}
                       </div>
                       {eventData.is_live && (
                         <Badge className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-red-600 text-white text-xs">

@@ -15,6 +15,7 @@ interface StreamPreviewContainerProps {
   hasAccess: boolean;
   isLoggedIn: boolean;
   eventId: string;
+  mediaUrls: string[];
 }
 
 const StreamPreviewContainer: React.FC<StreamPreviewContainerProps> = ({
@@ -23,6 +24,7 @@ const StreamPreviewContainer: React.FC<StreamPreviewContainerProps> = ({
   hasAccess,
   isLoggedIn,
   eventId,
+  mediaUrls,
 }) => {
   const [selectedTrackIndex, setSelectedTrackIndex] = useState<number>(0);
   const [isMuted, setIsMuted] = useState(false);
@@ -99,7 +101,7 @@ const StreamPreviewContainer: React.FC<StreamPreviewContainerProps> = ({
   // If user is not logged in, show blurred preview
   if (!isLoggedIn) {
     return (
-      <div className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100 relative">
+      <div  className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100 relative">
         <div className="absolute inset-0 backdrop-blur-md bg-black/20 flex items-center justify-center">
           <div className="text-center bg-white/90 p-6 rounded-lg shadow-lg">
             <div className="text-lg font-semibold mb-2">
@@ -139,6 +141,7 @@ const StreamPreviewContainer: React.FC<StreamPreviewContainerProps> = ({
     <div className="space-y-4">
       {/* Main preview area */}
       <MainStreamPreview
+        mediaUrls={mediaUrls}
         track={selectedVideoTrack}
         eventName={eventName}
         isLive={isLive}

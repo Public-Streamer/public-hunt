@@ -114,12 +114,16 @@ const EventCard: React.FC<EventCardProps> = ({ event, onPurchase, onWatch }) => 
     return `Buy Ticket - $${event.price}`;
   };
 
+  const fallbackUrl = '/live.png';
+  const noThumb = "/placeholder.svg"
+const bgUrl = event.thumbnail ? event.thumbnail : event.isLive ? fallbackUrl : noThumb;
+
   return (
     <div>
-      <Card className="hover:shadow-lg transition-shadow duration-300 overflow-hidden cursor-pointer" onClick={handleCardClick}>
-        <div className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100 relative">
+      <Card  className="hover:shadow-lg transition-shadow duration-300 overflow-hidden cursor-pointer" onClick={handleCardClick}>
+        <div style={{backgroundImage: `url(${bgUrl}) `, backgroundSize: "cover", backgroundPosition: "center"}} className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100 relative">
           <div className="absolute inset-0 flex items-center justify-center">
-            <Video className="h-16 w-16 text-purple-500" />
+            {/* <Video className="h-16 w-16 text-base-300" /> */}
           </div>
           {event.isLive && (
             <Badge className="absolute top-2 left-2 bg-red-600 text-white">

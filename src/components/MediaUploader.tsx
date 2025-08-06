@@ -155,7 +155,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
     if (files.length > 0 && files.every(f => !!f.url)) {
       onUpload(completedFiles);
     }
-  }, [files, onUpload]);
+  }, [files]);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();

@@ -89,7 +89,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
   // };
 
   const handleMediaUpload = (files: MediaFile[]) => {
-    // setMediaFiles(files);
+    setMediaFiles(files);
     onMediaUpload(files);
     console.log("From HandleUpload", files);
     if (files.length > 0) {
@@ -194,7 +194,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       location: location,
       category: formData.category,
       ticket_price: ticketPrice,
-      media_urls: mediaFiles[0].url,
+      media_urls: mediaFiles.map((f)=> f.url ).filter(Boolean),
       is_live: false,
       created_by: userData.user.id,
       // channel_id: selectedChannelId || null, // Temporarily disabled
@@ -263,6 +263,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       }
 
       console.log("Creating event with user:", userData.user.id);
+      console.log("Media Files:", mediaFiles);
 
       const { data, error } = await supabase
         .from("events")
@@ -274,8 +275,8 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
           location: formData.location,
           category: formData.category,
           ticket_price: ticketPrice,
-          // media_urls: mediaFiles.map((f)=> f.url ).filter(Boolean),
-          media_urls: mediaFiles[0].url,
+          media_urls: mediaFiles.map((f)=> f.url ).filter(Boolean),
+          // media_urls: mediaFiles[0].url,
           is_live: false,
           created_by: userData.user.id,
           // channel_id: channelRequiresApproval ? null : selectedChannelId || null, // Temporarily disabled
