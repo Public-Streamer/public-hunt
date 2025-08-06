@@ -761,7 +761,7 @@ const EventPage: React.FC = () => {
             </Card>
 
             {/* Promotional Media */}
-            {mediaData.length > 0 && <MediaDisplay media={mediaData} />}
+            {/* {mediaData.length > 0 && <MediaDisplay media={mediaData} />} */}
 
             {/* Offline Streams */}
             {!eventData.is_live && (
