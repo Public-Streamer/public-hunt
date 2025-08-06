@@ -33,6 +33,7 @@ import { CoonHuntScoreboard } from "@/components/CoonHuntScoreboard";
 import { CustomScoreboard } from "@/components/CustomScoreboard";
 import { PinnedMessageSection } from "@/components/PinnedMessageSection";
 import EventStreamPreview from "@/components/EventStreamPreview";
+import MediaBackground from "@/components/MediaBackground";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { useAppContext } from "@/contexts/AppContext";
@@ -684,7 +685,11 @@ const EventPage: React.FC = () => {
                     )}
                 </LiveKitRoom>
               ) : (
-                <div style={{backgroundImage: `url(${eventData.media_urls?.[0] || "/placeholder.gif"})`, backgroundSize: "cover", backgroundPosition: "center"}} className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100 relative">
+                <MediaBackground 
+                  src={eventData.media_urls?.[0]} 
+                  fallback="/placeholder.gif"
+                  className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100"
+                >
                   {/* Show 10-Second Preview for Paid Live Events */}
                   {currentUser &&
                   eventData.ticket_price &&
@@ -738,7 +743,7 @@ const EventPage: React.FC = () => {
                       </div>
                     </>
                   )}
-                </div>
+                </MediaBackground>
               )}
 
               {/* Pre-Stream Chat Archive for scheduled events */}

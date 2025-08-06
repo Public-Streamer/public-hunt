@@ -11,6 +11,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useSupabaseChatMessages } from "@/hooks/useSupabaseChatMessages";
 import { useStreamingControls } from "@/hooks/useStreamingControls";
+import MediaBackground from "./MediaBackground";
 
 interface MainStreamPreviewProps {
   track?: TrackReference;
@@ -247,10 +248,14 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
   };
 
   const fallbackUrl = '/cameraOff.jpg';
-const bgUrl = mediaUrls?.[0] ? mediaUrls[0] : fallbackUrl;
+  const bgUrl = mediaUrls?.[0] ? mediaUrls[0] : fallbackUrl;
   if (!track) {
     return (
-      <div style={{backgroundImage: `url(${bgUrl})`, backgroundSize: "cover", backgroundPosition: "center"}} className="aspect-video  bg-gradient-to-br from-purple-100 to-pink-100 relative">
+      <MediaBackground 
+        src={bgUrl} 
+        fallback={fallbackUrl}
+        className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100"
+      >
         <div className="absolute inset-0 flex items-end justify-center">
           <h1 className="p-10 text-2xl font-thin text-white">Camera/Screen is Off</h1>
           {/* <Video className="h-12 w-12 sm:h-16 sm:w-16 lg:h-24 lg:w-24 text-purple-500" /> */}
@@ -261,8 +266,7 @@ const bgUrl = mediaUrls?.[0] ? mediaUrls[0] : fallbackUrl;
             LIVE
           </Badge>
         )}
-
-      </div>
+      </MediaBackground>
     );
   }
 

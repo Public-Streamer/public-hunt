@@ -8,6 +8,7 @@ import SocialMediaSection from './SocialMediaSection';
 import TicketPurchaseModal from './TicketPurchaseModal';
 import { supabase } from '@/integrations/supabase/client';
 import { useAppContext } from '@/contexts/AppContext';
+import MediaBackground from './MediaBackground';
 
 interface Event {
   id: string;
@@ -121,7 +122,10 @@ const bgUrl = event.thumbnail ? event.thumbnail : event.isLive ? fallbackUrl : n
   return (
     <div>
       <Card  className="hover:shadow-lg transition-shadow duration-300 overflow-hidden cursor-pointer" onClick={handleCardClick}>
-        <div style={{backgroundImage: `url(${bgUrl}) `, backgroundSize: "cover", backgroundPosition: "center"}} className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100 relative">
+        <MediaBackground 
+          src={bgUrl} 
+          className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100"
+        >
           <div className="absolute inset-0 flex items-center justify-center">
             {/* <Video className="h-16 w-16 text-base-300" /> */}
           </div>
@@ -134,7 +138,7 @@ const bgUrl = event.thumbnail ? event.thumbnail : event.isLive ? fallbackUrl : n
           <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-sm">
             {event.streamerCount} cameras
           </div>
-        </div>
+        </MediaBackground>
         
         <CardHeader className="pb-3">
           <CardTitle className="text-lg font-semibold line-clamp-2">
