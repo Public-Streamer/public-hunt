@@ -1244,42 +1244,12 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
         .eq("event_id", eventId)
         .eq("streamer_id", session.user.id);
 
-      // Best-effort reconciliation to ensure event is marked not live
-      try {
-        await supabase.functions.invoke("reconcile-live-status", {
-          body: { eventId, userId: session.user.id, reason: "manual-stop" },
-        });
-      } catch (e) {
-        // Fallback to direct HTTP with keepalive/beacon
-        const publicEdgeUrl =
-          "https://zmfugicftfwvuudensdo.supabase.co/functions/v1/reconcile-live-status";
-        try {
-          const payload = JSON.stringify({
-            eventId,
-            userId: session.user.id,
-            reason: "manual-stop",
-            ts: Date.now(),
-          });
-          fetch(publicEdgeUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: payload,
-            keepalive: true,
-          }).catch(() => {
-            navigator.sendBeacon(
-              publicEdgeUrl,
-              new Blob([payload], { type: "application/json" })
-            );
-          });
-        } catch {}
-      }
-
       setTimeout(async () => {
         const result = await checkAndUpdateLiveStatus();
 
         console.log({ result });
 
-        if (result && result.should_close_room) {
+        if (result.should_close_room) {
           await supabase.functions.invoke("manage-livekit-room", {
             body: {
               action: "close",
