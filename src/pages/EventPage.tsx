@@ -455,7 +455,9 @@ const EventPage: React.FC = () => {
 
   const goToStage = () => {
     // Use slug if available, otherwise use event ID
-    const stageUrl = eventData?.slug ? `/stage/${eventData.slug}` : `/stage/${eventData?.id || eventId}`;
+    const stageUrl = eventData?.slug
+      ? `/stage/${eventData.slug}`
+      : `/stage/${eventData?.id || eventId}`;
     navigate(stageUrl);
   };
 
@@ -605,7 +607,7 @@ const EventPage: React.FC = () => {
           {/* Left Column - Main Event Content */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             {/* Event Preview Card - Always show StreamPreviewContainer in pink area */}
-            <Card  className="overflow-hidden">
+            <Card className="overflow-hidden">
               {isLive && roomName && livekitToken && serverUrl ? (
                 <LiveKitRoom
                   token={livekitToken}
@@ -685,8 +687,8 @@ const EventPage: React.FC = () => {
                     )}
                 </LiveKitRoom>
               ) : (
-                <MediaBackground 
-                  src={eventData.media_urls?.[0]} 
+                <MediaBackground
+                  src={eventData.media_urls?.[0]}
                   fallback="/placeholder.gif"
                   className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100"
                 >
@@ -722,7 +724,6 @@ const EventPage: React.FC = () => {
                         </div>
                       )}
                       <div className="absolute inset-0 flex items-center justify-center">
-                        
                         {/* <Video className="h-12 w-12 sm:h-16 sm:w-16 lg:h-24 lg:w-24 text-purple-500" /> */}
                       </div>
                       {eventData.is_live && (
@@ -791,6 +792,18 @@ const EventPage: React.FC = () => {
                       LIVE
                     </Badge>
                   )}
+                  {(!eventData.ticket_price || eventData.ticket_price <= 0) && (
+                    <Badge className="bg-green-600 text-white text-xs">
+                      Full Access (Free Event)
+                    </Badge>
+                  )}
+                  {hasTicket &&
+                  eventData.ticket_price &&
+                  eventData.ticket_price > 0 ? (
+                    <Badge className="bg-green-600 text-white text-xs">
+                      ✓ Paid ${eventData.ticket_price}
+                    </Badge>
+                  ) : null}
                 </div>
               </CardHeader>
 
@@ -822,78 +835,6 @@ const EventPage: React.FC = () => {
                     </span>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-            {/* Event Details Card */}
-            <Card>
-              <CardHeader className="p-3 sm:p-6">
-                <CardTitle className="text-base sm:text-lg">
-                  Event Details
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-3 sm:p-6 space-y-3 sm:space-y-4">
-                <div>
-                  <p className="font-semibold text-sm sm:text-base">Status</p>
-                  <div className="mt-1">
-                    {eventData.is_live ? (
-                      <Badge className="bg-green-600 text-white text-xs">
-                        Live Now
-                      </Badge>
-                    ) : (
-                      <Badge variant="secondary" className="text-xs">
-                        Scheduled
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <p className="font-semibold text-sm sm:text-base">Category</p>
-                  <p className="text-gray-600 text-sm sm:text-base">
-                    {eventData.category || "General"}
-                  </p>
-                </div>
-                <div>
-                  <p className="font-semibold text-sm sm:text-base">Created</p>
-                  <p className="text-gray-600 text-sm sm:text-base">
-                    {new Date(eventData.created_at).toLocaleDateString()}
-                  </p>
-                </div>
-                <div>
-                  <p className="font-semibold text-sm sm:text-base">
-                    Current Viewers
-                  </p>
-                  <p className="text-gray-600 text-sm sm:text-base">
-                    {viewerCount.toLocaleString()}
-                  </p>
-                </div>
-                {hasTicket &&
-                  eventData.ticket_price &&
-                  eventData.ticket_price > 0 && (
-                    <div>
-                      <p className="font-semibold text-sm sm:text-base">
-                        Payment Status
-                      </p>
-                      <div className="space-y-1">
-                        <Badge className="bg-green-600 text-white text-xs">
-                          ✓ Paid ${eventData.ticket_price}
-                        </Badge>
-                        <p className="text-xs text-gray-600">
-                          You have full access to this event
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                {hasTicket &&
-                  (!eventData.ticket_price || eventData.ticket_price <= 0) && (
-                    <div>
-                      <p className="font-semibold text-sm sm:text-base">
-                        Your Access
-                      </p>
-                      <Badge className="bg-green-600 text-white text-xs">
-                        Full Access (Free Event)
-                      </Badge>
-                    </div>
-                  )}
               </CardContent>
             </Card>
 
