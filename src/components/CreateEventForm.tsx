@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -88,17 +88,20 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
   //   onInputChange("channelId", channelId);
   // };
 
-  const handleMediaUpload = (files: MediaFile[]) => {
-    setMediaFiles(files);
-    onMediaUpload(files);
-    console.log("From HandleUpload", files);
-    if (files.length > 0) {
-      toast({
-        title: "Media Uploaded",
-        description: `${files.length} file(s) uploaded successfully`,
-      });
-    }
-  };
+  const handleMediaUpload = useCallback(
+    (files: MediaFile[]) => {
+      setMediaFiles(files);
+      onMediaUpload(files);
+      console.log("From HandleUpload", files);
+      if (files.length > 0) {
+        toast({
+          title: "Media Uploaded",
+          description: `${files.length} file(s) uploaded successfully`,
+        });
+      }
+    },
+    [onMediaUpload, toast]
+  );
 
   const getRequiredFields = () => {
     const missing = [];
@@ -194,7 +197,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       location: location,
       category: formData.category,
       ticket_price: ticketPrice,
-      media_urls: mediaFiles.map((f)=> f.url ).filter(Boolean),
+      media_urls: mediaFiles.map((f) => f.url).filter(Boolean),
       is_live: false,
       created_by: userData.user.id,
       // channel_id: selectedChannelId || null, // Temporarily disabled
@@ -232,7 +235,9 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
           description: "Your event is now live and streaming.",
         });
         // Navigate to the event page
-        const stageUrl = data.slug ? `/stage/${data.slug}` : `/stage/${data.id}`;
+        const stageUrl = data.slug
+          ? `/stage/${data.slug}`
+          : `/stage/${data.id}`;
         window.location.href = stageUrl;
       }, 1000);
     } catch (error) {
@@ -275,7 +280,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
           location: formData.location,
           category: formData.category,
           ticket_price: ticketPrice,
-          media_urls: mediaFiles.map((f)=> f.url ).filter(Boolean),
+          media_urls: mediaFiles.map((f) => f.url).filter(Boolean),
           // media_urls: mediaFiles[0].url,
           is_live: false,
           created_by: userData.user.id,
@@ -307,7 +312,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       //     requested_by: userData.user.id,
       //     message: `Event "${formData.name}" requesting assignment to channel`,
       //   });
-      //   
+      //
       //   const { data: channelMasters, error: mastersError } = await supabase
       //     .from("channel_permissions")
       //     .select("user_id")
