@@ -342,6 +342,29 @@ const StagePage: React.FC = () => {
       onDisconnected={(reason) => {
         console.log("LiveKit room disconnected:", reason);
         toast.info("Disconnected from live stream");
+        try {
+          if (event?.id) {
+            supabase.functions.invoke("reconcile-live-status", {
+              body: { eventId: event.id, userId: user?.id, reason: "livekit-disconnected" },
+            });
+          }
+        } catch (e) {
+          // Fallback to direct HTTP with keepalive/beacon
+          try {
+            if (event?.id) {
+              const publicEdgeUrl = "https://zmfugicftfwvuudensdo.supabase.co/functions/v1/reconcile-live-status";
+              const payload = JSON.stringify({ eventId: event.id, userId: user?.id, reason: "livekit-disconnected", ts: Date.now() });
+              fetch(publicEdgeUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: payload,
+                keepalive: true,
+              }).catch(() => {
+                navigator.sendBeacon(publicEdgeUrl, new Blob([payload], { type: "application/json" }));
+              });
+            }
+          } catch {}
+        }
       }}
       onError={(error) => {
         console.error("LiveKit room error:", error);
