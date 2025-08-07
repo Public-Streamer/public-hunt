@@ -6,6 +6,7 @@ import "@livekit/components-styles";
 import { StreamerInterface } from "@/components/StreamerInterface";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
+import { useLiveReconciliation } from "@/hooks/useLiveReconciliation";
 
 const StagePage: React.FC = () => {
   const { eventId } = useParams<{ eventId: string }>();
@@ -267,6 +268,13 @@ const StagePage: React.FC = () => {
       tokenGenerated.current = false;
     };
   }, []);
+
+  // Best-effort reconcile when user hides/leaves the page
+  useLiveReconciliation({
+    eventId: event?.id,
+    userId: user?.id,
+    enabled: !!(event?.id && user?.id),
+  });
 
   if (loading || tokenLoading) {
     return (
