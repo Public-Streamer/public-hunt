@@ -146,6 +146,8 @@ const StreamerSelector: React.FC<StreamerSelectorProps> = ({ onStreamersChange, 
 
   const allMembersConfirmed = selectedMembers.length > 0 && selectedMembers.every(m => m.confirmed);
 
+  console.log('StreamerSelector render - selectedMembers:', selectedMembers, 'length:', selectedMembers.length);
+
   return (
     <Card>
       <CardHeader>
@@ -247,16 +249,25 @@ const StreamerSelector: React.FC<StreamerSelectorProps> = ({ onStreamersChange, 
           </div>
           
           <div className="space-y-3">
-            {selectedMembers.map(member => (
-              <EventRoleManager
-                key={member.id}
-                member={member}
-                onPermissionsChange={(permissions) => updateMemberPermissions(member.id, permissions)}
-                onConfirm={() => confirmMember(member.id)}
-                onRemove={!isLocked ? () => removeMember(member.id) : undefined}
-                disabled={isLocked}
-              />
-            ))}
+            {selectedMembers.length === 0 ? (
+              <div className="text-center text-gray-500 py-4">
+                No team members selected yet. Search and add members above.
+              </div>
+            ) : (
+              selectedMembers.map(member => {
+                console.log('Rendering member:', member);
+                return (
+                  <EventRoleManager
+                    key={member.id}
+                    member={member}
+                    onPermissionsChange={(permissions) => updateMemberPermissions(member.id, permissions)}
+                    onConfirm={() => confirmMember(member.id)}
+                    onRemove={!isLocked ? () => removeMember(member.id) : undefined}
+                    disabled={isLocked}
+                  />
+                );
+              })
+            )}
           </div>
         </div>
 
