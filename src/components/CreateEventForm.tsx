@@ -216,17 +216,16 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         .single();
       if (error) throw error;
 
-      // Add streamers to event_streamers table
+      // Add streamers to event_participants table
       if (selectedStreamers.length > 0) {
         const streamerData = selectedStreamers.map((streamer) => ({
           event_id: data.id,
-          streamer_id: streamer.id,
-          assigned_by: userData.user.id,
-          role_type: "Streamers",
+          user_id: streamer.id,
+          role: "streamer",
           permissions: streamer.permissions,
         }));
 
-        await supabase.from("event_streamers").insert(streamerData);
+        await supabase.from("event_participants").insert(streamerData);
       }
 
       setTimeout(() => {
@@ -291,17 +290,16 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
 
       if (error) throw error;
 
-      // Add streamers to event_streamers table
+      // Add streamers to event_participants table
       if (selectedStreamers.length > 0) {
         const streamerData = selectedStreamers.map((streamer) => ({
           event_id: data.id,
-          streamer_id: streamer.id,
-          assigned_by: userData.user.id,
-          role_type: "Streamers",
+          user_id: streamer.id,
+          role: "streamer",
           permissions: streamer.permissions,
         }));
 
-        await supabase.from("event_streamers").insert(streamerData);
+        await supabase.from("event_participants").insert(streamerData);
       }
 
       // Channel assignment functionality temporarily disabled
