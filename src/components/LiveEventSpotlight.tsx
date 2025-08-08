@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Eye, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,6 +7,7 @@ import { LiveKitRoom, useTracks } from '@livekit/components-react';
 import { Track } from 'livekit-client';
 import MainStreamPreview from '@/components/MainStreamPreview';
 import MediaBackground from '@/components/MediaBackground';
+import { useQuery } from '@tanstack/react-query';
 
 interface LiveEvent {
   id: string;
@@ -30,44 +30,43 @@ interface StreamPreviewProps {
 }
 
 const StreamPreview: React.FC<StreamPreviewProps> = ({ event, eventName, fallbackImage }) => {
-  const [token, setToken] = useState<string | null>(null);
-  const [serverUrl, setServerUrl] = useState<string>('');
   const navigate = useNavigate();
 
-  
-
-  useEffect(() => {
-    const fetchToken = async () => {
-      try {
-        const { data, error } = await supabase.functions.invoke('create-livekit-token', {
-          body: {
-            eventId: event.id,
-            userRole: 'viewer',
-            permissions: {
-              canPublish: false,
-              canSubscribe: true,
-              canPublishData: false
-            }
-          }
-        });
-
-        if (error) {
-          console.error('Error fetching token:', error);
-          return;
+  const fetchLiveKitToken = async () => {
+    const { data, error } = await supabase.functions.invoke('create-livekit-token', {
+      body: {
+        eventId: event.id,
+        userRole: 'viewer',
+        permissions: {
+          canPublish: false,
+          canSubscribe: true,
+          canPublishData: false
         }
-
-        setToken(data.token);
-        setServerUrl(data.serverUrl);
-      } catch (error) {
-        console.error('Error creating LiveKit token:', error);
       }
-    };
+    });
+    if (error) throw new Error(error.message || 'Error fetching token');
+    return data;
+  };
 
-    fetchToken();
-  }, [event.id]);
+  const {
+    data: tokenData,
+    isLoading: isTokenLoading,
+    error: tokenError
+  } = useQuery({
+    queryKey: ['livekit-token', event.id],
+    queryFn: fetchLiveKitToken,
+    enabled: !!event.id
+  });
 
-  
-  
+  const token = tokenData?.token || null;
+  const serverUrl = tokenData?.serverUrl || '';
+
+  if (isTokenLoading) {
+    return <div className="text-center py-12">Loading stream...</div>;
+  }
+  if (tokenError) {
+    return <div className="text-center py-12">Error loading stream: {tokenError.message}</div>;
+  }
 
   return (
     <div className="relative w-full h-full">
@@ -118,13 +117,13 @@ const StreamContent: React.FC<{ eventName: string; fallbackImage: string;  event
   return (
     <div className={`w-full h-full transition-all duration-500` }>
       <MainStreamPreview 
-        mediaUrls={event.mediaUrls || []}
+        mediaUrls={event?.mediaUrls || []}
         track={activeVideoTracks[0]} 
         eventName={eventName} 
         isLive={true}
         isMuted={isMuted}
         setIsMuted={setIsMuted}
-        eventId={event.id}
+        eventId={event?.id}
       />
     </div>
   );
@@ -132,22 +131,27 @@ const StreamContent: React.FC<{ eventName: string; fallbackImage: string;  event
 
 const LiveEventSpotlight: React.FC = () => {
  
-  const [liveEvents, setLiveEvents] = useState<LiveEvent[]>([]);
-  const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
-  const handleWatchNow = (event: any) => {
-    const eventUrl = event.slug ? `/event/${event.slug}` : `/event/${event.id}`;
-    navigate(eventUrl);
+  // Move this function above useQuery so it can be used inside queryFn
+  const calculateTimeRemaining = (eventDate: string, eventTime: string) => {
+    if (!eventDate || !eventTime) return undefined;
+    const eventDateTime = new Date(`${eventDate}T${eventTime}`);
+    const now = new Date();
+    const diff = eventDateTime.getTime() - now.getTime();
+    if (diff <= 0) return undefined;
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    if (hours > 0) return `${hours}h ${minutes}m left`;
+    return `${minutes}m left`;
   };
 
- 
-
-  useEffect(() => {
-    fetchLiveEvents();
-  }, []);
-
-  const fetchLiveEvents = async () => {
-    try {
+  // React Query for live events
+  const {
+    data: liveEvents = [],
+    isLoading: isEventsLoading,
+    error: eventsError
+  } = useQuery({
+    queryKey: ['live-events'],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from('events')
         .select('*')
@@ -156,67 +160,38 @@ const LiveEventSpotlight: React.FC = () => {
         .limit(6);
 
       if (error) {
-        console.error('Error fetching live events:', error);
-        return;
+        throw new Error(error.message || 'Error fetching live events');
       }
 
-      const formattedEvents: LiveEvent[] = data?.map(event => ({
-        id: event.id,
-        title: event.name,
-        viewers: event.viewer_count || 0,
-        location: event.location,
-        timeRemaining: calculateTimeRemaining(event.date, event.time),
-        thumbnail: event.media_urls?.[0] || '/placeholder.svg',
-        mediaUrls: event.media_urls,
-        slug: event.slug
-      })) || [];
-
-      setLiveEvents(formattedEvents);
-    } catch (error) {
-      console.error('Error loading live events:', error);
-    } finally {
-      setLoading(false);
+      return (
+        data?.map(event => ({
+          id: event.id,
+          title: event.name,
+          viewers: event.viewer_count || 0,
+          location: event.location,
+          timeRemaining: calculateTimeRemaining(event.date, event.time),
+          thumbnail: event.media_urls?.[0],
+          slug: event.slug,
+          mediaUrls: event.media_urls,
+          isLive: event.is_live,
+          isPast: event.is_past
+        })) || []
+      );
     }
+  });
+
+  const navigate = useNavigate();
+  const handleWatchNow = (event: any) => {
+    const eventUrl = event.slug ? `/event/${event.slug}` : `/event/${event.id}`;
+    navigate(eventUrl);
   };
 
-  const calculateTimeRemaining = (eventDate: string, eventTime: string) => {
-    if (!eventDate || !eventTime) return undefined;
-    
-    try {
-      const eventDateTime = new Date(`${eventDate}T${eventTime}`);
-      const now = new Date();
-      const diffMs = eventDateTime.getTime() - now.getTime();
-      
-      if (diffMs <= 0) return undefined;
-      
-      const hours = Math.floor(diffMs / (1000 * 60 * 60));
-      const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-      
-      if (hours > 0) {
-        return `${hours}h ${minutes}m`;
-      } else {
-        return `${minutes} minutes!`;
-      }
-    } catch (error) {
-      return undefined;
-    }
-  };
-
-  
-
-  if (loading) {
-    return (
-      <div className="py-8">
-        <div className="container mx-auto px-4">
-          <h2 className="text-2xl font-bold mb-6">🔥 Live Now - Trending</h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="aspect-video bg-muted rounded-lg animate-pulse" />
-            ))}
-          </div>
-        </div>
-      </div>
-    );
+  // Handle loading and error states
+  if (isEventsLoading) {
+    return <div className="text-center py-12">Loading live events...</div>;
+  }
+  if (eventsError) {
+    return <div className="text-center py-12">Error loading live events: {eventsError.message}</div>;
   }
 
   if (liveEvents.length === 0) {
