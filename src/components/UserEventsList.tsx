@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { supabase } from '@/lib/supabase';
-import { Calendar, Clock, DollarSign, ExternalLink } from 'lucide-react';
+import { Calendar, Clock, DollarSign, ExternalLink, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 interface Event {
   id: string;
@@ -27,6 +29,7 @@ interface UserEventsListProps {
 const UserEventsList: React.FC<UserEventsListProps> = ({ userId }) => {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchUserEvents();
@@ -69,6 +72,33 @@ const UserEventsList: React.FC<UserEventsListProps> = ({ userId }) => {
     return 'completed';
   };
 
+  const handleDeleteEvent = async (eventId: string) => {
+    try {
+      const { error } = await supabase
+        .from('events')
+        .delete()
+        .eq('id', eventId)
+        .eq('created_by', userId);
+
+      if (error) throw error;
+
+      // Remove the event from local state
+      setEvents(events.filter(event => event.id !== eventId));
+      
+      toast({
+        title: "Event deleted",
+        description: "The event has been successfully deleted.",
+      });
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete the event. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return <div className="text-center py-4">Loading events...</div>;
   }
@@ -106,7 +136,7 @@ const UserEventsList: React.FC<UserEventsListProps> = ({ userId }) => {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4 text-sm text-gray-600">
                     <div className="flex items-center space-x-1">
                       <Calendar className="w-4 h-4" />
@@ -122,12 +152,39 @@ const UserEventsList: React.FC<UserEventsListProps> = ({ userId }) => {
                     </div>
                     <span>{event.viewer_count || 0} viewers</span>
                   </div>
-                  <Link to={event.slug ? `/event/${event.slug}` : `/event/${event.id}`}>
-                    <Button variant="outline" size="sm">
-                      <ExternalLink className="w-4 h-4 mr-1" />
-                      View
-                    </Button>
-                  </Link>
+                  <div className="flex items-center space-x-2">
+                    <Link to={event.slug ? `/event/${event.slug}` : `/event/${event.id}`}>
+                      <Button variant="outline" size="sm">
+                        <ExternalLink className="w-4 h-4 mr-1" />
+                        View
+                      </Button>
+                    </Link>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Event</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete "<strong>{event.name}</strong>"? 
+                            This action cannot be undone and will permanently remove the event and all associated data.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction 
+                            onClick={() => handleDeleteEvent(event.id)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Delete Event
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 </div>
               </CardContent>
             </Card>
