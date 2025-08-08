@@ -94,9 +94,12 @@ const StreamerSelector: React.FC<StreamerSelectorProps> = ({ onStreamersChange, 
       confirmed: false
     };
     
+    console.log('Adding member:', newMember);
     const updated = [...selectedMembers, newMember];
+    console.log('Updated selectedMembers:', updated);
     setSelectedMembers(updated);
     onStreamersChange(updated);
+    setSearchTerm(''); // Clear search after adding
   };
 
   const removeMember = (id: string) => {
