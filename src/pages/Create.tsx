@@ -9,12 +9,21 @@ import CreateEventForm from "@/components/CreateEventForm";
 import CreateAdForm from "@/components/CreateAdForm";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
+import { useAppContext } from "@/contexts/AppContext";
 
 const Create: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("create-event");
   const { toast } = useToast();
+  const { user } = useAppContext();
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!user) {
+      navigate('/login?redirect=' + encodeURIComponent('/create'));
+    }
+  }, [user, navigate]);
   
   useEffect(() => {
     const tab = searchParams.get('tab');
