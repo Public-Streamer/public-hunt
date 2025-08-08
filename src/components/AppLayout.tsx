@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAppContext } from '@/contexts/AppContext';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -118,8 +119,7 @@ const AppLayout: React.FC = () => {
       <Hero onGetStarted={handleGetStarted} />
       <EventGrid 
         events={mockEvents}
-        onPurchase={handlePurchase}
-        onWatch={handleWatch}
+        // Removed onPurchase and onWatch props to match updated EventGrid API
       />
     </div>
   );
