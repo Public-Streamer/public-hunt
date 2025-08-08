@@ -17,6 +17,10 @@ interface LiveEvent {
   timeRemaining?: string;
   thumbnail: string;
   slug?: string;
+  mediaUrls?: string[];
+  isLive?: boolean;
+  isPast?: boolean;
+
 }
 
 interface StreamPreviewProps {
@@ -28,14 +32,9 @@ interface StreamPreviewProps {
 const StreamPreview: React.FC<StreamPreviewProps> = ({ event, eventName, fallbackImage }) => {
   const [token, setToken] = useState<string | null>(null);
   const [serverUrl, setServerUrl] = useState<string>('');
-  const [isBlurred, setIsBlurred] = useState(false);
-  const [showOverlay, setShowOverlay] = useState(false);
   const navigate = useNavigate();
 
-  const handleWatchNow = (event: any) => {
-    const eventUrl = event.slug ? `/event/${event.slug}` : `/event/${event.id}`;
-    navigate(eventUrl);
-  };
+  
 
   useEffect(() => {
     const fetchToken = async () => {
@@ -67,27 +66,8 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({ event, eventName, fallbac
     fetchToken();
   }, [event.id]);
 
-  // 15-second preview timer
-  useEffect(() => {
-    if (token && serverUrl) {
-      const timer = setTimeout(() => {
-        setIsBlurred(true);
-        setShowOverlay(true);
-      }, 15000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [token, serverUrl]);
-
-  if (!token || !serverUrl) {
-    return (
-      <MediaBackground
-        src={fallbackImage}
-        alt={eventName}
-        className="w-full h-full group-hover:scale-105 transition-transform duration-300"
-      />
-    );
-  }
+  
+  
 
   return (
     <div className="relative w-full h-full">
@@ -100,32 +80,21 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({ event, eventName, fallbac
         <StreamContent 
           eventName={eventName} 
           fallbackImage={fallbackImage} 
-          isBlurred={isBlurred}
           event={event}
         />
       </LiveKitRoom>
       
-      {showOverlay && (
-        <div className="absolute inset-0 bg-black/80 flex items-center justify-center transition-opacity duration-500 z-10">
+      
+        <div className="absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity duration-500 z-0">
           <div className="text-center text-white p-6 max-w-xs">
-            <div className="text-xl font-semibold mb-2">Preview Ended</div>
-            <div className="text-sm opacity-90 leading-relaxed">Click "Watch Now" to continue viewing</div>
-            {/* Button with spacing */}
-            <Button 
-                      size="sm" 
-                      className="w-full mt-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
-                      onClick={() => handleWatchNow(event)}
-                    >
-                      Watch Now
-                    </Button>
           </div>
         </div>
-      )}
+     
     </div>
   );
 };
 
-const StreamContent: React.FC<{ eventName: string; fallbackImage: string; isBlurred: boolean; event: any }> = ({ eventName, fallbackImage, isBlurred, event }) => {
+const StreamContent: React.FC<{ eventName: string; fallbackImage: string;  event: any }> = ({ eventName, fallbackImage,  }) => {
   const [isMuted, setIsMuted] = useState(false);
   const videoTracks = useTracks([Track.Source.Camera, Track.Source.ScreenShare], {
     updateOnlyOn: [],
@@ -147,7 +116,7 @@ const StreamContent: React.FC<{ eventName: string; fallbackImage: string; isBlur
   }
 
   return (
-    <div className={`w-full h-full transition-all duration-500 ${isBlurred ? 'blur-md' : ''}`}>
+    <div className={`w-full h-full transition-all duration-500` }>
       <MainStreamPreview 
         mediaUrls={event.mediaUrls || []}
         track={activeVideoTracks[0]} 

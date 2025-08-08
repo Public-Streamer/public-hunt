@@ -65,32 +65,7 @@ const Index: React.FC = () => {
     fetchEvents();
   }, []);
 
-  const mockStreams = [
-    {
-      id: '1',
-      title: 'Main Stage',
-      streamer: 'Camera 1',
-      viewers: 456,
-      isLive: true,
-      thumbnail: ''
-    },
-    {
-      id: '2',
-      title: 'Audience View',
-      streamer: 'Camera 2',
-      viewers: 234,
-      isLive: true,
-      thumbnail: ''
-    },
-    {
-      id: '3',
-      title: 'Backstage',
-      streamer: 'Camera 3',
-      viewers: 123,
-      isLive: true,
-      thumbnail: ''
-    }
-  ];
+  
 
   const handlePurchase = (eventId: string) => {
     alert(`Purchasing ticket for event ${eventId}`);
@@ -103,15 +78,15 @@ const Index: React.FC = () => {
 
 // console.log(events);
 
-  if (currentView === 'stage' && selectedEvent) {
-    const event = events.find(e => e.id === selectedEvent);
-    return (
-      <StageView 
-        eventTitle={event?.title || 'Live Event'} 
-        streams={mockStreams} 
-      />
-    );
-  }
+  // if (currentView === 'stage' && selectedEvent) {
+  //   const event = events.find(e => e.id === selectedEvent);
+  //   return (
+  //     <StageView 
+  //       eventTitle={event?.title || 'Live Event'} 
+  //       streams={mockStreams} 
+  //     />
+  //   );
+  // }
 
   return (
     <div className="bg-white min-h-screen">
@@ -126,7 +101,7 @@ const Index: React.FC = () => {
       <Hero />
 
       {/* Live Event Spotlight - Top 3 trending live events */}
-      <LiveEventSpotlight />
+      <LiveEventSpotlight  />
 
       {/* Trending Channels */}
       {/* <TrendingChannels /> */}
