@@ -17,11 +17,9 @@ interface Event {
 
 interface EventGridProps {
   events: Event[];
-  onPurchase?: (eventId: string) => void;
-  onWatch?: (eventId: string) => void;
 }
 
-const EventGrid: React.FC<EventGridProps> = ({ events, onPurchase, onWatch }) => {
+const EventGrid: React.FC<EventGridProps> = ({ events }) => {
   return (
     <div className="py-12">
       <div className="container mx-auto px-4">
@@ -37,8 +35,7 @@ const EventGrid: React.FC<EventGridProps> = ({ events, onPurchase, onWatch }) =>
             <EventCard 
               key={event.id}
               event={event}
-              onPurchase={onPurchase}
-              onWatch={onWatch}
+             
             />
           ))}
         </div>

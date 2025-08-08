@@ -51,7 +51,9 @@ const Index: React.FC = () => {
           viewers: event.viewer_count || 0,
           streamerCount: 2,
           isLive: event.is_live || false,
-          thumbnail: event.media_urls?.[0]
+          thumbnail: event.media_urls?.[0],
+          slug: event.slug
+
         })) || [];
 
         setEvents(formattedEvents);
@@ -67,14 +69,11 @@ const Index: React.FC = () => {
 
   
 
-  const handlePurchase = (eventId: string) => {
-    alert(`Purchasing ticket for event ${eventId}`);
-  };
-
-  const handleWatch = (eventId: string) => {
-    setSelectedEvent(eventId);
-    setCurrentView('stage');
-  };
+ 
+  // const handleWatch = (eventId: string) => {
+  //   setSelectedEvent(eventId);
+  //   setCurrentView('stage');
+  // };
 
 // console.log(events);
 
@@ -123,8 +122,6 @@ const Index: React.FC = () => {
               {/* <h2 className="text-2xl font-bold mb-6">All Events</h2> */}
               <EventGrid 
                 events={events}
-                onPurchase={handlePurchase}
-                onWatch={handleWatch}
               />
             </div>
             {/* <div className="lg:col-span-1">

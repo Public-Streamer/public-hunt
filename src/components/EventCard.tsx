@@ -26,11 +26,9 @@ interface Event {
 
 interface EventCardProps {
   event: Event;
-  onPurchase?: (eventId: string) => void;
-  onWatch?: (eventId: string) => void;
 }
 
-const EventCard: React.FC<EventCardProps> = ({ event, onPurchase, onWatch }) => {
+const EventCard: React.FC<EventCardProps> = ({ event }) => {
   const [showSocial, setShowSocial] = useState(false);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [hasTicket, setHasTicket] = useState(false);
@@ -84,17 +82,14 @@ const EventCard: React.FC<EventCardProps> = ({ event, onPurchase, onWatch }) => 
     }
     
     // For free events or users with tickets, navigate to event page or watch
-    if (event.price === 0 || hasTicket) {
+    
       if (event.isLive) {
-        onWatch?.(event.id);
-      } else {
         const eventUrl = (event as any).slug ? `/event/${(event as any).slug}` : `/event/${event.id}`;
         navigate(eventUrl);
-      }
-    } else {
-      // For paid events without tickets, open purchase modal
-      setShowPurchaseModal(true);
-    }
+        
+      } 
+
+   
   };
 
   const handleSocialClick = (e: React.MouseEvent) => {
@@ -104,7 +99,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, onPurchase, onWatch }) => 
 
   const handlePurchaseSuccess = () => {
     setHasTicket(true);
-    onPurchase?.(event.id);
+
   };
 
   const getButtonText = () => {
@@ -112,12 +107,11 @@ const EventCard: React.FC<EventCardProps> = ({ event, onPurchase, onWatch }) => 
     if (!isAuthenticated) return "Login to Purchase";
     if (event.price === 0) return "Watch Event (Free)";
     if (hasTicket) return "Watch Event";
-    return `Buy Ticket - $${event.price}`;
+    return `Watch Preview`;
   };
 
-  const fallbackUrl = '/live.png';
   const noThumb = "/placeholder.svg"
-const bgUrl = event.thumbnail ? event.thumbnail : event.isLive ? fallbackUrl : noThumb;
+const bgUrl = event.thumbnail ? event.thumbnail : noThumb;
 
   return (
     <div>
