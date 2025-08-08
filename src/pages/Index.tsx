@@ -12,7 +12,7 @@ import LiveNewsFeed from '@/components/LiveNewsFeed';
 import FeaturedAdsCarousel from '@/components/FeaturedAdsCarousel';
 import TrendingAnalyticsPanel from '@/components/TrendingAnalyticsPanel';
 import { supabase } from '@/integrations/supabase/client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 const Index: React.FC = () => {
  
@@ -53,11 +53,22 @@ const Index: React.FC = () => {
     }
   });
 
-  // const handleWatch = (eventId: string) => {
-  //   setSelectedEvent(eventId);
-  //   setCurrentView('stage');
-  // };
+  // Realtime updates for events list
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    const channel = supabase
+      .channel('public:events-home')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'events' }, () => {
+        queryClient.invalidateQueries({ queryKey: ['all-events'] });
+      })
+      .subscribe();
 
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
+  
 // console.log(events);
 
   // if (currentView === 'stage' && selectedEvent) {

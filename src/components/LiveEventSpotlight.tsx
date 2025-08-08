@@ -7,7 +7,7 @@ import { LiveKitRoom, useTracks } from '@livekit/components-react';
 import { Track } from 'livekit-client';
 import MainStreamPreview from '@/components/MainStreamPreview';
 import MediaBackground from '@/components/MediaBackground';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 interface LiveEvent {
   id: string;
@@ -174,11 +174,26 @@ const LiveEventSpotlight: React.FC = () => {
           slug: event.slug,
           mediaUrls: event.media_urls,
           isLive: event.is_live,
-          isPast: event.is_past
+          
         })) || []
       );
     }
   });
+
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('public:events-live-spotlight')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'events' }, () => {
+        queryClient.invalidateQueries({ queryKey: ['live-events'] });
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   const navigate = useNavigate();
   const handleWatchNow = (event: any) => {
