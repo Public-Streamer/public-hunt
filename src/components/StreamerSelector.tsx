@@ -90,7 +90,7 @@ const StreamerSelector: React.FC<StreamerSelectorProps> = ({ onStreamersChange, 
     
     const newMember: SelectedMember = {
       ...subscriber,
-      permissions: [],
+      permissions: ['event_master'], // Default to event_master role (Streamer)
       confirmed: false
     };
     
