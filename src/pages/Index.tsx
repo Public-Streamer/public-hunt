@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useAppContext } from '@/contexts/AppContext';
 import Hero from '@/components/Hero';
 import SearchBar from '@/components/SearchBar';
 import LiveEventSpotlight from '@/components/LiveEventSpotlight';
@@ -13,34 +12,30 @@ import LiveNewsFeed from '@/components/LiveNewsFeed';
 import FeaturedAdsCarousel from '@/components/FeaturedAdsCarousel';
 import TrendingAnalyticsPanel from '@/components/TrendingAnalyticsPanel';
 import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 
 const Index: React.FC = () => {
-  const { sidebarOpen, toggleSidebar } = useAppContext();
-  const [currentView, setCurrentView] = useState<'home' | 'stage'>('home');
-  const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
-  const [events, setEvents] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+ 
 
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('events')
-          .select(`
-            *,
-            channels (
-              name,
-              description
-            )
-          `)
-          .order('created_at', { ascending: false });
+  // React Query for events
+  const {
+    data: events = [],
+    isLoading: isEventsLoading,
+    error: eventsError
+  } = useQuery({
+    queryKey: ['all-events'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('events')
+        .select(`*, channels ( name, description )`)
+        .order('created_at', { ascending: false });
 
-        if (error) {
-          console.error('Error fetching events:', error);
-          return;
-        }
+      if (error) {
+        throw new Error(error.message || 'Error fetching events');
+      }
 
-        const formattedEvents = data?.map(event => ({
+      return (
+        data?.map(event => ({
           id: event.id,
           title: event.name,
           description: event.description || event.channels?.description || 'No description available',
@@ -53,23 +48,11 @@ const Index: React.FC = () => {
           isLive: event.is_live || false,
           thumbnail: event.media_urls?.[0],
           slug: event.slug
+        })) || []
+      );
+    }
+  });
 
-        })) || [];
-
-        setEvents(formattedEvents);
-      } catch (error) {
-        console.error('Error loading events:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchEvents();
-  }, []);
-
-  
-
- 
   // const handleWatch = (eventId: string) => {
   //   setSelectedEvent(eventId);
   //   setCurrentView('stage');
