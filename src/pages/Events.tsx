@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Star, Eye, ChevronDown, ChevronUp, Plus, History, Clock, DollarSign, User, Edit2 } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Star, Eye, ChevronDown, ChevronUp, Plus, History, Clock, DollarSign, User, Edit2, Trash2 } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import TooltipWrapper from '@/components/ui/tooltip-wrapper';
@@ -14,6 +15,7 @@ import PastEventsGrid from '@/components/PastEventsGrid';
 import { supabase } from '@/integrations/supabase/client';
 import { useAppContext } from '@/contexts/AppContext';
 import EditEventModal from '@/components/EditEventModal';
+import { useToast } from '@/hooks/use-toast';
 
 interface Event {
   id: string;
@@ -49,6 +51,7 @@ const Events: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { currentUserProfile, isAuthenticated } = useAppContext();
+  const { toast } = useToast();
   
   useEffect(() => {
     fetchEvents();
@@ -214,6 +217,33 @@ const Events: React.FC = () => {
 
   const handleEventUpdated = () => {
     fetchEvents();
+  };
+
+  const handleDeleteEvent = async (eventId: string) => {
+    try {
+      const { error } = await supabase
+        .from('events')
+        .delete()
+        .eq('id', eventId)
+        .eq('created_by', currentUserProfile?.user_id);
+
+      if (error) throw error;
+
+      // Remove the event from local state
+      setMyEvents(myEvents.filter(event => event.id !== eventId));
+      
+      toast({
+        title: "Event deleted",
+        description: "The event has been successfully deleted.",
+      });
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete the event. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
   
   return (
@@ -450,42 +480,76 @@ const Events: React.FC = () => {
                          <div className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold">
                            #{index + 1}
                          </div>
-                         
-                         {/* Edit button for user's own events */}
-                         {currentUserProfile && event.created_by === currentUserProfile.user_id && (
-                           <Button
-                             size="sm"
-                             variant="outline"
-                             className="absolute top-2 right-2 z-10 bg-green-50 border-green-200 hover:bg-green-100 hover:border-green-300 px-2 py-1 h-7"
-                             onClick={(e) => {
-                               e.stopPropagation();
-                               handleEditEvent(event.id);
-                             }}
-                           >
-                             <Edit2 className="h-3 w-3 mr-1 text-green-600" />
-                             <span className="text-green-600 text-xs">Edit</span>
-                           </Button>
-                         )}
-                        <CardHeader className="pt-8">
-                          <div className="flex items-center justify-between">
-                            <CardTitle className="text-lg">{event.name}</CardTitle>
-                            {event.is_live && (
-                              <TooltipWrapper content="This event is currently live">
-                                <Badge className="bg-red-500">LIVE</Badge>
-                              </TooltipWrapper>
-                            )}
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-sm text-gray-600 mb-2">{event.category}</p>
-                          <div className="flex items-center justify-between text-sm text-gray-500 mb-2">
-                            <TooltipWrapper content="Event price">
-                              <span className="font-semibold">${event.ticket_price}</span>
-                            </TooltipWrapper>
-                            <TooltipWrapper content="Event location">
-                              <span className="text-xs">{event.location}</span>
-                            </TooltipWrapper>
-                          </div>
+                          
+                          {/* Edit and Delete buttons for user's own events */}
+                          {currentUserProfile && event.created_by === currentUserProfile.user_id && (
+                            <div className="absolute top-2 right-2 z-10 flex space-x-1">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="bg-green-50 border-green-200 hover:bg-green-100 hover:border-green-300 px-2 py-1 h-7"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEditEvent(event.id);
+                                }}
+                              >
+                                <Edit2 className="h-3 w-3 mr-1 text-green-600" />
+                                <span className="text-green-600 text-xs">Edit</span>
+                              </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="bg-red-50 border-red-200 hover:bg-red-100 hover:border-red-300 px-2 py-1 h-7"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                    }}
+                                  >
+                                    <Trash2 className="h-3 w-3 text-red-600" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete Event</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Are you sure you want to delete "<strong>{event.name}</strong>"? 
+                                      This action cannot be undone and will permanently remove the event and all associated data.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction 
+                                      onClick={() => handleDeleteEvent(event.id)}
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    >
+                                      Delete Event
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
+                          )}
+                         <CardHeader className="pt-8">
+                           <div className="flex items-center justify-between">
+                             <CardTitle className="text-lg">{event.name}</CardTitle>
+                             {event.is_live && (
+                               <TooltipWrapper content="This event is currently live">
+                                 <Badge className="bg-red-500">LIVE</Badge>
+                               </TooltipWrapper>
+                             )}
+                           </div>
+                         </CardHeader>
+                         <CardContent>
+                           <p className="text-sm text-gray-600 mb-2">{event.category}</p>
+                           <div className="flex items-center justify-between text-sm text-gray-500 mb-2">
+                             <TooltipWrapper content="Event price">
+                               <span className="font-semibold">${event.ticket_price}</span>
+                             </TooltipWrapper>
+                             <TooltipWrapper content="Event location">
+                               <span className="text-xs">{event.location}</span>
+                             </TooltipWrapper>
+                           </div>
                           <div className="flex items-center justify-between text-xs text-gray-400 mb-1">
                             <TooltipWrapper content="Current viewers">
                               <span className="flex items-center">
