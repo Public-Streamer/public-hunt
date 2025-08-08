@@ -437,7 +437,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                     Events
                   </Link>
                 </TooltipWrapper>
-                <TooltipWrapper content="Create and manage advertising campaigns">
+                {/* <TooltipWrapper content="Create and manage advertising campaigns">
                   <Link
                     to="/advertisers"
                     className={`px-2 md:px-3 lg:px-4 py-2 rounded-lg font-semibold text-white border-2 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl drop-shadow-lg text-center text-sm lg:text-base ${
@@ -449,7 +449,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                   >
                     Advertisers
                   </Link>
-                </TooltipWrapper>
+                </TooltipWrapper> */}
                 <TooltipWrapper content="Get help and learn about Public Streamer">
                   <Link
                     to="/qa"

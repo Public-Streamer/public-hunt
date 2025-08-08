@@ -71,10 +71,10 @@ const MobileNav: React.FC<MobileNavProps> = ({ isOpen, onClose, onLoginClick }) 
             <span className="font-medium">Events</span>
           </Link>
           
-          <Link to="/advertisers" onClick={onClose} className="flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-gray-100 transition-colors">
+          {/* <Link to="/advertisers" onClick={onClose} className="flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-gray-100 transition-colors">
             <Target className="h-5 w-5 text-gray-600" />
             <span className="font-medium">Advertisers</span>
-          </Link>
+          </Link> */}
           
           <Link to="/profile" onClick={onClose} className="flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-gray-100 transition-colors">
             <User className="h-5 w-5 text-gray-600" />
