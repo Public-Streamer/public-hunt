@@ -475,7 +475,7 @@ const Events: React.FC = () => {
                          className={`hover:shadow-lg transition-all cursor-pointer relative ${
                            highlightedEvent === event.id ? 'ring-4 ring-green-500 ring-opacity-50 shadow-xl' : ''
                          }`}
-                         onClick={() => handleEventClick(event)}
+                         
                        >
                          <div className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold">
                            #{index + 1}
@@ -530,6 +530,8 @@ const Events: React.FC = () => {
                               </AlertDialog>
                             </div>
                           )}
+                          <div onClick={() => handleEventClick(event)}>
+
                          <CardHeader className="pt-8">
                            <div className="flex items-center justify-between">
                              <CardTitle className="text-lg">{event.name}</CardTitle>
@@ -563,6 +565,7 @@ const Events: React.FC = () => {
                             {event.description}
                           </div>
                         </CardContent>
+                          </div>
                       </Card>
                     </TooltipWrapper>
                   ))}
