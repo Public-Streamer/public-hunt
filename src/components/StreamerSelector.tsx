@@ -75,7 +75,10 @@ const StreamerSelector: React.FC<StreamerSelectorProps> = ({ onStreamersChange, 
 
   // Update selectedMembers when initialStreamers changes
   useEffect(() => {
-    if (JSON.stringify(initialStreamers) !== JSON.stringify(selectedMembers)) {
+    console.log('useEffect triggered - initialStreamers:', initialStreamers, 'current selectedMembers:', selectedMembers);
+    // Only update if initialStreamers is different and not empty (unless we're resetting)
+    if (initialStreamers.length > 0 && JSON.stringify(initialStreamers) !== JSON.stringify(selectedMembers)) {
+      console.log('Updating selectedMembers from initialStreamers');
       setSelectedMembers(initialStreamers);
     }
   }, [initialStreamers]);
