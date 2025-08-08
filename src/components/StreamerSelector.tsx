@@ -9,7 +9,7 @@ import { Search, UserPlus, X, Lock, Edit } from 'lucide-react';
 import { useAppContext } from '@/contexts/AppContext';
 import EventRoleManager from '@/components/EventRoleManager';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { supabase } from '@/lib/supabase';
+import { supabase } from "@/integrations/supabase/client"
 
 interface Subscriber {
   id: string;

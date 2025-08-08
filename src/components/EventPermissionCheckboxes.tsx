@@ -29,15 +29,11 @@ const EventPermissionCheckboxes: React.FC<EventPermissionCheckboxesProps> = ({
 
   const roleHierarchy = [
     'event_master',
-    'event_administrator',
-    'event_manager', 
-    'event_moderator',
-    'event_streamer',
-    'event_commentator'
+    
   ];
 
   const roleLabels = {
-    event_master: 'Event Master',
+    event_master: 'Streamer',
     event_administrator: 'Event Administrator',
     event_manager: 'Event Manager',
     event_moderator: 'Event Moderator',
@@ -46,7 +42,7 @@ const EventPermissionCheckboxes: React.FC<EventPermissionCheckboxesProps> = ({
   };
 
   const roleDescriptions = {
-    event_master: 'All permissions of Event Administrators plus can add/remove/change Event Administrators',
+    event_master: '',
     event_administrator: 'All permissions of Event Manager plus can add/remove/change Event Managers',
     event_manager: 'All permissions of Event Moderator plus can add/remove/change Event Moderators and change all aspects of the event including start time, duration, ticket price, production team members etc.',
     event_moderator: 'All permissions of Event Streamers plus can add/remove/change Event Streamers and delete Event Bulletin Board comments',

@@ -10,7 +10,7 @@ import PriceSlider from "@/components/PriceSlider";
 import CreateEventFormButtons from "@/components/CreateEventFormButtons";
 // Channel functionality completely disabled to prevent infinite loops
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 
 interface MediaFile {
   id: string;
