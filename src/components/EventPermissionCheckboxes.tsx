@@ -20,38 +20,18 @@ const EventPermissionCheckboxes: React.FC<EventPermissionCheckboxesProps> = ({
 }) => {
   const [roles, setRoles] = useState({
     event_master: selectedRoles.includes('event_master'),
-    event_administrator: selectedRoles.includes('event_administrator'),
-    event_manager: selectedRoles.includes('event_manager'),
-    event_moderator: selectedRoles.includes('event_moderator'),
-    event_streamer: selectedRoles.includes('event_streamer'),
-    event_commentator: selectedRoles.includes('event_commentator')
   });
 
   const roleHierarchy = [
     'event_master',
-    'event_administrator',
-    'event_manager',
-    'event_moderator',
-    'event_streamer',
-    'event_commentator'
   ];
 
   const roleLabels = {
     event_master: 'Streamer',
-    event_administrator: 'Event Administrator',
-    event_manager: 'Event Manager',
-    event_moderator: 'Event Moderator',
-    event_streamer: 'Event Streamer "Grip"',
-    event_commentator: 'Event Commentator'
   };
 
   const roleDescriptions = {
-    event_master: 'Full event management permissions including all lower-level roles',
-    event_administrator: 'All permissions of Event Manager plus can add/remove/change Event Managers',
-    event_manager: 'All permissions of Event Moderator plus can add/remove/change Event Moderators and change all aspects of the event including start time, duration, ticket price, production team members etc.',
-    event_moderator: 'All permissions of Event Streamers plus can add/remove/change Event Streamers and delete Event Bulletin Board comments',
-    event_streamer: 'Handles livestream camera/cell phone for the event',
-    event_commentator: 'Can comment on the Event Bulletin Board'
+    event_master: 'Handles livestream camera/cell phone for the event',
   };
 
   const handleRoleChange = (role: string, checked: boolean) => {
@@ -81,11 +61,6 @@ const EventPermissionCheckboxes: React.FC<EventPermissionCheckboxesProps> = ({
   useEffect(() => {
     setRoles({
       event_master: selectedRoles.includes('event_master'),
-      event_administrator: selectedRoles.includes('event_administrator'),
-      event_manager: selectedRoles.includes('event_manager'),
-      event_moderator: selectedRoles.includes('event_moderator'),
-      event_streamer: selectedRoles.includes('event_streamer'),
-      event_commentator: selectedRoles.includes('event_commentator')
     });
   }, [selectedRoles]);
 

@@ -34,11 +34,7 @@ const EventRoleManager: React.FC<EventRoleManagerProps> = ({
   
   const roleLabels = {
     event_master: 'Streamer',
-    event_administrator: 'Event Administrator',
-    event_manager: 'Event Manager',
-    event_moderator: 'Event Moderator',
-    event_streamer: 'Event Streamer "Grip"',
-    event_commentator: 'Event Commentator'
+    
   };
   
   const getHighestRole = () => {
