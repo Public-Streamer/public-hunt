@@ -33,7 +33,7 @@ const EventRoleManager: React.FC<EventRoleManagerProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   
   const roleLabels = {
-    event_master: 'Event Master',
+    event_master: 'Streamer',
     event_administrator: 'Event Administrator',
     event_manager: 'Event Manager',
     event_moderator: 'Event Moderator',
@@ -42,7 +42,7 @@ const EventRoleManager: React.FC<EventRoleManagerProps> = ({
   };
   
   const getHighestRole = () => {
-    const hierarchy = ['event_master', 'event_administrator', 'event_manager', 'event_moderator', 'event_streamer', 'event_commentator'];
+    const hierarchy = ['event_master'];
     for (const role of hierarchy) {
       if (member.permissions.includes(role)) {
         return roleLabels[role as keyof typeof roleLabels];
