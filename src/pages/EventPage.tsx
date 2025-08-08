@@ -765,12 +765,12 @@ const EventPage: React.FC = () => {
             {/* {mediaData.length > 0 && <MediaDisplay media={mediaData} />} */}
 
             {/* Offline Streams */}
-            {!eventData.is_live && (
+            {/* {!eventData.is_live && (
               <OfflineStreamSection
                 eventId={eventData.id}
                 hasPaid={hasTicket || canEnterStage}
               />
-            )}
+            )} */}
           </div>
 
           {/* Right Column - Event Details and Actions */}

@@ -84,7 +84,7 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({ event, eventName, fallbac
       </LiveKitRoom>
       
       
-        <div className="absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity duration-500 z-0">
+        <div className="absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity duration-500 backdrop-blur-[1px] z-0">
           <div className="text-center text-white p-6 max-w-xs">
           </div>
         </div>
@@ -230,7 +230,7 @@ const LiveEventSpotlight: React.FC = () => {
         <div className="grid md:grid-cols-3 gap-6">
           {liveEvents.map((event) => (
 
-            <div key={event.id} className="relative group cursor-pointer ">    
+            <div onClick={() => handleWatchNow(event)} key={event.id} className="relative group cursor-pointer ">    
               {/* Content overlay */}
                 <div className="absolute bottom-0 left-0 right-0 p-4 text-white z-10">
                   {/* Button with spacing */}
