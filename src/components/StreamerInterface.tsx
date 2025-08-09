@@ -49,6 +49,7 @@ import EventProductionTeam from "@/components/EventProductionTeam";
 import { useStreamName } from "@/hooks/useStreamName";
 import { useScoreboardTeams } from "@/hooks/useScoreboardTeams";
 import { useEventScoreboardMeta } from "@/hooks/useEventScoreboardMeta";
+import InStreamChatOverlay from "./InStreamChatOverlay";
 
 interface StreamerInterfaceProps {
   eventId: string;
@@ -76,6 +77,8 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(eventTitle);
   const [isSaving, setIsSaving] = useState(false);
+
+   const [isChatVisible, setIsChatVisible] = useState(false);
   
   // Stream name edit state
   const [isEditingStreamName, setIsEditingStreamName] = useState(false);
@@ -511,13 +514,15 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                   )}
                 </div>
               </CardHeader>
+              
               <CardContent className="p-3 sm:p-6">
-                <div className="aspect-video bg-muted rounded-lg overflow-hidden relative">
+                <div className=" aspect-video bg-muted rounded-lg overflow-hidden relative">
                   {localCameraTrack && controls.isVideoEnabled ? (
                     <VideoTrack
                       trackRef={localCameraTrack}
                       style={{ width: "100%", height: "100%" }}
                     />
+                    
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center bg-muted">
                       <div className="text-center">
@@ -526,6 +531,14 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                       </div>
                     </div>
                   )}
+
+
+                {/* In-Stream Chat Overlay */}
+                <InStreamChatOverlay
+                  eventId={eventId}
+                  isVisible={isChatVisible}
+                  onVisibilityToggle={() => setIsChatVisible(!isChatVisible)}
+                />  
 
                   {/* Stream Status Overlay */}
                   <div className="absolute top-2 left-2">
@@ -548,6 +561,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                     </Badge>
                   </div>
                 </div>
+                
               </CardContent>
             </Card>
 
