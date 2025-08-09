@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, Target, Edit3, Trash2, Save, X, ChevronDown, ChevronUp, Minus as MinusIcon } from 'lucide-react';
+import { Plus, Target, Edit3, Trash2, Save, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 // OMCBA Coon Hunt Team Interface - Based on Official Rules
@@ -71,13 +71,6 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
   
   // Local input state to prevent constant API calls (critical for stability)
   const [localInputValues, setLocalInputValues] = useState<Record<string, Record<string, any>>>({});
-  
-  // State for plus/minus signs for scoring fields
-  const [pointSigns, setPointSigns] = useState<Record<string, Record<string, boolean>>>({});
-  
-  // State for batch save - track pending changes per team
-  const [pendingChanges, setPendingChanges] = useState<Record<string, Record<string, any>>>({});
-  const [isSaving, setIsSaving] = useState<Record<string, boolean>>({});
   
   // Scoreboard naming
   const [scoreboardName, setScoreboardName] = useState('OMCBA Coon Hunt Scoreboard');
@@ -273,134 +266,15 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
     }
   };
 
-  // OMCBA scoring calculation based on official rules with sign consideration
-  const calculateTotalScore = (customFields: CoonHuntTeam['custom_fields'], teamId?: string) => {
-    const strikeValue = customFields?.strike_points || 0;
-    const treeValue = customFields?.tree_points || 0;
-    const circleValue = customFields?.circle_points || 0;
-    const minusValue = customFields?.minus_points || 0;
-    
-    // Apply signs if teamId is provided (for real-time calculation)
-    let strike = strikeValue;
-    let tree = treeValue;
-    let circle = circleValue;
-    
-    if (teamId && pointSigns[teamId]) {
-      strike = pointSigns[teamId].strike_points === false ? -Math.abs(strikeValue) : Math.abs(strikeValue);
-      tree = pointSigns[teamId].tree_points === false ? -Math.abs(treeValue) : Math.abs(treeValue);
-      circle = pointSigns[teamId].circle_points === false ? -Math.abs(circleValue) : Math.abs(circleValue);
-    }
+  // OMCBA scoring calculation based on official rules
+  const calculateTotalScore = (customFields: CoonHuntTeam['custom_fields']) => {
+    const strike = customFields?.strike_points || 0;
+    const tree = customFields?.tree_points || 0;
+    const circle = customFields?.circle_points || 0;
+    const minus = customFields?.minus_points || 0;
     
     // OMCBA Rule: Total = Strike + Tree + Circle - Minus
-    return strike + tree + circle - minusValue;
-  };
-
-  // Helper functions for sign management
-  const togglePointSign = (teamId: string, fieldId: string) => {
-    setPointSigns(prev => ({
-      ...prev,
-      [teamId]: {
-        ...prev[teamId],
-        [fieldId]: !prev[teamId]?.[fieldId] // toggle between true (positive) and false (negative)
-      }
-    }));
-  };
-
-  const getPointSign = (teamId: string, fieldId: string) => {
-    return pointSigns[teamId]?.[fieldId] !== false; // default to positive (true)
-  };
-
-  // Batch save functionality for main view
-  const savePendingTeamChanges = async (teamId: string) => {
-    const teamPendingChanges = pendingChanges[teamId];
-    if (!teamPendingChanges || Object.keys(teamPendingChanges).length === 0) return;
-
-    setIsSaving(prev => ({ ...prev, [teamId]: true }));
-    try {
-      const team = teams.find(t => t.id === teamId);
-      if (!team) throw new Error('Team not found');
-
-      // Apply signs to scoring fields
-      const updatedFields = { ...team.custom_fields };
-      
-      Object.entries(teamPendingChanges).forEach(([fieldId, value]) => {
-        if (['strike_points', 'tree_points'].includes(fieldId)) {
-          const isPositive = getPointSign(teamId, fieldId);
-          const numValue = Math.abs(Number(value) || 0);
-          updatedFields[fieldId] = isPositive ? numValue : -numValue;
-        } else {
-          updatedFields[fieldId] = value;
-        }
-      });
-
-      const newScore = calculateTotalScore(updatedFields);
-
-      const { error } = await supabase.functions.invoke('scoreboard-operations', {
-        body: {
-          action: 'updateTeam',
-          teamId,
-          teamName: team.team_name,
-          score: newScore,
-          teamColor: team.team_color,
-          customFields: updatedFields
-        }
-      });
-
-      if (error) throw error;
-
-      // Update local state
-      setTeams(prev => prev.map(t => 
-        t.id === teamId 
-          ? { ...t, custom_fields: updatedFields, score: newScore }
-          : t
-      ));
-
-      // Clear pending changes for this team
-      setPendingChanges(prev => ({
-        ...prev,
-        [teamId]: {}
-      }));
-
-      toast({
-        title: "Success",
-        description: "Changes saved successfully",
-      });
-    } catch (error) {
-      console.error('Error saving team changes:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save changes",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSaving(prev => ({ ...prev, [teamId]: false }));
-    }
-  };
-
-  // Handle field changes for batch save in main view
-  const handleMainFieldChange = (teamId: string, fieldId: string, value: any) => {
-    // Track pending changes for this team
-    setPendingChanges(prev => ({
-      ...prev,
-      [teamId]: {
-        ...prev[teamId],
-        [fieldId]: value
-      }
-    }));
-    
-    // Also update local input for immediate UI feedback
-    handleFieldChange(teamId, fieldId, value);
-  };
-
-  // Handle field changes for batch save in edit dialog
-  const handleBatchFieldChange = (fieldId: string, value: any) => {
-    if (!editingTeam) return;
-    
-    // Update local editing state for immediate UI feedback
-    setEditingTeam(prev => prev ? {
-      ...prev,
-      custom_fields: { ...prev.custom_fields, [fieldId]: value }
-    } : null);
+    return strike + tree  - minus;
   };
 
   const createTeam = async () => {
@@ -846,12 +720,12 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                                   <span className="font-medium text-xs sm:text-sm break-words">{team.custom_fields?.dog_name || 'Not set'}</span>
                                 </div>
                                 {/* Optional Registration Number - only show if exists */}
-                                {/* {team.custom_fields?.registration_number && (
+                                {team.custom_fields?.registration_number && (
                                   <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                                     <span className="text-muted-foreground shrink-0">Registration:</span>
                                     <span className="font-medium text-xs sm:text-sm break-words">{team.custom_fields.registration_number}</span>
                                   </div>
-                                )} */}
+                                )}
                               </div>
                             )}
                           </div>
@@ -884,35 +758,22 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                         <div className="space-y-2">
                           <Label className="text-xs sm:text-sm font-medium block">Strike Points</Label>
                           {isHost ? (
-                            <div className="flex items-center gap-1">
-                              <Button
-                                type="button"
-                                variant={getPointSign(team.id, 'strike_points') ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => togglePointSign(team.id, 'strike_points')}
-                                className={`w-8 h-8 p-0 ${getPointSign(team.id, 'strike_points') ? 'bg-green-500 hover:bg-green-600 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
-                              >
-                                <Plus className="h-3 w-3" />
-                              </Button>
-                              <Input
-                                type="number"
-                                value={getCurrentFieldValue(team.id, 'strike_points', Math.abs(team.custom_fields?.strike_points || 0))}
-                                onChange={(e) => handleMainFieldChange(team.id, 'strike_points', parseInt(e.target.value) || 0)}
-                                className="text-center font-bold text-sm sm:text-base h-8 flex-1"
-                                min="0"
-                                max="400"
-                                placeholder="0"
-                              />
-                              <Button
-                                type="button"
-                                variant={!getPointSign(team.id, 'strike_points') ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => togglePointSign(team.id, 'strike_points')}
-                                className={`w-8 h-8 p-0 ${!getPointSign(team.id, 'strike_points') ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
-                              >
-                                <MinusIcon className="h-3 w-3" />
-                              </Button>
-                            </div>
+                            <Input
+                              type="text"
+                              value={getCurrentFieldValue(team.id, 'strike_points', team.custom_fields?.strike_points)}
+                              onChange={(e) => handleFieldChange(team.id, 'strike_points', parseInt(e.target.value) || 0)}
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  updateTeamField(team.id, 'strike_points', parseInt(e.currentTarget.value) || 0);
+                                }
+                              }}
+                              onBlur={(e) => updateTeamField(team.id, 'strike_points', parseInt(e.target.value) || 0)}
+                              className="text-center font-bold text-sm sm:text-base h-10 sm:h-11"
+                              min="0"
+                              max="400"
+                              placeholder="0"
+                            />
                           ) : (
                             <div className="text-center font-bold text-base sm:text-lg p-2 sm:p-3 bg-muted rounded h-10 sm:h-11 flex items-center justify-center">
                               {team.custom_fields?.strike_points || 0}
@@ -924,35 +785,22 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                         <div className="space-y-2">
                           <Label className="text-xs sm:text-sm font-medium block">Tree Points</Label>
                           {isHost ? (
-                            <div className="flex items-center gap-1">
-                              <Button
-                                type="button"
-                                variant={getPointSign(team.id, 'tree_points') ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => togglePointSign(team.id, 'tree_points')}
-                                className={`w-8 h-8 p-0 ${getPointSign(team.id, 'tree_points') ? 'bg-green-500 hover:bg-green-600 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
-                              >
-                                <Plus className="h-3 w-3" />
-                              </Button>
-                              <Input
-                                type="number"
-                                value={getCurrentFieldValue(team.id, 'tree_points', Math.abs(team.custom_fields?.tree_points || 0))}
-                                onChange={(e) => handleMainFieldChange(team.id, 'tree_points', parseInt(e.target.value) || 0)}
-                                className="text-center font-bold text-sm sm:text-base h-8 flex-1"
-                                min="0"
-                                max="500"
-                                placeholder="0"
-                              />
-                              <Button
-                                type="button"
-                                variant={!getPointSign(team.id, 'tree_points') ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => togglePointSign(team.id, 'tree_points')}
-                                className={`w-8 h-8 p-0 ${!getPointSign(team.id, 'tree_points') ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
-                              >
-                                <MinusIcon className="h-3 w-3" />
-                              </Button>
-                            </div>
+                            <Input
+                              type="text"
+                              value={getCurrentFieldValue(team.id, 'tree_points', team.custom_fields?.tree_points)}
+                              onChange={(e) => handleFieldChange(team.id, 'tree_points', parseInt(e.target.value) || 0)}
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  updateTeamField(team.id, 'tree_points', parseInt(e.currentTarget.value) || 0);
+                                }
+                              }}
+                              onBlur={(e) => updateTeamField(team.id, 'tree_points', parseInt(e.target.value) || 0)}
+                              className="text-center font-bold text-sm sm:text-base h-10 sm:h-11"
+                              min="0"
+                              max="500"
+                              placeholder="0"
+                            />
                           ) : (
                             <div className="text-center font-bold text-base sm:text-lg p-2 sm:p-3 bg-muted rounded h-10 sm:h-11 flex items-center justify-center">
                               {team.custom_fields?.tree_points || 0}
@@ -965,10 +813,17 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                           <Label className="text-xs sm:text-sm font-medium block">Circle Points</Label>
                           {isHost ? (
                             <Input
-                              type="number"
+                              type="text"
                               value={getCurrentFieldValue(team.id, 'circle_points', team.custom_fields?.circle_points)}
-                              onChange={(e) => handleMainFieldChange(team.id, 'circle_points', parseInt(e.target.value) || 0)}
-                              className="text-center font-bold text-sm sm:text-base h-8"
+                              onChange={(e) => handleFieldChange(team.id, 'circle_points', parseInt(e.target.value) || 0)}
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  updateTeamField(team.id, 'circle_points', parseInt(e.currentTarget.value) || 0);
+                                }
+                              }}
+                              onBlur={(e) => updateTeamField(team.id, 'circle_points', parseInt(e.target.value) || 0)}
+                              className="text-center font-bold text-sm sm:text-base h-10 sm:h-11"
                               min="0"
                               max="500"
                               placeholder="0"
@@ -985,10 +840,17 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                           <Label className="text-xs sm:text-sm font-medium text-destructive block">Minus Points</Label>
                           {isHost ? (
                             <Input
-                              type="number"
+                              type="text"
                               value={getCurrentFieldValue(team.id, 'minus_points', team.custom_fields?.minus_points)}
-                              onChange={(e) => handleMainFieldChange(team.id, 'minus_points', parseInt(e.target.value) || 0)}
-                              className="text-center font-bold border-destructive text-sm sm:text-base h-8"
+                              onChange={(e) => handleFieldChange(team.id, 'minus_points', parseInt(e.target.value) || 0)}
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  updateTeamField(team.id, 'minus_points', parseInt(e.currentTarget.value) || 0);
+                                }
+                              }}
+                              onBlur={(e) => updateTeamField(team.id, 'minus_points', parseInt(e.target.value) || 0)}
+                              className="text-center font-bold border-destructive text-sm sm:text-base h-10 sm:h-11"
                               min="0"
                               max="1000"
                               placeholder="0"
@@ -1000,33 +862,6 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                           )}
                         </div>
                       </div>
-
-                      {/* Save Changes Button for Host */}
-                      {isHost && (
-                        <div className="flex justify-center mt-4">
-                          <Button
-                            onClick={() => savePendingTeamChanges(team.id)}
-                            disabled={isSaving[team.id] || !pendingChanges[team.id] || Object.keys(pendingChanges[team.id] || {}).length === 0}
-                            className="w-full sm:w-auto px-6"
-                            variant={pendingChanges[team.id] && Object.keys(pendingChanges[team.id]).length > 0 ? "default" : "outline"}
-                          >
-                            {isSaving[team.id] ? (
-                              <>
-                                <Save className="h-4 w-4 mr-2 animate-spin" />
-                                Saving...
-                              </>
-                            ) : (
-                              <>
-                                <Save className="h-4 w-4 mr-2" />
-                                Save Changes
-                                {pendingChanges[team.id] && Object.keys(pendingChanges[team.id]).length > 0 && 
-                                  ` (${Object.keys(pendingChanges[team.id]).length})`
-                                }
-                              </>
-                            )}
-                          </Button>
-                        </div>
-                      )}
 
                       {/* Viewer-only sections for warnings/notes and judge comments */}
                       {!isHost && team.custom_fields?.warnings_notes && (
@@ -1207,110 +1042,143 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                       placeholder="Dog name..."
                     />
                   </div>
-                  
+                  <div className="space-y-2">
+                    <Label className="text-sm">Registration Number</Label>
+                    <Input
+                      value={editingTeam.custom_fields?.registration_number || ''}
+                      onChange={(e) => {
+                        const newValue = e.target.value;
+                        setEditingTeam(prev => prev ? { 
+                          ...prev, 
+                          custom_fields: { ...prev.custom_fields, registration_number: newValue }
+                        } : null);
+                      }}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          const newValue = e.currentTarget.value;
+                          updateTeamField(editingTeam.id, 'registration_number', newValue);
+                        }
+                      }}
+                      onBlur={(e) => {
+                        const newValue = e.target.value;
+                        updateTeamField(editingTeam.id, 'registration_number', newValue);
+                      }}
+                      className="text-sm"
+                      placeholder="Registration number..."
+                    />
+                  </div>
                 </div>
 
-                 {/* Scoring - Batch Save with Plus/Minus Controls */}
+                {/* Scoring - Real-time Editable */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label className="text-sm">Strike Points</Label>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        type="button"
-                        variant={getPointSign(editingTeam.id, 'strike_points') ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => togglePointSign(editingTeam.id, 'strike_points')}
-                        className={`w-10 h-10 p-0 ${getPointSign(editingTeam.id, 'strike_points') ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-200 hover:bg-gray-300'}`}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                      <Input
-                        type="number"
-                        value={Math.abs(editingTeam.custom_fields?.strike_points) || 0}
-                        onChange={(e) => handleBatchFieldChange('strike_points', parseInt(e.target.value) || 0)}
-                        min="0"
-                        max="400"
-                        className="text-sm text-center font-bold flex-1"
-                      />
-                      <Button
-                        type="button"
-                        variant={!getPointSign(editingTeam.id, 'strike_points') ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => togglePointSign(editingTeam.id, 'strike_points')}
-                        className={`w-10 h-10 p-0 ${!getPointSign(editingTeam.id, 'strike_points') ? 'bg-red-500 hover:bg-red-600' : 'bg-gray-200 hover:bg-gray-300'}`}
-                      >
-                        <MinusIcon className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    <Input
+                      type="text"
+                      value={editingTeam.custom_fields?.strike_points || 0}
+                      onChange={(e) => {
+                        const newValue = parseInt(e.target.value) || 0;
+                        setEditingTeam(prev => prev ? { 
+                          ...prev, 
+                          custom_fields: { ...prev.custom_fields, strike_points: newValue }
+                        } : null);
+                      }}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          const newValue = parseInt(e.currentTarget.value) || 0;
+                          updateTeamField(editingTeam.id, 'strike_points', newValue);
+                        }
+                      }}
+                      onBlur={(e) => {
+                        const newValue = parseInt(e.target.value) || 0;
+                        updateTeamField(editingTeam.id, 'strike_points', newValue);
+                      }}
+                      min="0"
+                      max="400"
+                      className="text-sm text-center font-bold"
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm">Tree Points</Label>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        type="button"
-                        variant={getPointSign(editingTeam.id, 'tree_points') ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => togglePointSign(editingTeam.id, 'tree_points')}
-                        className={`w-10 h-10 p-0 ${getPointSign(editingTeam.id, 'tree_points') ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-200 hover:bg-gray-300'}`}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                      <Input
-                        type="number"
-                        value={Math.abs(editingTeam.custom_fields?.tree_points) || 0}
-                        onChange={(e) => handleBatchFieldChange('tree_points', parseInt(e.target.value) || 0)}
-                        min="0"
-                        max="500"
-                        className="text-sm text-center font-bold flex-1"
-                      />
-                      <Button
-                        type="button"
-                        variant={!getPointSign(editingTeam.id, 'tree_points') ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => togglePointSign(editingTeam.id, 'tree_points')}
-                        className={`w-10 h-10 p-0 ${!getPointSign(editingTeam.id, 'tree_points') ? 'bg-red-500 hover:bg-red-600' : 'bg-gray-200 hover:bg-gray-300'}`}
-                      >
-                        <MinusIcon className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    <Input
+                      type="text"
+                      value={editingTeam.custom_fields?.tree_points || 0}
+                      onChange={(e) => {
+                        const newValue = parseInt(e.target.value) || 0;
+                        setEditingTeam(prev => prev ? { 
+                          ...prev, 
+                          custom_fields: { ...prev.custom_fields, tree_points: newValue }
+                        } : null);
+                      }}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          const newValue = parseInt(e.currentTarget.value) || 0;
+                          updateTeamField(editingTeam.id, 'tree_points', newValue);
+                        }
+                      }}
+                      onBlur={(e) => {
+                        const newValue = parseInt(e.target.value) || 0;
+                        updateTeamField(editingTeam.id, 'tree_points', newValue);
+                      }}
+                      min="0"
+                      max="500"
+                      className="text-sm text-center font-bold"
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm">Circle Points</Label>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        type="button"
-                        variant={getPointSign(editingTeam.id, 'circle_points') ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => togglePointSign(editingTeam.id, 'circle_points')}
-                        className={`w-10 h-10 p-0 ${getPointSign(editingTeam.id, 'circle_points') ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-200 hover:bg-gray-300'}`}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                      <Input
-                        type="number"
-                        value={Math.abs(editingTeam.custom_fields?.circle_points) || 0}
-                        onChange={(e) => handleBatchFieldChange('circle_points', parseInt(e.target.value) || 0)}
-                        min="0"
-                        max="500"
-                        className="text-sm text-center font-bold flex-1"
-                      />
-                      <Button
-                        type="button"
-                        variant={!getPointSign(editingTeam.id, 'circle_points') ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => togglePointSign(editingTeam.id, 'circle_points')}
-                        className={`w-10 h-10 p-0 ${!getPointSign(editingTeam.id, 'circle_points') ? 'bg-red-500 hover:bg-red-600' : 'bg-gray-200 hover:bg-gray-300'}`}
-                      >
-                        <MinusIcon className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    <Input
+                      type="text"
+                      value={editingTeam.custom_fields?.circle_points || 0}
+                      onChange={(e) => {
+                        const newValue = parseInt(e.target.value) || 0;
+                        setEditingTeam(prev => prev ? { 
+                          ...prev, 
+                          custom_fields: { ...prev.custom_fields, circle_points: newValue }
+                        } : null);
+                      }}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          const newValue = parseInt(e.currentTarget.value) || 0;
+                          updateTeamField(editingTeam.id, 'circle_points', newValue);
+                        }
+                      }}
+                      onBlur={(e) => {
+                        const newValue = parseInt(e.target.value) || 0;
+                        updateTeamField(editingTeam.id, 'circle_points', newValue);
+                      }}
+                      min="0"
+                      max="500"
+                      className="text-sm text-center font-bold"
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm text-destructive">Minus Points</Label>
                     <Input
-                      type="number"
+                      type="text"
                       value={editingTeam.custom_fields?.minus_points || 0}
-                      onChange={(e) => handleBatchFieldChange('minus_points', parseInt(e.target.value) || 0)}
+                      onChange={(e) => {
+                        const newValue = parseInt(e.target.value) || 0;
+                        setEditingTeam(prev => prev ? { 
+                          ...prev, 
+                          custom_fields: { ...prev.custom_fields, minus_points: newValue }
+                        } : null);
+                      }}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          const newValue = parseInt(e.currentTarget.value) || 0;
+                          updateTeamField(editingTeam.id, 'minus_points', newValue);
+                        }
+                      }}
+                      onBlur={(e) => {
+                        const newValue = parseInt(e.target.value) || 0;
+                        updateTeamField(editingTeam.id, 'minus_points', newValue);
+                      }}
                       min="0"
                       max="1000"
                       className="text-sm text-center font-bold border-destructive"
@@ -1318,14 +1186,31 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                   </div>
                 </div>
 
-                {/* Notes & Comments - Batch Save */}
+                {/* Notes & Comments - Real-time Editable */}
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label className="text-sm text-yellow-800">Warnings/Notes</Label>
                     <Textarea
                       value={editingTeam.custom_fields?.warnings_notes || ''}
-                      onChange={(e) => handleBatchFieldChange('warnings_notes', e.target.value)}
-                      placeholder="Judge warnings, rule violations, notes..."
+                      onChange={(e) => {
+                        const newValue = e.target.value;
+                        setEditingTeam(prev => prev ? { 
+                          ...prev, 
+                          custom_fields: { ...prev.custom_fields, warnings_notes: newValue }
+                        } : null);
+                      }}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          const newValue = e.currentTarget.value;
+                          updateTeamField(editingTeam.id, 'warnings_notes', newValue);
+                        }
+                      }}
+                      onBlur={(e) => {
+                        const newValue = e.target.value;
+                        updateTeamField(editingTeam.id, 'warnings_notes', newValue);
+                      }}
+                      placeholder="Judge warnings, rule violations, notes... (Press Enter to save)"
                       rows={3}
                       className="text-sm resize-none border-yellow-200 bg-yellow-50/50"
                     />
@@ -1334,53 +1219,55 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                     <Label className="text-sm text-blue-800">Judge Comments</Label>
                     <Textarea
                       value={editingTeam.custom_fields?.judge_comments || ''}
-                      onChange={(e) => handleBatchFieldChange('judge_comments', e.target.value)}
-                      placeholder="Official judge remarks..."
+                      onChange={(e) => {
+                        const newValue = e.target.value;
+                        setEditingTeam(prev => prev ? { 
+                          ...prev, 
+                          custom_fields: { ...prev.custom_fields, judge_comments: newValue }
+                        } : null);
+                      }}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          const newValue = e.currentTarget.value;
+                          updateTeamField(editingTeam.id, 'judge_comments', newValue);
+                        }
+                      }}
+                      onBlur={(e) => {
+                        const newValue = e.target.value;
+                        updateTeamField(editingTeam.id, 'judge_comments', newValue);
+                      }}
+                      placeholder="Official judge remarks... (Press Enter to save)"
                       rows={2}
                       className="text-sm resize-none border-blue-200 bg-blue-50/50"
                     />
                   </div>
                 </div>
 
-                {/* Save Button and Team Status */}
-                <div className="flex flex-col gap-4 pt-4 border-t">
-                  {/* Save Changes Button */}
-                  <div className="flex justify-center">
-                    <Button
-                      onClick={saveTeamChanges}
-                      disabled={!editingTeam}
-                      className="w-full sm:w-auto px-8"
-                    >
-                      <Save className="h-4 w-4 mr-2" />
-                      Save Team
-                    </Button>
+                {/* Team Status - Real-time Editable */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-4 border-t">
+                  <div className="flex items-center gap-2">
+                    <Label className="text-sm">Scratched/Disqualified:</Label>
+                    <input
+                      type="checkbox"
+                      checked={editingTeam.custom_fields?.disqualified || false}
+                      onChange={(e) => {
+                        const newValue = e.target.checked;
+                        setEditingTeam(prev => prev ? { 
+                          ...prev, 
+                          custom_fields: { ...prev.custom_fields, disqualified: newValue }
+                        } : null);
+                        // Immediately update the database
+                        updateTeamField(editingTeam.id, 'disqualified', newValue);
+                      }}
+                      className="rounded border-gray-300 text-destructive focus:ring-destructive"
+                    />
                   </div>
-                  
-                  {/* Team Status */}
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <Label className="text-sm">Scratched/Disqualified:</Label>
-                      <input
-                        type="checkbox"
-                        checked={editingTeam.custom_fields?.disqualified || false}
-                        onChange={(e) => {
-                          const newValue = e.target.checked;
-                          setEditingTeam(prev => prev ? { 
-                            ...prev, 
-                            custom_fields: { ...prev.custom_fields, disqualified: newValue }
-                          } : null);
-                          // Immediately update the database
-                          updateTeamField(editingTeam.id, 'disqualified', newValue);
-                        }}
-                        className="rounded border-gray-300 text-destructive focus:ring-destructive"
-                      />
-                    </div>
-                    <div className="flex gap-2 w-full sm:w-auto">
-                      <Button variant="outline" onClick={() => setEditDialogOpen(false)} className="flex-1 sm:flex-none text-sm">
-                        <X className="h-4 w-4 mr-2" />
-                        Close
-                      </Button>
-                    </div>
+                  <div className="flex gap-2 w-full sm:w-auto">
+                    <Button variant="outline" onClick={() => setEditDialogOpen(false)} className="flex-1 sm:flex-none text-sm">
+                      <X className="h-4 w-4 mr-2" />
+                      Close
+                    </Button>
                   </div>
                 </div>
               </div>
