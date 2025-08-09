@@ -58,10 +58,9 @@ const platforms = [
 
   const createEmailData = () => {
     const previewLink = url;
-    const prettyLink = prettyUrl || url;
     return {
       subject: `🎉 ${title} - Join this amazing event!`,
-      body: `Hi!\n\nI wanted to share this exciting event with you:\n\n${title}\n\n${description || ''}\n\nPretty link: ${prettyLink}\nPreview link (for social): ${previewLink}\n\nHope to see you there!`
+      body: `Hi!\n\nI wanted to share this exciting event with you:\n\n${title}\n\n${description || ''}\n\nPreview link (for social): ${previewLink}\n\nHope to see you there!`
     };
   };
 
