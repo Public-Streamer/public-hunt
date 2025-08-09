@@ -34,7 +34,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   }, [user, showLoginForm]);
 
   return (
-    <div className="min-h-screen bg-gray-50 overflow-hidden">
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       <Header onLoginClick={handleLoginClick} />
       <main className="flex-1">
         {children}
