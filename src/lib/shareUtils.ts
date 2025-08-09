@@ -8,7 +8,7 @@ export function getShareableEventUrl(eventId: string, slug?: string): string {
   const functionsOrigin = "https://zmfugicftfwvuudensdo.functions.supabase.co";
   const eventIdentifier = slug || eventId;
   // Return Edge Function URL for crawlers (serves meta tags) and redirects humans
-  return `${functionsOrigin}/event/${eventIdentifier}`;
+  return `${functionsOrigin}/event-meta-tags/${eventIdentifier}`;
 }
 
 export function getDirectEventUrl(eventId: string, slug?: string): string {
