@@ -46,20 +46,21 @@ const EventSharePanel: React.FC<EventSharePanelProps> = ({
   }, [eventId]);
 
   // Use shareable URL that includes meta tags for social media
-  const eventUrl = getShareableEventUrl(eventId, eventSlug);
+const shareUrl = getShareableEventUrl(eventId, eventSlug);
+  const prettyUrl = `${window.location.origin}/event/${eventSlug || eventId}`;
   
   const createShareMessage = (platform: string): string => {
     const baseMessage = `🚀 Join me for an exciting live event: "${eventTitle}"!`;
     const callToAction = `✨ Don't miss out - join the live experience now!`;
     const fullMessage = eventDescription 
-      ? `${baseMessage}\n\n📍 ${eventDescription}\n\n${callToAction}\n\n🔗 ${eventUrl}`
-      : `${baseMessage}\n\n${callToAction}\n\n🔗 ${eventUrl}`;
+      ? `${baseMessage}\n\n📍 ${eventDescription}\n\n${callToAction}\n\n🔗 ${shareUrl}`
+      : `${baseMessage}\n\n${callToAction}\n\n🔗 ${shareUrl}`;
     
     switch (platform) {
       case 'twitter':
-        return `${baseMessage} ${callToAction} ${eventUrl}`.substring(0, 280); // Twitter character limit
+        return `${baseMessage} ${callToAction} ${shareUrl}`.substring(0, 280); // Twitter character limit
       case 'whatsapp':
-        return `🎯 *${eventTitle}* - Live Event Invitation!\n\n${eventDescription ? `📋 ${eventDescription}\n\n` : ''}🌟 You're invited to join this amazing live streaming event!\n\n🎥 Experience real-time interaction and engagement\n\n🔗 Join now: ${eventUrl}`;
+        return `🎯 *${eventTitle}* - Live Event Invitation!\n\n${eventDescription ? `📋 ${eventDescription}\n\n` : ''}🌟 You're invited to join this amazing live streaming event!\n\n🎥 Experience real-time interaction and engagement\n\n🔗 Join now: ${shareUrl}`;
       case 'email':
         return fullMessage;
       default:
@@ -85,7 +86,7 @@ const EventSharePanel: React.FC<EventSharePanelProps> = ({
       icon: Facebook,
       color: 'bg-blue-600',
       action: () => {
-        const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(eventUrl)}&quote=${encodeURIComponent(createShareMessage('facebook'))}`;
+        const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(createShareMessage('facebook'))}`;
         window.open(facebookUrl, '_blank');
         toast.success('Facebook post dialog opened');
       }
@@ -127,15 +128,30 @@ const EventSharePanel: React.FC<EventSharePanelProps> = ({
     },
     {
       id: 'copy',
-      name: 'Copy Link',
+      name: 'Copy Pretty Link',
       icon: copiedStates['copy'] ? Check : Copy,
       color: copiedStates['copy'] ? 'bg-green-600' : 'bg-gray-600',
       action: () => {
-        navigator.clipboard.writeText(eventUrl).then(() => {
+        navigator.clipboard.writeText(prettyUrl).then(() => {
           setCopiedStates(prev => ({ ...prev, copy: true }));
-          toast.success('Event link copied to clipboard');
+          toast.success('Pretty event link copied to clipboard');
           setTimeout(() => {
             setCopiedStates(prev => ({ ...prev, copy: false }));
+          }, 2000);
+        });
+      }
+    },
+    {
+      id: 'copy-preview',
+      name: 'Copy Link (Preview)',
+      icon: copiedStates['copy-preview'] ? Check : Copy,
+      color: copiedStates['copy-preview'] ? 'bg-green-600' : 'bg-gray-700',
+      action: () => {
+        navigator.clipboard.writeText(shareUrl).then(() => {
+          setCopiedStates(prev => ({ ...prev, 'copy-preview': true }));
+          toast.success('Preview link (with social meta) copied to clipboard');
+          setTimeout(() => {
+            setCopiedStates(prev => ({ ...prev, 'copy-preview': false }));
           }, 2000);
         });
       }
@@ -151,7 +167,7 @@ const EventSharePanel: React.FC<EventSharePanelProps> = ({
       
       // Open all social media platforms
       const platforms = [
-        { url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(eventUrl)}&quote=${encodeURIComponent(createShareMessage('facebook'))}`, name: 'Facebook' },
+        { url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(createShareMessage('facebook'))}`, name: 'Facebook' },
         { url: `https://twitter.com/intent/tweet?text=${encodeURIComponent(createShareMessage('twitter'))}`, name: 'Twitter' },
         { url: 'https://www.instagram.com/', name: 'Instagram' },
         { url: 'https://www.tiktok.com/upload', name: 'TikTok' }
@@ -186,7 +202,7 @@ const EventSharePanel: React.FC<EventSharePanelProps> = ({
           </p>
           <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
             <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
-            <span className="text-xs sm:text-sm font-mono truncate flex-1">{eventUrl}</span>
+            <span className="text-xs sm:text-sm font-mono truncate flex-1">{prettyUrl}</span>
           </div>
         </div>
 

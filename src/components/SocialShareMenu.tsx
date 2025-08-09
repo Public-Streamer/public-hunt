@@ -7,14 +7,15 @@ import { useToast } from '@/hooks/use-toast';
 
 interface SocialShareMenuProps {
   title: string;
-  url: string;
+  url: string; // Share URL (Edge Function) for rich previews
   description?: string;
+  prettyUrl?: string; // Pretty URL to show/copy for users
 }
 
-const SocialShareMenu: React.FC<SocialShareMenuProps> = ({ title, url, description }) => {
+const SocialShareMenu: React.FC<SocialShareMenuProps> = ({ title, url, description, prettyUrl }) => {
   const { toast } = useToast();
 
-  const platforms = [
+const platforms = [
     { id: 'whatsapp', name: 'WhatsApp', icon: MessageCircle, color: 'bg-green-500', tooltip: 'Share on WhatsApp' },
     { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'bg-blue-600', tooltip: 'Share on Facebook' },
     { id: 'instagram', name: 'Instagram', icon: Instagram, color: 'bg-pink-600', tooltip: 'Copy link for Instagram' },
@@ -22,7 +23,8 @@ const SocialShareMenu: React.FC<SocialShareMenuProps> = ({ title, url, descripti
     { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'bg-red-600', tooltip: 'Share on YouTube' },
     { id: 'email', name: 'Email', icon: Mail, color: 'bg-blue-500', tooltip: 'Share via Email' },
     { id: 'sms', name: 'SMS', icon: Phone, color: 'bg-green-600', tooltip: 'Share via SMS' },
-    { id: 'copy', name: 'Copy Link', icon: Copy, color: 'bg-gray-600', tooltip: 'Copy link to clipboard' }
+    { id: 'copy', name: 'Copy Pretty Link', icon: Copy, color: 'bg-gray-600', tooltip: 'Copy pretty link to clipboard' },
+    { id: 'copy-preview', name: 'Copy Link (Preview)', icon: Copy, color: 'bg-gray-700', tooltip: 'Copy link that unfurls with previews' }
   ];
 
   const createShareMessage = (platform: string): string => {
@@ -140,7 +142,15 @@ const SocialShareMenu: React.FC<SocialShareMenuProps> = ({ title, url, descripti
           break;
         
         case 'copy':
+          await copyToClipboard(prettyUrl || url);
+          break;
+        
+        case 'copy-preview':
           await copyToClipboard(url);
+          toast({
+            title: 'Preview link copied!',
+            description: 'Use this link to ensure social platforms show rich previews'
+          });
           break;
         
         default:

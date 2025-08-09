@@ -800,6 +800,7 @@ const EventPage: React.FC = () => {
                 <SocialShareMenu
                   title={eventData.name}
                   url={shareUrl}
+                  prettyUrl={eventUrl}
                   description={eventData.description}
                 />
               </CardContent>
