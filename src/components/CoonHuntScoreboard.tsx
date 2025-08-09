@@ -494,7 +494,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                   disabled={loading}
                   className="text-sm"
                 />
-                <Button onClick={createTeam} disabled={loading || !newTeamName.trim()} className="text-sm">
+                <Button size={screenSize === 'mobile' || screenSize === 'tablet' ? 'xs' : 'sm'} onClick={createTeam} disabled={loading || !newTeamName.trim()} className="text-xs md:text-sm">
                   <Plus className="h-4 w-4 mr-2" />
                   Add Team
                 </Button>

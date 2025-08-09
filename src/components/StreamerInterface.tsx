@@ -12,7 +12,17 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import {
   Video,
   VideoOff,
@@ -28,6 +38,7 @@ import {
   Check,
   X,
   Trash2,
+  AlertTriangle,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -78,8 +89,8 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   const [editValue, setEditValue] = useState(eventTitle);
   const [isSaving, setIsSaving] = useState(false);
 
-   const [isChatVisible, setIsChatVisible] = useState(false);
-  
+  const [isChatVisible, setIsChatVisible] = useState(false);
+
   // Stream name edit state
   const [isEditingStreamName, setIsEditingStreamName] = useState(false);
   const [streamNameValue, setStreamNameValue] = useState("");
@@ -88,37 +99,38 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   // livekit stream name
   const track = useTracks();
   const streamName = useStreamName(track[0]?.participant);
-  
-  
+
   // Real-time scoreboard metadata tracking
-  const { selectedGameType: realtimeGameType, scoreboardName } = useEventScoreboardMeta(eventId);
-  
+  const { selectedGameType: realtimeGameType, scoreboardName } =
+    useEventScoreboardMeta(eventId);
+
   // Local state for game type (prioritize real-time data)
-  const [localSelectedGameType, setLocalSelectedGameType] = useState<string | null>(null);
+  const [localSelectedGameType, setLocalSelectedGameType] = useState<
+    string | null
+  >(null);
   const selectedGameType = realtimeGameType || localSelectedGameType;
 
   // Real-time team count tracking
   const { hasTeams: hasCustomTeams } = useScoreboardTeams(
-    eventId, 
-    selectedGameType === 'custom' ? 'custom' : undefined
+    eventId,
+    selectedGameType === "custom" ? "custom" : undefined
   );
   const { hasTeams: hasCoonHuntTeams } = useScoreboardTeams(
-    eventId, 
-    selectedGameType === 'coon_hunt' ? 'coon_hunt' : undefined
+    eventId,
+    selectedGameType === "coon_hunt" ? "coon_hunt" : undefined
   );
-  
+
   // Legacy state (kept for compatibility)
   const [teams, setTeams] = useState<any[]>([]);
   const [loadingScoreboard, setLoadingScoreboard] = useState(true);
-
 
   // Load event metadata and selected game type
   const loadEventData = async () => {
     try {
       const { data: event, error } = await supabase
-        .from('events')
-        .select('metadata')
-        .eq('id', eventId)
+        .from("events")
+        .select("metadata")
+        .eq("id", eventId)
         .single();
 
       if (error) throw error;
@@ -130,7 +142,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
         await fetchTeams(gameType);
       }
     } catch (error) {
-      console.error('Error loading event data:', error);
+      console.error("Error loading event data:", error);
     } finally {
       setLoadingScoreboard(false);
     }
@@ -142,28 +154,31 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     if (!scoreboardType) return;
 
     try {
-      const response = await fetch('https://zmfugicftfwvuudensdo.supabase.co/functions/v1/scoreboard-operations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptZnVnaWNmdGZ3dnV1ZGVuc2RvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwNjU2ODUsImV4cCI6MjA2NzY0MTY4NX0.J8CA_K_oxhcd2wlQf0KvEarwi0ejq0nBgAVMEhQlXE8'
-        },
-        body: JSON.stringify({
-          action: 'fetch',
-          eventId,
-          scoreboardType
-        })
-      });
+      const response = await fetch(
+        "https://zmfugicftfwvuudensdo.supabase.co/functions/v1/scoreboard-operations",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization:
+              "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptZnVnaWNmdGZ3dnV1ZGVuc2RvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwNjU2ODUsImV4cCI6MjA2NzY0MTY4NX0.J8CA_K_oxhcd2wlQf0KvEarwi0ejq0nBgAVMEhQlXE8",
+          },
+          body: JSON.stringify({
+            action: "fetch",
+            eventId,
+            scoreboardType,
+          }),
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
         setTeams(data || []);
       }
     } catch (error) {
-      console.error('Error fetching teams:', error);
+      console.error("Error fetching teams:", error);
     }
   };
-
 
   // Load event data on mount
   useEffect(() => {
@@ -174,15 +189,15 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   const saveGameTypeToEvent = async (gameType: string) => {
     try {
       const { error } = await supabase
-        .from('events')
+        .from("events")
         .update({
-          metadata: { selectedGameType: gameType }
+          metadata: { selectedGameType: gameType },
         })
-        .eq('id', eventId);
+        .eq("id", eventId);
 
       if (error) throw error;
     } catch (error) {
-      console.error('Error saving game type:', error);
+      console.error("Error saving game type:", error);
       toast({
         title: "Error",
         description: "Failed to save scoreboard type",
@@ -207,27 +222,31 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     if (!selectedGameType) return;
 
     try {
-      const response = await fetch('https://zmfugicftfwvuudensdo.supabase.co/functions/v1/scoreboard-operations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptZnVnaWNmdGZ3dnV1ZGVuc2RvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwNjU2ODUsImV4cCI6MjA2NzY0MTY4NX0.J8CA_K_oxhcd2wlQf0KvEarwi0ejq0nBgAVMEhQlXE8'
-        },
-        body: JSON.stringify({
-          action: 'deleteAll',
-          eventId,
-          scoreboardType: selectedGameType
-        })
-      });
+      const response = await fetch(
+        "https://zmfugicftfwvuudensdo.supabase.co/functions/v1/scoreboard-operations",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization:
+              "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptZnVnaWNmdGZ3dnV1ZGVuc2RvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwNjU2ODUsImV4cCI6MjA2NzY0MTY4NX0.J8CA_K_oxhcd2wlQf0KvEarwi0ejq0nBgAVMEhQlXE8",
+          },
+          body: JSON.stringify({
+            action: "deleteAll",
+            eventId,
+            scoreboardType: selectedGameType,
+          }),
+        }
+      );
 
       if (response.ok) {
         // Clear metadata
         await supabase
-          .from('events')
+          .from("events")
           .update({
-            metadata: {}
+            metadata: {},
           })
-          .eq('id', eventId);
+          .eq("id", eventId);
 
         setLocalSelectedGameType(null);
         setTeams([]);
@@ -237,7 +256,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
         });
       }
     } catch (error) {
-      console.error('Error deleting scoreboard:', error);
+      console.error("Error deleting scoreboard:", error);
       toast({
         title: "Error",
         description: "Failed to delete scoreboard",
@@ -303,22 +322,26 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
 
   // Stream name edit handlers
   const handleEditStreamName = () => {
-    const currentStreamName = localParticipant?.metadata ? JSON.parse(localParticipant.metadata).streamName || "" : "";
+    const currentStreamName = localParticipant?.metadata
+      ? JSON.parse(localParticipant.metadata).streamName || ""
+      : "";
     setStreamNameValue(currentStreamName);
     setIsEditingStreamName(true);
   };
 
   const handleSaveStreamName = async () => {
     if (!localParticipant) return;
-    
+
     setIsSavingStreamName(true);
     try {
-      const currentMetadata = localParticipant.metadata ? JSON.parse(localParticipant.metadata) : {};
+      const currentMetadata = localParticipant.metadata
+        ? JSON.parse(localParticipant.metadata)
+        : {};
       const newMetadata = {
         ...currentMetadata,
-        streamName: streamNameValue.trim() || undefined
+        streamName: streamNameValue.trim() || undefined,
       };
-      
+
       await localParticipant.setMetadata(JSON.stringify(newMetadata));
       setIsEditingStreamName(false);
       toast({
@@ -338,7 +361,9 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   };
 
   const handleCancelStreamName = () => {
-    const currentStreamName = localParticipant?.metadata ? JSON.parse(localParticipant.metadata).streamName || "" : "";
+    const currentStreamName = localParticipant?.metadata
+      ? JSON.parse(localParticipant.metadata).streamName || ""
+      : "";
     setStreamNameValue(currentStreamName);
     setIsEditingStreamName(false);
   };
@@ -350,7 +375,6 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
       handleCancelStreamName();
     }
   };
-
 
   // Get local camera track
   const localCameraTracks = useTracks([Track.Source.Camera], {
@@ -398,7 +422,11 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                           disabled={isSaving}
                         />
                         <Button
-                         size={screenSize === 'mobile' || screenSize === 'tablet' ? 'xs' : 'sm'} 
+                          size={
+                            screenSize === "mobile" || screenSize === "tablet"
+                              ? "xs"
+                              : "sm"
+                          }
                           onClick={handleSaveClick}
                           disabled={isSaving}
                           className="h-8 w-8 p-0"
@@ -406,7 +434,11 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                           <Check className="h-4 w-4" />
                         </Button>
                         <Button
-                         size={screenSize === 'mobile' || screenSize === 'tablet' ? 'xs' : 'sm'} 
+                          size={
+                            screenSize === "mobile" || screenSize === "tablet"
+                              ? "xs"
+                              : "sm"
+                          }
                           variant="outline"
                           onClick={handleCancelClick}
                           disabled={isSaving}
@@ -418,12 +450,16 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                     ) : (
                       <>
                         <span className="truncate">
-                         
-                             {editValue} - Streaming Controls
+                          {editValue} - Streaming Controls
                         </span>
+
                         {userRole === "host" && (
                           <Button
-                           size={screenSize === 'mobile' || screenSize === 'tablet' ? 'xs' : 'sm'} 
+                            size={
+                              screenSize === "mobile" || screenSize === "tablet"
+                                ? "xs"
+                                : "sm"
+                            }
                             variant="ghost"
                             onClick={handleEditClick}
                             className="h-8 w-8 p-0 ml-2"
@@ -436,7 +472,16 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                   </div>
                 </CardTitle>
               </div>
+
               <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+                {userRole === "host" && isEditing && (
+                  <div>
+                    <span className="text-xs text-muted-foreground flex items-center gap-2">
+                      <AlertTriangle className="text-yellow-500 h-4 w-4" />
+                      Changing the name will change the link of the stream
+                    </span>
+                  </div>
+                )}
                 <Badge
                   variant={controls.isConnected ? "default" : "secondary"}
                   className="text-xs"
@@ -481,7 +526,11 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                         disabled={isSavingStreamName}
                       />
                       <Button
-                       size={screenSize === 'mobile' || screenSize === 'tablet' ? 'xs' : 'sm'} 
+                        size={
+                          screenSize === "mobile" || screenSize === "tablet"
+                            ? "xs"
+                            : "sm"
+                        }
                         onClick={handleSaveStreamName}
                         disabled={isSavingStreamName}
                         className="h-8 w-8 p-0"
@@ -489,7 +538,11 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                         <Check className="h-4 w-4" />
                       </Button>
                       <Button
-                       size={screenSize === 'mobile' || screenSize === 'tablet' ? 'xs' : 'sm'} 
+                        size={
+                          screenSize === "mobile" || screenSize === "tablet"
+                            ? "xs"
+                            : "sm"
+                        }
                         variant="outline"
                         onClick={handleCancelStreamName}
                         disabled={isSavingStreamName}
@@ -500,9 +553,18 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                     </div>
                   ) : (
                     <div className="flex items-center gap-2">
-                      <CardTitle className="text-sm sm:text-base">{streamName} <span className="text-xs text-muted-foreground">(click to edit)</span></CardTitle>
+                      <CardTitle className="text-sm sm:text-base">
+                        {streamName}{" "}
+                        <span className="text-xs text-muted-foreground">
+                          (click to edit)
+                        </span>
+                      </CardTitle>
                       <Button
-                       size={screenSize === 'mobile' || screenSize === 'tablet' ? 'xs' : 'sm'} 
+                        size={
+                          screenSize === "mobile" || screenSize === "tablet"
+                            ? "xs"
+                            : "sm"
+                        }
                         variant="ghost"
                         onClick={handleEditStreamName}
                         className="h-8 w-8 p-0"
@@ -513,7 +575,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                   )}
                 </div>
               </CardHeader>
-              
+
               <CardContent className="p-3 sm:p-3">
                 <div className=" aspect-video bg-muted rounded-lg overflow-hidden relative">
                   {localCameraTrack && controls.isVideoEnabled ? (
@@ -521,7 +583,6 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                       trackRef={localCameraTrack}
                       style={{ width: "100%", height: "100%" }}
                     />
-                    
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center bg-muted">
                       <div className="text-center">
@@ -531,13 +592,12 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                     </div>
                   )}
 
-
-                {/* In-Stream Chat Overlay */}
-                <InStreamChatOverlay
-                  eventId={eventId}
-                  isVisible={isChatVisible}
-                  onVisibilityToggle={() => setIsChatVisible(!isChatVisible)}
-                />  
+                  {/* In-Stream Chat Overlay */}
+                  <InStreamChatOverlay
+                    eventId={eventId}
+                    isVisible={isChatVisible}
+                    onVisibilityToggle={() => setIsChatVisible(!isChatVisible)}
+                  />
 
                   {/* Stream Status Overlay */}
                   <div className="absolute top-2 left-2">
@@ -560,7 +620,6 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                     </Badge>
                   </div>
                 </div>
-                
               </CardContent>
             </Card>
 
@@ -591,10 +650,19 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                           <Badge variant="secondary" className="text-xs">
                             {(() => {
                               try {
-                                const metadata = trackRef.participant.metadata ? JSON.parse(trackRef.participant.metadata) : {};
-                                return metadata.streamName || trackRef.participant.name || trackRef.participant.identity;
+                                const metadata = trackRef.participant.metadata
+                                  ? JSON.parse(trackRef.participant.metadata)
+                                  : {};
+                                return (
+                                  metadata.streamName ||
+                                  trackRef.participant.name ||
+                                  trackRef.participant.identity
+                                );
                               } catch {
-                                return trackRef.participant.name || trackRef.participant.identity;
+                                return (
+                                  trackRef.participant.name ||
+                                  trackRef.participant.identity
+                                );
                               }
                             })()}
                           </Badge>
@@ -607,97 +675,118 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
             )}
 
             {/* Pinned Message Section */}
-            <PinnedMessageSection eventId={eventId} isHost={userRole === "host"} />
+            <PinnedMessageSection
+              eventId={eventId}
+              isHost={userRole === "host"}
+            />
 
             {/* Scoreboard Section - Show for hosts (when creating or managing) and streamers (when teams exist) */}
-            {(userRole === "host" || userRole === "streamer") && (
+            {(userRole === "host" || userRole === "streamer") &&
               // Show scoreboard card if:
               // 1. Host and no game type selected (to allow creation) OR
-              // 2. Host and has selected a game type (to allow team management) OR  
+              // 2. Host and has selected a game type (to allow team management) OR
               // 3. Streamer and has teams for the selected game type
-              (userRole === "host" && (!selectedGameType || selectedGameType)) ||
-              (userRole === "streamer" && (
-                (selectedGameType === 'custom' && hasCustomTeams) ||
-                (selectedGameType === 'coon_hunt' && hasCoonHuntTeams)
-              ))
-            ) && (
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle>
-                    {userRole === "host" ? " Leaderboard" : " Leaderboard"}
-                  </CardTitle>
-                  {userRole === "host" && selectedGameType && (
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="outline"size={screenSize === 'mobile' || screenSize === 'tablet' ? 'xs' : 'sm'} >
-                          <Trash2 className="h-4 w-4" />
-                          Delete
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Delete Scoreboard</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Are you sure you want to delete this scoreboard? This will permanently remove all teams and scores. This action cannot be undone.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={handleDeleteScoreboard}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              ((userRole === "host" &&
+                (!selectedGameType || selectedGameType)) ||
+                (userRole === "streamer" &&
+                  ((selectedGameType === "custom" && hasCustomTeams) ||
+                    (selectedGameType === "coon_hunt" &&
+                      hasCoonHuntTeams)))) && (
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle>
+                      {userRole === "host" ? " Leaderboard" : " Leaderboard"}
+                    </CardTitle>
+                    {userRole === "host" && selectedGameType && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size={
+                              screenSize === "mobile" || screenSize === "tablet"
+                                ? "xs"
+                                : "sm"
+                            }
                           >
-                            Delete Scoreboard
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  )}
-                </CardHeader>
-                <CardContent>
-                  {loadingScoreboard ? (
-                    <div className="text-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                      <p className="text-muted-foreground">Loading scoreboard...</p>
-                    </div>
-                  ) : !selectedGameType ? (
-                    <div className="text-center py-8">
-                      <div className="space-y-4">
+                            <Trash2 className="h-4 w-4" />
+                            Delete
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              Delete Scoreboard
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete this scoreboard?
+                              This will permanently remove all teams and scores.
+                              This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={handleDeleteScoreboard}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Delete Scoreboard
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
+                  </CardHeader>
+                  <CardContent>
+                    {loadingScoreboard ? (
+                      <div className="text-center py-8">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
                         <p className="text-muted-foreground">
-                          Create a specialized scoreboard for your competition
+                          Loading scoreboard...
                         </p>
-                        <ScoreboardGameSelector onGameSelect={handleGameTypeSelect} />
                       </div>
-                    </div>
-                  ) : selectedGameType === 'coon_hunt' ? (
-                    <CoonHuntScoreboard eventId={eventId} isHost={userRole === "host"} />
-                  ) : selectedGameType === 'custom' ? (
-                    <CustomScoreboard eventId={eventId} isHost={userRole === "host"} />
-                  ) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <p>This game type is not yet supported.</p>
-                      {userRole === "host" && (
-                        <Button 
-                          variant="outline" 
-                          onClick={() => setLocalSelectedGameType(null)}
-                          className="mt-4"
-                        >
-                          Choose Different Game
-                        </Button>
-                      )}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
+                    ) : !selectedGameType ? (
+                      <div className="text-center py-8">
+                        <div className="space-y-4">
+                          <p className="text-muted-foreground">
+                            Create a specialized scoreboard for your competition
+                          </p>
+                          <ScoreboardGameSelector
+                            onGameSelect={handleGameTypeSelect}
+                          />
+                        </div>
+                      </div>
+                    ) : selectedGameType === "coon_hunt" ? (
+                      <CoonHuntScoreboard
+                        eventId={eventId}
+                        isHost={userRole === "host"}
+                      />
+                    ) : selectedGameType === "custom" ? (
+                      <CustomScoreboard
+                        eventId={eventId}
+                        isHost={userRole === "host"}
+                      />
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <p>This game type is not yet supported.</p>
+                        {userRole === "host" && (
+                          <Button
+                            variant="outline"
+                            onClick={() => setLocalSelectedGameType(null)}
+                            className="mt-4"
+                          >
+                            Choose Different Game
+                          </Button>
+                        )}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
 
             {/* Event Production Team - Only for hosts */}
-            {userRole === "host" && (
-              <EventProductionTeam eventId={eventId} />
-            )}
-
+            {userRole === "host" && <EventProductionTeam eventId={eventId} />}
           </div>
-          
+
           {/* Controls Panel */}
           <div className="space-y-3 sm:space-y-4">
             {/* Stream Controls */}
@@ -917,8 +1006,6 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
             {userRole === "host" && (
               <EventSharePanel eventId={eventId} eventTitle={eventTitle} />
             )}
-
-            
           </div>
         </div>
       </div>
