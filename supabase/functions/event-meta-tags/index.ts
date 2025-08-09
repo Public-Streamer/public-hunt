@@ -105,7 +105,7 @@ serve(async (req) => {
 
     // Generate meta tags
     const baseUrl = url.origin.includes('supabase.co') 
-      ? 'https://dev.publicstreamer.com' 
+      ? 'https://wwww.publicstreamer.com' 
       : url.origin;
     const eventUrl = `${baseUrl}/event/${event.slug || event.id}`;
     const eventTitle = event.name;
