@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, Target, Edit3, Trash2, Save, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Target, Edit3, Trash2, Save, X, ChevronDown, ChevronUp, Minus as MinusIcon } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 // OMCBA Coon Hunt Team Interface - Based on Official Rules
@@ -71,6 +71,13 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
   
   // Local input state to prevent constant API calls (critical for stability)
   const [localInputValues, setLocalInputValues] = useState<Record<string, Record<string, any>>>({});
+  
+  // State for plus/minus signs for scoring fields
+  const [pointSigns, setPointSigns] = useState<Record<string, Record<string, boolean>>>({});
+  
+  // State for batch save - track pending changes
+  const [pendingChanges, setPendingChanges] = useState<Record<string, Record<string, any>>>({});
+  const [isSaving, setIsSaving] = useState(false);
   
   // Scoreboard naming
   const [scoreboardName, setScoreboardName] = useState('OMCBA Coon Hunt Scoreboard');
@@ -266,15 +273,118 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
     }
   };
 
-  // OMCBA scoring calculation based on official rules
-  const calculateTotalScore = (customFields: CoonHuntTeam['custom_fields']) => {
-    const strike = customFields?.strike_points || 0;
-    const tree = customFields?.tree_points || 0;
-    const circle = customFields?.circle_points || 0;
-    const minus = customFields?.minus_points || 0;
+  // OMCBA scoring calculation based on official rules with sign consideration
+  const calculateTotalScore = (customFields: CoonHuntTeam['custom_fields'], teamId?: string) => {
+    const strikeValue = customFields?.strike_points || 0;
+    const treeValue = customFields?.tree_points || 0;
+    const circleValue = customFields?.circle_points || 0;
+    const minusValue = customFields?.minus_points || 0;
+    
+    // Apply signs if teamId is provided (for real-time calculation)
+    let strike = strikeValue;
+    let tree = treeValue;
+    let circle = circleValue;
+    
+    if (teamId && pointSigns[teamId]) {
+      strike = pointSigns[teamId].strike_points === false ? -Math.abs(strikeValue) : Math.abs(strikeValue);
+      tree = pointSigns[teamId].tree_points === false ? -Math.abs(treeValue) : Math.abs(treeValue);
+      circle = pointSigns[teamId].circle_points === false ? -Math.abs(circleValue) : Math.abs(circleValue);
+    }
     
     // OMCBA Rule: Total = Strike + Tree + Circle - Minus
-    return strike + tree  - minus;
+    return strike + tree + circle - minusValue;
+  };
+
+  // Helper functions for sign management
+  const togglePointSign = (teamId: string, fieldId: string) => {
+    setPointSigns(prev => ({
+      ...prev,
+      [teamId]: {
+        ...prev[teamId],
+        [fieldId]: !prev[teamId]?.[fieldId] // toggle between true (positive) and false (negative)
+      }
+    }));
+  };
+
+  const getPointSign = (teamId: string, fieldId: string) => {
+    return pointSigns[teamId]?.[fieldId] !== false; // default to positive (true)
+  };
+
+  // Batch save functionality
+  const saveAllChanges = async () => {
+    if (!editingTeam || Object.keys(pendingChanges).length === 0) return;
+
+    setIsSaving(true);
+    try {
+      // Apply signs to scoring fields
+      const updatedFields = { ...editingTeam.custom_fields };
+      
+      Object.entries(pendingChanges).forEach(([fieldId, value]) => {
+        if (['strike_points', 'tree_points', 'circle_points'].includes(fieldId)) {
+          const isPositive = getPointSign(editingTeam.id, fieldId);
+          const numValue = Math.abs(Number(value) || 0);
+          updatedFields[fieldId] = isPositive ? numValue : -numValue;
+        } else {
+          updatedFields[fieldId] = value;
+        }
+      });
+
+      const newScore = calculateTotalScore(updatedFields);
+
+      const { error } = await supabase.functions.invoke('scoreboard-operations', {
+        body: {
+          action: 'updateTeam',
+          teamId: editingTeam.id,
+          teamName: editingTeam.team_name,
+          score: newScore,
+          teamColor: editingTeam.team_color,
+          customFields: updatedFields
+        }
+      });
+
+      if (error) throw error;
+
+      // Update local state
+      setTeams(prev => prev.map(team => 
+        team.id === editingTeam.id 
+          ? { ...team, custom_fields: updatedFields, score: newScore }
+          : team
+      ));
+
+      // Clear pending changes
+      setPendingChanges({});
+
+      toast({
+        title: "Success",
+        description: "All changes saved successfully",
+      });
+    } catch (error) {
+      console.error('Error saving batch changes:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save changes",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Handle field changes for batch save
+  const handleBatchFieldChange = (fieldId: string, value: any) => {
+    if (!editingTeam) return;
+    
+    // Update local editing state for immediate UI feedback
+    setEditingTeam(prev => prev ? {
+      ...prev,
+      custom_fields: { ...prev.custom_fields, [fieldId]: value }
+    } : null);
+
+    // Track pending changes
+    setPendingChanges(prev => ({
+      ...prev,
+      [fieldId]: value
+    }));
   };
 
   const createTeam = async () => {
@@ -1045,115 +1155,107 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                   
                 </div>
 
-                {/* Scoring - Real-time Editable */}
+                 {/* Scoring - Batch Save with Plus/Minus Controls */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label className="text-sm">Strike Points</Label>
-                    <Input
-                      type="text"
-                      value={editingTeam.custom_fields?.strike_points || 0}
-                      onChange={(e) => {
-                        const newValue = parseInt(e.target.value) || 0;
-                        setEditingTeam(prev => prev ? { 
-                          ...prev, 
-                          custom_fields: { ...prev.custom_fields, strike_points: newValue }
-                        } : null);
-                      }}
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          const newValue = parseInt(e.currentTarget.value) || 0;
-                          updateTeamField(editingTeam.id, 'strike_points', newValue);
-                        }
-                      }}
-                      onBlur={(e) => {
-                        const newValue = parseInt(e.target.value) || 0;
-                        updateTeamField(editingTeam.id, 'strike_points', newValue);
-                      }}
-                      min="0"
-                      max="400"
-                      className="text-sm text-center font-bold"
-                    />
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant={getPointSign(editingTeam.id, 'strike_points') ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => togglePointSign(editingTeam.id, 'strike_points')}
+                        className={`w-10 h-10 p-0 ${getPointSign(editingTeam.id, 'strike_points') ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-200 hover:bg-gray-300'}`}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                      <Input
+                        type="number"
+                        value={Math.abs(editingTeam.custom_fields?.strike_points) || 0}
+                        onChange={(e) => handleBatchFieldChange('strike_points', parseInt(e.target.value) || 0)}
+                        min="0"
+                        max="400"
+                        className="text-sm text-center font-bold flex-1"
+                      />
+                      <Button
+                        type="button"
+                        variant={!getPointSign(editingTeam.id, 'strike_points') ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => togglePointSign(editingTeam.id, 'strike_points')}
+                        className={`w-10 h-10 p-0 ${!getPointSign(editingTeam.id, 'strike_points') ? 'bg-red-500 hover:bg-red-600' : 'bg-gray-200 hover:bg-gray-300'}`}
+                      >
+                        <MinusIcon className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm">Tree Points</Label>
-                    <Input
-                      type="text"
-                      value={editingTeam.custom_fields?.tree_points || 0}
-                      onChange={(e) => {
-                        const newValue = parseInt(e.target.value) || 0;
-                        setEditingTeam(prev => prev ? { 
-                          ...prev, 
-                          custom_fields: { ...prev.custom_fields, tree_points: newValue }
-                        } : null);
-                      }}
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          const newValue = parseInt(e.currentTarget.value) || 0;
-                          updateTeamField(editingTeam.id, 'tree_points', newValue);
-                        }
-                      }}
-                      onBlur={(e) => {
-                        const newValue = parseInt(e.target.value) || 0;
-                        updateTeamField(editingTeam.id, 'tree_points', newValue);
-                      }}
-                      min="0"
-                      max="500"
-                      className="text-sm text-center font-bold"
-                    />
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant={getPointSign(editingTeam.id, 'tree_points') ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => togglePointSign(editingTeam.id, 'tree_points')}
+                        className={`w-10 h-10 p-0 ${getPointSign(editingTeam.id, 'tree_points') ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-200 hover:bg-gray-300'}`}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                      <Input
+                        type="number"
+                        value={Math.abs(editingTeam.custom_fields?.tree_points) || 0}
+                        onChange={(e) => handleBatchFieldChange('tree_points', parseInt(e.target.value) || 0)}
+                        min="0"
+                        max="500"
+                        className="text-sm text-center font-bold flex-1"
+                      />
+                      <Button
+                        type="button"
+                        variant={!getPointSign(editingTeam.id, 'tree_points') ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => togglePointSign(editingTeam.id, 'tree_points')}
+                        className={`w-10 h-10 p-0 ${!getPointSign(editingTeam.id, 'tree_points') ? 'bg-red-500 hover:bg-red-600' : 'bg-gray-200 hover:bg-gray-300'}`}
+                      >
+                        <MinusIcon className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm">Circle Points</Label>
-                    <Input
-                      type="text"
-                      value={editingTeam.custom_fields?.circle_points || 0}
-                      onChange={(e) => {
-                        const newValue = parseInt(e.target.value) || 0;
-                        setEditingTeam(prev => prev ? { 
-                          ...prev, 
-                          custom_fields: { ...prev.custom_fields, circle_points: newValue }
-                        } : null);
-                      }}
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          const newValue = parseInt(e.currentTarget.value) || 0;
-                          updateTeamField(editingTeam.id, 'circle_points', newValue);
-                        }
-                      }}
-                      onBlur={(e) => {
-                        const newValue = parseInt(e.target.value) || 0;
-                        updateTeamField(editingTeam.id, 'circle_points', newValue);
-                      }}
-                      min="0"
-                      max="500"
-                      className="text-sm text-center font-bold"
-                    />
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant={getPointSign(editingTeam.id, 'circle_points') ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => togglePointSign(editingTeam.id, 'circle_points')}
+                        className={`w-10 h-10 p-0 ${getPointSign(editingTeam.id, 'circle_points') ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-200 hover:bg-gray-300'}`}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                      <Input
+                        type="number"
+                        value={Math.abs(editingTeam.custom_fields?.circle_points) || 0}
+                        onChange={(e) => handleBatchFieldChange('circle_points', parseInt(e.target.value) || 0)}
+                        min="0"
+                        max="500"
+                        className="text-sm text-center font-bold flex-1"
+                      />
+                      <Button
+                        type="button"
+                        variant={!getPointSign(editingTeam.id, 'circle_points') ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => togglePointSign(editingTeam.id, 'circle_points')}
+                        className={`w-10 h-10 p-0 ${!getPointSign(editingTeam.id, 'circle_points') ? 'bg-red-500 hover:bg-red-600' : 'bg-gray-200 hover:bg-gray-300'}`}
+                      >
+                        <MinusIcon className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm text-destructive">Minus Points</Label>
                     <Input
-                      type="text"
+                      type="number"
                       value={editingTeam.custom_fields?.minus_points || 0}
-                      onChange={(e) => {
-                        const newValue = parseInt(e.target.value) || 0;
-                        setEditingTeam(prev => prev ? { 
-                          ...prev, 
-                          custom_fields: { ...prev.custom_fields, minus_points: newValue }
-                        } : null);
-                      }}
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          const newValue = parseInt(e.currentTarget.value) || 0;
-                          updateTeamField(editingTeam.id, 'minus_points', newValue);
-                        }
-                      }}
-                      onBlur={(e) => {
-                        const newValue = parseInt(e.target.value) || 0;
-                        updateTeamField(editingTeam.id, 'minus_points', newValue);
-                      }}
+                      onChange={(e) => handleBatchFieldChange('minus_points', parseInt(e.target.value) || 0)}
                       min="0"
                       max="1000"
                       className="text-sm text-center font-bold border-destructive"
@@ -1161,31 +1263,14 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                   </div>
                 </div>
 
-                {/* Notes & Comments - Real-time Editable */}
+                {/* Notes & Comments - Batch Save */}
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label className="text-sm text-yellow-800">Warnings/Notes</Label>
                     <Textarea
                       value={editingTeam.custom_fields?.warnings_notes || ''}
-                      onChange={(e) => {
-                        const newValue = e.target.value;
-                        setEditingTeam(prev => prev ? { 
-                          ...prev, 
-                          custom_fields: { ...prev.custom_fields, warnings_notes: newValue }
-                        } : null);
-                      }}
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          const newValue = e.currentTarget.value;
-                          updateTeamField(editingTeam.id, 'warnings_notes', newValue);
-                        }
-                      }}
-                      onBlur={(e) => {
-                        const newValue = e.target.value;
-                        updateTeamField(editingTeam.id, 'warnings_notes', newValue);
-                      }}
-                      placeholder="Judge warnings, rule violations, notes... (Press Enter to save)"
+                      onChange={(e) => handleBatchFieldChange('warnings_notes', e.target.value)}
+                      placeholder="Judge warnings, rule violations, notes..."
                       rows={3}
                       className="text-sm resize-none border-yellow-200 bg-yellow-50/50"
                     />
@@ -1194,55 +1279,62 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                     <Label className="text-sm text-blue-800">Judge Comments</Label>
                     <Textarea
                       value={editingTeam.custom_fields?.judge_comments || ''}
-                      onChange={(e) => {
-                        const newValue = e.target.value;
-                        setEditingTeam(prev => prev ? { 
-                          ...prev, 
-                          custom_fields: { ...prev.custom_fields, judge_comments: newValue }
-                        } : null);
-                      }}
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          const newValue = e.currentTarget.value;
-                          updateTeamField(editingTeam.id, 'judge_comments', newValue);
-                        }
-                      }}
-                      onBlur={(e) => {
-                        const newValue = e.target.value;
-                        updateTeamField(editingTeam.id, 'judge_comments', newValue);
-                      }}
-                      placeholder="Official judge remarks... (Press Enter to save)"
+                      onChange={(e) => handleBatchFieldChange('judge_comments', e.target.value)}
+                      placeholder="Official judge remarks..."
                       rows={2}
                       className="text-sm resize-none border-blue-200 bg-blue-50/50"
                     />
                   </div>
                 </div>
 
-                {/* Team Status - Real-time Editable */}
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-4 border-t">
-                  <div className="flex items-center gap-2">
-                    <Label className="text-sm">Scratched/Disqualified:</Label>
-                    <input
-                      type="checkbox"
-                      checked={editingTeam.custom_fields?.disqualified || false}
-                      onChange={(e) => {
-                        const newValue = e.target.checked;
-                        setEditingTeam(prev => prev ? { 
-                          ...prev, 
-                          custom_fields: { ...prev.custom_fields, disqualified: newValue }
-                        } : null);
-                        // Immediately update the database
-                        updateTeamField(editingTeam.id, 'disqualified', newValue);
-                      }}
-                      className="rounded border-gray-300 text-destructive focus:ring-destructive"
-                    />
-                  </div>
-                  <div className="flex gap-2 w-full sm:w-auto">
-                    <Button variant="outline" onClick={() => setEditDialogOpen(false)} className="flex-1 sm:flex-none text-sm">
-                      <X className="h-4 w-4 mr-2" />
-                      Close
+                {/* Save Button and Team Status */}
+                <div className="flex flex-col gap-4 pt-4 border-t">
+                  {/* Save Changes Button */}
+                  <div className="flex justify-center">
+                    <Button
+                      onClick={saveAllChanges}
+                      disabled={isSaving || Object.keys(pendingChanges).length === 0}
+                      className="w-full sm:w-auto px-8"
+                    >
+                      {isSaving ? (
+                        <>
+                          <Save className="h-4 w-4 mr-2 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="h-4 w-4 mr-2" />
+                          Save Changes {Object.keys(pendingChanges).length > 0 && `(${Object.keys(pendingChanges).length})`}
+                        </>
+                      )}
                     </Button>
+                  </div>
+                  
+                  {/* Team Status */}
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <Label className="text-sm">Scratched/Disqualified:</Label>
+                      <input
+                        type="checkbox"
+                        checked={editingTeam.custom_fields?.disqualified || false}
+                        onChange={(e) => {
+                          const newValue = e.target.checked;
+                          setEditingTeam(prev => prev ? { 
+                            ...prev, 
+                            custom_fields: { ...prev.custom_fields, disqualified: newValue }
+                          } : null);
+                          // Immediately update the database
+                          updateTeamField(editingTeam.id, 'disqualified', newValue);
+                        }}
+                        className="rounded border-gray-300 text-destructive focus:ring-destructive"
+                      />
+                    </div>
+                    <div className="flex gap-2 w-full sm:w-auto">
+                      <Button variant="outline" onClick={() => setEditDialogOpen(false)} className="flex-1 sm:flex-none text-sm">
+                        <X className="h-4 w-4 mr-2" />
+                        Close
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
