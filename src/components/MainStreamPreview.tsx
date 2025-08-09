@@ -6,12 +6,10 @@ import {
   TrackReference,
 } from "@livekit/components-core";
 import { Badge } from "@/components/ui/badge";
-import { Video, MessageCircle, X, Plane, Maximize, Minimize, Eye } from "lucide-react";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { useSupabaseChatMessages } from "@/hooks/useSupabaseChatMessages";
+import { Eye } from "lucide-react";
 import { useStreamingControls } from "@/hooks/useStreamingControls";
 import MediaBackground from "./MediaBackground";
+import InStreamChatOverlay from "./InStreamChatOverlay";
 
 interface MainStreamPreviewProps {
   track?: TrackReference;
@@ -32,15 +30,11 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
   eventId,
   mediaUrls
 }) => {
-  const { messages, sendMessage } = useSupabaseChatMessages(eventId);
-  const chatContainerRef = useRef<HTMLDivElement>(null);
   const videoContainerRef = useRef<HTMLDivElement>(null);
   const videoElementRef = useRef<HTMLVideoElement>(null);
-  const [chatMessage, setChatMessage] = useState("");
   const [isChatVisible, setIsChatVisible] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
-  const [isScrolledToBottom, setIsScrolledToBottom] = useState(true);
   const hideControlsTimer = useRef<NodeJS.Timeout | null>(null);
   const controls = useStreamingControls(eventId);
 
@@ -52,41 +46,6 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
            !(window as any).MSStream;
   };
 
-  // Auto-scroll to bottom only if user is already at bottom when new messages arrive
-  useEffect(() => {
-    if (chatContainerRef.current && isScrolledToBottom) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-    }
-  }, [messages, isScrolledToBottom]);
-
-  // Handle scroll events to detect if user is at bottom
-  const handleChatScroll = () => {
-    if (chatContainerRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
-      const isAtBottom = scrollHeight - scrollTop - clientHeight < 50; // 50px threshold
-      setIsScrolledToBottom(isAtBottom);
-    }
-  };
-
-  const handleSendMessage = async () => {
-    if (chatMessage.trim()) {
-      const messageContent = chatMessage.trim();
-      
-      try {
-        await sendMessage(messageContent);
-        setChatMessage("");
-      } catch (error) {
-        console.error('Failed to send chat message:', error);
-      }
-    }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
 
   // Enhanced fullscreen functionality with iOS Safari support
   const handleFullscreenToggle = () => {
@@ -327,130 +286,15 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
         </div>
 
 
-        {/* Chat Messages Overlay - Enhanced with Full History */}
-        {isChatVisible && (
-          <div
-            ref={chatContainerRef}
-            onScroll={handleChatScroll}
-            className={`absolute bottom-0 left-0 h-full w-2/4 overflow-y-auto pointer-events-auto transition-opacity duration-300 bg-[linear-gradient(90deg,_rgba(0,60,84,0.8)_0%,_rgba(87,199,133,0)_99%)] ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100 z-0'}`}
-            style={{ 
-              scrollBehavior: "smooth",
-              scrollbarWidth: "thin",
-              scrollbarColor: "rgba(255, 255, 255, 0.3) transparent"
-            }}
-          >
-            {/* Scroll indicator for more messages above */}
-            {messages.length > 0 && !isScrolledToBottom && (
-              <div className="sticky top-0 z-10 bg-black/40 backdrop-blur-sm text-white text-xs text-center py-1 border-b border-white/20">
-                ↑ Scroll up for more messages
-              </div>
-            )}
-            
-            <div className="flex flex-col p-2 pb-16 space-y-1 sm:space-y-2 min-h-full justify-end">
-              {messages.length === 0 ? (
-                <div className="text-white/60 text-xs text-center py-4">
-                  No messages yet. Be the first to chat!
-                </div>
-              ) : (
-                messages.map((message, index) => {
-                  // Calculate opacity based on scroll position and message age
-                  const isRecent = index >= messages.length - 5;
-                  const baseOpacity = isRecent ? 1 : 0.8;
-                  
-                  return (
-                    <div
-                      key={`${message.id}-${index}`}
-                      className="py-1.5 px-2 sm:px-3 text-white rounded-lg max-w-[45vw] sm:max-w-xs md:max-w-sm shadow-lg animate-fade-in transition-all duration-300 hover:bg-black/20"
-                      style={{
-                        wordWrap: "break-word",
-                        hyphens: "auto",
-                        opacity: baseOpacity,
-                      }}
-                    >
-                      <div className="flex flex-col">
-                        <span className="font-semibold text-blue-200 text-xs sm:text-sm leading-tight truncate max-w-full">
-                          {message.display_name || "Anonymous"}
-                        </span>
-                        <span className="text-white text-xs sm:text-sm leading-relaxed break-words">
-                          {message.message}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-
-            
-          </div>
-        )}
-
-        {/* Scroll to bottom button - Fixed position */}
-        {isChatVisible && !isScrolledToBottom && messages.length > 0 && (
-          <div 
-            className={`absolute bottom-16 left-2 bg-black/60 backdrop-blur-sm text-white rounded-full p-2 cursor-pointer hover:bg-black/80 transition-all duration-200 shadow-lg z-30 ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100'}`}
-            onClick={() => {
-              if (chatContainerRef.current) {
-                chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-              }
-            }}
-          >
-            <span className="text-xs">↓</span>
-          </div>
-        )}
-
-        {/* Unified Bottom Control Bar */}
-        <div className={`absolute bottom-0 left-0 right-0 transition-opacity duration-300 mt-3 z-20 ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100'}`}>
-          <div className="flex items-center gap-2  rounded-lg p-2 shadow-lg">
-            {/* Chat Input - Left Side */}
-            {isChatVisible && (
-              <div className="flex-1 relative max-w-xs ">
-                <Input
-                  value={chatMessage}
-                  onChange={(e) => setChatMessage(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder="Send Message"
-                  className="w-full bg-black/20 backdrop-blur-sm    text-white placeholder:text-white/80 h-2 md:h-10 text-xs rounded-lg pl-4 pr-10 focus-visible:ring-1 focus-visible:ring-white/40 focus-visible:ring-offset-0 focus-visible:border-white/40"
-                />
-                <Button
-                  onClick={handleSendMessage}
-                  disabled={!chatMessage.trim()}
-                  size="sm"
-                  className="absolute right-1 top-1 h-8 w-8 rounded-md bg-white/20 hover:bg-white/30 transition-all duration-200 border-none p-0"
-                >
-                  <Plane className="h-4 w-4 text-white rotate-45" />
-                </Button>
-              </div>
-            )}
-            
-            {/* Control Buttons - Right Side */}
-            <div className={`flex items-center gap-2 
-               ${!isChatVisible ? 'flex-1 justify-start' : ''}`}>
-              {/* Chat Toggle Button */}
-              <Button
-                onClick={() => setIsChatVisible(!isChatVisible)}
-                size="sm"
-                variant="outline"
-                className="bg-black/60 border-white/40 text-white hover:bg-black/80 h-5 px-3 shadow-lg backdrop-blur-sm"
-              >
-                {isChatVisible ? <X className="h-4 w-4 mr-1" /> : <MessageCircle className="h-4 w-4 mr-1" />}
-                <span className="text-xs hidden sm:inline">
-                  {isChatVisible ? 'Hide Chat' : 'Show Chat'}
-                </span>
-              </Button>
-
-              {/* Fullscreen Toggle Button */}
-              <Button
-                onClick={handleFullscreenToggle}
-                size="sm"
-                variant="outline"
-                className="bg-black/60 border-white/40 text-white hover:bg-black/80 h-5 w-10 px-0 shadow-lg backdrop-blur-sm"
-              >
-                {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
-              </Button>
-            </div>
-          </div>
-        </div>
+        <InStreamChatOverlay
+          eventId={eventId}
+          isVisible={isChatVisible}
+          onVisibilityToggle={() => setIsChatVisible(!isChatVisible)}
+          isFullscreen={isFullscreen}
+          showControls={showControls}
+          showFullscreenToggle={true}
+          onFullscreenToggle={handleFullscreenToggle}
+        />
 
         {/* Participant info */}
         <div className="absolute bottom-2 right-2 flex justify-end items-start z-10">
