@@ -377,15 +377,15 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   }
 
   return (
-    <div className="min-h-screen bg-background p-2 sm:p-2">
-      <div className="container mx-auto space-y-3 sm:space-y-6 max-w-7xl">
+    <div className="min-h-screen bg-background py-2">
+      <div className="container px-2 mx-auto space-y-3 sm:space-y-6 max-w-7xl">
         {/* Header */}
         <Card>
-          <CardHeader className="p-3 sm:p-6">
+          <CardHeader className="p-3 ">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
               <div className="min-w-0 flex-1">
                 <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
-                  <Video className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+                  <Video className="h-4 w-4 sm:h-5 sm:w-5 " />
                   <div className="flex items-center gap-2 min-w-0 flex-1">
                     {isEditing ? (
                       <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -398,7 +398,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                           disabled={isSaving}
                         />
                         <Button
-                          size="sm"
+                         size={screenSize === 'mobile' || screenSize === 'tablet' ? 'xs' : 'sm'} 
                           onClick={handleSaveClick}
                           disabled={isSaving}
                           className="h-8 w-8 p-0"
@@ -406,7 +406,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                           <Check className="h-4 w-4" />
                         </Button>
                         <Button
-                          size="sm"
+                         size={screenSize === 'mobile' || screenSize === 'tablet' ? 'xs' : 'sm'} 
                           variant="outline"
                           onClick={handleCancelClick}
                           disabled={isSaving}
@@ -418,13 +418,12 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                     ) : (
                       <>
                         <span className="truncate">
-                          {screenSize === "mobile"
-                            ? "Streaming"
-                            : `${editValue} - Streaming Controls`}
+                         
+                             {editValue} - Streaming Controls
                         </span>
-                        {userRole === "host" && screenSize !== "mobile" && (
+                        {userRole === "host" && (
                           <Button
-                            size="sm"
+                           size={screenSize === 'mobile' || screenSize === 'tablet' ? 'xs' : 'sm'} 
                             variant="ghost"
                             onClick={handleEditClick}
                             className="h-8 w-8 p-0 ml-2"
@@ -468,7 +467,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
             }`}
           >
             <Card>
-              <CardHeader className="p-3 sm:p-6">
+              <CardHeader className="p-3 sm:p-3">
                 <div className="flex items-center justify-between">
                   {isEditingStreamName ? (
                     <div className="flex items-center gap-2 flex-1">
@@ -482,7 +481,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                         disabled={isSavingStreamName}
                       />
                       <Button
-                        size="sm"
+                       size={screenSize === 'mobile' || screenSize === 'tablet' ? 'xs' : 'sm'} 
                         onClick={handleSaveStreamName}
                         disabled={isSavingStreamName}
                         className="h-8 w-8 p-0"
@@ -490,7 +489,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                         <Check className="h-4 w-4" />
                       </Button>
                       <Button
-                        size="sm"
+                       size={screenSize === 'mobile' || screenSize === 'tablet' ? 'xs' : 'sm'} 
                         variant="outline"
                         onClick={handleCancelStreamName}
                         disabled={isSavingStreamName}
@@ -503,7 +502,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                     <div className="flex items-center gap-2">
                       <CardTitle className="text-sm sm:text-base">{streamName} <span className="text-xs text-muted-foreground">(click to edit)</span></CardTitle>
                       <Button
-                        size="sm"
+                       size={screenSize === 'mobile' || screenSize === 'tablet' ? 'xs' : 'sm'} 
                         variant="ghost"
                         onClick={handleEditStreamName}
                         className="h-8 w-8 p-0"
@@ -515,7 +514,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                 </div>
               </CardHeader>
               
-              <CardContent className="p-3 sm:p-6">
+              <CardContent className="p-3 sm:p-3">
                 <div className=" aspect-video bg-muted rounded-lg overflow-hidden relative">
                   {localCameraTrack && controls.isVideoEnabled ? (
                     <VideoTrack
@@ -568,12 +567,12 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
             {/* Other Participants */}
             {otherCameraTracks.length > 0 && (
               <Card>
-                <CardHeader className="p-3 sm:p-6">
+                <CardHeader className="p-3 sm:p-3">
                   <CardTitle className="text-sm sm:text-base">
                     Other Streamers
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-3 sm:p-6">
+                <CardContent className="p-3 sm:p-3">
                   <div
                     className={`grid gap-2 sm:gap-4 ${
                       screenSize === "mobile" ? "grid-cols-1" : "grid-cols-2"
@@ -630,7 +629,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                   {userRole === "host" && selectedGameType && (
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline"size={screenSize === 'mobile' || screenSize === 'tablet' ? 'xs' : 'sm'} >
                           <Trash2 className="h-4 w-4" />
                           Delete
                         </Button>
@@ -703,12 +702,12 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
           <div className="space-y-3 sm:space-y-4">
             {/* Stream Controls */}
             <Card>
-              <CardHeader className="p-3 sm:p-6">
+              <CardHeader className="p-3 sm:p-3">
                 <CardTitle className="text-sm sm:text-base">
                   Stream Controls
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-6">
+              <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-3">
                 {/* Go Live / Stop Stream */}
                 <div className="space-y-2">
                   {!controls.isStreaming ? (
@@ -863,12 +862,12 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
 
             {/* Stream Info */}
             <Card>
-              <CardHeader className="p-3 sm:p-6">
+              <CardHeader className="p-3 sm:p-3">
                 <CardTitle className="text-sm sm:text-base">
                   Stream Information
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2 p-3 sm:p-6">
+              <CardContent className="space-y-2 p-3 sm:p-3">
                 <div className="flex justify-between">
                   <span className="text-xs sm:text-sm text-muted-foreground">
                     Status:

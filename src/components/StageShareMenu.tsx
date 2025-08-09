@@ -212,13 +212,13 @@ const StageShareMenu: React.FC<StageShareMenuProps> = ({
 
   return (
     <Card>
-      <CardHeader className="p-3 sm:p-6">
+      <CardHeader className="p-3 sm:p-3">
         <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
           <Share2 className="h-3 w-3 sm:h-4 sm:w-4" />
           {screenSize === 'mobile' ? 'Invite Streamers' : 'Invite Other Streamers'}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-6">
+      <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-3">
         <div className="space-y-2">
           <p className="text-xs sm:text-sm text-muted-foreground">
             {screenSize === 'mobile' ? 'Share stage link:' : 'Share this stage link to invite other streamers to join your event:'}

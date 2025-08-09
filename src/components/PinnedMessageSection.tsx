@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Pin, Edit3, Check, X, Plus, Trash2, ChevronUp, ChevronDown, GripVertical } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useScreenSize } from '../hooks/use-mobile';
 
 interface PinnedMessage {
   id: string;
@@ -26,6 +27,8 @@ export const PinnedMessageSection: React.FC<PinnedMessageSectionProps> = ({
   const [tempContent, setTempContent] = useState('');
   const [newMessageContent, setNewMessageContent] = useState('');
   const [isAddingMessage, setIsAddingMessage] = useState(false);
+
+  const screenSize = useScreenSize();
 
   useEffect(() => {
     fetchPinnedMessages();
@@ -253,7 +256,7 @@ export const PinnedMessageSection: React.FC<PinnedMessageSectionProps> = ({
             </span>
             {isHost && (
               <Button 
-                size="sm" 
+                size={screenSize === 'mobile' || screenSize === 'tablet' ? 'xs' : 'sm'} 
                 variant="outline" 
                 onClick={() => setIsAddingMessage(true)}
                 className="ml-auto"
@@ -274,10 +277,10 @@ export const PinnedMessageSection: React.FC<PinnedMessageSectionProps> = ({
                 className="flex-1"
                 onKeyPress={(e) => e.key === 'Enter' && addMessage()}
               />
-              <Button size="sm" variant="outline" onClick={addMessage}>
+              <Button size={screenSize === 'mobile' || screenSize === 'tablet' ? 'xs' : 'sm'} variant="outline" onClick={addMessage}>
                 <Check className="h-3 w-3" />
               </Button>
-              <Button size="sm" variant="outline" onClick={cancelAdding}>
+              <Button size={screenSize === 'mobile' || screenSize === 'tablet' ? 'xs' : 'sm'} variant="outline" onClick={cancelAdding}>
                 <X className="h-3 w-3" />
               </Button>
             </div>
@@ -312,10 +315,10 @@ export const PinnedMessageSection: React.FC<PinnedMessageSectionProps> = ({
                     <div className="flex items-center gap-1">
                       {editingMessageId === message.id ? (
                         <>
-                          <Button size="sm" variant="outline" onClick={() => saveMessage(message.id)}>
+                          <Button size={screenSize === 'mobile' || screenSize === 'tablet' ? 'xs' : 'sm'} variant="outline" onClick={() => saveMessage(message.id)}>
                             <Check className="h-3 w-3" />
                           </Button>
-                          <Button size="sm" variant="outline" onClick={cancelEditing}>
+                          <Button size={screenSize === 'mobile' || screenSize === 'tablet' ? 'xs' : 'sm'} variant="outline" onClick={cancelEditing}>
                             <X className="h-3 w-3" />
                           </Button>
                         </>
@@ -325,7 +328,7 @@ export const PinnedMessageSection: React.FC<PinnedMessageSectionProps> = ({
                           {messages.length > 1 && (
                             <>
                               <Button 
-                                size="sm" 
+                                size={screenSize === 'mobile' || screenSize === 'tablet' ? 'xs' : 'sm'} 
                                 variant="ghost" 
                                 onClick={() => reorderMessage(message.id, 'up')}
                                 disabled={index === 0}
@@ -334,7 +337,7 @@ export const PinnedMessageSection: React.FC<PinnedMessageSectionProps> = ({
                                 <ChevronUp className="h-3 w-3" />
                               </Button>
                               <Button 
-                                size="sm" 
+                                size={screenSize === 'mobile' || screenSize === 'tablet' ? 'xs' : 'sm'} 
                                 variant="ghost" 
                                 onClick={() => reorderMessage(message.id, 'down')}
                                 disabled={index === messages.length - 1}
@@ -347,7 +350,7 @@ export const PinnedMessageSection: React.FC<PinnedMessageSectionProps> = ({
                           
                           {/* Edit button */}
                           <Button 
-                            size="sm" 
+                            size= {screenSize === 'mobile' || screenSize === 'tablet' ? 'xs' : 'sm'} 
                             variant="ghost" 
                             onClick={() => startEditingMessage(message.id, message.content)}
                             className="h-6 w-6 p-0"
@@ -357,7 +360,7 @@ export const PinnedMessageSection: React.FC<PinnedMessageSectionProps> = ({
                           
                           {/* Delete button */}
                           <Button 
-                            size="sm" 
+                            size={screenSize === 'mobile' || screenSize === 'tablet' ? 'xs' : 'sm'} 
                             variant="ghost" 
                             onClick={() => deleteMessage(message.id)}
                             className="h-6 w-6 p-0 text-destructive hover:text-destructive"

@@ -63,13 +63,13 @@ const LiveChatSection: React.FC<LiveChatSectionProps> = ({ className, eventId })
 
   return (
     <Card className={className}>
-      <CardHeader className="p-3 sm:p-6">
+      <CardHeader className="p-3 sm:p-3">
         <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
           <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5" />
           <span>Live Chat ({messages.length})</span>
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-3 sm:p-6 space-y-4">
+      <CardContent className="p-3 sm:p-3 space-y-4">
         {/* Messages Display */}
         <div className="space-y-4">
           {messagesLoading ? (

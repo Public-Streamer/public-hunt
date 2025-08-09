@@ -727,7 +727,7 @@ const EventPage: React.FC = () => {
           {/* Right Column - Event Details and Actions */}
           <div className="space-y-4 sm:space-y-6">
             <Card>
-              <CardHeader className="p-3 sm:p-6">
+              <CardHeader className="p-3 sm:p-3">
                 <CardTitle className="text-lg sm:text-xl lg:text-2xl font-bold break-words">
                   {eventData.name}
                 </CardTitle>
@@ -758,7 +758,7 @@ const EventPage: React.FC = () => {
                 </div>
               </CardHeader>
 
-              <CardContent className="p-3 sm:p-6">
+              <CardContent className="p-3 sm:p-3">
                 <p className="text-sm sm:text-base text-gray-700 mb-4 sm:mb-6 break-words">
                   {eventData.description}
                 </p>
@@ -791,12 +791,12 @@ const EventPage: React.FC = () => {
 
             {/* Share Event Card */}
             <Card>
-              <CardHeader className="p-3 sm:p-6">
+              <CardHeader className="p-3 sm:p-3">
                 <CardTitle className="text-base sm:text-lg">
                   Share Event
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-3 sm:p-6">
+              <CardContent className="p-3 sm:p-3">
                 <SocialShareMenu
                   title={eventData.name}
                   url={shareUrl}

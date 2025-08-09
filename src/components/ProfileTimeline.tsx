@@ -1287,7 +1287,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
                     )}
 
                     {/* Action Buttons */}
-                    <div className="flex flex-wrap gap-2 p-2 sm:p-4 bg-muted/50 rounded-lg w-full">
+                    <div className="flex flex-wrap gap-2 p-2 sm:p-3 bg-muted/50 rounded-lg w-full">
                       {/* Photo Upload */}
                       <div>
                         <Input

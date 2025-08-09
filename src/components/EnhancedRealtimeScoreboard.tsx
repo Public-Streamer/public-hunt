@@ -143,7 +143,7 @@ export const EnhancedRealtimeScoreboard: React.FC<EnhancedRealtimeScoreboardProp
           {sortedTeams.map((team, index) => (
             <div
               key={team.id}
-              className={`flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-lg border transition-all duration-300 ${
+              className={`flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-3 sm:p-3 rounded-lg border transition-all duration-300 ${
                 index === 0 ? 'bg-accent/20 border-l-4' : 'border-l-4'
               }`}
               style={{ 

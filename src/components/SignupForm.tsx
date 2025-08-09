@@ -1150,14 +1150,14 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
           }
         }}
       >
-        <div className="h-full w-full flex items-start justify-center overflow-auto p-2 sm:p-4">
+        <div className="h-full w-full flex items-start justify-center overflow-auto p-2 sm:p-3">
           <div 
             className="w-full max-w-4xl min-h-full bg-card rounded-lg border shadow-lg overflow-hidden mx-auto my-auto"
             onClick={(e) => e.stopPropagation()}
             style={{ minHeight: 'fit-content' }}
           >
             {/* Fixed Header */}
-            <div className="sticky top-0 z-10 bg-card p-4 sm:p-6 border-b">
+            <div className="sticky top-0 z-10 bg-card p-4 sm:p-3 border-b">
               <div className="flex items-center justify-between">
                 <div className="flex items-center min-w-0 flex-1">
                   <LiveStreamLogo size="md" className="mr-2 sm:mr-3 flex-shrink-0" />
@@ -1197,7 +1197,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
             </div>
             
             {/* Scrollable Content */}
-            <div className="p-4 sm:p-6 pb-8">
+            <div className="p-4 sm:p-3 pb-8">
               {formContent}
             </div>
           </div>

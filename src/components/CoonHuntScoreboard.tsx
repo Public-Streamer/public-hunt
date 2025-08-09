@@ -10,6 +10,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { supabase } from '@/integrations/supabase/client';
 import { Plus, Target, Edit3, Trash2, Save as SaveIcon, X, ChevronDown, ChevronUp, Dot } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { useScreenSize } from '@/hooks/use-mobile';
 
 // OMCBA Coon Hunt Team Interface - Based on Official Rules
 interface CoonHuntTeam {
@@ -75,6 +76,9 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
 
   // Viewer collapses
   const [expandedTeams, setExpandedTeams] = useState<Set<string>>(new Set());
+
+  // use device size
+  const screenSize = useScreenSize()
 
   useEffect(() => {
     fetchTeams();
@@ -468,7 +472,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
         </div>
 
         {isHost && hasAnyPending && (
-          <Button size="sm" onClick={saveAllPending} className="gap-2">
+          <Button size={screenSize === 'mobile' || screenSize === 'tablet' ? 'xs' : 'sm'} onClick={saveAllPending} className="gap-2">
             <SaveIcon className="h-4 w-4" />
             Save All
           </Button>
@@ -478,7 +482,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
       <CardContent className="space-y-4">
         {/* Host Controls - Add Team */}
         {isHost && (
-          <div className="border rounded-lg p-3 sm:p-4 space-y-3">
+          <div className="border rounded-lg p-3 sm:p-3 space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <h4 className="font-semibold text-sm sm:text-base">Add New Team</h4>
               <div className="flex gap-2">
@@ -516,7 +520,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
               return (
                 <Collapsible key={team.id} open={isHost || isTeamExpanded(team.id)} onOpenChange={() => !isHost && toggleTeamExpanded(team.id)} className="relative">
                   <Card>
-                    <CardContent className="p-3 sm:p-4">
+                    <CardContent className="p-3 sm:p-3">
                       <CollapsibleTrigger asChild>
                         <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 space-y-3 sm:space-y-0 ${!isHost ? 'cursor-pointer hover:bg-muted/30 -m-1 p-1 rounded' : ''}`}>
                           <div className="flex items-start gap-3">
@@ -590,15 +594,15 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                             {isHost && (
                               <div className="flex gap-2">
                                 {hasPending && (
-                                  <Button variant="default" size="sm" onClick={(e) => { e.stopPropagation(); saveTeamPending(team.id); }} className="h-8 px-2 gap-1" title="Save changes for this team">
+                                  <Button variant="default" size={screenSize === 'mobile' || screenSize === 'tablet' ? 'xs' : 'sm'} onClick={(e) => { e.stopPropagation(); saveTeamPending(team.id); }} className="h-8 px-2 gap-1" title="Save changes for this team">
                                     <SaveIcon className="h-3 w-3" />
                                     Save
                                   </Button>
                                 )}
-                                <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); openEditDialog(team); }} className="h-8 w-8 p-0" title="Open edit dialog">
+                                <Button variant="outline" size={screenSize === 'mobile' || screenSize === 'tablet' ? 'xs' : 'sm'} onClick={(e) => { e.stopPropagation(); openEditDialog(team); }} className="h-8 w-8 p-0" title="Open edit dialog">
                                   <Edit3 className="h-3 w-3" />
                                 </Button>
-                                <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); deleteTeam(team.id); }} className="h-8 w-8 p-0" title="Delete team">
+                                <Button variant="outline" size={screenSize === 'mobile' || screenSize === 'tablet' ? 'xs' : 'sm'} onClick={(e) => { e.stopPropagation(); deleteTeam(team.id); }} className="h-8 w-8 p-0" title="Delete team">
                                   <Trash2 className="h-3 w-3" />
                                 </Button>
                               </div>
@@ -614,11 +618,12 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                           <div className="space-y-2">
                             <Label className="text-xs sm:text-sm font-medium block">Strike Points</Label>
                             {isHost ? (
-                              <div className="flex gap-2">
-                                <div className="inline-flex border rounded overflow-hidden">
+                              <div className="flex flex-col md:flex-row justify-center gap-2">
+                                <div className="inline-flex gap-2  overflow-hidden">
                                   <Button
                                     type="button"
                                     variant={strikeUI.sign === 'plus' ? 'default' : 'outline'}
+                                    size={screenSize === 'mobile' || screenSize === 'tablet' ? 'xs' : 'sm'}
                                     className="h-10 sm:h-11 rounded-none"
                                     onClick={() => setSignedSign(team.id, 'strike_points', 'plus')}
                                   >
@@ -627,6 +632,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                                   <Button
                                     type="button"
                                     variant={strikeUI.sign === 'minus' ? 'default' : 'outline'}
+                                    size={screenSize === 'mobile' || screenSize === 'tablet' ? 'xs' : 'sm'}
                                     className="h-10 sm:h-11 rounded-none"
                                     onClick={() => setSignedSign(team.id, 'strike_points', 'minus')}
                                   >
@@ -637,7 +643,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                                   inputMode="numeric"
                                   value={String(strikeUI.magnitude)}
                                   onChange={(e) => setSignedMagnitude(team.id, 'strike_points', Math.max(0, parseInt(e.target.value || '0') || 0))}
-                                  className="text-center font-bold text-sm sm:text-base h-10 sm:h-11 w-24"
+                                  className="text-center font-bold text-sm sm:text-base h-10 sm:h-11 flex-1"
                                   placeholder="0"
                                 />
                               </div>
@@ -652,11 +658,12 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                           <div className="space-y-2">
                             <Label className="text-xs sm:text-sm font-medium block">Tree Points</Label>
                             {isHost ? (
-                              <div className="flex gap-2">
-                                <div className="inline-flex border rounded overflow-hidden">
+                              <div className="flex flex-col md:flex-row justify-center gap-2">
+                                <div className="inline-flex gap-2 rounded overflow-hidden ">
                                   <Button
                                     type="button"
                                     variant={treeUI.sign === 'plus' ? 'default' : 'outline'}
+                                    size={screenSize === 'mobile' || screenSize === 'tablet' ? 'xs' : 'sm'}
                                     className="h-10 sm:h-11 rounded-none"
                                     onClick={() => setSignedSign(team.id, 'tree_points', 'plus')}
                                   >
@@ -665,6 +672,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                                   <Button
                                     type="button"
                                     variant={treeUI.sign === 'minus' ? 'default' : 'outline'}
+                                    size={screenSize === 'mobile' || screenSize === 'tablet' ? 'xs' : 'sm'}
                                     className="h-10 sm:h-11 rounded-none"
                                     onClick={() => setSignedSign(team.id, 'tree_points', 'minus')}
                                   >
@@ -675,7 +683,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                                   inputMode="numeric"
                                   value={String(treeUI.magnitude)}
                                   onChange={(e) => setSignedMagnitude(team.id, 'tree_points', Math.max(0, parseInt(e.target.value || '0') || 0))}
-                                  className="text-center font-bold text-sm sm:text-base h-10 sm:h-11 w-24"
+                                  className="text-center font-bold text-sm sm:text-base h-10 sm:h-11 flex-1"
                                   placeholder="0"
                                 />
                               </div>
