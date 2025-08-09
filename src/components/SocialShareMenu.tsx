@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Share2, Facebook, Instagram, MessageCircle, Mail, Phone, Copy, Twitter, Youtube } from 'lucide-react';
+import { Share2, Facebook, Instagram, MessageCircle, Mail, Phone, Copy, Twitter, Youtube, ExternalLink } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface SocialShareMenuProps {
@@ -30,17 +30,20 @@ const platforms = [
   const createShareMessage = (platform: string): string => {
     const baseMessage = `🚀 Join me for an exciting live event: "${title}"!`;
     const callToAction = `✨ Don't miss out - join the live experience now!`;
+    const previewLink = url;
+    const prettyLink = prettyUrl || url;
+
     const fullMessage = description 
-      ? `${baseMessage}\n\n📍 ${description}\n\n${callToAction}\n\n🔗 ${url}`
-      : `${baseMessage}\n\n${callToAction}\n\n🔗 ${url}`;
+      ? `${baseMessage}\n\n📍 ${description}\n\n${callToAction}\n\n🔗 ${prettyLink}\n\n(Preview for social platforms): ${previewLink}`
+      : `${baseMessage}\n\n${callToAction}\n\n🔗 ${prettyLink}\n\n(Preview for social platforms): ${previewLink}`;
     
     switch (platform) {
       case 'x':
-        return `${baseMessage} ${callToAction} ${url}`.substring(0, 280); // Twitter character limit
+        return `${baseMessage} ${prettyLink}`.substring(0, 260); // Keep tweet concise; preview via &url
       case 'sms':
-        return `${baseMessage} Join here: ${url}`.substring(0, 160); // SMS character limit
+        return `${baseMessage} ${prettyLink}`.substring(0, 160); // SMS limit
       case 'whatsapp':
-        return `🎯 *${title}* - Live Event Invitation!\n\n${description ? `📋 ${description}\n\n` : ''}🌟 You're invited to join this amazing live streaming event!\n\n🎥 Experience real-time interaction and engagement\n\n🔗 Join now: ${url}`;
+        return `🎯 *${title}* - Live Event Invitation!\n\n${description ? `📋 ${description}\n\n` : ''}🌟 You're invited to join this amazing live streaming event!\n\n🎥 Experience real-time interaction and engagement\n\n🔗 Join now: ${prettyLink}\n📣 Preview (for social): ${previewLink}`;
       case 'email':
         return fullMessage;
       default:
@@ -49,9 +52,11 @@ const platforms = [
   };
 
   const createEmailData = () => {
+    const previewLink = url;
+    const prettyLink = prettyUrl || url;
     return {
       subject: `🎉 ${title} - Join this amazing event!`,
-      body: `Hi!\n\nI wanted to share this exciting event with you:\n\n${title}\n\n${description || ''}\n\nClick here to learn more and join: ${url}\n\nHope to see you there!`
+      body: `Hi!\n\nI wanted to share this exciting event with you:\n\n${title}\n\n${description || ''}\n\nPretty link: ${prettyLink}\nPreview link (for social): ${previewLink}\n\nHope to see you there!`
     };
   };
 
@@ -93,7 +98,8 @@ const platforms = [
           break;
         
         case 'facebook':
-          shareToUrl(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`);
+          const fbQuote = createShareMessage('facebook');
+          shareToUrl(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(fbQuote)}`);
           toast({ 
             title: 'Facebook opened!', 
             description: 'Share the event on your Facebook timeline' 
@@ -101,7 +107,7 @@ const platforms = [
           break;
         
         case 'instagram':
-          await copyToClipboard(url);
+          await copyToClipboard(prettyUrl || url);
           toast({ 
             title: 'Link copied for Instagram!', 
             description: 'Paste the link in your Instagram story or bio' 
@@ -109,7 +115,8 @@ const platforms = [
           break;
         
         case 'x':
-          shareToUrl(`https://twitter.com/intent/tweet?text=${encodeURIComponent(createShareMessage('x'))}`);
+          const tweetText = createShareMessage('x');
+          shareToUrl(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(url)}`);
           toast({ 
             title: 'X (Twitter) opened!', 
             description: 'Share the event with your followers' 
@@ -134,7 +141,7 @@ const platforms = [
           break;
         
         case 'youtube':
-          await copyToClipboard(url);
+          await copyToClipboard(prettyUrl || url);
           toast({ 
             title: 'Link copied for YouTube!', 
             description: 'Paste the link in your YouTube video description, community post, or comments' 
@@ -175,6 +182,17 @@ const platforms = [
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {prettyUrl && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
+              <ExternalLink className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+              <span className="text-xs sm:text-sm font-mono truncate flex-1">{prettyUrl}</span>
+              <Button variant="ghost" size="sm" onClick={() => copyToClipboard(prettyUrl!)}>
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
         <TooltipProvider>
           <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
             {platforms.map((platform) => {
