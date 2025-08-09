@@ -615,18 +615,6 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
     setEditDialogOpen(true);
   };
 
-  const closeEditDialog = () => {
-    setEditDialogOpen(false);
-    setEditingTeam(null);
-    // Clear any pending changes
-    setPendingChanges({});
-    // Force scroll restoration
-    setTimeout(() => {
-      document.body.style.overflow = '';
-      document.body.removeAttribute('data-scroll-locked');
-    }, 100);
-  };
-
   const saveTeamChanges = async () => {
     if (!editingTeam) return;
 
@@ -663,7 +651,8 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
       });
     }
 
-    closeEditDialog();
+    setEditDialogOpen(false);
+    setEditingTeam(null);
   };
 
   // Sort teams by total score (highest first)
@@ -1027,7 +1016,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
         )}
 
         {/* Edit Team Dialog */}
-        <Dialog open={editDialogOpen} onOpenChange={(open) => open ? null : closeEditDialog()}>
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto mx-4">
             <DialogHeader>
               <DialogTitle className="text-base sm:text-lg">Edit Team: {editingTeam?.team_name}</DialogTitle>
@@ -1341,7 +1330,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                       />
                     </div>
                     <div className="flex gap-2 w-full sm:w-auto">
-                      <Button variant="outline" onClick={closeEditDialog} className="flex-1 sm:flex-none text-sm">
+                      <Button variant="outline" onClick={() => setEditDialogOpen(false)} className="flex-1 sm:flex-none text-sm">
                         <X className="h-4 w-4 mr-2" />
                         Close
                       </Button>
