@@ -48,6 +48,7 @@ const EventSharePanel: React.FC<EventSharePanelProps> = ({
   // Use shareable URL that includes meta tags for social media
 const shareUrl = getShareableEventUrl(eventId, eventSlug);
   const prettyUrl = `${window.location.origin}/event/${eventSlug || eventId}`;
+  const addCacheBuster = (u: string) => `${u}${u.includes('?') ? '&' : '?'}cb=${Date.now()}`;
   
   const createShareMessage = (platform: string): string => {
     const baseMessage = `🚀 Join me for an exciting live event: "${eventTitle}"!`;
@@ -60,7 +61,10 @@ const shareUrl = getShareableEventUrl(eventId, eventSlug);
       case 'twitter':
         return `${baseMessage} ${callToAction} ${shareUrl}`.substring(0, 280); // Twitter character limit
       case 'whatsapp':
-        return `🎯 *${eventTitle}* - Live Event Invitation!\n\n${eventDescription ? `📋 ${eventDescription}\n\n` : ''}🌟 You're invited to join this amazing live streaming event!\n\n🎥 Experience real-time interaction and engagement\n\n🔗 Join now: ${shareUrl}`;
+        {
+          const waLink = addCacheBuster(shareUrl);
+          return `🎯 *${eventTitle}* - Live Event Invitation!\n\n${eventDescription ? `📋 ${eventDescription}\n\n` : ''}${callToAction}\n\n${waLink}`;
+        }
       case 'email':
         return fullMessage;
       default:

@@ -15,6 +15,8 @@ interface SocialShareMenuProps {
 const SocialShareMenu: React.FC<SocialShareMenuProps> = ({ title, url, description, prettyUrl }) => {
   const { toast } = useToast();
 
+  const addCacheBuster = (u: string) => `${u}${u.includes('?') ? '&' : '?'}cb=${Date.now()}`;
+
 const platforms = [
     { id: 'whatsapp', name: 'WhatsApp', icon: MessageCircle, color: 'bg-green-500', tooltip: 'Share on WhatsApp' },
     { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'bg-blue-600', tooltip: 'Share on Facebook' },
@@ -43,7 +45,10 @@ const platforms = [
       case 'sms':
         return `${baseMessage} ${prettyLink}`.substring(0, 160); // SMS limit
       case 'whatsapp':
-        return `🎯 *${title}* - Live Event Invitation!\n\n${description ? `📋 ${description}\n\n` : ''}🌟 You're invited to join this amazing live streaming event!\n\n🎥 Experience real-time interaction and engagement\n\n🔗 Join now: ${prettyLink}\n📣 Preview (for social): ${previewLink}`;
+        {
+          const waLink = addCacheBuster(url);
+          return `🎯 *${title}* - Live Event Invitation!\n\n${description ? `📋 ${description}\n\n` : ''}${callToAction}\n\n${waLink}`;
+        }
       case 'email':
         return fullMessage;
       default:
