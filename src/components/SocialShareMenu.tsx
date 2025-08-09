@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Share2, Facebook, Instagram, MessageCircle, Mail, Phone, Copy, Twitter, Youtube, ExternalLink } from 'lucide-react';
+import { Share2, Facebook, Instagram, MessageCircle, Mail, Phone, Copy, Twitter, Youtube } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface SocialShareMenuProps {
@@ -15,6 +15,8 @@ interface SocialShareMenuProps {
 const SocialShareMenu: React.FC<SocialShareMenuProps> = ({ title, url, description, prettyUrl }) => {
   const { toast } = useToast();
 
+  const addCacheBuster = (u: string) => `${u}${u.includes('?') ? '&' : '?'}cb=${Date.now()}`;
+
 const platforms = [
     { id: 'whatsapp', name: 'WhatsApp', icon: MessageCircle, color: 'bg-green-500', tooltip: 'Share on WhatsApp' },
     { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'bg-blue-600', tooltip: 'Share on Facebook' },
@@ -23,27 +25,28 @@ const platforms = [
     { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'bg-red-600', tooltip: 'Share on YouTube' },
     { id: 'email', name: 'Email', icon: Mail, color: 'bg-blue-500', tooltip: 'Share via Email' },
     { id: 'sms', name: 'SMS', icon: Phone, color: 'bg-green-600', tooltip: 'Share via SMS' },
-    { id: 'copy', name: 'Copy Pretty Link', icon: Copy, color: 'bg-gray-600', tooltip: 'Copy pretty link to clipboard' },
-    { id: 'copy-preview', name: 'Copy Link (Preview)', icon: Copy, color: 'bg-gray-700', tooltip: 'Copy link that unfurls with previews' }
+    { id: 'copy', name: 'Copy Link', icon: Copy, color: 'bg-gray-600', tooltip: 'Copy event link to clipboard' }
   ];
 
   const createShareMessage = (platform: string): string => {
     const baseMessage = `🚀 Join me for an exciting live event: "${title}"!`;
     const callToAction = `✨ Don't miss out - join the live experience now!`;
-    const previewLink = url;
-    const prettyLink = prettyUrl || url;
+    const link = url;
 
-    const fullMessage = description 
-      ? `${baseMessage}\n\n📍 ${description}\n\n${callToAction}\n\n🔗 ${prettyLink}\n\n(Preview for social platforms): ${previewLink}`
-      : `${baseMessage}\n\n${callToAction}\n\n🔗 ${prettyLink}\n\n(Preview for social platforms): ${previewLink}`;
+    const fullMessage = description
+      ? `${baseMessage}\n\n📍 ${description}\n\n${callToAction}\n\n🔗 ${link}`
+      : `${baseMessage}\n\n${callToAction}\n\n🔗 ${link}`;
     
     switch (platform) {
       case 'x':
-        return `${baseMessage} ${prettyLink}`.substring(0, 260); // Keep tweet concise; preview via &url
+        return `${baseMessage} ${link}`.substring(0, 260); // Keep tweet concise; preview via &url
       case 'sms':
-        return `${baseMessage} ${prettyLink}`.substring(0, 160); // SMS limit
+        return `${baseMessage} ${link}`.substring(0, 160); // SMS limit
       case 'whatsapp':
-        return `🎯 *${title}* - Live Event Invitation!\n\n${description ? `📋 ${description}\n\n` : ''}🌟 You're invited to join this amazing live streaming event!\n\n🎥 Experience real-time interaction and engagement\n\n🔗 Join now: ${prettyLink}\n📣 Preview (for social): ${previewLink}`;
+        {
+          const waLink = addCacheBuster(link);
+          return `🎯 *${title}* - Live Event Invitation!\n\n${description ? `📋 ${description}\n\n` : ''}${callToAction}\n\n${waLink}`;
+        }
       case 'email':
         return fullMessage;
       default:
@@ -52,11 +55,10 @@ const platforms = [
   };
 
   const createEmailData = () => {
-    const previewLink = url;
-    const prettyLink = prettyUrl || url;
+    const link = url;
     return {
       subject: `🎉 ${title} - Join this amazing event!`,
-      body: `Hi!\n\nI wanted to share this exciting event with you:\n\n${title}\n\n${description || ''}\n\nPretty link: ${prettyLink}\nPreview link (for social): ${previewLink}\n\nHope to see you there!`
+      body: `Hi!\n\nI wanted to share this exciting event with you:\n\n${title}\n\n${description || ''}\n\nLink: ${link}\n\nHope to see you there!`
     };
   };
 
@@ -107,7 +109,7 @@ const platforms = [
           break;
         
         case 'instagram':
-          await copyToClipboard(prettyUrl || url);
+          await copyToClipboard(url);
           toast({ 
             title: 'Link copied for Instagram!', 
             description: 'Paste the link in your Instagram story or bio' 
@@ -141,7 +143,7 @@ const platforms = [
           break;
         
         case 'youtube':
-          await copyToClipboard(prettyUrl || url);
+          await copyToClipboard(url);
           toast({ 
             title: 'Link copied for YouTube!', 
             description: 'Paste the link in your YouTube video description, community post, or comments' 
@@ -149,16 +151,9 @@ const platforms = [
           break;
         
         case 'copy':
-          await copyToClipboard(prettyUrl || url);
+          await copyToClipboard(url);
           break;
         
-        case 'copy-preview':
-          await copyToClipboard(url);
-          toast({
-            title: 'Preview link copied!',
-            description: 'Use this link to ensure social platforms show rich previews'
-          });
-          break;
         
         default:
           break;
@@ -182,17 +177,6 @@ const platforms = [
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {prettyUrl && (
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
-              <ExternalLink className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-              <span className="text-xs sm:text-sm font-mono truncate flex-1">{prettyUrl}</span>
-              <Button variant="ghost" size="sm" onClick={() => copyToClipboard(prettyUrl!)}>
-                <Copy className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        )}
         <TooltipProvider>
           <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
             {platforms.map((platform) => {

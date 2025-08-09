@@ -139,12 +139,10 @@ serve(async (req) => {
 
     console.log('Generated meta data:', { eventTitle, eventDescription, eventImage, eventUrl });
 
-    // For crawlers, return HTML with meta tags
-    if (isCrawler) {
-      console.log('Serving meta tags to crawler');
-      
-      // Generate HTML with meta tags
-      const html = `<!DOCTYPE html>
+    // Always return an HTML page with meta tags. Use client-side redirect for humans.
+    console.log('Serving meta page with client-side redirect');
+
+    const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -182,6 +180,7 @@ serve(async (req) => {
   <!-- WhatsApp specific -->
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
+  
   <!-- JSON-LD Structured Data -->
   <script type="application/ld+json">
   {
@@ -218,28 +217,34 @@ serve(async (req) => {
     ${event.location ? `<p>Location: ${event.location}</p>` : ''}
     <p>Price: ${ticketPrice}</p>
     <a href="${eventUrl}">View Event</a>
+    <noscript>
+      <p>Redirecting to event page... <a href="${eventUrl}">Click here</a> if not redirected.</p>
+    </noscript>
   </div>
+  <script>
+    (function(){
+      try {
+        var ua = navigator.userAgent || '';
+        var isBot = /(facebookexternalhit|Twitterbot|WhatsApp|LinkedInBot|Slackbot|TelegramBot|SkypeBot|GoogleBot|bingbot|facebot|ia_archiver)/i.test(ua);
+        if (!isBot) {
+          window.location.replace(${JSON.stringify(eventUrl)});
+        }
+      } catch (e) {
+        // Fallback
+        window.location.href = ${JSON.stringify(eventUrl)};
+      }
+    })();
+  </script>
 </body>
 </html>`;
 
-      return new Response(html, {
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'text/html; charset=utf-8',
-          'Cache-Control': 'public, max-age=300',
-        },
-      });
-    } else {
-      console.log('Redirecting human visitor to app');
-      // For human visitors, redirect to the React app
-      return new Response(null, {
-        status: 302,
-        headers: {
-          ...corsHeaders,
-          'Location': eventUrl,
-        },
-      });
-    }
+    return new Response(html, {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': 'public, max-age=300',
+      },
+    });
 
 
   } catch (error) {
