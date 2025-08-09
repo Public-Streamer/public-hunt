@@ -110,8 +110,8 @@ const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
           </Button>
         </div>
         
-        <div className="grid md:grid-cols-4 gap-6">
-          <Card className="text-center p-6 hover:shadow-lg transition-shadow border-border">
+        <div className="grid md:grid-cols-4 gap-2">
+          <Card className="text-center p-2 hover:shadow-lg transition-shadow border-border">
             <CardContent className="pt-6">
               <Video className="h-12 w-12 text-purple-600 dark:text-purple-400 mx-auto mb-4" />
               <h3 className="font-semibold mb-2 text-foreground">Multi-Camera Events</h3>
@@ -119,7 +119,7 @@ const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
             </CardContent>
           </Card>
           
-          <Card className="text-center p-6 hover:shadow-lg transition-shadow border-border">
+          <Card className="text-center p-2 hover:shadow-lg transition-shadow border-border">
             <CardContent className="pt-6">
               <DollarSign className="h-12 w-12 text-green-600 dark:text-green-400 mx-auto mb-4" />
               <h3 className="font-semibold mb-2 text-foreground">Stripe Payments</h3>
@@ -127,7 +127,7 @@ const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
             </CardContent>
           </Card>
           
-          <Card className="text-center p-6 hover:shadow-lg transition-shadow border-border">
+          <Card className="text-center p-2 hover:shadow-lg transition-shadow border-border">
             <CardContent className="pt-6">
               <Users className="h-12 w-12 text-blue-600 dark:text-blue-400 mx-auto mb-4" />
               <h3 className="font-semibold mb-2 text-foreground">Channel System</h3>
@@ -135,7 +135,7 @@ const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
             </CardContent>
           </Card>
           
-          <Card className="text-center p-6 hover:shadow-lg transition-shadow border-border">
+          <Card className="text-center p-2 hover:shadow-lg transition-shadow border-border">
             <CardContent className="pt-6">
               <Smartphone className="h-12 w-12 text-pink-600 dark:text-pink-400 mx-auto mb-4" />
               <h3 className="font-semibold mb-2 text-foreground">SMS Integration</h3>

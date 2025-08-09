@@ -85,7 +85,7 @@ const Index: React.FC = () => {
     <div className="bg-white min-h-screen">
       {/* Search Bar at the top */}
       <div className="bg-muted/50 py-6">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-2">
           <SearchBar />
         </div>
       </div>
@@ -110,7 +110,7 @@ const Index: React.FC = () => {
 
       {/* Original EventGrid and LiveNewsFeed in side layout */}
       <div className="py-8">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-2">
           <div className="">
             <div className="">
               {/* <h2 className="text-2xl font-bold mb-6">All Events</h2> */}

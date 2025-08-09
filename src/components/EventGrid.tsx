@@ -22,7 +22,7 @@ interface EventGridProps {
 const EventGrid: React.FC<EventGridProps> = ({ events }) => {
   return (
     <div className="py-12">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-2">
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">All Events</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
