@@ -6,26 +6,19 @@ import { Badge } from "@/components/ui/badge";
 import {
   Calendar,
   Clock,
-  DollarSign,
   Users,
-  Video,
   MapPin,
   ArrowLeft,
   Loader2,
-  Eye,
 } from "lucide-react";
 import {
   LiveKitRoom,
   RoomAudioRenderer,
-  StartAudio,
-  useChat,
+
 } from "@livekit/components-react";
 import "@livekit/components-styles";
 import LiveDiscussionSection from "@/components/LiveDiscussionSection";
 import { PreStreamChatArchive } from "@/components/PreStreamChatArchive";
-import MediaDisplay from "@/components/MediaDisplay";
-import ViewerInterface from "@/components/ViewerInterface";
-import OfflineStreamSection from "@/components/OfflineStreamSection";
 import SocialShareMenu from "@/components/SocialShareMenu";
 import TicketPurchaseModal from "@/components/TicketPurchaseModal";
 import StreamPreviewContainer from "@/components/StreamPreviewContainer";
@@ -149,61 +142,18 @@ const EventPage: React.FC = () => {
           filter: `id=eq.${eventData.id}`,
         },
         (payload) => {
-          console.log("[EventPage] Real-time event update received:", payload);
+          // console.log("[EventPage] Real-time event update received:", payload);
 
           if (payload.new) {
+            // console.log("[EventPage] Updating event data:", payload.new)
             setEventData(payload.new as EventData);
             setIsLive(payload.new.is_live);
           }
 
-          // if (payload.new && payload.old) {
-          //   // Handle essential event fields with granular updates to prevent unnecessary re-renders
-
-          //   // Update viewer count separately to avoid re-rendering entire component
-          //   if (payload.new.viewer_count !== payload.old.viewer_count) {
-          //     console.log('[EventPage] Viewer count changed:', payload.old.viewer_count, '->', payload.new.viewer_count);
-          //     setViewerCount(payload.new.viewer_count || 0);
-          //   }
-
-          //   // Update live status separately
-          //   if (payload.new.is_live !== payload.old.is_live) {
-          //     console.log('[EventPage] Live status changed:', payload.old.is_live, '->', payload.new.is_live);
-          //     setIsLive(payload.new.is_live || false);
-          //   }
-
-          //   // Only update eventData for core event properties (NOT metadata or frequently changing fields)
-          //   const coreFieldsChanged = (
-          //     payload.new.name !== payload.old.name ||
-          //     payload.new.description !== payload.old.description ||
-          //     payload.new.location !== payload.old.location ||
-          //     payload.new.date !== payload.old.date ||
-          //     payload.new.time !== payload.old.time ||
-          //     payload.new.ticket_price !== payload.old.ticket_price
-          //   );
-
-          //   if (coreFieldsChanged) {
-          //     console.log('[EventPage] Core event fields changed, updating eventData');
-          //     setEventData((prev) => {
-          //       if (!prev) return null;
-
-          //       return {
-          //         ...prev,
-          //         name: payload.new.name,
-          //         description: payload.new.description,
-          //         location: payload.new.location,
-          //         date: payload.new.date,
-          //         time: payload.new.time,
-          //         ticket_price: payload.new.ticket_price,
-          //         // Keep current live status and viewer count from separate state
-          //         is_live: isLive,
-          //         viewer_count: viewerCount
-          //       };
-          //     });
-          //   }
-          // }
         }
       )
       .subscribe();
+    
 
     return () => {
       console.log("[EventPage] Cleaning up real-time subscription");
