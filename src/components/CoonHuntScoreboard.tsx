@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, Target, Edit3, Trash2, Save, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Target, Edit3, Trash2, Save as SaveIcon, X, ChevronDown, ChevronUp, Dot } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 // OMCBA Coon Hunt Team Interface - Based on Official Rules
@@ -25,23 +25,20 @@ interface CoonHuntTeam {
   is_editable?: boolean;
   score: number; // Total calculated score
   custom_fields: {
-    // Core OMCBA Fields
     handler_name: string;
     dog_name: string;
     registration_number?: string;
-    
-    // OMCBA Scoring Fields (Rule 6.A)
-    strike_points: number;     // First: 100, Second: 75, Third: 50, Fourth: 25
-    tree_points: number;       // First: 125, Second: 75, Third: 50, Fourth: 25
-    circle_points: number;     // Points when judge cannot confirm coon presence
-    minus_points: number;      // Penalties for false trees, babbling, etc.
-    
-    // Administrative Fields
-    warnings_notes?: string;   // Judge warnings, violations, notes
-    judge_comments?: string;   // Official judge remarks
-    disqualified?: boolean;    // If dog has been scratched (Rule 10)
-    
-    // Additional custom fields for flexibility
+
+    // OMCBA Scoring Fields
+    strike_points: number;
+    tree_points: number;
+    circle_points: number;
+    minus_points: number;
+
+    warnings_notes?: string;
+    judge_comments?: string;
+    disqualified?: boolean;
+
     [key: string]: any;
   };
 }
@@ -57,38 +54,33 @@ const TEAM_COLORS = [
 ];
 
 export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId, isHost }) => {
-  // State management using the exact same pattern as CustomScoreboard
   const [teams, setTeams] = useState<CoonHuntTeam[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [loading, setLoading] = useState(false);
   const [newTeamName, setNewTeamName] = useState('');
   const [newHandlerName, setNewHandlerName] = useState('');
   const [newDogName, setNewDogName] = useState('');
-  
-  // Edit dialog state
+
+  // Edit dialog
   const [editingTeam, setEditingTeam] = useState<CoonHuntTeam | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  
-  // Local input state to prevent constant API calls (critical for stability)
+  const [editingDraft, setEditingDraft] = useState<CoonHuntTeam | null>(null);
+
+  // Local input state to batch-save later
   const [localInputValues, setLocalInputValues] = useState<Record<string, Record<string, any>>>({});
-  
+
   // Scoreboard naming
   const [scoreboardName, setScoreboardName] = useState('OMCBA Coon Hunt Scoreboard');
   const [editingTitle, setEditingTitle] = useState(false);
-  
-  // Collapse state for viewers - track which teams are expanded
+
+  // Viewer collapses
   const [expandedTeams, setExpandedTeams] = useState<Set<string>>(new Set());
 
-  // Real-time subscription setup (exact same pattern as CustomScoreboard)
   useEffect(() => {
-    console.log('CoonHuntScoreboard mounted for eventId:', eventId);
     fetchTeams();
     fetchScoreboardTitle();
-    
-    // Real-time subscription with shared channel name pattern
+
     const channelName = `coon-hunt-scoreboard-${eventId}`;
-    console.log('Creating shared channel name:', channelName);
-    
     const channel = supabase
       .channel(channelName)
       .on(
@@ -100,61 +92,26 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
           filter: `event_id=eq.${eventId}`
         },
         (payload) => {
-          console.log('📊 Coon Hunt real-time update received:', payload);
-          console.log('Event type:', payload.eventType);
-          console.log('Table:', payload.table);
-          console.log('New data:', payload.new);
-          console.log('Old data:', payload.old);
-          
-          // Only process Coon Hunt updates
           const newRecord = payload.new as any;
           const oldRecord = payload.old as any;
-          
-          if (payload.eventType === 'DELETE') {
-            console.log('Processing DELETE event for Coon Hunt');
-          } else {
+
+          if (payload.eventType !== 'DELETE') {
             const isCoonHuntUpdate = newRecord?.scoreboard_type === 'coon_hunt' || oldRecord?.scoreboard_type === 'coon_hunt';
-            if (!isCoonHuntUpdate) {
-              console.log('Ignoring non-Coon Hunt update');
-              return;
-            }
+            if (!isCoonHuntUpdate) return;
           }
-          
+
           if (payload.eventType === 'INSERT') {
-            console.log('🆕 Adding new Coon Hunt team to state:', payload.new);
             setTeams(prev => {
-              const newTeam = payload.new as CoonHuntTeam;
-              const exists = prev.find(t => t.id === newTeam.id);
-              if (exists) {
-                console.log('Team already exists, skipping insert');
-                return prev;
-              }
-              const updated = [...prev, newTeam];
-              console.log('Teams after insert:', updated);
-              return updated;
+              const n = payload.new as CoonHuntTeam;
+              if (prev.find(t => t.id === n.id)) return prev;
+              return [...prev, n];
             });
           } else if (payload.eventType === 'UPDATE') {
-            console.log('🔄 Updating Coon Hunt team in state:', payload.new);
-            setTeams(prev => {
-              const updated = prev.map(team => 
-                team.id === payload.new.id ? { ...team, ...payload.new } as CoonHuntTeam : team
-              );
-              console.log('Teams after update:', updated);
-              return updated;
-            });
-            
-            // Clear local input values for this team to ensure real-time updates show immediately
-            setLocalInputValues(prev => ({
-              ...prev,
-              [payload.new.id]: {}
-            }));
+            setTeams(prev => prev.map(t => (t.id === payload.new.id ? { ...t, ...payload.new } as CoonHuntTeam : t)));
+            // clear pending for this team so fresh data shows
+            setLocalInputValues(prev => ({ ...prev, [payload.new.id]: {} }));
           } else if (payload.eventType === 'DELETE') {
-            console.log('🗑️ Deleting Coon Hunt team from state:', payload.old.id);
-            setTeams(prev => {
-              const updated = prev.filter(team => team.id !== payload.old.id);
-              console.log('Teams after delete:', updated);
-              return updated;
-            });
+            setTeams(prev => prev.filter(t => t.id !== payload.old.id));
           }
         }
       )
@@ -167,28 +124,14 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
           filter: `id=eq.${eventId}`
         },
         (payload) => {
-          console.log('Real-time event update received:', payload);
-          if (payload.new && payload.new.metadata) {
-            const metadata = payload.new.metadata as Record<string, any>;
-            const newTitle = metadata?.coonHuntScoreboardName;
-            if (newTitle && newTitle !== scoreboardName) {
-              setScoreboardName(newTitle);
-            }
-          }
+          const metadata = payload.new?.metadata as Record<string, any> | undefined;
+          const newTitle = metadata?.coonHuntScoreboardName;
+          if (newTitle && newTitle !== scoreboardName) setScoreboardName(newTitle);
         }
       )
-      .subscribe((status) => {
-        console.log('📡 Coon Hunt subscription status:', status, 'isHost:', isHost, 'eventId:', eventId);
-        if (status === 'SUBSCRIBED') {
-          console.log('✅ Real-time connection established for', isHost ? 'HOST' : 'VIEWER', 'on event:', eventId);
-        } else if (status === 'CHANNEL_ERROR') {
-          console.error('❌ Real-time connection error for', isHost ? 'HOST' : 'VIEWER', 'on event:', eventId);
-        }
-        setIsConnected(status === 'SUBSCRIBED');
-      });
+      .subscribe((status) => setIsConnected(status === 'SUBSCRIBED'));
 
     return () => {
-      console.log('CoonHuntScoreboard cleanup - removing channel');
       supabase.removeChannel(channel);
     };
   }, [eventId]);
@@ -196,15 +139,9 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
   const fetchTeams = async () => {
     try {
       const { data, error } = await supabase.functions.invoke('scoreboard-operations', {
-        body: {
-          action: 'fetch',
-          eventId,
-          scoreboardType: 'coon_hunt'
-        }
+        body: { action: 'fetch', eventId, scoreboardType: 'coon_hunt' }
       });
-
       if (error) throw error;
-      console.log('Fetched Coon Hunt teams:', data);
       setTeams(Array.isArray(data) ? data : data?.teams || []);
     } catch (error) {
       console.error('Error fetching Coon Hunt teams:', error);
@@ -238,10 +175,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
       if (fetchError) throw fetchError;
 
       const currentMetadata = (eventData?.metadata as Record<string, any>) || {};
-      const updatedMetadata = {
-        ...currentMetadata,
-        coonHuntScoreboardName: newTitle
-      };
+      const updatedMetadata = { ...currentMetadata, coonHuntScoreboardName: newTitle };
 
       const { error } = await supabase
         .from('events')
@@ -251,64 +185,41 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
       if (error) throw error;
 
       setScoreboardName(newTitle);
-
-      toast({
-        title: "Success",
-        description: "Scoreboard title updated",
-      });
+      toast({ title: 'Success', description: 'Scoreboard title updated' });
     } catch (error) {
       console.error('Error updating scoreboard title:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update scoreboard title",
-        variant: "destructive",
-      });
+      toast({ title: 'Error', description: 'Failed to update scoreboard title', variant: 'destructive' });
     }
   };
 
-  // OMCBA scoring calculation based on official rules
+  // OMCBA scoring calculation
   const calculateTotalScore = (customFields: CoonHuntTeam['custom_fields']) => {
-    const strike = customFields?.strike_points || 0;
-    const tree = customFields?.tree_points || 0;
-    const circle = customFields?.circle_points || 0;
-    const minus = customFields?.minus_points || 0;
-    
-    // OMCBA Rule: Total = Strike + Tree + Circle - Minus
-    return strike + tree  - minus;
+    const strike = Number(customFields?.strike_points || 0);
+    const tree = Number(customFields?.tree_points || 0);
+    const minus = Number(customFields?.minus_points || 0);
+    // Note: circle points are not added to total in many formats; keeping original logic from your code.
+    return strike + tree - minus;
   };
 
   const createTeam = async () => {
     if (!newTeamName.trim()) return;
-
     setLoading(true);
     try {
-      const colorIndex = teams.length % TEAM_COLORS.length;
-      const teamColor = TEAM_COLORS[colorIndex];
-      
-      // Initialize with OMCBA-compliant default fields
+      const teamColor = TEAM_COLORS[teams.length % TEAM_COLORS.length];
       const initialCustomFields = {
         handler_name: newHandlerName.trim(),
         dog_name: newDogName.trim(),
         registration_number: '',
-        strike_points: '',
-        tree_points: '',
-        circle_points: '',
-        minus_points: '',
+        strike_points: 0,
+        tree_points: 0,
+        circle_points: 0,
+        minus_points: 0,
         warnings_notes: '',
         judge_comments: '',
         disqualified: false
       };
 
-      console.log('Creating Coon Hunt team with data:', {
-        action: 'create',
-        eventId,
-        teamName: newTeamName,
-        teamColor,
-        customFields: initialCustomFields,
-        scoreboardType: 'coon_hunt'
-      });
-
-      const { data, error } = await supabase.functions.invoke('scoreboard-operations', {
+      const { error } = await supabase.functions.invoke('scoreboard-operations', {
         body: {
           action: 'create',
           eventId,
@@ -318,255 +229,206 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
           scoreboardType: 'coon_hunt'
         }
       });
-
       if (error) throw error;
 
-      console.log('Coon Hunt team creation response:', data);
       setNewTeamName('');
       setNewHandlerName('');
       setNewDogName('');
-      
-      // Immediately fetch updated teams to ensure consistency
       await fetchTeams();
-      
-      toast({
-        title: "Success",
-        description: `Team "${newTeamName}" added to Coon Hunt scoreboard`,
-      });
+      toast({ title: 'Success', description: `Team "${newTeamName}" added` });
     } catch (error) {
       console.error('Error creating Coon Hunt team:', error);
-      toast({
-        title: "Error",
-        description: "Failed to add team",
-        variant: "destructive",
-      });
+      toast({ title: 'Error', description: 'Failed to add team', variant: 'destructive' });
     } finally {
       setLoading(false);
     }
   };
 
-  const updateTeam = async (teamId: string, updates: Partial<CoonHuntTeam>) => {
-    try {
-      const { error } = await supabase.functions.invoke('scoreboard-operations', {
-        body: {
-          action: 'updateTeam',
-          teamId,
-          ...updates
-        }
-      });
-
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error updating Coon Hunt team:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update team",
-        variant: "destructive",
-      });
-    }
-  };
-
   const deleteTeam = async (teamId: string) => {
     try {
-      console.log('🗑️ Deleting Coon Hunt team:', teamId);
-      
       const { error } = await supabase.functions.invoke('scoreboard-operations', {
-        body: {
-          action: 'delete',
-          teamId
-        }
+        body: { action: 'delete', teamId }
       });
-
       if (error) throw error;
-
-      console.log('✅ Coon Hunt team deletion successful, real-time will handle state update');
-      
-      toast({
-        title: "Success",
-        description: "Team deleted",
-      });
+      toast({ title: 'Success', description: 'Team deleted' });
     } catch (error) {
       console.error('Error deleting Coon Hunt team:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete team",
-        variant: "destructive",
-      });
+      toast({ title: 'Error', description: 'Failed to delete team', variant: 'destructive' });
     }
   };
 
-  // Local input handling (exact same pattern as CustomScoreboard)
+  // Local input handling
   const handleFieldChange = (teamId: string, fieldId: string, value: any) => {
     setLocalInputValues(prev => ({
       ...prev,
-      [teamId]: {
-        ...prev[teamId],
-        [fieldId]: value
-      }
+      [teamId]: { ...(prev[teamId] || {}), [fieldId]: value }
     }));
   };
 
   const getCurrentFieldValue = (teamId: string, fieldId: string, dbValue: any) => {
     const localValue = localInputValues[teamId]?.[fieldId];
     if (localValue !== undefined) return localValue;
-    
-    // Return appropriate default based on field type
-    if (fieldId.includes('points') || fieldId === 'score') return dbValue || 0;
-    if (fieldId === 'disqualified') return dbValue || false;
-    return dbValue || '';
+    if (fieldId.includes('points') || fieldId === 'score') return dbValue ?? 0;
+    if (fieldId === 'disqualified') return dbValue ?? false;
+    return dbValue ?? '';
   };
 
-  const updateTeamField = async (teamId: string, fieldId: string, value: any) => {
+  const teamHasPending = (teamId: string) => {
+    const pending = localInputValues[teamId];
+    if (!pending) return false;
+    // consider any defined key as pending
+    return Object.keys(pending).length > 0;
+  };
+
+  const saveTeamPending = async (teamId: string) => {
     const team = teams.find(t => t.id === teamId);
-    if (!team) {
-      console.error('Team not found for update:', teamId);
-      return;
-    }
+    if (!team) return;
 
-    const updatedFields = {
-      ...team.custom_fields,
-      [fieldId]: value
-    };
+    const pending = localInputValues[teamId] || {};
+    if (Object.keys(pending).length === 0) return;
 
-    // Recalculate total score
+    const updatedFields = { ...team.custom_fields, ...pending };
     const newScore = calculateTotalScore(updatedFields);
 
-    console.log('🔄 Updating Coon Hunt team field:', { 
-      teamId, 
-      fieldId, 
-      value, 
-      currentFields: team.custom_fields,
-      updatedFields, 
-      newScore 
-    });
-
     try {
-      const { data, error } = await supabase.functions.invoke('scoreboard-operations', {
+      const { error } = await supabase.functions.invoke('scoreboard-operations', {
         body: {
           action: 'updateTeam',
-          teamId,
+          teamId: team.id,
           custom_fields: updatedFields,
           team_name: team.team_name,
           team_color: team.team_color,
           score: newScore
         }
       });
+      if (error) throw error;
 
-      if (error) {
-        console.error('❌ Scoreboard operation error:', error);
-        throw error;
-      }
-
-      console.log('✅ Coon Hunt team field update response:', data);
-
-      // Update local state immediately
-      setTeams(prev => prev.map(t => 
-        t.id === teamId 
-          ? { ...t, custom_fields: updatedFields, score: newScore }
-          : t
-      ));
-
-      // Clear local input for this field after successful update
-      setLocalInputValues(prev => ({
-        ...prev,
-        [teamId]: {
-          ...prev[teamId],
-          [fieldId]: undefined
-        }
-      }));
-
-      // More specific toast messages
-      const fieldName = fieldId === 'registration_number' ? 'Registration Number' :
-                       fieldId === 'handler_name' ? 'Handler Name' :
-                       fieldId === 'dog_name' ? 'Dog Name' :
-                       fieldId === 'warnings_notes' ? 'Warnings/Notes' :
-                       fieldId === 'judge_comments' ? 'Judge Comments' :
-                       fieldId === 'disqualified' ? 'Team Status' :
-                       fieldId.replace('_points', '').replace('_', ' ');
-
-      toast({
-        title: "Updated Successfully",
-        description: `${fieldName} updated successfully`,
-      });
+      // optimistic local apply
+      setTeams(prev => prev.map(t => (t.id === team.id ? { ...t, custom_fields: updatedFields, score: newScore } : t)));
+      // clear pending for this team
+      setLocalInputValues(prev => ({ ...prev, [teamId]: {} }));
+      toast({ title: 'Saved', description: `Saved changes for "${team.team_name}"` });
     } catch (error) {
-      console.error('❌ Error updating Coon Hunt team field:', error);
-      toast({
-        title: "Error",
-        description: `Failed to update ${fieldId.replace('_', ' ')}`,
-        variant: "destructive",
-      });
-      // Revert optimistic update on error
+      console.error('Error saving team changes:', error);
+      toast({ title: 'Error', description: 'Failed to save changes', variant: 'destructive' });
+      // option: refetch to avoid drift
+      fetchTeams();
+    }
+  };
+
+  const hasAnyPending = useMemo(() => {
+    return Object.values(localInputValues).some(obj => obj && Object.keys(obj).length > 0);
+  }, [localInputValues]);
+
+  const saveAllPending = async () => {
+    const entries = Object.entries(localInputValues).filter(([, v]) => v && Object.keys(v).length > 0);
+    if (entries.length === 0) return;
+
+    try {
+      await Promise.all(
+        entries.map(async ([teamId, changes]) => {
+          const team = teams.find(t => t.id === teamId);
+          if (!team) return;
+          const updatedFields = { ...team.custom_fields, ...changes };
+          const newScore = calculateTotalScore(updatedFields);
+
+          const { error } = await supabase.functions.invoke('scoreboard-operations', {
+            body: {
+              action: 'updateTeam',
+              teamId,
+              custom_fields: updatedFields,
+              team_name: team.team_name,
+              team_color: team.team_color,
+              score: newScore
+            }
+          });
+          if (error) throw error;
+
+          // optimistic local update
+          setTeams(prev => prev.map(t => (t.id === teamId ? { ...t, custom_fields: updatedFields, score: newScore } : t)));
+        })
+      );
+
+      // clear all pending
+      setLocalInputValues({});
+      toast({ title: 'Saved', description: `Saved ${entries.length} team${entries.length > 1 ? 's' : ''}` });
+    } catch (error) {
+      console.error('Error saving all changes:', error);
+      toast({ title: 'Error', description: 'Failed to save all changes', variant: 'destructive' });
       fetchTeams();
     }
   };
 
   const openEditDialog = (team: CoonHuntTeam) => {
-    setEditingTeam({ ...team });
+    setEditingTeam(team);
+    setEditingDraft(JSON.parse(JSON.stringify(team)));
     setEditDialogOpen(true);
   };
 
-  const saveTeamChanges = async () => {
-    if (!editingTeam) return;
+  const closeEditDialog = () => {
+    setEditDialogOpen(false);
+    setEditingTeam(null);
+    setEditingDraft(null);
+  };
 
-    const newScore = calculateTotalScore(editingTeam.custom_fields);
-
+  const saveTeamChangesFromDialog = async () => {
+    if (!editingDraft) return;
+  
+    // make sure numbers are numbers
+    const cf = {
+      ...editingDraft.custom_fields,
+      strike_points: Number(editingDraft.custom_fields?.strike_points || 0),
+      tree_points: Number(editingDraft.custom_fields?.tree_points || 0),
+      circle_points: Number(editingDraft.custom_fields?.circle_points || 0),
+      minus_points: Number(editingDraft.custom_fields?.minus_points || 0),
+    };
+  
+    const newScore = calculateTotalScore(cf);
+  
     try {
       const { error } = await supabase.functions.invoke('scoreboard-operations', {
         body: {
           action: 'updateTeam',
-          teamId: editingTeam.id,
-          teamName: editingTeam.team_name,
+          teamId: editingDraft.id,
+          // ✅ use snake_case keys to match your function
+          custom_fields: cf,
+          team_name: editingDraft.team_name,
+          team_color: editingDraft.team_color,
           score: newScore,
-          teamColor: editingTeam.team_color,
-          customFields: editingTeam.custom_fields
-        }
+        },
       });
-
       if (error) throw error;
-
-      setTeams(prev => prev.map(team => 
-        team.id === editingTeam.id ? { ...team, ...editingTeam, score: newScore } : team
-      ));
-      
-      toast({
-        title: "Success",
-        description: "Team updated successfully",
-      });
+  
+      // optimistic local update
+      setTeams(prev =>
+        prev.map(t =>
+          t.id === editingDraft.id ? { ...t, ...editingDraft, custom_fields: cf, score: newScore } : t
+        )
+      );
+  
+      toast({ title: 'Success', description: 'Team updated successfully' });
+      closeEditDialog();
     } catch (error) {
       console.error('Error updating Coon Hunt team:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update team",
-        variant: "destructive",
-      });
+      toast({ title: 'Error', description: 'Failed to update team', variant: 'destructive' });
     }
-
-    setEditDialogOpen(false);
-    setEditingTeam(null);
   };
+  
 
-  // Sort teams by total score (highest first)
   const sortedTeams = [...teams].sort((a, b) => b.score - a.score);
 
-  // Helper functions for collapsible teams (viewers only)
   const toggleTeamExpanded = (teamId: string) => {
     setExpandedTeams(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(teamId)) {
-        newSet.delete(teamId);
-      } else {
-        newSet.add(teamId);
-      }
-      return newSet;
+      const s = new Set(prev);
+      if (s.has(teamId)) s.delete(teamId);
+      else s.add(teamId);
+      return s;
     });
   };
 
   const isTeamExpanded = (teamId: string) => expandedTeams.has(teamId);
 
-  // Early return for viewers when no teams
-  if (!isHost && teams.length === 0) {
-    return null;
-  }
+  if (!isHost && teams.length === 0) return null;
 
   return (
     <Card>
@@ -578,7 +440,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
               <Input
                 value={scoreboardName}
                 onChange={(e) => setScoreboardName(e.target.value)}
-                onKeyPress={(e) => {
+                onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
                     updateScoreboardTitle(scoreboardName);
@@ -594,27 +456,31 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                 autoFocus
               />
             ) : (
-              <span 
-                className={isHost ? "cursor-pointer hover:text-primary" : ""}
+              <span
+                className={isHost ? 'cursor-pointer hover:text-primary' : ''}
                 onClick={() => isHost && setEditingTitle(true)}
-                title={isHost ? "Click to edit scoreboard name" : undefined}
+                title={isHost ? 'Click to edit scoreboard name' : undefined}
               >
                 {scoreboardName}
               </span>
             )}
             {isHost && !editingTitle && (
               <div title="Edit scoreboard name">
-                <Edit3 
-                  className="h-4 w-4 ml-2 cursor-pointer hover:text-primary" 
-                  onClick={() => setEditingTitle(true)}
-                />
+                <Edit3 className="h-4 w-4 ml-2 cursor-pointer hover:text-primary" onClick={() => setEditingTitle(true)} />
               </div>
             )}
           </CardTitle>
-          <Badge variant={isConnected ? "default" : "destructive"} className="ml-2">
-            {isConnected ? "Live" : "Connecting..."}
+          <Badge variant={isConnected ? 'default' : 'destructive'} className="ml-2">
+            {isConnected ? 'Live' : 'Connecting...'}
           </Badge>
         </div>
+
+        {isHost && hasAnyPending && (
+          <Button size="sm" onClick={saveAllPending} className="gap-2">
+            <SaveIcon className="h-4 w-4" />
+            Save All
+          </Button>
+        )}
       </CardHeader>
 
       <CardContent className="space-y-4">
@@ -627,7 +493,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                 placeholder="Team/Entry name..."
                 value={newTeamName}
                 onChange={(e) => setNewTeamName(e.target.value)}
-                onKeyPress={(e) => {
+                onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
                     createTeam();
@@ -636,11 +502,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                 disabled={loading}
                 className="text-sm"
               />
-              <Button 
-                onClick={createTeam} 
-                disabled={loading || !newTeamName.trim()}
-                className="w-full sm:w-auto text-sm"
-              >
+              <Button onClick={createTeam} disabled={loading || !newTeamName.trim()} className="w-full sm:w-auto text-sm">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Team
               </Button>
@@ -648,370 +510,345 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
           </div>
         )}
 
-        {/* Teams Display */}
+        {/* Teams */}
         {teams.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
-            {isHost ? "No teams added yet. Add a team to start scoring." : "No teams in this hunt yet."}
+            {isHost ? 'No teams added yet. Add a team to start scoring.' : 'No teams in this hunt yet.'}
           </div>
         ) : (
           <div className="space-y-4">
-            {sortedTeams.map((team, index) => (
-              <Collapsible
-                key={team.id}
-                open={isHost || isTeamExpanded(team.id)}
-                onOpenChange={() => !isHost && toggleTeamExpanded(team.id)}
-                className="relative"
-              >
-                <Card>
-                  <CardContent className="p-3 sm:p-4">
-                    <CollapsibleTrigger asChild>
-                      <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 space-y-3 sm:space-y-0 ${!isHost ? 'cursor-pointer hover:bg-muted/30 -m-1 p-1 rounded' : ''}`}>
-                        <div className="flex items-start gap-3">
-                          <Badge 
-                            variant="secondary" 
-                            className="text-base sm:text-lg font-bold px-2 sm:px-3 py-1 shrink-0"
-                            style={{ backgroundColor: `${team.team_color}20`, color: team.team_color }}
-                          >
-                            #{index + 1}
-                          </Badge>
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2 justify-between">
-                              <h3 className="font-bold text-base sm:text-lg break-words">{team.team_name}</h3>
-                              {!isHost && (
-                                <div className="flex items-center gap-2">
-                                  {isTeamExpanded(team.id) ? (
-                                    <ChevronUp className="h-4 w-4 text-muted-foreground" />
-                                  ) : (
-                                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            {sortedTeams.map((team, index) => {
+              const pending = localInputValues[team.id] || {};
+              const hasPending = Object.keys(pending).length > 0;
+
+              return (
+                <Collapsible
+                  key={team.id}
+                  open={isHost || isTeamExpanded(team.id)}
+                  onOpenChange={() => !isHost && toggleTeamExpanded(team.id)}
+                  className="relative"
+                >
+                  <Card>
+                    <CardContent className="p-3 sm:p-4">
+                      <CollapsibleTrigger asChild>
+                        <div
+                          className={`flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 space-y-3 sm:space-y-0 ${
+                            !isHost ? 'cursor-pointer hover:bg-muted/30 -m-1 p-1 rounded' : ''
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <Badge
+                              variant="secondary"
+                              className="text-base sm:text-lg font-bold px-2 sm:px-3 py-1 shrink-0"
+                              style={{ backgroundColor: `${team.team_color}20`, color: team.team_color }}
+                            >
+                              #{index + 1}
+                            </Badge>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2 justify-between">
+                                <h3 className="font-bold text-base sm:text-lg break-words flex items-center gap-1">
+                                  {team.team_name}
+                                  {isHost && hasPending && (
+                                    <span className="inline-flex items-center text-xs text-amber-600">
+                                      <Dot className="h-4 w-4" />
+                                      unsaved
+                                    </span>
+                                  )}
+                                </h3>
+                                {!isHost && (
+                                  <div className="flex items-center gap-2">
+                                    {isTeamExpanded(team.id) ? (
+                                      <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                                    ) : (
+                                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Compact viewer info */}
+                              {!isHost && !isTeamExpanded(team.id) && (
+                                <div className="text-xs sm:text-sm space-y-1 mt-1">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-muted-foreground">Handler:</span>
+                                    <span className="font-medium">{team.custom_fields?.handler_name || 'Not set'}</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-muted-foreground">Status:</span>
+                                    {team.custom_fields?.disqualified ? (
+                                      <Badge variant="destructive" className="text-xs">
+                                        Scratched/Disqualified
+                                      </Badge>
+                                    ) : (
+                                      <Badge variant="secondary" className="text-xs">
+                                        Active
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Expanded/Host info */}
+                              {(isHost || isTeamExpanded(team.id)) && (
+                                <div className="text-xs sm:text-sm space-y-1">
+                                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                                    <span className="text-muted-foreground shrink-0">Handler:</span>
+                                    <span className="font-medium text-xs sm:text-sm break-words">
+                                      {team.custom_fields?.handler_name || 'Not set'}
+                                    </span>
+                                  </div>
+                                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                                    <span className="text-muted-foreground shrink-0">Dog:</span>
+                                    <span className="font-medium text-xs sm:text-sm break-words">
+                                      {team.custom_fields?.dog_name || 'Not set'}
+                                    </span>
+                                  </div>
+                                  {team.custom_fields?.registration_number && (
+                                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                                      <span className="text-muted-foreground shrink-0">Registration:</span>
+                                      <span className="font-medium text-xs sm:text-sm break-words">
+                                        {team.custom_fields.registration_number}
+                                      </span>
+                                    </div>
                                   )}
                                 </div>
                               )}
                             </div>
-                            {/* Collapsed view info for viewers */}
-                            {!isHost && !isTeamExpanded(team.id) && (
-                              <div className="text-xs sm:text-sm space-y-1 mt-1">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-muted-foreground">Handler:</span>
-                                  <span className="font-medium">{team.custom_fields?.handler_name || 'Not set'}</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <span className="text-muted-foreground">Status:</span>
-                                  {team.custom_fields?.disqualified ? (
-                                    <Badge variant="destructive" className="text-xs">
-                                      Scratched/Disqualified
-                                    </Badge>
-                                  ) : (
-                                    <Badge variant="secondary" className="text-xs">
-                                      Active
-                                    </Badge>
-                                  )}
-                                </div>
-                              </div>
-                            )}
-                            {/* Expanded/Host view info */}
-                            {(isHost || isTeamExpanded(team.id)) && (
-                              <div className="text-xs sm:text-sm space-y-1">
-                                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                                  <span className="text-muted-foreground shrink-0">Handler:</span>
-                                  <span className="font-medium text-xs sm:text-sm break-words">{team.custom_fields?.handler_name || 'Not set'}</span>
-                                </div>
-                                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                                  <span className="text-muted-foreground shrink-0">Dog:</span>
-                                  <span className="font-medium text-xs sm:text-sm break-words">{team.custom_fields?.dog_name || 'Not set'}</span>
-                                </div>
-                                {/* Optional Registration Number - only show if exists */}
-                                {team.custom_fields?.registration_number && (
-                                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                                    <span className="text-muted-foreground shrink-0">Registration:</span>
-                                    <span className="font-medium text-xs sm:text-sm break-words">{team.custom_fields.registration_number}</span>
-                                  </div>
+                          </div>
+
+                          <div className="flex flex-row sm:flex-col items-center justify-between sm:justify-center gap-4 sm:gap-2">
+                            <div className="text-center">
+                              <div className="text-xl sm:text-2xl font-bold">{team.score}</div>
+                              <div className="text-xs sm:text-sm text-muted-foreground">Total Score</div>
+                            </div>
+
+                            {isHost && (
+                              <div className="flex gap-2">
+                                {hasPending && (
+                                  <Button
+                                    variant="default"
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      saveTeamPending(team.id);
+                                    }}
+                                    className="h-8 px-2 gap-1"
+                                    title="Save changes for this team"
+                                  >
+                                    <SaveIcon className="h-3 w-3" />
+                                    Save
+                                  </Button>
                                 )}
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    openEditDialog(team);
+                                  }}
+                                  className="h-8 w-8 p-0"
+                                  title="Open edit dialog"
+                                >
+                                  <Edit3 className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    deleteTeam(team.id);
+                                  }}
+                                  className="h-8 w-8 p-0"
+                                  title="Delete team"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
                               </div>
                             )}
                           </div>
                         </div>
-                        
-                        <div className="flex flex-row sm:flex-col items-center justify-between sm:justify-center gap-4 sm:gap-2">
-                          <div className="text-center">
-                            <div className="text-xl sm:text-2xl font-bold">{team.score}</div>
-                            <div className="text-xs sm:text-sm text-muted-foreground">Total Score</div>
+                      </CollapsibleTrigger>
+
+                      <CollapsibleContent className="space-y-4 animate-fade-in">
+                        {/* OMCBA Scoring Grid */}
+                        <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                          {/* Strike Points */}
+                          <div className="space-y-2">
+                            <Label className="text-xs sm:text-sm font-medium block">Strike Points</Label>
+                            {isHost ? (
+                              <Input
+                                inputMode="numeric"
+                                value={getCurrentFieldValue(team.id, 'strike_points', team.custom_fields?.strike_points)}
+                                onChange={(e) =>
+                                  handleFieldChange(team.id, 'strike_points', parseInt(e.target.value || '0') || 0)
+                                }
+                                className="text-center font-bold text-sm sm:text-base h-10 sm:h-11"
+                                placeholder="0"
+                              />
+                            ) : (
+                              <div className="text-center font-bold text-base sm:text-lg p-2 sm:p-3 bg-muted rounded h-10 sm:h-11 flex items-center justify-center">
+                                {team.custom_fields?.strike_points || 0}
+                              </div>
+                            )}
                           </div>
-                          
-                          {isHost && (
-                            <div className="flex gap-2">
-                              <Button variant="outline" size="sm" onClick={() => openEditDialog(team)} className="h-8 w-8 p-0">
-                                <Edit3 className="h-3 w-3" />
-                              </Button>
-                              <Button variant="outline" size="sm" onClick={() => deleteTeam(team.id)} className="h-8 w-8 p-0">
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </CollapsibleTrigger>
 
-                    <CollapsibleContent className="space-y-4 animate-fade-in">
-                      {/* OMCBA Scoring Grid */}
-                      <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                        {/* Strike Points */}
-                        <div className="space-y-2">
-                          <Label className="text-xs sm:text-sm font-medium block">Strike Points</Label>
-                          {isHost ? (
-                            <Input
-                              type="text"
-                              value={getCurrentFieldValue(team.id, 'strike_points', team.custom_fields?.strike_points)}
-                              onChange={(e) => handleFieldChange(team.id, 'strike_points', parseInt(e.target.value) || 0)}
-                              onKeyPress={(e) => {
-                                if (e.key === 'Enter') {
-                                  e.preventDefault();
-                                  updateTeamField(team.id, 'strike_points', parseInt(e.currentTarget.value) || 0);
+                          {/* Tree Points */}
+                          <div className="space-y-2">
+                            <Label className="text-xs sm:text-sm font-medium block">Tree Points</Label>
+                            {isHost ? (
+                              <Input
+                                inputMode="numeric"
+                                value={getCurrentFieldValue(team.id, 'tree_points', team.custom_fields?.tree_points)}
+                                onChange={(e) =>
+                                  handleFieldChange(team.id, 'tree_points', parseInt(e.target.value || '0') || 0)
                                 }
-                              }}
-                              onBlur={(e) => updateTeamField(team.id, 'strike_points', parseInt(e.target.value) || 0)}
-                              className="text-center font-bold text-sm sm:text-base h-10 sm:h-11"
-                              min="0"
-                              max="400"
-                              placeholder="0"
-                            />
-                          ) : (
-                            <div className="text-center font-bold text-base sm:text-lg p-2 sm:p-3 bg-muted rounded h-10 sm:h-11 flex items-center justify-center">
-                              {team.custom_fields?.strike_points || 0}
-                            </div>
-                          )}
-                        </div>
+                                className="text-center font-bold text-sm sm:text-base h-10 sm:h-11"
+                                placeholder="0"
+                              />
+                            ) : (
+                              <div className="text-center font-bold text-base sm:text-lg p-2 sm:p-3 bg-muted rounded h-10 sm:h-11 flex items-center justify-center">
+                                {team.custom_fields?.tree_points || 0}
+                              </div>
+                            )}
+                          </div>
 
-                        {/* Tree Points */}
-                        <div className="space-y-2">
-                          <Label className="text-xs sm:text-sm font-medium block">Tree Points</Label>
-                          {isHost ? (
-                            <Input
-                              type="text"
-                              value={getCurrentFieldValue(team.id, 'tree_points', team.custom_fields?.tree_points)}
-                              onChange={(e) => handleFieldChange(team.id, 'tree_points', parseInt(e.target.value) || 0)}
-                              onKeyPress={(e) => {
-                                if (e.key === 'Enter') {
-                                  e.preventDefault();
-                                  updateTeamField(team.id, 'tree_points', parseInt(e.currentTarget.value) || 0);
+                          {/* Circle Points */}
+                          <div className="space-y-2">
+                            <Label className="text-xs sm:text-sm font-medium block">Circle Points</Label>
+                            {isHost ? (
+                              <Input
+                                inputMode="numeric"
+                                value={getCurrentFieldValue(team.id, 'circle_points', team.custom_fields?.circle_points)}
+                                onChange={(e) =>
+                                  handleFieldChange(team.id, 'circle_points', parseInt(e.target.value || '0') || 0)
                                 }
-                              }}
-                              onBlur={(e) => updateTeamField(team.id, 'tree_points', parseInt(e.target.value) || 0)}
-                              className="text-center font-bold text-sm sm:text-base h-10 sm:h-11"
-                              min="0"
-                              max="500"
-                              placeholder="0"
-                            />
-                          ) : (
-                            <div className="text-center font-bold text-base sm:text-lg p-2 sm:p-3 bg-muted rounded h-10 sm:h-11 flex items-center justify-center">
-                              {team.custom_fields?.tree_points || 0}
-                            </div>
-                          )}
-                        </div>
+                                className="text-center font-bold text-sm sm:text-base h-10 sm:h-11"
+                                placeholder="0"
+                              />
+                            ) : (
+                              <div className="text-center font-bold text-base sm:text-lg p-2 sm:p-3 bg-muted rounded h-10 sm:h-11 flex items-center justify-center">
+                                {team.custom_fields?.circle_points || 0}
+                              </div>
+                            )}
+                          </div>
 
-                        {/* Circle Points */}
-                        <div className="space-y-2">
-                          <Label className="text-xs sm:text-sm font-medium block">Circle Points</Label>
-                          {isHost ? (
-                            <Input
-                              type="text"
-                              value={getCurrentFieldValue(team.id, 'circle_points', team.custom_fields?.circle_points)}
-                              onChange={(e) => handleFieldChange(team.id, 'circle_points', parseInt(e.target.value) || 0)}
-                              onKeyPress={(e) => {
-                                if (e.key === 'Enter') {
-                                  e.preventDefault();
-                                  updateTeamField(team.id, 'circle_points', parseInt(e.currentTarget.value) || 0);
+                          {/* Minus Points */}
+                          <div className="space-y-2">
+                            <Label className="text-xs sm:text-sm font-medium text-destructive block">Minus Points</Label>
+                            {isHost ? (
+                              <Input
+                                inputMode="numeric"
+                                value={getCurrentFieldValue(team.id, 'minus_points', team.custom_fields?.minus_points)}
+                                onChange={(e) =>
+                                  handleFieldChange(team.id, 'minus_points', parseInt(e.target.value || '0') || 0)
                                 }
-                              }}
-                              onBlur={(e) => updateTeamField(team.id, 'circle_points', parseInt(e.target.value) || 0)}
-                              className="text-center font-bold text-sm sm:text-base h-10 sm:h-11"
-                              min="0"
-                              max="500"
-                              placeholder="0"
-                            />
-                          ) : (
-                            <div className="text-center font-bold text-base sm:text-lg p-2 sm:p-3 bg-muted rounded h-10 sm:h-11 flex items-center justify-center">
-                              {team.custom_fields?.circle_points || 0}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Minus Points */}
-                        <div className="space-y-2">
-                          <Label className="text-xs sm:text-sm font-medium text-destructive block">Minus Points</Label>
-                          {isHost ? (
-                            <Input
-                              type="text"
-                              value={getCurrentFieldValue(team.id, 'minus_points', team.custom_fields?.minus_points)}
-                              onChange={(e) => handleFieldChange(team.id, 'minus_points', parseInt(e.target.value) || 0)}
-                              onKeyPress={(e) => {
-                                if (e.key === 'Enter') {
-                                  e.preventDefault();
-                                  updateTeamField(team.id, 'minus_points', parseInt(e.currentTarget.value) || 0);
-                                }
-                              }}
-                              onBlur={(e) => updateTeamField(team.id, 'minus_points', parseInt(e.target.value) || 0)}
-                              className="text-center font-bold border-destructive text-sm sm:text-base h-10 sm:h-11"
-                              min="0"
-                              max="1000"
-                              placeholder="0"
-                            />
-                          ) : (
-                            <div className="text-center font-bold text-base sm:text-lg p-2 sm:p-3 bg-destructive/10 text-destructive rounded h-10 sm:h-11 flex items-center justify-center">
-                              {team.custom_fields?.minus_points || 0}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Viewer-only sections for warnings/notes and judge comments */}
-                      {!isHost && team.custom_fields?.warnings_notes && (
-                        <div className="mt-4 space-y-2">
-                          <Label className="text-xs sm:text-sm font-medium text-yellow-800">Warnings/Notes:</Label>
-                          <div className="p-2 sm:p-3 bg-yellow-50 border border-yellow-200 rounded">
-                            <p className="text-xs sm:text-sm text-yellow-700 break-words">{team.custom_fields.warnings_notes}</p>
+                                className="text-center font-bold border-destructive text-sm sm:text-base h-10 sm:h-11"
+                                placeholder="0"
+                              />
+                            ) : (
+                              <div className="text-center font-bold text-base sm:text-lg p-2 sm:p-3 bg-destructive/10 text-destructive rounded h-10 sm:h-11 flex items-center justify-center">
+                                {team.custom_fields?.minus_points || 0}
+                              </div>
+                            )}
                           </div>
                         </div>
-                      )}
 
-                      {!isHost && team.custom_fields?.judge_comments && (
-                        <div className="mt-4 space-y-2">
-                          <Label className="text-xs sm:text-sm font-medium text-blue-800">Judge Comments:</Label>
-                          <div className="p-2 sm:p-3 bg-blue-50 border border-blue-200 rounded">
-                            <p className="text-xs sm:text-sm text-blue-700 break-words">{team.custom_fields.judge_comments}</p>
+                        {/* Viewer-only notes */}
+                        {!isHost && team.custom_fields?.warnings_notes && (
+                          <div className="mt-4 space-y-2">
+                            <Label className="text-xs sm:text-sm font-medium text-yellow-800">Warnings/Notes:</Label>
+                            <div className="p-2 sm:p-3 bg-yellow-50 border border-yellow-200 rounded">
+                              <p className="text-xs sm:text-sm text-yellow-700 break-words">
+                                {team.custom_fields.warnings_notes}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        )}
 
-                      {/* Viewer-only team status */}
-                      {!isHost && (
-                        <div className="mt-4 flex items-center gap-2">
-                          <Label className="text-xs sm:text-sm font-medium">Team Status:</Label>
-                          {team.custom_fields?.disqualified ? (
-                            <Badge variant="destructive" className="text-xs">
-                              Scratched/Disqualified
-                            </Badge>
-                          ) : (
-                            <Badge variant="secondary" className="text-xs">
-                              Active
-                            </Badge>
-                          )}
-                        </div>
-                      )}
-                    </CollapsibleContent>
-                  </CardContent>
-                </Card>
-              </Collapsible>
-            ))}
+                        {!isHost && team.custom_fields?.judge_comments && (
+                          <div className="mt-4 space-y-2">
+                            <Label className="text-xs sm:text-sm font-medium text-blue-800">Judge Comments:</Label>
+                            <div className="p-2 sm:p-3 bg-blue-50 border border-blue-200 rounded">
+                              <p className="text-xs sm:text-sm text-blue-700 break-words">
+                                {team.custom_fields.judge_comments}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
+                        {!isHost && (
+                          <div className="mt-4 flex items-center gap-2">
+                            <Label className="text-xs sm:text-sm font-medium">Team Status:</Label>
+                            {team.custom_fields?.disqualified ? (
+                              <Badge variant="destructive" className="text-xs">
+                                Scratched/Disqualified
+                              </Badge>
+                            ) : (
+                              <Badge variant="secondary" className="text-xs">
+                                Active
+                              </Badge>
+                            )}
+                          </div>
+                        )}
+                      </CollapsibleContent>
+                    </CardContent>
+                  </Card>
+                </Collapsible>
+              );
+            })}
           </div>
         )}
 
-        {/* Edit Team Dialog */}
-        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        {/* Edit Team Dialog (draft-based, save to persist) */}
+        <Dialog open={editDialogOpen} onOpenChange={(open) => (open ? null : closeEditDialog())}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto mx-4">
             <DialogHeader>
-              <DialogTitle className="text-base sm:text-lg">Edit Team: {editingTeam?.team_name}</DialogTitle>
+              <DialogTitle className="text-base sm:text-lg">
+                Edit Team: {editingDraft?.team_name || editingTeam?.team_name}
+              </DialogTitle>
             </DialogHeader>
-            
-            {editingTeam && (
+
+            {editingDraft && (
               <div className="space-y-4">
                 {/* Basic Info */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label className="text-sm">Team/Entry Name</Label>
                     <Input
-                      value={editingTeam.team_name}
-                      onChange={(e) => {
-                        // console.log('Editing team name:', e.target.value);
-                        setEditingTeam(prev => prev ? { ...prev, team_name: e.target.value } : null)}}
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          const newValue = e.currentTarget.value;
-                          // console.log(newValue)
-                          updateTeam(editingTeam.id, { teamName: newValue });
-                        }
-                      }}
-                      onBlur={(e) => {
-                        const newValue = e.target.value;
-                        updateTeam(editingTeam.id, { teamName: newValue });
-                      }}
+                      value={editingDraft.team_name}
+                      onChange={(e) => setEditingDraft({ ...editingDraft, team_name: e.target.value })}
                       className="text-sm"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm">Team Color</Label>
-                     <div className="flex flex-wrap gap-2">
-                       {TEAM_COLORS.map(color => (
-                         <div
-                           key={color}
-                           className={`w-8 h-8 rounded cursor-pointer border-2 ${editingTeam.team_color === color ? 'border-foreground' : 'border-transparent'}`}
-                           style={{ backgroundColor: color }}
-                           onClick={async () => {
-                             if (!editingTeam) return;
-                             
-                             // Update local state immediately for instant feedback
-                             setEditingTeam(prev => prev ? { ...prev, team_color: color } : null);
-                             
-                             // Update in database for real-time sync across all users
-                             try {
-                               const { error } = await supabase.functions.invoke('scoreboard-operations', {
-                                 body: {
-                                   action: 'updateTeam',
-                                   teamId: editingTeam.id,
-                                   teamName: editingTeam.team_name,
-                                   score: editingTeam.score,
-                                   teamColor: color,
-                                   customFields: editingTeam.custom_fields
-                                 }
-                               });
-
-                               if (error) throw error;
-
-                               // Update teams list to reflect change
-                               setTeams(prev => prev.map(team => 
-                                 team.id === editingTeam.id ? { ...team, team_color: color } : team
-                               ));
-                             } catch (error) {
-                               console.error('Error updating team color:', error);
-                               toast({
-                                 title: "Error",
-                                 description: "Failed to update team color",
-                                 variant: "destructive",
-                               });
-                               // Revert local state on error
-                               setEditingTeam(prev => prev ? { ...prev, team_color: editingTeam.team_color } : null);
-                             }
-                           }}
-                         />
-                       ))}
-                     </div>
+                    <div className="flex flex-wrap gap-2">
+                      {TEAM_COLORS.map((color) => (
+                        <div
+                          key={color}
+                          className={`w-8 h-8 rounded cursor-pointer border-2 ${
+                            editingDraft.team_color === color ? 'border-foreground' : 'border-transparent'
+                          }`}
+                          style={{ backgroundColor: color }}
+                          onClick={() => setEditingDraft({ ...editingDraft, team_color: color })}
+                        />
+                      ))}
+                    </div>
                   </div>
                 </div>
 
-                {/* Handler & Dog Info - Real-time Editable */}
+                {/* Handler & Dog Info */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label className="text-sm">Handler Name</Label>
                     <Input
-                      value={editingTeam.custom_fields?.handler_name || ''}
-                      onChange={(e) => {
-                        const newValue = e.target.value;
-                        setEditingTeam(prev => prev ? { 
-                          ...prev, 
-                          custom_fields: { ...prev.custom_fields, handler_name: newValue }
-                        } : null);
-                      }}
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          const newValue = e.currentTarget.value;
-                          updateTeamField(editingTeam.id, 'handler_name', newValue);
-                        }
-                      }}
-                      onBlur={(e) => {
-                        const newValue = e.target.value;
-                        updateTeamField(editingTeam.id, 'handler_name', newValue);
-                      }}
+                      value={editingDraft.custom_fields?.handler_name || ''}
+                      onChange={(e) =>
+                        setEditingDraft({
+                          ...editingDraft,
+                          custom_fields: { ...editingDraft.custom_fields, handler_name: e.target.value }
+                        })
+                      }
                       className="text-sm"
                       placeholder="Handler name..."
                     />
@@ -1019,198 +856,35 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                   <div className="space-y-2">
                     <Label className="text-sm">Dog Name</Label>
                     <Input
-                      value={editingTeam.custom_fields?.dog_name || ''}
-                      onChange={(e) => {
-                        const newValue = e.target.value;
-                        setEditingTeam(prev => prev ? { 
-                          ...prev, 
-                          custom_fields: { ...prev.custom_fields, dog_name: newValue }
-                        } : null);
-                      }}
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          const newValue = e.currentTarget.value;
-                          updateTeamField(editingTeam.id, 'dog_name', newValue);
-                        }
-                      }}
-                      onBlur={(e) => {
-                        const newValue = e.target.value;
-                        updateTeamField(editingTeam.id, 'dog_name', newValue);
-                      }}
+                      value={editingDraft.custom_fields?.dog_name || ''}
+                      onChange={(e) =>
+                        setEditingDraft({
+                          ...editingDraft,
+                          custom_fields: { ...editingDraft.custom_fields, dog_name: e.target.value }
+                        })
+                      }
                       className="text-sm"
                       placeholder="Dog name..."
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm">Registration Number</Label>
-                    <Input
-                      value={editingTeam.custom_fields?.registration_number || ''}
-                      onChange={(e) => {
-                        const newValue = e.target.value;
-                        setEditingTeam(prev => prev ? { 
-                          ...prev, 
-                          custom_fields: { ...prev.custom_fields, registration_number: newValue }
-                        } : null);
-                      }}
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          const newValue = e.currentTarget.value;
-                          updateTeamField(editingTeam.id, 'registration_number', newValue);
-                        }
-                      }}
-                      onBlur={(e) => {
-                        const newValue = e.target.value;
-                        updateTeamField(editingTeam.id, 'registration_number', newValue);
-                      }}
-                      className="text-sm"
-                      placeholder="Registration number..."
-                    />
-                  </div>
+                  
                 </div>
 
-                {/* Scoring - Real-time Editable */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-sm">Strike Points</Label>
-                    <Input
-                      type="text"
-                      value={editingTeam.custom_fields?.strike_points || 0}
-                      onChange={(e) => {
-                        const newValue = parseInt(e.target.value) || 0;
-                        setEditingTeam(prev => prev ? { 
-                          ...prev, 
-                          custom_fields: { ...prev.custom_fields, strike_points: newValue }
-                        } : null);
-                      }}
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          const newValue = parseInt(e.currentTarget.value) || 0;
-                          updateTeamField(editingTeam.id, 'strike_points', newValue);
-                        }
-                      }}
-                      onBlur={(e) => {
-                        const newValue = parseInt(e.target.value) || 0;
-                        updateTeamField(editingTeam.id, 'strike_points', newValue);
-                      }}
-                      min="0"
-                      max="400"
-                      className="text-sm text-center font-bold"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm">Tree Points</Label>
-                    <Input
-                      type="text"
-                      value={editingTeam.custom_fields?.tree_points || 0}
-                      onChange={(e) => {
-                        const newValue = parseInt(e.target.value) || 0;
-                        setEditingTeam(prev => prev ? { 
-                          ...prev, 
-                          custom_fields: { ...prev.custom_fields, tree_points: newValue }
-                        } : null);
-                      }}
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          const newValue = parseInt(e.currentTarget.value) || 0;
-                          updateTeamField(editingTeam.id, 'tree_points', newValue);
-                        }
-                      }}
-                      onBlur={(e) => {
-                        const newValue = parseInt(e.target.value) || 0;
-                        updateTeamField(editingTeam.id, 'tree_points', newValue);
-                      }}
-                      min="0"
-                      max="500"
-                      className="text-sm text-center font-bold"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm">Circle Points</Label>
-                    <Input
-                      type="text"
-                      value={editingTeam.custom_fields?.circle_points || 0}
-                      onChange={(e) => {
-                        const newValue = parseInt(e.target.value) || 0;
-                        setEditingTeam(prev => prev ? { 
-                          ...prev, 
-                          custom_fields: { ...prev.custom_fields, circle_points: newValue }
-                        } : null);
-                      }}
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          const newValue = parseInt(e.currentTarget.value) || 0;
-                          updateTeamField(editingTeam.id, 'circle_points', newValue);
-                        }
-                      }}
-                      onBlur={(e) => {
-                        const newValue = parseInt(e.target.value) || 0;
-                        updateTeamField(editingTeam.id, 'circle_points', newValue);
-                      }}
-                      min="0"
-                      max="500"
-                      className="text-sm text-center font-bold"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm text-destructive">Minus Points</Label>
-                    <Input
-                      type="text"
-                      value={editingTeam.custom_fields?.minus_points || 0}
-                      onChange={(e) => {
-                        const newValue = parseInt(e.target.value) || 0;
-                        setEditingTeam(prev => prev ? { 
-                          ...prev, 
-                          custom_fields: { ...prev.custom_fields, minus_points: newValue }
-                        } : null);
-                      }}
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          const newValue = parseInt(e.currentTarget.value) || 0;
-                          updateTeamField(editingTeam.id, 'minus_points', newValue);
-                        }
-                      }}
-                      onBlur={(e) => {
-                        const newValue = parseInt(e.target.value) || 0;
-                        updateTeamField(editingTeam.id, 'minus_points', newValue);
-                      }}
-                      min="0"
-                      max="1000"
-                      className="text-sm text-center font-bold border-destructive"
-                    />
-                  </div>
-                </div>
+               
 
-                {/* Notes & Comments - Real-time Editable */}
+                {/* Notes & Comments */}
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label className="text-sm text-yellow-800">Warnings/Notes</Label>
                     <Textarea
-                      value={editingTeam.custom_fields?.warnings_notes || ''}
-                      onChange={(e) => {
-                        const newValue = e.target.value;
-                        setEditingTeam(prev => prev ? { 
-                          ...prev, 
-                          custom_fields: { ...prev.custom_fields, warnings_notes: newValue }
-                        } : null);
-                      }}
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          const newValue = e.currentTarget.value;
-                          updateTeamField(editingTeam.id, 'warnings_notes', newValue);
-                        }
-                      }}
-                      onBlur={(e) => {
-                        const newValue = e.target.value;
-                        updateTeamField(editingTeam.id, 'warnings_notes', newValue);
-                      }}
-                      placeholder="Judge warnings, rule violations, notes... (Press Enter to save)"
+                      value={editingDraft.custom_fields?.warnings_notes || ''}
+                      onChange={(e) =>
+                        setEditingDraft({
+                          ...editingDraft,
+                          custom_fields: { ...editingDraft.custom_fields, warnings_notes: e.target.value }
+                        })
+                      }
+                      placeholder="Judge warnings, rule violations, notes..."
                       rows={3}
                       className="text-sm resize-none border-yellow-200 bg-yellow-50/50"
                     />
@@ -1218,55 +892,44 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                   <div className="space-y-2">
                     <Label className="text-sm text-blue-800">Judge Comments</Label>
                     <Textarea
-                      value={editingTeam.custom_fields?.judge_comments || ''}
-                      onChange={(e) => {
-                        const newValue = e.target.value;
-                        setEditingTeam(prev => prev ? { 
-                          ...prev, 
-                          custom_fields: { ...prev.custom_fields, judge_comments: newValue }
-                        } : null);
-                      }}
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          const newValue = e.currentTarget.value;
-                          updateTeamField(editingTeam.id, 'judge_comments', newValue);
-                        }
-                      }}
-                      onBlur={(e) => {
-                        const newValue = e.target.value;
-                        updateTeamField(editingTeam.id, 'judge_comments', newValue);
-                      }}
-                      placeholder="Official judge remarks... (Press Enter to save)"
+                      value={editingDraft.custom_fields?.judge_comments || ''}
+                      onChange={(e) =>
+                        setEditingDraft({
+                          ...editingDraft,
+                          custom_fields: { ...editingDraft.custom_fields, judge_comments: e.target.value }
+                        })
+                      }
+                      placeholder="Official judge remarks..."
                       rows={2}
                       className="text-sm resize-none border-blue-200 bg-blue-50/50"
                     />
                   </div>
                 </div>
 
-                {/* Team Status - Real-time Editable */}
+                {/* Team Status & Actions */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-4 border-t">
                   <div className="flex items-center gap-2">
                     <Label className="text-sm">Scratched/Disqualified:</Label>
                     <input
                       type="checkbox"
-                      checked={editingTeam.custom_fields?.disqualified || false}
-                      onChange={(e) => {
-                        const newValue = e.target.checked;
-                        setEditingTeam(prev => prev ? { 
-                          ...prev, 
-                          custom_fields: { ...prev.custom_fields, disqualified: newValue }
-                        } : null);
-                        // Immediately update the database
-                        updateTeamField(editingTeam.id, 'disqualified', newValue);
-                      }}
+                      checked={editingDraft.custom_fields?.disqualified || false}
+                      onChange={(e) =>
+                        setEditingDraft({
+                          ...editingDraft,
+                          custom_fields: { ...editingDraft.custom_fields, disqualified: e.target.checked }
+                        })
+                      }
                       className="rounded border-gray-300 text-destructive focus:ring-destructive"
                     />
                   </div>
                   <div className="flex gap-2 w-full sm:w-auto">
-                    <Button variant="outline" onClick={() => setEditDialogOpen(false)} className="flex-1 sm:flex-none text-sm">
+                    <Button variant="outline" onClick={closeEditDialog} className="flex-1 sm:flex-none text-sm">
                       <X className="h-4 w-4 mr-2" />
                       Close
+                    </Button>
+                    <Button onClick={saveTeamChangesFromDialog} className="flex-1 sm:flex-none text-sm gap-2">
+                      <SaveIcon className="h-4 w-4" />
+                      Save
                     </Button>
                   </div>
                 </div>
