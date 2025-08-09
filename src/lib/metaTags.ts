@@ -21,13 +21,16 @@ export function updateEventMetaTags(eventData: EventMetaData) {
 
   // Helper function to update or create meta tag
   const updateMetaTag = (property: string, content: string) => {
+    console.log(property, content);
     let metaTag = document.querySelector(
       `meta[property="${property}"], meta[name="${property}"]`
     );
     console.log(metaTag);
     if (metaTag) {
+      console.log("Updating meta tag:", metaTag);
       metaTag.setAttribute("content", content);
     } else {
+      console.log("Creating meta tag:", property, content);
       metaTag = document.createElement("meta");
       if (property.startsWith("og:") || property.startsWith("twitter:")) {
         metaTag.setAttribute("property", property);
@@ -37,6 +40,7 @@ export function updateEventMetaTags(eventData: EventMetaData) {
       metaTag.setAttribute("content", content);
       document.head.appendChild(metaTag);
     }
+    console.log(document.head);
   };
 
   // Update meta description
