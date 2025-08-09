@@ -30,6 +30,7 @@ import { updateEventMetaTags, resetDefaultMetaTags } from "@/lib/metaTags";
 import { useStreamingControls } from "@/hooks/useStreamingControls";
 import { useScoreboardTeams } from "@/hooks/useScoreboardTeams";
 import { useEventScoreboardMeta } from "@/hooks/useEventScoreboardMeta";
+import { getShareableEventUrl } from "@/lib/shareUtils";
 
 interface EventData {
   id: string;
@@ -353,6 +354,12 @@ const EventPage: React.FC = () => {
         : `${window.location.origin}/event/${eventId}`,
     [eventData?.slug, eventId]
   );
+
+  // Share URL for crawlers and social platforms (Edge Function)
+  const shareUrl = useMemo(() => {
+    if (!eventData) return `${window.location.origin}`;
+    return getShareableEventUrl(eventData.id, eventData.slug);
+  }, [eventData?.id, eventData?.slug]);
 
   const handlePayment = useCallback(() => {
     if (!currentUser) {
@@ -792,7 +799,8 @@ const EventPage: React.FC = () => {
               <CardContent className="p-3 sm:p-6">
                 <SocialShareMenu
                   title={eventData.name}
-                  url={eventUrl}
+                  url={shareUrl}
+                  prettyUrl={eventUrl}
                   description={eventData.description}
                 />
               </CardContent>
