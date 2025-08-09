@@ -75,9 +75,9 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
   // State for plus/minus signs for scoring fields
   const [pointSigns, setPointSigns] = useState<Record<string, Record<string, boolean>>>({});
   
-  // State for batch save - track pending changes
+  // State for batch save - track pending changes per team
   const [pendingChanges, setPendingChanges] = useState<Record<string, Record<string, any>>>({});
-  const [isSaving, setIsSaving] = useState(false);
+  const [isSaving, setIsSaving] = useState<Record<string, boolean>>({});
   
   // Scoreboard naming
   const [scoreboardName, setScoreboardName] = useState('OMCBA Coon Hunt Scoreboard');
@@ -310,18 +310,22 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
     return pointSigns[teamId]?.[fieldId] !== false; // default to positive (true)
   };
 
-  // Batch save functionality
-  const saveAllChanges = async () => {
-    if (!editingTeam || Object.keys(pendingChanges).length === 0) return;
+  // Batch save functionality for main view
+  const savePendingTeamChanges = async (teamId: string) => {
+    const teamPendingChanges = pendingChanges[teamId];
+    if (!teamPendingChanges || Object.keys(teamPendingChanges).length === 0) return;
 
-    setIsSaving(true);
+    setIsSaving(prev => ({ ...prev, [teamId]: true }));
     try {
+      const team = teams.find(t => t.id === teamId);
+      if (!team) throw new Error('Team not found');
+
       // Apply signs to scoring fields
-      const updatedFields = { ...editingTeam.custom_fields };
+      const updatedFields = { ...team.custom_fields };
       
-      Object.entries(pendingChanges).forEach(([fieldId, value]) => {
-        if (['strike_points', 'tree_points', 'circle_points'].includes(fieldId)) {
-          const isPositive = getPointSign(editingTeam.id, fieldId);
+      Object.entries(teamPendingChanges).forEach(([fieldId, value]) => {
+        if (['strike_points', 'tree_points'].includes(fieldId)) {
+          const isPositive = getPointSign(teamId, fieldId);
           const numValue = Math.abs(Number(value) || 0);
           updatedFields[fieldId] = isPositive ? numValue : -numValue;
         } else {
@@ -334,10 +338,10 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
       const { error } = await supabase.functions.invoke('scoreboard-operations', {
         body: {
           action: 'updateTeam',
-          teamId: editingTeam.id,
-          teamName: editingTeam.team_name,
+          teamId,
+          teamName: team.team_name,
           score: newScore,
-          teamColor: editingTeam.team_color,
+          teamColor: team.team_color,
           customFields: updatedFields
         }
       });
@@ -345,32 +349,50 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
       if (error) throw error;
 
       // Update local state
-      setTeams(prev => prev.map(team => 
-        team.id === editingTeam.id 
-          ? { ...team, custom_fields: updatedFields, score: newScore }
-          : team
+      setTeams(prev => prev.map(t => 
+        t.id === teamId 
+          ? { ...t, custom_fields: updatedFields, score: newScore }
+          : t
       ));
 
-      // Clear pending changes
-      setPendingChanges({});
+      // Clear pending changes for this team
+      setPendingChanges(prev => ({
+        ...prev,
+        [teamId]: {}
+      }));
 
       toast({
         title: "Success",
-        description: "All changes saved successfully",
+        description: "Changes saved successfully",
       });
     } catch (error) {
-      console.error('Error saving batch changes:', error);
+      console.error('Error saving team changes:', error);
       toast({
         title: "Error",
         description: "Failed to save changes",
         variant: "destructive",
       });
     } finally {
-      setIsSaving(false);
+      setIsSaving(prev => ({ ...prev, [teamId]: false }));
     }
   };
 
-  // Handle field changes for batch save
+  // Handle field changes for batch save in main view
+  const handleMainFieldChange = (teamId: string, fieldId: string, value: any) => {
+    // Track pending changes for this team
+    setPendingChanges(prev => ({
+      ...prev,
+      [teamId]: {
+        ...prev[teamId],
+        [fieldId]: value
+      }
+    }));
+    
+    // Also update local input for immediate UI feedback
+    handleFieldChange(teamId, fieldId, value);
+  };
+
+  // Handle field changes for batch save in edit dialog
   const handleBatchFieldChange = (fieldId: string, value: any) => {
     if (!editingTeam) return;
     
@@ -379,12 +401,6 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
       ...prev,
       custom_fields: { ...prev.custom_fields, [fieldId]: value }
     } : null);
-
-    // Track pending changes
-    setPendingChanges(prev => ({
-      ...prev,
-      [fieldId]: value
-    }));
   };
 
   const createTeam = async () => {
@@ -868,22 +884,35 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                         <div className="space-y-2">
                           <Label className="text-xs sm:text-sm font-medium block">Strike Points</Label>
                           {isHost ? (
-                            <Input
-                              type="text"
-                              value={getCurrentFieldValue(team.id, 'strike_points', team.custom_fields?.strike_points)}
-                              onChange={(e) => handleFieldChange(team.id, 'strike_points', parseInt(e.target.value) || 0)}
-                              onKeyPress={(e) => {
-                                if (e.key === 'Enter') {
-                                  e.preventDefault();
-                                  updateTeamField(team.id, 'strike_points', parseInt(e.currentTarget.value) || 0);
-                                }
-                              }}
-                              onBlur={(e) => updateTeamField(team.id, 'strike_points', parseInt(e.target.value) || 0)}
-                              className="text-center font-bold text-sm sm:text-base h-10 sm:h-11"
-                              min="0"
-                              max="400"
-                              placeholder="0"
-                            />
+                            <div className="flex items-center gap-1">
+                              <Button
+                                type="button"
+                                variant={getPointSign(team.id, 'strike_points') ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => togglePointSign(team.id, 'strike_points')}
+                                className={`w-8 h-8 p-0 ${getPointSign(team.id, 'strike_points') ? 'bg-green-500 hover:bg-green-600 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
+                              >
+                                <Plus className="h-3 w-3" />
+                              </Button>
+                              <Input
+                                type="number"
+                                value={getCurrentFieldValue(team.id, 'strike_points', Math.abs(team.custom_fields?.strike_points || 0))}
+                                onChange={(e) => handleMainFieldChange(team.id, 'strike_points', parseInt(e.target.value) || 0)}
+                                className="text-center font-bold text-sm sm:text-base h-8 flex-1"
+                                min="0"
+                                max="400"
+                                placeholder="0"
+                              />
+                              <Button
+                                type="button"
+                                variant={!getPointSign(team.id, 'strike_points') ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => togglePointSign(team.id, 'strike_points')}
+                                className={`w-8 h-8 p-0 ${!getPointSign(team.id, 'strike_points') ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
+                              >
+                                <MinusIcon className="h-3 w-3" />
+                              </Button>
+                            </div>
                           ) : (
                             <div className="text-center font-bold text-base sm:text-lg p-2 sm:p-3 bg-muted rounded h-10 sm:h-11 flex items-center justify-center">
                               {team.custom_fields?.strike_points || 0}
@@ -895,22 +924,35 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                         <div className="space-y-2">
                           <Label className="text-xs sm:text-sm font-medium block">Tree Points</Label>
                           {isHost ? (
-                            <Input
-                              type="text"
-                              value={getCurrentFieldValue(team.id, 'tree_points', team.custom_fields?.tree_points)}
-                              onChange={(e) => handleFieldChange(team.id, 'tree_points', parseInt(e.target.value) || 0)}
-                              onKeyPress={(e) => {
-                                if (e.key === 'Enter') {
-                                  e.preventDefault();
-                                  updateTeamField(team.id, 'tree_points', parseInt(e.currentTarget.value) || 0);
-                                }
-                              }}
-                              onBlur={(e) => updateTeamField(team.id, 'tree_points', parseInt(e.target.value) || 0)}
-                              className="text-center font-bold text-sm sm:text-base h-10 sm:h-11"
-                              min="0"
-                              max="500"
-                              placeholder="0"
-                            />
+                            <div className="flex items-center gap-1">
+                              <Button
+                                type="button"
+                                variant={getPointSign(team.id, 'tree_points') ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => togglePointSign(team.id, 'tree_points')}
+                                className={`w-8 h-8 p-0 ${getPointSign(team.id, 'tree_points') ? 'bg-green-500 hover:bg-green-600 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
+                              >
+                                <Plus className="h-3 w-3" />
+                              </Button>
+                              <Input
+                                type="number"
+                                value={getCurrentFieldValue(team.id, 'tree_points', Math.abs(team.custom_fields?.tree_points || 0))}
+                                onChange={(e) => handleMainFieldChange(team.id, 'tree_points', parseInt(e.target.value) || 0)}
+                                className="text-center font-bold text-sm sm:text-base h-8 flex-1"
+                                min="0"
+                                max="500"
+                                placeholder="0"
+                              />
+                              <Button
+                                type="button"
+                                variant={!getPointSign(team.id, 'tree_points') ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => togglePointSign(team.id, 'tree_points')}
+                                className={`w-8 h-8 p-0 ${!getPointSign(team.id, 'tree_points') ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
+                              >
+                                <MinusIcon className="h-3 w-3" />
+                              </Button>
+                            </div>
                           ) : (
                             <div className="text-center font-bold text-base sm:text-lg p-2 sm:p-3 bg-muted rounded h-10 sm:h-11 flex items-center justify-center">
                               {team.custom_fields?.tree_points || 0}
@@ -923,17 +965,10 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                           <Label className="text-xs sm:text-sm font-medium block">Circle Points</Label>
                           {isHost ? (
                             <Input
-                              type="text"
+                              type="number"
                               value={getCurrentFieldValue(team.id, 'circle_points', team.custom_fields?.circle_points)}
-                              onChange={(e) => handleFieldChange(team.id, 'circle_points', parseInt(e.target.value) || 0)}
-                              onKeyPress={(e) => {
-                                if (e.key === 'Enter') {
-                                  e.preventDefault();
-                                  updateTeamField(team.id, 'circle_points', parseInt(e.currentTarget.value) || 0);
-                                }
-                              }}
-                              onBlur={(e) => updateTeamField(team.id, 'circle_points', parseInt(e.target.value) || 0)}
-                              className="text-center font-bold text-sm sm:text-base h-10 sm:h-11"
+                              onChange={(e) => handleMainFieldChange(team.id, 'circle_points', parseInt(e.target.value) || 0)}
+                              className="text-center font-bold text-sm sm:text-base h-8"
                               min="0"
                               max="500"
                               placeholder="0"
@@ -950,17 +985,10 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                           <Label className="text-xs sm:text-sm font-medium text-destructive block">Minus Points</Label>
                           {isHost ? (
                             <Input
-                              type="text"
+                              type="number"
                               value={getCurrentFieldValue(team.id, 'minus_points', team.custom_fields?.minus_points)}
-                              onChange={(e) => handleFieldChange(team.id, 'minus_points', parseInt(e.target.value) || 0)}
-                              onKeyPress={(e) => {
-                                if (e.key === 'Enter') {
-                                  e.preventDefault();
-                                  updateTeamField(team.id, 'minus_points', parseInt(e.currentTarget.value) || 0);
-                                }
-                              }}
-                              onBlur={(e) => updateTeamField(team.id, 'minus_points', parseInt(e.target.value) || 0)}
-                              className="text-center font-bold border-destructive text-sm sm:text-base h-10 sm:h-11"
+                              onChange={(e) => handleMainFieldChange(team.id, 'minus_points', parseInt(e.target.value) || 0)}
+                              className="text-center font-bold border-destructive text-sm sm:text-base h-8"
                               min="0"
                               max="1000"
                               placeholder="0"
@@ -972,6 +1000,33 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                           )}
                         </div>
                       </div>
+
+                      {/* Save Changes Button for Host */}
+                      {isHost && (
+                        <div className="flex justify-center mt-4">
+                          <Button
+                            onClick={() => savePendingTeamChanges(team.id)}
+                            disabled={isSaving[team.id] || !pendingChanges[team.id] || Object.keys(pendingChanges[team.id] || {}).length === 0}
+                            className="w-full sm:w-auto px-6"
+                            variant={pendingChanges[team.id] && Object.keys(pendingChanges[team.id]).length > 0 ? "default" : "outline"}
+                          >
+                            {isSaving[team.id] ? (
+                              <>
+                                <Save className="h-4 w-4 mr-2 animate-spin" />
+                                Saving...
+                              </>
+                            ) : (
+                              <>
+                                <Save className="h-4 w-4 mr-2" />
+                                Save Changes
+                                {pendingChanges[team.id] && Object.keys(pendingChanges[team.id]).length > 0 && 
+                                  ` (${Object.keys(pendingChanges[team.id]).length})`
+                                }
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      )}
 
                       {/* Viewer-only sections for warnings/notes and judge comments */}
                       {!isHost && team.custom_fields?.warnings_notes && (
@@ -1292,21 +1347,12 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
                   {/* Save Changes Button */}
                   <div className="flex justify-center">
                     <Button
-                      onClick={saveAllChanges}
-                      disabled={isSaving || Object.keys(pendingChanges).length === 0}
+                      onClick={saveTeamChanges}
+                      disabled={!editingTeam}
                       className="w-full sm:w-auto px-8"
                     >
-                      {isSaving ? (
-                        <>
-                          <Save className="h-4 w-4 mr-2 animate-spin" />
-                          Saving...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="h-4 w-4 mr-2" />
-                          Save Changes {Object.keys(pendingChanges).length > 0 && `(${Object.keys(pendingChanges).length})`}
-                        </>
-                      )}
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Team
                     </Button>
                   </div>
                   
