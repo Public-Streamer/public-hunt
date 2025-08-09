@@ -11,11 +11,7 @@ import {
   ArrowLeft,
   Loader2,
 } from "lucide-react";
-import {
-  LiveKitRoom,
-  RoomAudioRenderer,
-
-} from "@livekit/components-react";
+import { LiveKitRoom, RoomAudioRenderer } from "@livekit/components-react";
 import "@livekit/components-styles";
 import LiveDiscussionSection from "@/components/LiveDiscussionSection";
 import { PreStreamChatArchive } from "@/components/PreStreamChatArchive";
@@ -110,9 +106,9 @@ const EventPage: React.FC = () => {
     fetchEventData();
 
     // Cleanup meta tags when component unmounts
-    return () => {
-      resetDefaultMetaTags();
-    };
+    // return () => {
+    //   resetDefaultMetaTags();
+    // };
   }, [eventId]);
 
   useEffect(() => {
@@ -149,11 +145,9 @@ const EventPage: React.FC = () => {
             setEventData(payload.new as EventData);
             setIsLive(payload.new.is_live);
           }
-
         }
       )
       .subscribe();
-    
 
     return () => {
       console.log("[EventPage] Cleaning up real-time subscription");
