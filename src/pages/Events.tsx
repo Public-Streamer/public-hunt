@@ -38,8 +38,8 @@ const Events: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [memberSearch, setMemberSearch] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('most-live-viewers');
-  const [scheduledSortBy, setScheduledSortBy] = useState<SortOption>('most-live-viewers');
-  const [mySortBy, setMySortBy] = useState<SortOption>('most-live-viewers');
+  const [scheduledSortBy, setScheduledSortBy] = useState<SortOption>('starts-soon');
+  const [mySortBy, setMySortBy] = useState<SortOption>('starts-soon');
   const [activeTab, setActiveTab] = useState('live');
   const [liveEvents, setLiveEvents] = useState<Event[]>([]);
   const [scheduledEvents, setScheduledEvents] = useState<Event[]>([]);
@@ -52,6 +52,23 @@ const Events: React.FC = () => {
   const [searchParams] = useSearchParams();
   const { currentUserProfile, isAuthenticated } = useAppContext();
   const { toast } = useToast();
+  
+  // Ensure sort options are valid per tab and set defaults
+  useEffect(() => {
+    const liveAllowed: SortOption[] = ['most-live-viewers', 'newest', 'oldest', 'alphabetical'];
+    const scheduledAllowed: SortOption[] = ['starts-soon', 'alphabetical'];
+    const myAllowed: SortOption[] = ['starts-soon', 'alphabetical'];
+
+    if (activeTab === 'live' && !liveAllowed.includes(sortBy)) {
+      setSortBy('most-live-viewers');
+    }
+    if (activeTab === 'scheduled' && !scheduledAllowed.includes(scheduledSortBy)) {
+      setScheduledSortBy('starts-soon');
+    }
+    if (activeTab === 'my-events' && !myAllowed.includes(mySortBy)) {
+      setMySortBy('starts-soon');
+    }
+  }, [activeTab]);
   
   useEffect(() => {
     fetchEvents();
@@ -162,19 +179,27 @@ const Events: React.FC = () => {
   
   const sortEvents = (events: Event[], sortOption: SortOption) => {
     return [...events].sort((a, b) => {
+      const dateA = a.date && a.time ? new Date(`${a.date}T${a.time}`) : new Date(a.created_at);
+      const dateB = b.date && b.time ? new Date(`${b.date}T${b.time}`) : new Date(b.created_at);
       switch (sortOption) {
         case 'most-views':
+        case 'most-live-viewers':
           return (b.viewer_count || 0) - (a.viewer_count || 0);
         case 'least-views':
+        case 'least-live-viewers':
           return (a.viewer_count || 0) - (b.viewer_count || 0);
+        case 'newest':
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        case 'oldest':
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        case 'alphabetical':
+          return (a.name || '').localeCompare(b.name || '');
+        case 'starts-soon':
+          return dateA.getTime() - dateB.getTime();
         case 'most-revenue':
           return (b.ticket_price || 0) - (a.ticket_price || 0);
         case 'least-revenue':
           return (a.ticket_price || 0) - (b.ticket_price || 0);
-        case 'most-live-viewers':
-          return (b.viewer_count || 0) - (a.viewer_count || 0);
-        case 'least-live-viewers':
-          return (a.viewer_count || 0) - (b.viewer_count || 0);
         case 'most-subscribers':
           return (b.viewer_count || 0) - (a.viewer_count || 0);
         case 'least-subscribers':

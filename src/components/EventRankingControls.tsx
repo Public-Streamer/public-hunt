@@ -12,10 +12,23 @@ import { Badge } from "@/components/ui/badge";
 
 export type SortOption =
   | "most-views"
+  | "least-views"
+  | "most-revenue"
+  | "least-revenue"
   | "most-live-viewers"
+  | "least-live-viewers"
+  | "most-subscribers"
+  | "least-subscribers"
+  | "most-popular"
+  | "least-popular"
+  | "most-ticket-sales"
+  | "least-ticket-sales"
+  | "most-ticket-revenue"
+  | "least-ticket-revenue"
   | "newest"
   | "oldest"
-  | "most-ticket-sales";
+  | "alphabetical"
+  | "starts-soon";
 
 interface EventRankingControlsProps {
   searchTerm: string;
@@ -37,15 +50,28 @@ const EventRankingControls: React.FC<EventRankingControlsProps> = ({
   const getSortLabel = (option: SortOption): string => {
     const labels: Record<SortOption, string> = {
       "most-views": "Most Views",
+      "least-views": "Least Views",
+      "most-revenue": "Most Revenue",
+      "least-revenue": "Least Revenue",
+      "most-live-viewers": "Most Live Viewers",
+      "least-live-viewers": "Least Live Viewers",
+      "most-subscribers": "Most Subscribers",
+      "least-subscribers": "Least Subscribers",
+      "most-popular": "Most Popular",
+      "least-popular": "Least Popular",
+      "most-ticket-sales": "Most Ticket Sales",
+      "least-ticket-sales": "Least Ticket Sales",
+      "most-ticket-revenue": "Most Ticket Revenue",
+      "least-ticket-revenue": "Least Ticket Revenue",
       newest: "Newest First",
       oldest: "Oldest First",
-      "most-live-viewers": "Most Live Viewers",
-      "most-ticket-sales": "Most Ticket Sales",
+      alphabetical: "Alphabetical (A–Z)",
+      "starts-soon": "Starts Soon",
     };
     return labels[option];
   };
 
-  console.log(activeTab);
+  
 
   return (
     <div className="space-y-4 mb-6">
@@ -72,27 +98,36 @@ const EventRankingControls: React.FC<EventRankingControlsProps> = ({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {activeTab === "scheduled" && (
-              <>
-                <SelectItem value="most-ticket-sales">
-                  Most Ticket Sales
-                </SelectItem>
-                <SelectItem value="most-ticket-revenue">
-                  Most Ticket Revenue
-                </SelectItem>
-                <SelectItem value="least-ticket-sales">
-                  Least Ticket Sales
-                </SelectItem>
-                <SelectItem value="least-ticket-revenue">
-                  Least Ticket Revenue
-                </SelectItem>
-              </>
-            )}
             {activeTab === "live" && (
               <>
-                <SelectItem value="most-live-viewers">
-                  Most Live Viewers
-                </SelectItem>
+                <SelectItem value="most-live-viewers">Most Live Viewers</SelectItem>
+                <SelectItem value="newest">Newest First</SelectItem>
+                <SelectItem value="oldest">Oldest First</SelectItem>
+                <SelectItem value="alphabetical">Alphabetical (A–Z)</SelectItem>
+              </>
+            )}
+            {activeTab === "scheduled" && (
+              <>
+                <SelectItem value="starts-soon">Starts Soon</SelectItem>
+                <SelectItem value="alphabetical">Alphabetical (A–Z)</SelectItem>
+              </>
+            )}
+            {activeTab === "my-events" && (
+              <>
+                <SelectItem value="starts-soon">Starts Soon</SelectItem>
+                <SelectItem value="alphabetical">Alphabetical (A–Z)</SelectItem>
+              </>
+            )}
+            {activeTab === "past" && (
+              <>
+                <SelectItem value="most-views">Most Views</SelectItem>
+                <SelectItem value="least-views">Least Views</SelectItem>
+                <SelectItem value="most-revenue">Most Revenue</SelectItem>
+                <SelectItem value="least-revenue">Least Revenue</SelectItem>
+                <SelectItem value="most-popular">Most Popular</SelectItem>
+                <SelectItem value="least-popular">Least Popular</SelectItem>
+                <SelectItem value="newest">Newest First</SelectItem>
+                <SelectItem value="oldest">Oldest First</SelectItem>
               </>
             )}
           </SelectContent>

@@ -78,9 +78,13 @@ const ScheduledEventsGrid: React.FC<ScheduledEventsGridProps> = ({
         return b.startDateTime.getTime() - a.startDateTime.getTime();
       case 'oldest':
         return a.startDateTime.getTime() - b.startDateTime.getTime();
+      case 'alphabetical':
+        return a.title.localeCompare(b.title);
+      case 'starts-soon':
+        return a.startDateTime.getTime() - b.startDateTime.getTime();
       default:
-        // Default: sort by ticket sales (most first)
-        return (b.ticketSales || 0) - (a.ticketSales || 0);
+        // Default: starts soon
+        return a.startDateTime.getTime() - b.startDateTime.getTime();
     }
   });
 
