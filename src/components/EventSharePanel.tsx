@@ -58,7 +58,7 @@ const EventSharePanel: React.FC<EventSharePanelProps> = ({
 
   // Use shareable URL that includes meta tags for social media
   const shareUrl = getShareableEventUrl(eventId, eventSlug);
-  const prettyUrl = `${window.location.origin}/event/${eventSlug || eventId}`;
+  
   const addCacheBuster = (u: string) => `${u}${u.includes('?') ? '&' : '?'}cb=${Date.now()}`;
   
   const createShareMessage = (platform: string): string => {
