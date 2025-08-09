@@ -45,6 +45,8 @@ const EventRankingControls: React.FC<EventRankingControlsProps> = ({
     const labels: Record<SortOption, string> = {
       'most-views': 'Most Views',
       'least-views': 'Least Views',
+      'newest': 'Newest First',
+      'oldest': 'Oldest First',
       'most-revenue': 'Most Revenue',
       'least-revenue': 'Least Revenue',
       'most-live-viewers': 'Most Live Viewers',
@@ -53,8 +55,6 @@ const EventRankingControls: React.FC<EventRankingControlsProps> = ({
       'least-subscribers': 'Least Subscribers',
       'most-popular': 'Most Popular',
       'least-popular': 'Least Popular',
-      'newest': 'Newest First',
-      'oldest': 'Oldest First',
       'most-ticket-sales': 'Most Ticket Sales',
       'least-ticket-sales': 'Least Ticket Sales',
       'most-ticket-revenue': 'Most Ticket Revenue',
@@ -76,7 +76,7 @@ const EventRankingControls: React.FC<EventRankingControlsProps> = ({
           />
         </div>
         
-        <div className="relative flex-1">
+        {/* <div className="relative flex-1">
           <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
           <Input
             placeholder="Search by member/participant..."
@@ -84,7 +84,7 @@ const EventRankingControls: React.FC<EventRankingControlsProps> = ({
             onChange={(e) => onMemberSearchChange(e.target.value)}
             className="pl-10"
           />
-        </div>
+        </div> */}
       </div>
       
       <div className="flex items-center gap-4">
@@ -106,12 +106,8 @@ const EventRankingControls: React.FC<EventRankingControlsProps> = ({
                 <SelectItem value="least-ticket-revenue">Least Ticket Revenue</SelectItem>
               </>
             )}
-            <SelectItem value="most-revenue">Most Revenue</SelectItem>
-            <SelectItem value="least-revenue">Least Revenue</SelectItem>
-            <SelectItem value="most-views">Most Views</SelectItem>
-            <SelectItem value="least-views">Least Views</SelectItem>
-            <SelectItem value="most-subscribers">Most Subscribers</SelectItem>
-            <SelectItem value="least-subscribers">Least Subscribers</SelectItem>
+            <SelectItem value="newest">Newest First</SelectItem>
+            <SelectItem value="oldest">Oldest First</SelectItem>
             {activeTab === 'live' && (
               <>
                 <SelectItem value="most-live-viewers">Most Live Viewers</SelectItem>
@@ -120,8 +116,15 @@ const EventRankingControls: React.FC<EventRankingControlsProps> = ({
             )}
             <SelectItem value="most-popular">Most Popular</SelectItem>
             <SelectItem value="least-popular">Least Popular</SelectItem>
-            <SelectItem value="newest">Newest First</SelectItem>
-            <SelectItem value="oldest">Oldest First</SelectItem>
+            
+            <SelectItem value="most-revenue">Most Revenue</SelectItem>
+            <SelectItem value="least-revenue">Least Revenue</SelectItem>
+            <SelectItem value="most-views">Most Views</SelectItem>
+            <SelectItem value="least-views">Least Views</SelectItem>
+            <SelectItem value="most-subscribers">Most Subscribers</SelectItem>
+            <SelectItem value="least-subscribers">Least Subscribers</SelectItem>
+            
+            
           </SelectContent>
         </Select>
         
