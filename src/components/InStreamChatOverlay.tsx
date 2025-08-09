@@ -30,13 +30,30 @@ const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [chatMessage, setChatMessage] = useState("");
   const [isScrolledToBottom, setIsScrolledToBottom] = useState(true);
+  const [initialRender, setInitialRender] = useState(true);
+  const [showScrollDown, setShowScrollDown] = useState(false);
 
-  // Auto-scroll to bottom only if user is already at bottom when new messages arrive
+  // Auto-scroll to bottom on initial render
   useEffect(() => {
-    if (chatContainerRef.current && isScrolledToBottom) {
+    if (chatContainerRef.current && initialRender) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+      setInitialRender(false);
+      setIsScrolledToBottom(true);
+      setShowScrollDown(false);
     }
-  }, [messages, isScrolledToBottom]);
+  }, [initialRender]);
+
+  // Auto-scroll or show scroll down button on new messages
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      if (isScrolledToBottom) {
+        chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+        setShowScrollDown(false);
+      } else {
+        setShowScrollDown(true);
+      }
+    }
+  }, [messages, isVisible]);
 
   // Handle scroll events to detect if user is at bottom
   const handleChatScroll = () => {
@@ -44,6 +61,15 @@ const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
       const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
       const isAtBottom = scrollHeight - scrollTop - clientHeight < 50; // 50px threshold
       setIsScrolledToBottom(isAtBottom);
+      setShowScrollDown(!isAtBottom);
+    }
+  };
+
+  const handleScrollDownClick = () => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+      setIsScrolledToBottom(true);
+      setShowScrollDown(false);
     }
   };
 
@@ -78,7 +104,8 @@ const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
           style={{ 
             scrollBehavior: "smooth",
             scrollbarWidth: "thin",
-            scrollbarColor: "rgba(255, 255, 255, 0.3) transparent"
+            scrollbarColor: "rgba(255, 255, 255, 0.3) transparent",
+            
           }}
         >
           {/* Scroll indicator for more messages above */}
@@ -123,6 +150,17 @@ const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
             )}
           </div>
         </div>
+      )}
+
+      {/* Scroll Down Button */}
+      {showScrollDown && (
+        <button
+          className="scroll-down-btn"
+          onClick={handleScrollDownClick}
+          style={{ position: 'absolute', bottom: 60, right: 16, zIndex: 10 }}
+        >
+          Scroll Down
+        </button>
       )}
 
       {/* Scroll to bottom button - Fixed position */}
