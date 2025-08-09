@@ -5,11 +5,10 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export function getShareableEventUrl(eventId: string, slug?: string): string {
-  const baseUrl = window.location.origin;
+  const functionsOrigin = "https://zmfugicftfwvuudensdo.functions.supabase.co";
   const eventIdentifier = slug || eventId;
-  
-  // Return clean domain URL that routes through edge function for crawlers
-  return `${baseUrl}/event/${eventIdentifier}`;
+  // Return Edge Function URL for crawlers (serves meta tags) and redirects humans
+  return `${functionsOrigin}/event/${eventIdentifier}`;
 }
 
 export function getDirectEventUrl(eventId: string, slug?: string): string {

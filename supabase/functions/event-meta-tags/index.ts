@@ -30,6 +30,17 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Handle HEAD requests (some scrapers probe with HEAD)
+  if (req.method === 'HEAD') {
+    return new Response(null, {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': 'public, max-age=300',
+      },
+    });
+  }
+
   try {
     const url = new URL(req.url);
     const pathname = url.pathname;
@@ -56,17 +67,21 @@ serve(async (req) => {
     console.log('Is crawler:', isCrawler);
     
     // Extract event identifier from URL
-    let eventIdentifier = pathname.split('/').pop();
+    let eventIdentifier = pathname.split('/').pop() || '';
     
     // Handle different URL patterns
     if (pathname.includes('/event/')) {
       eventIdentifier = pathname.split('/event/')[1];
       console.log('Event identifier from /event/ path:', eventIdentifier);
     }
+
+    // Normalize identifier
+    eventIdentifier = decodeURIComponent(eventIdentifier).replace(/\/+$/, '');
     
     if (!eventIdentifier) {
       console.log('No event identifier found');
       return new Response('Event identifier required', { status: 400, headers: corsHeaders });
+    }
     }
 
     // Initialize Supabase client
@@ -104,16 +119,20 @@ serve(async (req) => {
     }
 
     // Generate meta tags
+    const publicSiteUrl = Deno.env.get('PUBLIC_SITE_URL');
+    const defaultPublicSite = 'https://www.publicstreamer.com';
     const baseUrl = url.origin.includes('supabase.co') 
-      ? 'https://wwww.publicstreamer.com' 
+      ? (publicSiteUrl || defaultPublicSite)
       : url.origin;
     const eventUrl = `${baseUrl}/event/${event.slug || event.id}`;
     const eventTitle = event.name;
     const eventDescription = event.description || `Join ${eventTitle} - Live streaming event on Public Streamer`;
-    const eventImage = event.media_urls && event.media_urls.length > 0 
-      ? event.media_urls[0] 
-      : `${baseUrl}/placeholder.svg`;
-    
+    let eventImage = (event.media_urls && event.media_urls.length > 0) ? event.media_urls[0] : '';
+    if (!eventImage) {
+      eventImage = `${baseUrl}/placeholder.svg`;
+    } else if (!/^https?:\/\//i.test(eventImage)) {
+      eventImage = `${baseUrl}${eventImage.startsWith('/') ? '' : '/'}${eventImage}`;
+    }
     const hostName = hostData?.display_name || hostData?.username || 'Public Streamer';
     const eventDate = event.date ? new Date(event.date).toLocaleDateString() : '';
     const eventTime = event.time || '';
@@ -144,7 +163,7 @@ serve(async (req) => {
   <meta property="og:description" content="${eventDescription}">
   <meta property="og:image" content="${eventImage}">
   <meta property="og:site_name" content="Public Streamer">
-  
+  <link rel="canonical" href="${eventUrl}">
   <!-- Event specific Open Graph tags -->
   ${eventDate ? `<meta property="event:start_time" content="${event.date}T${event.time || '00:00:00'}">` : ''}
   ${event.location ? `<meta property="event:location" content="${event.location}">` : ''}
@@ -164,8 +183,6 @@ serve(async (req) => {
   <!-- WhatsApp specific -->
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:type" content="image/jpeg">
-  
   <!-- JSON-LD Structured Data -->
   <script type="application/ld+json">
   {
