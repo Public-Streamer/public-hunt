@@ -267,7 +267,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                 {isAuthenticated && user && currentUserProfile ? (
                   <>
                     <Link
-                      to="/profile"
+                      to={`/profile/${user.id}`}
                       className="flex items-center hover:bg-white/20 rounded-lg transition-colors space-x-1 p-1"
                     >
                       <Avatar className="h-7 w-7">
