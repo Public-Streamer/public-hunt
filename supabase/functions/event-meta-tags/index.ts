@@ -82,7 +82,6 @@ serve(async (req) => {
       console.log('No event identifier found');
       return new Response('Event identifier required', { status: 400, headers: corsHeaders });
     }
-    }
 
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
