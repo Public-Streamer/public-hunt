@@ -75,6 +75,8 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
 
   const handleAction = (e: React.MouseEvent) => {
     e.stopPropagation();
+    const eventUrl = (event as any).slug ? `/event/${(event as any).slug}` : `/event/${event.id}`;
+    navigate(eventUrl);
     
     if (!isAuthenticated) {
       navigate('/login');
