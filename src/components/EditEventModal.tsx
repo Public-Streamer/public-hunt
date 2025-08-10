@@ -1,5 +1,10 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -58,14 +63,18 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
   });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [selectedStreamers, setSelectedStreamers] = useState<SelectedMember[]>([]);
-  const [originalStreamers, setOriginalStreamers] = useState<SelectedMember[]>([]);
+  const [selectedStreamers, setSelectedStreamers] = useState<SelectedMember[]>(
+    []
+  );
+  const [originalStreamers, setOriginalStreamers] = useState<SelectedMember[]>(
+    []
+  );
   const { toast } = useToast();
   const { currentUserProfile } = useAppContext();
 
   const fetchEventData = async () => {
     if (!eventId) return;
-    
+
     setLoading(true);
     try {
       // Fetch event data
@@ -91,18 +100,20 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
       // Fetch existing streamers with user profile data
       const { data: streamersData, error: streamersError } = await supabase
         .from("event_streamers")
-        .select(`
+        .select(
+          `
           streamer_id,
           permissions,
           role_type
-        `)
+        `
+        )
         .eq("event_id", eventId);
 
       if (streamersError) {
         console.error("Error fetching streamers:", streamersError);
       } else if (streamersData?.length > 0) {
         // Get user profiles for the streamers
-        const streamerIds = streamersData.map(s => s.streamer_id);
+        const streamerIds = streamersData.map((s) => s.streamer_id);
         const { data: profilesData, error: profilesError } = await supabase
           .from("user_profiles")
           .select("id, user_id, username, display_name, profile_picture_url")
@@ -112,17 +123,22 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
           console.error("Error fetching user profiles:", profilesError);
         } else {
           // Transform streamers data to SelectedMember format
-          const transformedStreamers: SelectedMember[] = streamersData.map(streamer => {
-            const profile = profilesData?.find(p => p.user_id === streamer.streamer_id);
-            return {
-              id: streamer.streamer_id,
-              name: profile?.display_name || profile?.username || "Unknown User",
-              email: profile?.username || "user@example.com",
-              avatar: profile?.profile_picture_url,
-              permissions: streamer.permissions || [],
-              confirmed: true // Existing streamers are already confirmed
-            };
-          });
+          const transformedStreamers: SelectedMember[] = streamersData.map(
+            (streamer) => {
+              const profile = profilesData?.find(
+                (p) => p.user_id === streamer.streamer_id
+              );
+              return {
+                id: streamer.streamer_id,
+                name:
+                  profile?.display_name || profile?.username || "Unknown User",
+                email: profile?.username || "user@example.com",
+                avatar: profile?.profile_picture_url,
+                permissions: streamer.permissions || [],
+                confirmed: true, // Existing streamers are already confirmed
+              };
+            }
+          );
 
           setSelectedStreamers(transformedStreamers);
           setOriginalStreamers(transformedStreamers);
@@ -146,29 +162,36 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
     }
   }, [isOpen, eventId]);
 
-  const handleInputChange = (field: keyof EventData, value: string | number) => {
-    setFormData(prev => ({
+  const handleInputChange = (
+    field: keyof EventData,
+    value: string | number
+  ) => {
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
   const handleTicketPriceChange = (value: number) => {
     const clampedValue = Math.max(0, Math.min(1000000, value));
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      ticket_price: clampedValue
+      ticket_price: clampedValue,
     }));
   };
 
   const validateForm = () => {
-    const requiredFields = ['name', 'description', 'category'];
-    const missing = requiredFields.filter(field => !formData[field as keyof EventData]?.toString().trim());
-    
+    const requiredFields = ["name", "description", "category"];
+    const missing = requiredFields.filter(
+      (field) => !formData[field as keyof EventData]?.toString().trim()
+    );
+
     if (missing.length > 0) {
       toast({
         title: "Validation Error",
-        description: `Please fill in all required fields: ${missing.join(', ')}`,
+        description: `Please fill in all required fields: ${missing.join(
+          ", "
+        )}`,
         variant: "destructive",
       });
       return false;
@@ -180,15 +203,23 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
     if (!currentUserProfile?.user_id) return;
 
     // Get current streamer IDs
-    const currentStreamerIds = selectedStreamers.map(s => s.id);
-    const originalStreamerIds = originalStreamers.map(s => s.id);
+    const currentStreamerIds = selectedStreamers.map((s) => s.id);
+    const originalStreamerIds = originalStreamers.map((s) => s.id);
 
     // Find streamers to add and remove
-    const streamersToAdd = selectedStreamers.filter(s => !originalStreamerIds.includes(s.id));
-    const streamersToRemove = originalStreamers.filter(s => !currentStreamerIds.includes(s.id));
-    const streamersToUpdate = selectedStreamers.filter(s => 
-      originalStreamerIds.includes(s.id) &&
-      JSON.stringify(s.permissions) !== JSON.stringify(originalStreamers.find(orig => orig.id === s.id)?.permissions)
+    const streamersToAdd = selectedStreamers.filter(
+      (s) => !originalStreamerIds.includes(s.id)
+    );
+    const streamersToRemove = originalStreamers.filter(
+      (s) => !currentStreamerIds.includes(s.id)
+    );
+    const streamersToUpdate = selectedStreamers.filter(
+      (s) =>
+        originalStreamerIds.includes(s.id) &&
+        JSON.stringify(s.permissions) !==
+          JSON.stringify(
+            originalStreamers.find((orig) => orig.id === s.id)?.permissions
+          )
     );
 
     // Remove streamers
@@ -197,31 +228,32 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
         .from("event_streamers")
         .delete()
         .eq("event_id", eventId)
-        .in("streamer_id", streamersToRemove.map(s => s.id));
+        .in(
+          "streamer_id",
+          streamersToRemove.map((s) => s.id)
+        );
 
       if (removeError) throw removeError;
     }
 
     // Add new streamers
     if (streamersToAdd.length > 0) {
-      const { error: addError } = await supabase
-        .from("event_streamers")
-        .insert(
-          streamersToAdd.map(streamer => ({
-            event_id: eventId,
-            streamer_id: streamer.id,
-            assigned_by: currentUserProfile.user_id,
-            permissions: streamer.permissions,
-            role_type: "Streamers"
-          }))
-        );
+      const { error: addError } = await supabase.from("event_streamers").insert(
+        streamersToAdd.map((streamer) => ({
+          event_id: eventId,
+          streamer_id: streamer.id,
+          assigned_by: currentUserProfile.user_id,
+          permissions: streamer.permissions,
+          role_type: "Streamers",
+        }))
+      );
 
       if (addError) throw addError;
     }
 
     // Update existing streamers with changed permissions
     if (streamersToUpdate.length > 0) {
-      const updatePromises = streamersToUpdate.map(streamer =>
+      const updatePromises = streamersToUpdate.map((streamer) =>
         supabase
           .from("event_streamers")
           .update({ permissions: streamer.permissions })
@@ -230,7 +262,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
       );
 
       const results = await Promise.all(updatePromises);
-      const errors = results.filter(result => result.error);
+      const errors = results.filter((result) => result.error);
       if (errors.length > 0) {
         throw errors[0].error;
       }
@@ -239,7 +271,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
 
   const handleSave = async () => {
     if (!validateForm()) return;
-    
+
     setSaving(true);
     try {
       // Update event data
@@ -289,9 +321,9 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
   const handleMediaUpload = useCallback((files: any[]) => {
     if (files.length > 0) {
       const imageUrl = files[0].url;
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        media_urls: [imageUrl] // Always replace index 0 with the new image
+        media_urls: [imageUrl], // Always replace index 0 with the new image
       }));
     }
   }, []);
@@ -314,11 +346,16 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
           <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg font-semibold">Event Information</CardTitle>
+                <CardTitle className="text-lg font-semibold">
+                  Event Information
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="eventName" className="text-sm font-medium mb-2 block">
+                  <Label
+                    htmlFor="eventName"
+                    className="text-sm font-medium mb-2 block"
+                  >
                     Event Name <span className="text-red-500">*</span>
                   </Label>
                   <Input
@@ -331,26 +368,36 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
                 </div>
 
                 <div>
-                  <Label htmlFor="eventCategory" className="text-sm font-medium mb-2 block">
+                  <Label
+                    htmlFor="eventCategory"
+                    className="text-sm font-medium mb-2 block"
+                  >
                     Category <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="eventCategory"
                     value={formData.category}
-                    onChange={(e) => handleInputChange("category", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("category", e.target.value)
+                    }
                     placeholder="Enter event category"
                     className="w-full"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="eventDescription" className="text-sm font-medium mb-2 block">
+                  <Label
+                    htmlFor="eventDescription"
+                    className="text-sm font-medium mb-2 block"
+                  >
                     Description <span className="text-red-500">*</span>
                   </Label>
                   <Textarea
                     id="eventDescription"
                     value={formData.description}
-                    onChange={(e) => handleInputChange("description", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("description", e.target.value)
+                    }
                     rows={4}
                     placeholder="Describe your event"
                     className="w-full resize-none"
@@ -369,39 +416,54 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="eventDate" className="text-sm font-medium mb-2 block">
+                    <Label
+                      htmlFor="eventDate"
+                      className="text-sm font-medium mb-2 block"
+                    >
                       Date
                     </Label>
                     <Input
                       id="eventDate"
                       type="date"
                       value={formData.date}
-                      onChange={(e) => handleInputChange("date", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("date", e.target.value)
+                      }
                       className="w-full"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="eventTime" className="text-sm font-medium mb-2 block">
+                    <Label
+                      htmlFor="eventTime"
+                      className="text-sm font-medium mb-2 block"
+                    >
                       Time
                     </Label>
                     <Input
                       id="eventTime"
                       type="time"
                       value={formData.time}
-                      onChange={(e) => handleInputChange("time", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("time", e.target.value)
+                      }
                       className="w-full"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <Label htmlFor="eventLocation" className="text-sm font-medium mb-2 block">
+                  <Label
+                    htmlFor="eventLocation"
+                    className="text-sm font-medium mb-2 block"
+                  >
                     Location
                   </Label>
                   <Input
                     id="eventLocation"
                     value={formData.location}
-                    onChange={(e) => handleInputChange("location", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("location", e.target.value)
+                    }
                     placeholder="Enter event location"
                     className="w-full"
                   />
@@ -412,20 +474,30 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
             {/* Event Thumbnail Section */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg font-semibold">Event Thumbnail</CardTitle>
+                <CardTitle className="text-lg font-semibold">
+                  Event Thumbnail
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <MediaUploader
                   onUpload={handleMediaUpload}
                   maxFiles={1}
-                  acceptedTypes={['image/jpeg', 'image/png', 'image/gif']}
+                  acceptedTypes={[
+                    "image/jpeg",
+                    "image/png",
+                    "image/gif",
+                    "video/mp4",
+                    "video/webm",
+                  ]}
                 />
                 {formData.media_urls.length > 0 && (
                   <div className="mt-4">
-                    <Label className="text-sm font-medium mb-2 block">Current Thumbnail:</Label>
-                    <img 
-                      src={formData.media_urls[0]} 
-                      alt="Event thumbnail" 
+                    <Label className="text-sm font-medium mb-2 block">
+                      Current Thumbnail:
+                    </Label>
+                    <img
+                      src={formData.media_urls[0]}
+                      alt="Event thumbnail"
                       className="w-32 h-32 object-cover rounded-lg border"
                     />
                   </div>
@@ -434,17 +506,13 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
             </Card>
 
             {/* Event Production Team Section */}
-            <StreamerSelector 
+            <StreamerSelector
               onStreamersChange={handleStreamersChange}
               initialStreamers={selectedStreamers}
             />
 
             <div className="flex justify-end gap-3 pt-4">
-              <Button
-                variant="outline"
-                onClick={onClose}
-                disabled={saving}
-              >
+              <Button variant="outline" onClick={onClose} disabled={saving}>
                 Cancel
               </Button>
               <Button
