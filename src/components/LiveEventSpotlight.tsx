@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Eye, Clock } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { LiveKitRoom, useTracks } from '@livekit/components-react';
-import { Track } from 'livekit-client';
-import MainStreamPreview from '@/components/MainStreamPreview';
-import MediaBackground from '@/components/MediaBackground';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Eye, Clock } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { LiveKitRoom, useTracks } from "@livekit/components-react";
+import { Track } from "livekit-client";
+import MainStreamPreview from "@/components/MainStreamPreview";
+import MediaBackground from "@/components/MediaBackground";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface LiveEvent {
   id: string;
@@ -20,7 +20,6 @@ interface LiveEvent {
   mediaUrls?: string[];
   isLive?: boolean;
   isPast?: boolean;
-
 }
 
 interface StreamPreviewProps {
@@ -29,79 +28,94 @@ interface StreamPreviewProps {
   fallbackImage: string;
 }
 
-const StreamPreview: React.FC<StreamPreviewProps> = ({ event, eventName, fallbackImage }) => {
+const StreamPreview: React.FC<StreamPreviewProps> = ({
+  event,
+  eventName,
+  fallbackImage,
+}) => {
   const navigate = useNavigate();
 
   const fetchLiveKitToken = async () => {
-    const { data, error } = await supabase.functions.invoke('create-livekit-token', {
-      body: {
-        eventId: event.id,
-        userRole: 'viewer',
-        permissions: {
-          canPublish: false,
-          canSubscribe: true,
-          canPublishData: false
-        }
+    const { data, error } = await supabase.functions.invoke(
+      "create-livekit-token",
+      {
+        body: {
+          eventId: event.id,
+          userRole: "viewer",
+          permissions: {
+            canPublish: false,
+            canSubscribe: true,
+            canPublishData: false,
+          },
+        },
       }
-    });
-    if (error) throw new Error(error.message || 'Error fetching token');
+    );
+    if (error) throw new Error(error.message || "Error fetching token");
     return data;
   };
 
   const {
     data: tokenData,
     isLoading: isTokenLoading,
-    error: tokenError
+    error: tokenError,
   } = useQuery({
-    queryKey: ['livekit-token', event.id],
+    queryKey: ["livekit-token", event.id],
     queryFn: fetchLiveKitToken,
-    enabled: !!event.id
+    enabled: !!event.id,
   });
 
   const token = tokenData?.token || null;
-  const serverUrl = tokenData?.serverUrl || '';
+  const serverUrl = tokenData?.serverUrl || "";
 
   if (isTokenLoading) {
     return <div className="text-center py-12">Loading stream...</div>;
   }
   if (tokenError) {
-    return <div className="text-center py-12">Error loading stream: {tokenError.message}</div>;
+    return (
+      <div className="text-center py-12">
+        Error loading stream: {tokenError.message}
+      </div>
+    );
   }
 
   return (
     <div className="relative w-full h-full">
-      <LiveKitRoom 
-        token={token} 
+      <LiveKitRoom
+        token={token}
         serverUrl={serverUrl}
         connect={true}
         className="w-full h-full"
       >
-        <StreamContent 
-          eventName={eventName} 
-          fallbackImage={fallbackImage} 
+        <StreamContent
+          eventName={eventName}
+          fallbackImage={fallbackImage}
           event={event}
         />
       </LiveKitRoom>
-      
-      
-        <div className="absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity duration-500 backdrop-blur-[1px] z-0">
-          <div className="text-center text-white p-6 max-w-xs">
-          </div>
-        </div>
-     
+
+      <div className="absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity duration-500 backdrop-blur-[1px] z-0">
+        <div className="text-center text-white p-6 max-w-xs"></div>
+      </div>
     </div>
   );
 };
 
-const StreamContent: React.FC<{ eventName: string; fallbackImage: string;  event: any }> = ({ eventName, fallbackImage,  }) => {
+const StreamContent: React.FC<{
+  eventName: string;
+  fallbackImage: string;
+  event: any;
+}> = ({ eventName, fallbackImage }) => {
   const [isMuted, setIsMuted] = useState(false);
-  const videoTracks = useTracks([Track.Source.Camera, Track.Source.ScreenShare], {
-    updateOnlyOn: [],
-    onlySubscribed: false,
-  });
+  const videoTracks = useTracks(
+    [Track.Source.Camera, Track.Source.ScreenShare],
+    {
+      updateOnlyOn: [],
+      onlySubscribed: false,
+    }
+  );
 
   const activeVideoTracks = videoTracks.filter(
-    (track) => track.publication && track.participant.identity !== 'viewer'
+    (track) => track.publication && track.participant.identity !== "viewer"
   );
 
   if (activeVideoTracks.length === 0) {
@@ -115,11 +129,11 @@ const StreamContent: React.FC<{ eventName: string; fallbackImage: string;  event
   }
 
   return (
-    <div className={`w-full h-full transition-all duration-500` }>
-      <MainStreamPreview 
+    <div className={`w-full h-full transition-all duration-500`}>
+      <MainStreamPreview
         mediaUrls={event?.mediaUrls || []}
-        track={activeVideoTracks[0]} 
-        eventName={eventName} 
+        track={activeVideoTracks[0]}
+        eventName={eventName}
         isLive={true}
         isMuted={isMuted}
         setIsMuted={setIsMuted}
@@ -130,7 +144,6 @@ const StreamContent: React.FC<{ eventName: string; fallbackImage: string;  event
 };
 
 const LiveEventSpotlight: React.FC = () => {
- 
   // Move this function above useQuery so it can be used inside queryFn
   const calculateTimeRemaining = (eventDate: string, eventTime: string) => {
     if (!eventDate || !eventTime) return undefined;
@@ -148,23 +161,23 @@ const LiveEventSpotlight: React.FC = () => {
   const {
     data: liveEvents = [],
     isLoading: isEventsLoading,
-    error: eventsError
+    error: eventsError,
   } = useQuery({
-    queryKey: ['live-events'],
+    queryKey: ["live-events"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('events')
-        .select('*')
-        .eq('is_live', true)
-        .order('viewer_count', { ascending: false })
+        .from("events")
+        .select("*")
+        .eq("is_live", true)
+        .order("viewer_count", { ascending: false })
         .limit(6);
 
       if (error) {
-        throw new Error(error.message || 'Error fetching live events');
+        throw new Error(error.message || "Error fetching live events");
       }
 
       return (
-        data?.map(event => ({
+        data?.map((event) => ({
           id: event.id,
           title: event.name,
           viewers: event.viewer_count || 0,
@@ -174,20 +187,23 @@ const LiveEventSpotlight: React.FC = () => {
           slug: event.slug,
           mediaUrls: event.media_urls,
           isLive: event.is_live,
-          
         })) || []
       );
-    }
+    },
   });
 
   const queryClient = useQueryClient();
 
   useEffect(() => {
     const channel = supabase
-      .channel('public:events-live-spotlight')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'events' }, () => {
-        queryClient.invalidateQueries({ queryKey: ['live-events'] });
-      })
+      .channel("public:events-live-spotlight")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "events" },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["live-events"] });
+        }
+      )
       .subscribe();
 
     return () => {
@@ -206,7 +222,11 @@ const LiveEventSpotlight: React.FC = () => {
     return <div className="text-center py-12">Loading live events...</div>;
   }
   if (eventsError) {
-    return <div className="text-center py-12">Error loading live events: {eventsError.message}</div>;
+    return (
+      <div className="text-center py-12">
+        Error loading live events: {eventsError.message}
+      </div>
+    );
   }
 
   if (liveEvents.length === 0) {
@@ -215,8 +235,12 @@ const LiveEventSpotlight: React.FC = () => {
         <div className="container mx-auto px-4">
           <h2 className="text-2xl font-bold mb-6">🔥 Live Now - Trending</h2>
           <div className="text-center py-12">
-            <p className="text-muted-foreground">No live events at the moment.</p>
-            <p className="text-sm text-muted-foreground mt-2">Check back soon for live streaming events!</p>
+            <p className="text-muted-foreground">
+              No live events at the moment.
+            </p>
+            <p className="text-sm text-muted-foreground mt-2">
+              Check back soon for live streaming events!
+            </p>
           </div>
         </div>
       </div>
@@ -227,85 +251,81 @@ const LiveEventSpotlight: React.FC = () => {
     <div className="py-8">
       <div className="container mx-auto px-4">
         <h2 className="text-2xl font-bold mb-6">🔥 Live Now - Trending</h2>
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {liveEvents.map((event) => (
-
-            <div onClick={() => handleWatchNow(event)} key={event.id} className="relative group cursor-pointer ">    
+            <div
+              onClick={() => handleWatchNow(event)}
+              key={event.id}
+              className="relative group cursor-pointer "
+            >
               {/* Content overlay */}
-                <div className="absolute bottom-0 left-0 right-0 p-4 text-white z-10">
-                  {/* Button with spacing */}
-               <Button 
-               variant='outline'
-                      size="sm" 
-                      className="text-right my-5 bg-white text-black"
-                      onClick={() => handleWatchNow(event)}
-                    >
-                      Watch Now
-                    </Button>
-                  <div className="space-y-3">
-                    {/* Title with proper truncation */}
-                    <h3 
-                      className="font-semibold text-sm leading-tight"
-                      style={{
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        maxHeight: '2.5rem'
-                      }}
-                      title={event.title}
-                    >
-                      {event.title}
-                    </h3>
-                    
-                    {/* Stats row with proper spacing */}
-                    <div className="flex items-center justify-between text-xs gap-2">
-                      {event.timeRemaining && (
-                        <div className="flex items-center gap-1 flex-shrink-0">
-                          <Clock className="h-3 w-3" />
-                          <span className="whitespace-nowrap text-xs">{event.timeRemaining}</span>
-                        </div>
-                      )}
-                    </div>
-                    
-                    {/* Location with truncation */}
-                    {event.location && (
-                      <p 
-                        className="text-xs text-white/80 truncate" 
-                        title={event.location}
-                      >
-                        {event.location}
-                      </p>
+              <div className="absolute bottom-0 left-0 right-0 p-4 text-white z-10">
+                {/* Button with spacing */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-right my-5 bg-white text-black"
+                  onClick={() => handleWatchNow(event)}
+                >
+                  Watch Now
+                </Button>
+                <div className="space-y-3">
+                  {/* Title with proper truncation */}
+                  <h3
+                    className="font-semibold text-sm leading-tight"
+                    style={{
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      maxHeight: "2.5rem",
+                    }}
+                    title={event.title}
+                  >
+                    {event.title}
+                  </h3>
+
+                  {/* Stats row with proper spacing */}
+                  <div className="flex items-center justify-between text-xs gap-2">
+                    {event.timeRemaining && (
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        <Clock className="h-3 w-3" />
+                        <span className="whitespace-nowrap text-xs">
+                          {event.timeRemaining}
+                        </span>
+                      </div>
                     )}
-                    
-                   
                   </div>
+
+                  {/* Location with truncation */}
+                  {event.location && (
+                    <p
+                      className="text-xs text-white/80 truncate"
+                      title={event.location}
+                    >
+                      {event.location}
+                    </p>
+                  )}
                 </div>
-                
+              </div>
+
               <div className="aspect-video bg-gradient-to-br from-primary/20 to-secondary/20 rounded-lg overflow-hidden">
-                <StreamPreview 
+                <StreamPreview
                   event={event}
                   eventName={event.title}
                   fallbackImage={event.thumbnail}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                
-                
+
                 {/* Live badge */}
                 {/* <Badge className="absolute top-3 left-3 bg-red-600 hover:bg-red-700 z-20 shadow-lg">
                   LIVE
                 </Badge> */}
-                
-                
               </div>
-               
             </div>
-            
           ))}
-          
         </div>
-        
       </div>
     </div>
   );
