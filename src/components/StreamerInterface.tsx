@@ -180,6 +180,23 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     }
   };
 
+  const viewerCount = controls.participantCount - 1;
+
+  useEffect(() => {
+    const updateViewerCount = async () => {
+      try {
+        const { error } = await supabase
+          .from("events")
+          .update({ viewer_count: viewerCount })
+          .eq("id", eventId);
+        if (error) throw error;
+      } catch (error) {
+        console.error("Error updating viewer count:", error);
+      }
+    };
+    updateViewerCount();
+  }, [viewerCount, eventId]);
+
   // Load event data on mount
   useEffect(() => {
     loadEventData();
