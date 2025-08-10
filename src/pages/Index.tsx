@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Hero from '@/components/Hero';
-import SearchBar from '@/components/SearchBar';
+import EventSearchBox from '@/components/EventSearchBox';
 import LiveEventSpotlight from '@/components/LiveEventSpotlight';
 import TrendingChannels from '@/components/TrendingChannels';
 import UpcomingEvents from '@/components/UpcomingEvents';
@@ -86,7 +86,7 @@ const Index: React.FC = () => {
       {/* Search Bar at the top */}
       <div className="bg-muted/50 py-6">
         <div className="container mx-auto px-2">
-          <SearchBar />
+          <EventSearchBox />
         </div>
       </div>
 
