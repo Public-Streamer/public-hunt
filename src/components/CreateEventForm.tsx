@@ -1,9 +1,9 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar } from "lucide-react";
+import { AlertTriangle, Calendar, Loader2, TriangleAlert } from "lucide-react";
 import MediaUploader from "@/components/MediaUploader";
 import StreamerSelector from "@/components/StreamerSelector";
 import PriceSlider from "@/components/PriceSlider";
@@ -11,6 +11,10 @@ import CreateEventFormButtons from "@/components/CreateEventFormButtons";
 // Channel functionality completely disabled to prevent infinite loops
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "react-day-picker";
+
+import { useAppContext } from "@/contexts/AppContext";
+import { Link } from "react-router-dom";
 
 interface MediaFile {
   id: string;
@@ -56,6 +60,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
   canCreateEvent,
 }) => {
   const [ticketPrice, setTicketPrice] = useState(formData.ticketPrice || 0.01);
+  const [loading, setLoading] = useState(false);
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
   const [selectedStreamers, setSelectedStreamers] = useState<SelectedMember[]>(
     []
@@ -63,6 +68,11 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
   const [teamConfirmed, setTeamConfirmed] = useState(false);
   // Channel functionality completely disabled
   const { toast } = useToast();
+  const { user } = useAppContext();
+
+  const [hostStripeAccountId, setHostStripeAccountId] = useState<string | null>(
+    null
+  );
 
   const handleStreamersChange = (streamers: SelectedMember[]) => {
     setSelectedStreamers(streamers);
@@ -141,7 +151,9 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       isCoreFieldsComplete() &&
       selectedStreamers.length >= 1 &&
       selectedStreamers.every((s) => s.confirmed && s.permissions.length > 0) &&
-      teamConfirmed
+      teamConfirmed &&
+      ticketPrice > 0 &&
+      hostStripeAccountId
     );
   };
 
@@ -168,6 +180,28 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
     });
   };
 
+  const getStripeAccountId = async () => {
+    try {
+      setLoading(true);
+      const { data: stripeAccount } = await supabase
+        .from("host_stripe_accounts")
+        .select("stripe_account_id")
+        .eq("user_id", user?.id)
+        .single();
+      // console.log(stripeAccount.stripe_account_id);
+      const hostStripeAccountId = stripeAccount?.stripe_account_id || null;
+      setHostStripeAccountId(hostStripeAccountId);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching Stripe account:", error);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    getStripeAccountId();
+  }, []);
+
   const handleGoLiveNow = async () => {
     const now = new Date();
     const today = now.toISOString().split("T")[0];
@@ -178,15 +212,22 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       location = await getCurrentLocation();
     }
 
-    // Get current user
-    const { data: userData, error: userError } = await supabase.auth.getUser();
-    if (userError || !userData.user) {
+    if (!user) {
       toast({
         title: "Authentication Required",
         description: "You must be logged in to create events.",
         variant: "destructive",
       });
       return;
+    }
+
+    if (ticketPrice > 0 && !hostStripeAccountId) {
+      console.log("Ticket price is greater than 0");
+      return toast({
+        title: "Paid Event is not available for you",
+        description: "You have to set up payment processing first.",
+        variant: "destructive",
+      });
     }
 
     const eventData = {
@@ -199,7 +240,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       ticket_price: ticketPrice,
       media_urls: mediaFiles.map((f) => f.url).filter(Boolean),
       is_live: false,
-      created_by: userData.user.id,
+      created_by: user.id,
       // channel_id: selectedChannelId || null, // Temporarily disabled
     };
 
@@ -221,7 +262,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         const streamerData = selectedStreamers.map((streamer) => ({
           event_id: data.id,
           streamer_id: streamer.id,
-          assigned_by: userData.user.id,
+          assigned_by: user.id,
           role_type: "Streamers",
           permissions: streamer.permissions,
         }));
@@ -254,11 +295,19 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
 
   const handleCreateEvent = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (ticketPrice > 0 && !hostStripeAccountId) {
+      console.log("Ticket price is greater than 0");
+      return toast({
+        title: "Paid Event is not available for you",
+        description: "You have to set up payment processing first.",
+        variant: "destructive",
+      });
+    }
+
     try {
       // Get current user
-      const { data: userData, error: userError } =
-        await supabase.auth.getUser();
-      if (userError || !userData.user) {
+      if (!user) {
         toast({
           title: "Authentication Required",
           description: "You must be logged in to create events.",
@@ -267,7 +316,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         return;
       }
 
-      console.log("Creating event with user:", userData.user.id);
+      console.log("Creating event with user:", user.id);
       console.log("Media Files:", mediaFiles);
 
       const { data, error } = await supabase
@@ -283,7 +332,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
           media_urls: mediaFiles.map((f) => f.url).filter(Boolean),
           // media_urls: mediaFiles[0].url,
           is_live: false,
-          created_by: userData.user.id,
+          created_by: user.id,
           // channel_id: channelRequiresApproval ? null : selectedChannelId || null, // Temporarily disabled
         })
         .select()
@@ -296,7 +345,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         const streamerData = selectedStreamers.map((streamer) => ({
           event_id: data.id,
           streamer_id: streamer.id,
-          assigned_by: userData.user.id,
+          assigned_by: user.id,
           role_type: "Streamers",
           permissions: streamer.permissions,
         }));
@@ -309,7 +358,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       //   await supabase.from("event_channel_requests").insert({
       //     event_id: data.id,
       //     channel_id: selectedChannelId,
-      //     requested_by: userData.user.id,
+      //     requested_by: user.id,
       //     message: `Event "${formData.name}" requesting assignment to channel`,
       //   });
       //
@@ -349,11 +398,35 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader2 className="animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 p-4 max-w-4xl mx-auto">
+      {hostStripeAccountId == null && (
+        <div className="text-center w-full bg-red-100">
+          <span className="flex md:flex-row flex-col items-center justify-center gap-2 text-red-400 font-semibold border border-red-400 p-2 rounded">
+            <TriangleAlert className="text-red-400 text-2xl" />
+            <span>
+              To create a paid event, you need to set up payment processing
+              first. Please go to the{" "}
+              <Link
+                className="underline font-bold text-blue-500"
+                to="/payments"
+              >
+                payment page.
+              </Link>{" "}
+            </span>
+          </span>
+        </div>
+      )}
       <form onSubmit={handleCreateEvent} className="space-y-6">
         {/* Event Information and other form fields will go here */}
-
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center text-xl font-bold">
@@ -430,6 +503,21 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
               <PriceSlider
                 value={ticketPrice}
                 onChange={handleTicketPriceChange}
+              />
+            </div>
+            <div className="space-y-6 max-w-full">
+              <MediaUploader
+                onUpload={handleMediaUpload}
+                maxFiles={1}
+                acceptedTypes={[
+                  "image/jpeg",
+                  "image/png",
+                  "image/gif",
+                  "application/pdf",
+                  "video/mp4",
+                  "video/mpeg",
+                  "video/quicktime",
+                ]}
               />
             </div>
 
@@ -509,22 +597,6 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       </form>
 
       <StreamerSelector onStreamersChange={handleStreamersChange} />
-
-      <div className="space-y-6 max-w-full">
-        <MediaUploader
-          onUpload={handleMediaUpload}
-          maxFiles={1}
-          acceptedTypes={[
-            "image/jpeg",
-            "image/png",
-            "image/gif",
-            "application/pdf",
-            "video/mp4",
-            "video/mpeg",
-            "video/quicktime",
-          ]}
-        />
-      </div>
 
       <Card className="mt-6">
         <CardContent className="pt-6">
