@@ -50,7 +50,13 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({
         },
       }
     );
-    if (error) throw new Error(error.message || "Error fetching token");
+    if (error) {
+      throw new Error(
+        error.message === "Edge Function returned a non-2xx status code"
+          ? "Login to watch live events"
+          : "Error fetching token"
+      );
+    }
     return data;
   };
 
@@ -77,8 +83,8 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({
   }
   if (tokenError) {
     return (
-      <div className="text-center py-12 flex justify-center items-center">
-        Error loading stream: {tokenError.message}
+      <div className="text-center py-12 flex justify-center items-center bg-red-500">
+        {tokenError.message}
       </div>
     );
   }
@@ -178,6 +184,7 @@ const LiveEventSpotlight: React.FC = () => {
         .limit(6);
 
       if (error) {
+        console.log(error.message);
         throw new Error(error.message || "Error fetching live events");
       }
 
