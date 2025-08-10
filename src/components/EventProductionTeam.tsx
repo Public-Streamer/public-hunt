@@ -1,16 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, UserPlus, X, Lock, Edit, Users } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from "@/integrations/supabase/client"
-import { useAppContext } from '@/contexts/AppContext';
-import EventRoleManager from '@/components/EventRoleManager';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Search, UserPlus, X, Lock, Edit, Users } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAppContext } from "@/contexts/AppContext";
+import EventRoleManager from "@/components/EventRoleManager";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface Subscriber {
   id: string;
@@ -28,17 +33,23 @@ interface EventProductionTeamProps {
   eventId: string;
 }
 
-const EventProductionTeam: React.FC<EventProductionTeamProps> = ({ eventId }) => {
-  const [searchTerm, setSearchTerm] = useState('');
+const EventProductionTeam: React.FC<EventProductionTeamProps> = ({
+  eventId,
+}) => {
+  const [searchTerm, setSearchTerm] = useState("");
   const [selectedMembers, setSelectedMembers] = useState<SelectedMember[]>([]);
   const [isLocked, setIsLocked] = useState(false);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAppContext();
   const { toast } = useToast();
-  
-  const userRole = 'Event Manager';
-  const canModifyRoles = ['Event Manager', 'Event Admin', 'Event Master'].includes(userRole);
+
+  const userRole = "Event Manager";
+  const canModifyRoles = [
+    "Event Manager",
+    "Event Admin",
+    "Event Master",
+  ].includes(userRole);
 
   // Load existing team members and available users
   useEffect(() => {
@@ -48,56 +59,64 @@ const EventProductionTeam: React.FC<EventProductionTeamProps> = ({ eventId }) =>
   const loadTeamData = async () => {
     try {
       setLoading(true);
-      
+
       // Load existing team members
       const { data: existingStreamers, error: streamersError } = await supabase
-        .from('event_streamers')
-        .select(`
+        .from("event_streamers")
+        .select(
+          `
           streamer_id,
           permissions,
           role_type
-        `)
-        .eq('event_id', eventId);
+        `
+        )
+        .eq("event_id", eventId);
 
       if (streamersError) throw streamersError;
 
       // Load user profiles for available team members
       const { data: profiles, error: profilesError } = await supabase
-        .from('user_profiles')
-        .select('id, username, display_name, profile_picture_url, user_id')
+        .from("user_profiles")
+        .select("id, username, display_name, profile_picture_url, user_id") // we need get all the profiles except the current user one
+        .neq("user_id", user?.id)
         .limit(50);
 
       if (profilesError) throw profilesError;
 
       // Convert profiles to subscribers format
-      const availableSubscribers: Subscriber[] = profiles?.map(profile => ({
-        id: profile.user_id,
-        name: profile.display_name || profile.username || 'Unknown',
-        email: profile.username,
-        avatar: profile.profile_picture_url || undefined
-      })) || [];
+      const availableSubscribers: Subscriber[] =
+        profiles?.map((profile) => ({
+          id: profile.user_id,
+          name: profile.display_name || profile.username || "Unknown",
+          email: profile.username,
+          avatar: profile.profile_picture_url || undefined,
+        })) || [];
 
       setSubscribers(availableSubscribers);
 
       // Convert existing streamers to selected members format
       if (existingStreamers && existingStreamers.length > 0) {
-        const teamMembers: SelectedMember[] = existingStreamers.map(streamer => {
-          const profile = availableSubscribers.find(sub => sub.id === streamer.streamer_id);
-          return {
-            id: streamer.streamer_id,
-            name: profile?.name || 'Unknown',
-            email: profile?.email || 'Unknown',
-            avatar: profile?.avatar,
-            permissions: streamer.permissions || [],
-            confirmed: true
-          };
-        });
-        
+        const teamMembers: SelectedMember[] = existingStreamers.map(
+          (streamer) => {
+            const profile = availableSubscribers.find(
+              (sub) => sub.id === streamer.streamer_id
+            );
+            return {
+              id: streamer.streamer_id,
+              name: profile?.name || "Unknown",
+              email: profile?.email || "Unknown",
+              avatar: profile?.avatar,
+              permissions: streamer.permissions || [],
+              confirmed: true,
+            };
+          }
+        );
+
         setSelectedMembers(teamMembers);
         setIsLocked(teamMembers.length > 0);
       }
     } catch (error) {
-      console.error('Error loading team data:', error);
+      console.error("Error loading team data:", error);
       toast({
         title: "Error",
         description: "Failed to load team data",
@@ -108,44 +127,45 @@ const EventProductionTeam: React.FC<EventProductionTeamProps> = ({ eventId }) =>
     }
   };
 
-  const filteredSubscribers = subscribers.filter(subscriber => 
-    !selectedMembers.some(member => member.id === subscriber.id) &&
-    (subscriber.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-     subscriber.email.toLowerCase().includes(searchTerm.toLowerCase()))
+  const filteredSubscribers = subscribers.filter(
+    (subscriber) =>
+      !selectedMembers.some((member) => member.id === subscriber.id) &&
+      (subscriber.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        subscriber.email.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const addMember = (subscriber: Subscriber) => {
     const newMember: SelectedMember = {
       ...subscriber,
       permissions: [],
-      confirmed: false
+      confirmed: false,
     };
     const updated = [...selectedMembers, newMember];
     setSelectedMembers(updated);
-    setSearchTerm('');
+    setSearchTerm("");
   };
 
   const removeMember = async (id: string) => {
     try {
       // Remove from database
       const { error } = await supabase
-        .from('event_streamers')
+        .from("event_streamers")
         .delete()
-        .eq('event_id', eventId)
-        .eq('streamer_id', id);
+        .eq("event_id", eventId)
+        .eq("streamer_id", id);
 
       if (error) throw error;
 
       // Remove from local state
-      const updated = selectedMembers.filter(member => member.id !== id);
+      const updated = selectedMembers.filter((member) => member.id !== id);
       setSelectedMembers(updated);
-      
+
       toast({
         title: "Member Removed",
         description: "Team member has been removed successfully",
       });
     } catch (error) {
-      console.error('Error removing member:', error);
+      console.error("Error removing member:", error);
       toast({
         title: "Error",
         description: "Failed to remove team member",
@@ -155,7 +175,7 @@ const EventProductionTeam: React.FC<EventProductionTeamProps> = ({ eventId }) =>
   };
 
   const updateMemberPermissions = (memberId: string, permissions: string[]) => {
-    const updated = selectedMembers.map(member => {
+    const updated = selectedMembers.map((member) => {
       if (member.id === memberId) {
         return { ...member, permissions };
       }
@@ -166,37 +186,35 @@ const EventProductionTeam: React.FC<EventProductionTeamProps> = ({ eventId }) =>
 
   const confirmMember = async (memberId: string) => {
     try {
-      const member = selectedMembers.find(m => m.id === memberId);
+      const member = selectedMembers.find((m) => m.id === memberId);
       if (!member) return;
 
       // Add to database
-      const { error } = await supabase
-        .from('event_streamers')
-        .insert({
-          event_id: eventId,
-          streamer_id: memberId,
-          assigned_by: user?.id || '',
-          role_type: 'Streamers',
-          permissions: member.permissions
-        });
+      const { error } = await supabase.from("event_streamers").insert({
+        event_id: eventId,
+        streamer_id: memberId,
+        assigned_by: user?.id || "",
+        role_type: "Streamers",
+        permissions: member.permissions,
+      });
 
       if (error) throw error;
 
       // Update local state
-      const updated = selectedMembers.map(member => {
+      const updated = selectedMembers.map((member) => {
         if (member.id === memberId) {
           return { ...member, confirmed: true };
         }
         return member;
       });
       setSelectedMembers(updated);
-      
+
       toast({
         title: "Member Confirmed",
         description: "Team member has been added successfully",
       });
     } catch (error) {
-      console.error('Error confirming member:', error);
+      console.error("Error confirming member:", error);
       toast({
         title: "Error",
         description: "Failed to confirm team member",
@@ -223,7 +241,8 @@ const EventProductionTeam: React.FC<EventProductionTeamProps> = ({ eventId }) =>
     }
   };
 
-  const allMembersConfirmed = selectedMembers.length > 0 && selectedMembers.every(m => m.confirmed);
+  const allMembersConfirmed =
+    selectedMembers.length > 0 && selectedMembers.every((m) => m.confirmed);
 
   return (
     <Card>
@@ -251,7 +270,9 @@ const EventProductionTeam: React.FC<EventProductionTeamProps> = ({ eventId }) =>
       <CardContent className="space-y-4">
         {!isLocked && (
           <div>
-            <Label htmlFor="search">Search and add subscribers to event production team</Label>
+            <Label htmlFor="search">
+              Search and add subscribers to event production team
+            </Label>
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
@@ -271,8 +292,11 @@ const EventProductionTeam: React.FC<EventProductionTeamProps> = ({ eventId }) =>
 
         {searchTerm && !isLocked && (
           <div className="max-h-40 overflow-y-auto border rounded-md p-2">
-            {filteredSubscribers.map(subscriber => (
-              <div key={subscriber.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
+            {filteredSubscribers.map((subscriber) => (
+              <div
+                key={subscriber.id}
+                className="flex items-center justify-between p-2 hover:bg-gray-50 rounded"
+              >
                 <div className="flex items-center space-x-2">
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={subscriber.avatar} />
@@ -311,7 +335,7 @@ const EventProductionTeam: React.FC<EventProductionTeamProps> = ({ eventId }) =>
         )}
 
         <div className="space-y-3">
-          {selectedMembers.map(member => (
+          {selectedMembers.map((member) => (
             <div key={member.id} className="border rounded-lg p-3">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center space-x-2">
@@ -324,7 +348,9 @@ const EventProductionTeam: React.FC<EventProductionTeamProps> = ({ eventId }) =>
                     <p className="text-xs text-gray-500">{member.email}</p>
                   </div>
                   {member.confirmed && (
-                    <Badge variant="default" className="bg-green-600">Confirmed</Badge>
+                    <Badge variant="default" className="bg-green-600">
+                      Confirmed
+                    </Badge>
                   )}
                 </div>
                 {!isLocked && (
@@ -338,27 +364,31 @@ const EventProductionTeam: React.FC<EventProductionTeamProps> = ({ eventId }) =>
                   </Button>
                 )}
               </div>
-              
+
               <EventRoleManager
                 member={{
                   id: member.id,
                   name: member.name,
                   email: member.email,
                   permissions: member.permissions,
-                  confirmed: member.confirmed
+                  confirmed: member.confirmed,
                 }}
-                onPermissionsChange={(permissions) => updateMemberPermissions(member.id, permissions)}
+                onPermissionsChange={(permissions) =>
+                  updateMemberPermissions(member.id, permissions)
+                }
                 onConfirm={() => confirmMember(member.id)}
                 disabled={isLocked}
               />
             </div>
           ))}
-          
+
           {selectedMembers.length === 0 && (
             <div className="text-center py-8 text-gray-500">
               <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>No team members added yet.</p>
-              <p className="text-sm">Search and add users to build your production team.</p>
+              <p className="text-sm">
+                Search and add users to build your production team.
+              </p>
             </div>
           )}
         </div>
@@ -366,11 +396,12 @@ const EventProductionTeam: React.FC<EventProductionTeamProps> = ({ eventId }) =>
         {selectedMembers.length > 0 && (
           <div className="flex justify-between items-center pt-4 border-t">
             <div className="text-sm text-gray-600">
-              {selectedMembers.filter(m => m.confirmed).length} of {selectedMembers.length} members confirmed
+              {selectedMembers.filter((m) => m.confirmed).length} of{" "}
+              {selectedMembers.length} members confirmed
             </div>
-            
+
             {!isLocked ? (
-              <Button 
+              <Button
                 onClick={confirmRoles}
                 disabled={!allMembersConfirmed}
                 className="bg-green-600 hover:bg-green-700"
