@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useEventSearch, SearchResult } from "@/hooks/useEventSearch";
 import { cn } from "@/lib/utils";
+import MediaBackground from "./MediaBackground";
 
 interface EventSearchBoxProps {
   placeholder?: string;
@@ -233,20 +234,11 @@ const EventSearchBox: React.FC<EventSearchBoxProps> = ({
                     }
                     className="w-10 h-10 rounded-md overflow-hidden bg-muted flex-shrink-0"
                   >
-                    {result.thumbnail ? (
-                      <img
-                        src={result.thumbnail}
-                        alt=""
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.currentTarget.src = "/placeholder.gif";
-                        }}
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-muted flex items-center justify-center">
-                        <Search className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                    )}
+                    <MediaBackground
+                      src={result.thumbnail}
+                      fallback="/placeholder.gif"
+                      className="w-full h-full"
+                    />
                   </Link>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">
