@@ -1,9 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.5';
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.5";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 interface EventData {
@@ -26,17 +27,17 @@ interface HostData {
 
 serve(async (req) => {
   // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   // Handle HEAD requests (some scrapers probe with HEAD)
-  if (req.method === 'HEAD') {
+  if (req.method === "HEAD") {
     return new Response(null, {
       headers: {
         ...corsHeaders,
-        'Content-Type': 'text/html; charset=utf-8',
-        'Cache-Control': 'public, max-age=300',
+        "Content-Type": "text/html; charset=utf-8",
+        "Cache-Control": "public, max-age=300",
       },
     });
   }
@@ -44,10 +45,10 @@ serve(async (req) => {
   try {
     const url = new URL(req.url);
     const pathname = url.pathname;
-    const userAgent = req.headers.get('user-agent') || '';
-    
-    console.log('Edge function called:', { pathname, userAgent });
-    
+    const userAgent = req.headers.get("user-agent") || "";
+
+    console.log("Edge function called:", { pathname, userAgent });
+
     // Enhanced crawler detection including WhatsApp and other platforms
     const crawlerPatterns = [
       /facebookexternalhit/i,
@@ -60,47 +61,58 @@ serve(async (req) => {
       /GoogleBot/i,
       /bingbot/i,
       /facebot/i,
-      /ia_archiver/i
+      /ia_archiver/i,
     ];
-    
-    const isCrawler = crawlerPatterns.some(pattern => pattern.test(userAgent));
-    console.log('Is crawler:', isCrawler);
-    
+
+    const isCrawler = crawlerPatterns.some((pattern) =>
+      pattern.test(userAgent)
+    );
+    console.log("Is crawler:", isCrawler);
+
     // Extract event identifier from URL
-    let eventIdentifier = pathname.split('/').pop() || '';
-    
+    let eventIdentifier = pathname.split("/").pop() || "";
+
     // Handle different URL patterns
-    if (pathname.includes('/event/')) {
-      eventIdentifier = pathname.split('/event/')[1];
-      console.log('Event identifier from /event/ path:', eventIdentifier);
+    if (pathname.includes("/event/")) {
+      eventIdentifier = pathname.split("/event/")[1];
+      console.log("Event identifier from /event/ path:", eventIdentifier);
     }
 
     // Normalize identifier
-    eventIdentifier = decodeURIComponent(eventIdentifier).replace(/\/+$/, '');
-    
+    eventIdentifier = decodeURIComponent(eventIdentifier).replace(/\/+$/, "");
+
     if (!eventIdentifier) {
-      console.log('No event identifier found');
-      return new Response('Event identifier required', { status: 400, headers: corsHeaders });
+      console.log("No event identifier found");
+      return new Response("Event identifier required", {
+        status: 400,
+        headers: corsHeaders,
+      });
     }
 
     // Initialize Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Determine if identifier is UUID or slug
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(eventIdentifier);
-    
+    const isUuid =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+        eventIdentifier
+      );
+
     // Fetch event data
-    const eventQuery = isUuid 
-      ? supabase.from('events').select('*').eq('id', eventIdentifier)
-      : supabase.from('events').select('*').eq('slug', eventIdentifier);
-    
+    const eventQuery = isUuid
+      ? supabase.from("events").select("*").eq("id", eventIdentifier)
+      : supabase.from("events").select("*").eq("slug", eventIdentifier);
+
     const { data: events, error: eventError } = await eventQuery.single();
-    
+
     if (eventError || !events) {
-      console.error('Event fetch error:', eventError);
-      return new Response('Event not found', { status: 404, headers: corsHeaders });
+      console.error("Event fetch error:", eventError);
+      return new Response("Event not found", {
+        status: 404,
+        headers: corsHeaders,
+      });
     }
 
     const event: EventData = events;
@@ -109,40 +121,57 @@ serve(async (req) => {
     let hostData: HostData | null = null;
     if (event.created_by) {
       const { data: profile } = await supabase
-        .from('user_profiles')
-        .select('display_name, username')
-        .eq('user_id', event.created_by)
+        .from("user_profiles")
+        .select("display_name, username")
+        .eq("user_id", event.created_by)
         .single();
-      
+
       hostData = profile;
     }
 
     // Generate meta tags
-    const publicSiteUrl = Deno.env.get('PUBLIC_SITE_URL');
-    const defaultPublicSite = 'https://www.publicstreamer.com';
-    const baseUrl = url.origin.includes('supabase.co') 
-      ? (publicSiteUrl || defaultPublicSite)
+    const publicSiteUrl = Deno.env.get("PUBLIC_SITE_URL");
+    const defaultPublicSite = "https://www.publicstreamer.com";
+    const baseUrl = url.origin.includes("supabase.co")
+      ? publicSiteUrl || defaultPublicSite
       : url.origin;
     const eventUrl = `${baseUrl}/event/${event.slug || event.id}`;
     const eventTitle = event.name;
-    const eventDescription = event.description || `Join ${eventTitle} - Live streaming event on Public Streamer`;
-    let eventImage = (event.media_urls && event.media_urls.length > 0) ? event.media_urls[0] : '';
+    const eventDescription =
+      event.description ||
+      `Join ${eventTitle} - Live streaming event on Public Streamer`;
+    let eventImage =
+      event.media_urls && event.media_urls.length > 0
+        ? event.media_urls[0]
+        : "";
     if (!eventImage) {
       eventImage = `${baseUrl}/placeholder.svg`;
     } else if (!/^https?:\/\//i.test(eventImage)) {
-      eventImage = `${baseUrl}${eventImage.startsWith('/') ? '' : '/'}${eventImage}`;
+      eventImage = `${baseUrl}${
+        eventImage.startsWith("/") ? "" : "/"
+      }${eventImage}`;
     }
-    const hostName = hostData?.display_name || hostData?.username || 'Public Streamer';
-    const eventDate = event.date ? new Date(event.date).toLocaleDateString() : '';
-    const eventTime = event.time || '';
-    const ticketPrice = event.ticket_price ? `$${event.ticket_price}` : 'Free';
+    const hostName =
+      hostData?.display_name || hostData?.username || "Public Streamer";
+    const eventDate = event.date
+      ? new Date(event.date).toLocaleDateString()
+      : "";
+    const eventTime = event.time || "";
+    const ticketPrice = event.ticket_price ? `$${event.ticket_price}` : "Free";
 
-    console.log('Generated meta data:', { eventTitle, eventDescription, eventImage, eventUrl });
+    console.log("Generated meta data:", {
+      eventTitle,
+      eventDescription,
+      eventImage,
+      eventUrl,
+    });
 
-    // Always return an HTML page with meta tags. Use client-side redirect for humans.
-    console.log('Serving meta page with client-side redirect');
+    // For crawlers, return HTML with meta tags
+    if (isCrawler) {
+      console.log("Serving meta tags to crawler");
 
-    const html = `<!DOCTYPE html>
+      // Generate HTML with meta tags
+      const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -162,8 +191,18 @@ serve(async (req) => {
   <meta property="og:site_name" content="Public Streamer">
   <link rel="canonical" href="${eventUrl}">
   <!-- Event specific Open Graph tags -->
-  ${eventDate ? `<meta property="event:start_time" content="${event.date}T${event.time || '00:00:00'}">` : ''}
-  ${event.location ? `<meta property="event:location" content="${event.location}">` : ''}
+  ${
+    eventDate
+      ? `<meta property="event:start_time" content="${event.date}T${
+          event.time || "00:00:00"
+        }">`
+      : ""
+  }
+  ${
+    event.location
+      ? `<meta property="event:location" content="${event.location}">`
+      : ""
+  }
   <meta property="event:organizer" content="${hostName}">
   
   <!-- Twitter -->
@@ -180,7 +219,6 @@ serve(async (req) => {
   <!-- WhatsApp specific -->
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  
   <!-- JSON-LD Structured Data -->
   <script type="application/ld+json">
   {
@@ -190,11 +228,19 @@ serve(async (req) => {
     "description": "${eventDescription}",
     "url": "${eventUrl}",
     "image": "${eventImage}",
-    ${eventDate ? `"startDate": "${event.date}T${event.time || '00:00:00'}",` : ''}
-    ${event.location ? `"location": {
+    ${
+      eventDate
+        ? `"startDate": "${event.date}T${event.time || "00:00:00"}",`
+        : ""
+    }
+    ${
+      event.location
+        ? `"location": {
       "@type": "Place",
       "name": "${event.location}"
-    },` : ''}
+    },`
+        : ""
+    }
     "organizer": {
       "@type": "Person",
       "name": "${hostName}"
@@ -213,43 +259,35 @@ serve(async (req) => {
     <h1>${eventTitle}</h1>
     <p>${eventDescription}</p>
     <p>Host: ${hostName}</p>
-    ${eventDate ? `<p>Date: ${eventDate} ${eventTime}</p>` : ''}
-    ${event.location ? `<p>Location: ${event.location}</p>` : ''}
+    ${eventDate ? `<p>Date: ${eventDate} ${eventTime}</p>` : ""}
+    ${event.location ? `<p>Location: ${event.location}</p>` : ""}
     <p>Price: ${ticketPrice}</p>
     <a href="${eventUrl}">View Event</a>
-    <noscript>
-      <p>Redirecting to event page... <a href="${eventUrl}">Click here</a> if not redirected.</p>
-    </noscript>
   </div>
-  <script>
-    (function(){
-      try {
-        var ua = navigator.userAgent || '';
-        var isBot = /(facebookexternalhit|Twitterbot|WhatsApp|LinkedInBot|Slackbot|TelegramBot|SkypeBot|GoogleBot|bingbot|facebot|ia_archiver)/i.test(ua);
-        if (!isBot) {
-          window.location.replace(${JSON.stringify(eventUrl)});
-        }
-      } catch (e) {
-        // Fallback
-        window.location.href = ${JSON.stringify(eventUrl)};
-      }
-    })();
-  </script>
 </body>
 </html>`;
 
-    return new Response(html, {
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'text/html; charset=utf-8',
-        'Cache-Control': 'public, max-age=300',
-      },
-    });
-
-
+      return new Response(html, {
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "text/html; charset=utf-8",
+          "Cache-Control": "public, max-age=300",
+        },
+      });
+    } else {
+      console.log("Redirecting human visitor to app");
+      // For human visitors, redirect to the React app
+      return new Response(null, {
+        status: 302,
+        headers: {
+          ...corsHeaders,
+          Location: eventUrl,
+        },
+      });
+    }
   } catch (error) {
-    console.error('Error in event-meta-tags function:', error);
-    return new Response('Internal Server Error', {
+    console.error("Error in event-meta-tags function:", error);
+    return new Response("Internal Server Error", {
       status: 500,
       headers: corsHeaders,
     });
