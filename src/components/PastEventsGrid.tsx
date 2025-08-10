@@ -38,6 +38,7 @@ const PastEventsGrid: React.FC = () => {
   const { toast } = useToast();
 
   const today = new Date().toISOString().split("T")[0];
+  const time = new Date().toISOString().slice(11, 19);
 
   // Fetch past events from Supabase
   const fetchPastEvents = async () => {
@@ -45,7 +46,9 @@ const PastEventsGrid: React.FC = () => {
       const { data, error } = await supabase
         .from("events")
         .select("*")
+        .eq("is_live", false)
         .lt("date", today)
+        .lt("time", time)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
