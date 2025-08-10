@@ -57,7 +57,7 @@ export function useEventSearch(query: string, options: UseEventSearchOptions = {
             name
           )
         `)
-        .or(`name.ilike.%${searchQuery}%,channels.name.ilike.%${searchQuery}%`)
+        .ilike('name', `%${searchQuery}%`)
         .limit(limit);
 
       if (searchError) {
