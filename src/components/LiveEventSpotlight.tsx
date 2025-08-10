@@ -8,6 +8,7 @@ import { Track } from "livekit-client";
 import MainStreamPreview from "@/components/MainStreamPreview";
 import MediaBackground from "@/components/MediaBackground";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAppContext } from "@/contexts/AppContext";
 
 interface LiveEvent {
   id: string;
@@ -33,8 +34,6 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({
   eventName,
   fallbackImage,
 }) => {
-  const navigate = useNavigate();
-
   const fetchLiveKitToken = async () => {
     const { data, error } = await supabase.functions.invoke(
       "create-livekit-token",
@@ -117,6 +116,7 @@ const StreamContent: React.FC<{
   event: any;
 }> = ({ eventName, fallbackImage }) => {
   const [isMuted, setIsMuted] = useState(false);
+
   const videoTracks = useTracks(
     [Track.Source.Camera, Track.Source.ScreenShare],
     {
@@ -167,6 +167,7 @@ const LiveEventSpotlight: React.FC = () => {
     if (hours > 0) return `${hours}h ${minutes}m left`;
     return `${minutes}m left`;
   };
+  const { isAuthenticated } = useAppContext();
 
   // React Query for live events
   const {
@@ -174,7 +175,7 @@ const LiveEventSpotlight: React.FC = () => {
     isLoading: isEventsLoading,
     error: eventsError,
   } = useQuery({
-    queryKey: ["live-events"],
+    queryKey: ["live-events", isAuthenticated],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("events")

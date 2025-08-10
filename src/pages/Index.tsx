@@ -1,66 +1,71 @@
-import React, { useState, useEffect } from 'react';
-import Hero from '@/components/Hero';
-import EventSearchBox from '@/components/EventSearchBox';
-import LiveEventSpotlight from '@/components/LiveEventSpotlight';
-import TrendingChannels from '@/components/TrendingChannels';
-import UpcomingEvents from '@/components/UpcomingEvents';
-import LiveFeed from '@/components/LiveFeed';
-import TrendingEpisodes from '@/components/TrendingEpisodes';
-import EventGrid from '@/components/EventGrid';
-import StageView from '@/components/StageView';
-import LiveNewsFeed from '@/components/LiveNewsFeed';
-import FeaturedAdsCarousel from '@/components/FeaturedAdsCarousel';
-import TrendingAnalyticsPanel from '@/components/TrendingAnalyticsPanel';
-import { supabase } from '@/integrations/supabase/client';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import React, { useState, useEffect } from "react";
+import Hero from "@/components/Hero";
+import EventSearchBox from "@/components/EventSearchBox";
+import LiveEventSpotlight from "@/components/LiveEventSpotlight";
+import TrendingChannels from "@/components/TrendingChannels";
+import UpcomingEvents from "@/components/UpcomingEvents";
+import LiveFeed from "@/components/LiveFeed";
+import TrendingEpisodes from "@/components/TrendingEpisodes";
+import EventGrid from "@/components/EventGrid";
+import StageView from "@/components/StageView";
+import LiveNewsFeed from "@/components/LiveNewsFeed";
+import FeaturedAdsCarousel from "@/components/FeaturedAdsCarousel";
+import TrendingAnalyticsPanel from "@/components/TrendingAnalyticsPanel";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 const Index: React.FC = () => {
- 
-
   // React Query for events
   const {
     data: events = [],
     isLoading: isEventsLoading,
-    error: eventsError
+    error: eventsError,
   } = useQuery({
-    queryKey: ['all-events'],
+    queryKey: ["all-events"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('events')
+        .from("events")
         .select(`*, channels ( name, description )`)
-        .order('created_at', { ascending: false });
+        .order("created_at", { ascending: false });
 
       if (error) {
-        throw new Error(error.message || 'Error fetching events');
+        throw new Error(error.message || "Error fetching events");
       }
 
       return (
-        data?.map(event => ({
+        data?.map((event) => ({
           id: event.id,
           title: event.name,
-          description: event.description || event.channels?.description || 'No description available',
+          description:
+            event.description ||
+            event.channels?.description ||
+            "No description available",
           price: Number(event.ticket_price) || 0,
-          date: event.date || new Date().toISOString().split('T')[0],
-          time: event.time || '12:00 PM',
-          duration: '2 hours',
+          date: event.date || new Date().toISOString().split("T")[0],
+          time: event.time || "12:00 PM",
+          duration: "2 hours",
           viewers: event.viewer_count || 0,
           streamerCount: 2,
           isLive: event.is_live || false,
           thumbnail: event.media_urls?.[0],
-          slug: event.slug
+          slug: event.slug,
         })) || []
       );
-    }
+    },
   });
 
   // Realtime updates for events list
   const queryClient = useQueryClient();
   useEffect(() => {
     const channel = supabase
-      .channel('public:events-home')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'events' }, () => {
-        queryClient.invalidateQueries({ queryKey: ['all-events'] });
-      })
+      .channel("public:events-home")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "events" },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["all-events"] });
+        }
+      )
       .subscribe();
 
     return () => {
@@ -68,15 +73,14 @@ const Index: React.FC = () => {
     };
   }, [queryClient]);
 
-  
-// console.log(events);
+  // console.log(events);
 
   // if (currentView === 'stage' && selectedEvent) {
   //   const event = events.find(e => e.id === selectedEvent);
   //   return (
-  //     <StageView 
-  //       eventTitle={event?.title || 'Live Event'} 
-  //       streams={mockStreams} 
+  //     <StageView
+  //       eventTitle={event?.title || 'Live Event'}
+  //       streams={mockStreams}
   //     />
   //   );
   // }
@@ -94,7 +98,7 @@ const Index: React.FC = () => {
       <Hero />
 
       {/* Live Event Spotlight - Top 3 trending live events */}
-      <LiveEventSpotlight  />
+      <LiveEventSpotlight />
 
       {/* Trending Channels */}
       {/* <TrendingChannels /> */}
@@ -114,9 +118,7 @@ const Index: React.FC = () => {
           <div className="">
             <div className="">
               {/* <h2 className="text-2xl font-bold mb-6">All Events</h2> */}
-              <EventGrid 
-                events={events}
-              />
+              <EventGrid events={events} />
             </div>
             {/* <div className="lg:col-span-1">
               <LiveNewsFeed />
