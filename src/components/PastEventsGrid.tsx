@@ -1,11 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Filter, SortAsc } from 'lucide-react';
-import PastEventCard from './PastEventCard';
-import { supabase } from '@/lib/supabase';
-import { useToast } from '@/hooks/use-toast';
+import React, { useState, useEffect } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Search, Filter, SortAsc } from "lucide-react";
+import PastEventCard from "./PastEventCard";
+import { supabase } from "@/lib/supabase";
+import { useToast } from "@/hooks/use-toast";
 
 interface PastEvent {
   id: string;
@@ -15,7 +21,7 @@ interface PastEvent {
   thumbnail_url: string;
   duration: number;
   recorded_at: string;
-  visibility: 'public' | 'private' | 'selected';
+  visibility: "public" | "private" | "selected";
   price: number;
   view_count: number;
   tags: string[];
@@ -25,61 +31,67 @@ interface PastEvent {
 const PastEventsGrid: React.FC = () => {
   const [events, setEvents] = useState<PastEvent[]>([]);
   const [filteredEvents, setFilteredEvents] = useState<PastEvent[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('recent');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("recent");
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchPastEvents();
-  }, []);
+  const today = new Date().toISOString().split("T")[0];
 
-  useEffect(() => {
-    filterAndSortEvents();
-  }, [events, searchTerm, categoryFilter, sortBy]);
-
+  // Fetch past events from Supabase
   const fetchPastEvents = async () => {
     try {
       const { data, error } = await supabase
-        .from('past_events')
-        .select('*')
-        .eq('is_saved', true)
-        .order('created_at', { ascending: false });
+        .from("events")
+        .select("*")
+        .lt("date", today)
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setEvents(data || []);
+      setEvents((data ?? []) as PastEvent[]);
     } catch (error) {
-      console.error('Error fetching past events:', error);
+      console.error("Error fetching past events:", error);
       toast({
         title: "Error",
         description: "Failed to load past events",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
   };
 
+  // Filter and sort events whenever dependencies change
+
   const filterAndSortEvents = () => {
-    let filtered = events.filter(event => {
-      const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           event.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           event.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-      const matchesCategory = categoryFilter === 'all' || event.category === categoryFilter;
+    setLoading(true);
+    const filtered = events.filter((event) => {
+      const matchesSearch =
+        (event.title ?? "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (event.description ?? "")
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        (event.tags ?? []).some((tag) =>
+          (tag ?? "").toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      const matchesCategory =
+        categoryFilter === "all" || event.category === categoryFilter;
       return matchesSearch && matchesCategory;
     });
 
-    // Sort events
     filtered.sort((a, b) => {
       switch (sortBy) {
-        case 'recent':
-          return new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime();
-        case 'popular':
+        case "recent":
+          return (
+            new Date(b.recorded_at).getTime() -
+            new Date(a.recorded_at).getTime()
+          );
+        case "popular":
           return b.view_count - a.view_count;
-        case 'price-low':
+        case "price-low":
           return a.price - b.price;
-        case 'price-high':
+        case "price-high":
           return b.price - a.price;
         default:
           return 0;
@@ -87,7 +99,18 @@ const PastEventsGrid: React.FC = () => {
     });
 
     setFilteredEvents(filtered);
+    setLoading(false);
   };
+
+  useEffect(() => {
+    fetchPastEvents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    filterAndSortEvents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [events, searchTerm, categoryFilter, sortBy]);
 
   const handlePlayEvent = (event: PastEvent) => {
     if (event.price > 0) {
@@ -103,7 +126,10 @@ const PastEventsGrid: React.FC = () => {
     }
   };
 
-  const categories = ['all', ...Array.from(new Set(events.map(e => e.category).filter(Boolean)))];
+  const categories = [
+    "all",
+    ...Array.from(new Set(events.map((e) => e.category).filter(Boolean))),
+  ];
 
   if (loading) {
     return (
@@ -113,6 +139,8 @@ const PastEventsGrid: React.FC = () => {
     );
   }
 
+  console.log("Filtered Events", filteredEvents);
+  console.log("Events", events);
   return (
     <div className="space-y-6">
       {/* Search and Filters */}
@@ -132,9 +160,9 @@ const PastEventsGrid: React.FC = () => {
             <SelectValue placeholder="Category" />
           </SelectTrigger>
           <SelectContent>
-            {categories.map(category => (
+            {categories.map((category) => (
               <SelectItem key={category} value={category}>
-                {category === 'all' ? 'All Categories' : category}
+                {category === "all" ? "All Categories" : category}
               </SelectItem>
             ))}
           </SelectContent>
@@ -155,12 +183,12 @@ const PastEventsGrid: React.FC = () => {
 
       {/* Results Count */}
       <div className="text-sm text-gray-600">
-        {filteredEvents.length} event{filteredEvents.length !== 1 ? 's' : ''} found
+        {events.length} event{events.length !== 1 ? "s" : ""} found
       </div>
 
       {/* Events Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {filteredEvents.map(event => (
+        {filteredEvents.map((event) => (
           <PastEventCard
             key={event.id}
             event={event}
@@ -169,9 +197,11 @@ const PastEventsGrid: React.FC = () => {
         ))}
       </div>
 
-      {filteredEvents.length === 0 && !loading && (
+      {events.length === 0 && !loading && (
         <div className="text-center py-12">
-          <p className="text-gray-500">No past events found matching your criteria.</p>
+          <p className="text-gray-500">
+            No past events found matching your criteria.
+          </p>
         </div>
       )}
     </div>

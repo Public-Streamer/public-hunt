@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Play, Eye, Clock, DollarSign } from 'lucide-react';
-import TooltipWrapper from '@/components/ui/tooltip-wrapper';
-import TicketPurchaseModal from './TicketPurchaseModal';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Play, Eye, Clock, DollarSign } from "lucide-react";
+import TooltipWrapper from "@/components/ui/tooltip-wrapper";
+import TicketPurchaseModal from "./TicketPurchaseModal";
 
 interface PastEvent {
   id: string;
@@ -15,7 +15,7 @@ interface PastEvent {
   thumbnail_url: string;
   duration: number;
   recorded_at: string;
-  visibility: 'public' | 'private' | 'selected';
+  visibility: "public" | "private" | "selected";
   price: number;
   view_count: number;
   tags: string[];
@@ -28,14 +28,20 @@ interface PastEventCardProps {
   onPurchase?: (eventId: string) => void;
 }
 
-const PastEventCard: React.FC<PastEventCardProps> = ({ event, onPlay, onPurchase }) => {
+const PastEventCard: React.FC<PastEventCardProps> = ({
+  event,
+  onPlay,
+  onPurchase,
+}) => {
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const navigate = useNavigate();
 
   const formatDuration = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
-    return hours > 0 ? `${hours}:${minutes.toString().padStart(2, '0')}:00` : `${minutes}:00`;
+    return hours > 0
+      ? `${hours}:${minutes.toString().padStart(2, "0")}:00`
+      : `${minutes}:00`;
   };
 
   const formatDate = (dateString: string) => {
@@ -43,7 +49,9 @@ const PastEventCard: React.FC<PastEventCardProps> = ({ event, onPlay, onPurchase
   };
 
   const handleCardClick = () => {
-    const eventUrl = (event as any).slug ? `/event/${(event as any).slug}` : `/event/${event.id}`;
+    const eventUrl = (event as any).slug
+      ? `/event/${(event as any).slug}`
+      : `/event/${event.id}`;
     navigate(eventUrl);
   };
 
@@ -63,22 +71,25 @@ const PastEventCard: React.FC<PastEventCardProps> = ({ event, onPlay, onPurchase
 
   return (
     <>
-      <Card className="hover:shadow-lg transition-shadow cursor-pointer group" onClick={handleCardClick}>
+      <Card
+        className="hover:shadow-lg transition-shadow cursor-pointer group"
+        onClick={handleCardClick}
+      >
         <CardHeader className="p-0">
           <div className="relative">
-            <img 
-              src={event.thumbnail_url || '/placeholder.svg'} 
+            <img
+              src={event.thumbnail_url || "/placeholder.svg"}
               alt={event.title}
               className="w-full h-48 object-cover rounded-t-lg"
             />
             <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center rounded-t-lg">
-              <Button 
+              <Button
                 onClick={handlePlayClick}
                 className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                 size="lg"
               >
                 <Play className="h-6 w-6 mr-2" />
-                {event.price > 0 ? `Buy & Play - $${event.price}` : 'Play'}
+                {event.price > 0 ? `Buy & Play - $${event.price}` : "Play"}
               </Button>
             </div>
             <div className="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white px-2 py-1 rounded text-xs">
@@ -89,27 +100,30 @@ const PastEventCard: React.FC<PastEventCardProps> = ({ event, onPlay, onPurchase
         </CardHeader>
         <CardContent className="p-4">
           <div className="flex items-start justify-between mb-2">
-            <CardTitle className="text-lg line-clamp-2">{event.title}</CardTitle>
+            <CardTitle className="text-lg line-clamp-2">
+              {event.title}
+            </CardTitle>
             <div className="flex items-center gap-2 ml-2">
-              {event.visibility === 'private' && (
+              {event.visibility === "private" && (
                 <Badge variant="secondary">Private</Badge>
               )}
               {event.price > 0 && (
                 <TooltipWrapper content={`Price: $${event.price}`}>
                   <Badge className="bg-green-500">
-                    <DollarSign className="h-3 w-3 mr-1" />
-                    ${event.price}
+                    <DollarSign className="h-3 w-3 mr-1" />${event.price}
                   </Badge>
                 </TooltipWrapper>
               )}
             </div>
           </div>
-          <p className="text-sm text-gray-600 mb-3 line-clamp-2">{event.description}</p>
+          <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+            {event.description}
+          </p>
           <div className="flex items-center justify-between text-xs text-gray-500">
             <TooltipWrapper content="Total views">
               <span className="flex items-center">
                 <Eye className="h-3 w-3 mr-1" />
-                {event.view_count.toLocaleString()}
+                {event.view_count}
               </span>
             </TooltipWrapper>
             <span>{formatDate(event.recorded_at)}</span>
@@ -125,7 +139,7 @@ const PastEventCard: React.FC<PastEventCardProps> = ({ event, onPlay, onPurchase
           )}
         </CardContent>
       </Card>
-      
+
       <TicketPurchaseModal
         isOpen={showPurchaseModal}
         onClose={() => setShowPurchaseModal(false)}
