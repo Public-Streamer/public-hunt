@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Eye, Clock } from "lucide-react";
+import { Eye, Clock, Loader } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { LiveKitRoom, useTracks } from "@livekit/components-react";
 import { Track } from "livekit-client";
@@ -68,11 +68,16 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({
   const serverUrl = tokenData?.serverUrl || "";
 
   if (isTokenLoading) {
-    return <div className="text-center py-12">Loading stream...</div>;
+    return (
+      <div className="text-center py-12 flex justify-center items-center">
+        {" "}
+        <Loader className="animate-spin " />{" "}
+      </div>
+    );
   }
   if (tokenError) {
     return (
-      <div className="text-center py-12">
+      <div className="text-center py-12 flex justify-center items-center">
         Error loading stream: {tokenError.message}
       </div>
     );
@@ -269,7 +274,7 @@ const LiveEventSpotlight: React.FC = () => {
                 >
                   Watch Now
                 </Button>
-                <div className="space-y-3">
+                <div className="space-y-1">
                   {/* Title with proper truncation */}
                   <h3
                     className="font-semibold text-sm leading-tight"

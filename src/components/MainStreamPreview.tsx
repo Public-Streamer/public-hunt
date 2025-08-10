@@ -1,15 +1,12 @@
 import React, { useEffect, useState, useRef } from "react";
-import {
-  VideoTrack,
-} from "@livekit/components-react";
-import {
-  TrackReference,
-} from "@livekit/components-core";
+import { VideoTrack } from "@livekit/components-react";
+import { TrackReference } from "@livekit/components-core";
 import { Badge } from "@/components/ui/badge";
 import { Eye } from "lucide-react";
 import { useStreamingControls } from "@/hooks/useStreamingControls";
 import MediaBackground from "./MediaBackground";
 import InStreamChatOverlay from "./InStreamChatOverlay";
+import { useAppContext } from "@/contexts/AppContext";
 
 interface MainStreamPreviewProps {
   track?: TrackReference;
@@ -28,7 +25,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
   setIsMuted,
   isMuted,
   eventId,
-  mediaUrls
+  mediaUrls,
 }) => {
   const videoContainerRef = useRef<HTMLDivElement>(null);
   const videoElementRef = useRef<HTMLVideoElement>(null);
@@ -37,26 +34,36 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
   const [showControls, setShowControls] = useState(true);
   const hideControlsTimer = useRef<NodeJS.Timeout | null>(null);
   const controls = useStreamingControls(eventId);
+  const [isHome, setIsHome] = useState(false);
+
+  useEffect(() => {
+    if (window.location.pathname === "/") {
+      setIsHome(true);
+    } else {
+      setIsHome(false);
+    }
+  }, []);
 
   // Detect iOS Safari
   const isIOSSafari = () => {
     const userAgent = navigator.userAgent;
-    return /iPad|iPhone|iPod/.test(userAgent) && 
-           (/Safari/.test(userAgent) || /CriOS/.test(userAgent)) &&
-           !(window as any).MSStream;
+    return (
+      /iPad|iPhone|iPod/.test(userAgent) &&
+      (/Safari/.test(userAgent) || /CriOS/.test(userAgent)) &&
+      !(window as any).MSStream
+    );
   };
-
 
   // Enhanced fullscreen functionality with iOS Safari support
   const handleFullscreenToggle = () => {
     // Find the actual video element within the VideoTrack component
     const findVideoElement = () => {
       if (videoElementRef.current) return videoElementRef.current;
-      
+
       // Look for video element within the container
       const container = videoContainerRef.current;
       if (container) {
-        const videoEl = container.querySelector('video');
+        const videoEl = container.querySelector("video");
         if (videoEl) {
           videoElementRef.current = videoEl;
           return videoEl;
@@ -66,7 +73,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
     };
 
     const videoElement = findVideoElement();
-    
+
     if (!isFullscreen) {
       // Enter fullscreen
       if (isIOSSafari() && videoElement) {
@@ -79,10 +86,10 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
             return;
           }
         } catch (error) {
-          console.log('iOS video fullscreen failed, falling back to container');
+          console.log("iOS video fullscreen failed, falling back to container");
         }
       }
-      
+
       // Standard fullscreen API (works on Android Chrome and desktop)
       const element = videoElement || videoContainerRef.current;
       if (element) {
@@ -96,17 +103,21 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
       }
     } else {
       // Exit fullscreen
-      if (isIOSSafari() && videoElement && (videoElement as any).webkitExitFullscreen) {
+      if (
+        isIOSSafari() &&
+        videoElement &&
+        (videoElement as any).webkitExitFullscreen
+      ) {
         try {
           (videoElement as any).webkitExitFullscreen();
           setIsFullscreen(false);
           setShowControls(true);
           return;
         } catch (error) {
-          console.log('iOS video exit fullscreen failed');
+          console.log("iOS video exit fullscreen failed");
         }
       }
-      
+
       // Standard exit fullscreen
       if (document.exitFullscreen) {
         document.exitFullscreen();
@@ -152,14 +163,16 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
 
     // iOS Safari video fullscreen events
     const handleVideoFullscreenChange = () => {
-      const videoElement = videoElementRef.current || 
-        videoContainerRef.current?.querySelector('video');
-      
+      const videoElement =
+        videoElementRef.current ||
+        videoContainerRef.current?.querySelector("video");
+
       if (videoElement && isIOSSafari()) {
         // Check if video is in fullscreen mode
-        const isVideoFullscreen = (videoElement as any).webkitDisplayingFullscreen;
+        const isVideoFullscreen = (videoElement as any)
+          .webkitDisplayingFullscreen;
         setIsFullscreen(!!isVideoFullscreen);
-        
+
         if (!isVideoFullscreen) {
           setShowControls(true);
           if (hideControlsTimer.current) {
@@ -172,27 +185,45 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
     };
 
     // Standard fullscreen events
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-    document.addEventListener('msfullscreenchange', handleFullscreenChange);
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+    document.addEventListener("msfullscreenchange", handleFullscreenChange);
 
     // iOS video fullscreen events
-    const videoElement = videoContainerRef.current?.querySelector('video');
+    const videoElement = videoContainerRef.current?.querySelector("video");
     if (videoElement && isIOSSafari()) {
-      videoElement.addEventListener('webkitbeginfullscreen', handleVideoFullscreenChange);
-      videoElement.addEventListener('webkitendfullscreen', handleVideoFullscreenChange);
+      videoElement.addEventListener(
+        "webkitbeginfullscreen",
+        handleVideoFullscreenChange
+      );
+      videoElement.addEventListener(
+        "webkitendfullscreen",
+        handleVideoFullscreenChange
+      );
     }
 
     return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
-      document.removeEventListener('msfullscreenchange', handleFullscreenChange);
-      
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      document.removeEventListener(
+        "webkitfullscreenchange",
+        handleFullscreenChange
+      );
+      document.removeEventListener(
+        "msfullscreenchange",
+        handleFullscreenChange
+      );
+
       if (videoElement && isIOSSafari()) {
-        videoElement.removeEventListener('webkitbeginfullscreen', handleVideoFullscreenChange);
-        videoElement.removeEventListener('webkitendfullscreen', handleVideoFullscreenChange);
+        videoElement.removeEventListener(
+          "webkitbeginfullscreen",
+          handleVideoFullscreenChange
+        );
+        videoElement.removeEventListener(
+          "webkitendfullscreen",
+          handleVideoFullscreenChange
+        );
       }
-      
+
       if (hideControlsTimer.current) {
         clearTimeout(hideControlsTimer.current);
       }
@@ -206,17 +237,19 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
     }
   };
 
-  const cameraOff = '/cameraOff.jpg';
+  const cameraOff = "/cameraOff.jpg";
   const bgUrl = mediaUrls?.[0] ? mediaUrls[0] : cameraOff;
   if (!track) {
     return (
-      <MediaBackground 
-        src={cameraOff} 
+      <MediaBackground
+        src={cameraOff}
         fallback={cameraOff}
         className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100"
       >
         <div className="absolute inset-0 flex items-end justify-center">
-          <h1 className="p-10 text-2xl font-thin text-white">Camera/Screen is Off</h1>
+          <h1 className="p-10 text-2xl font-thin text-white">
+            Camera/Screen is Off
+          </h1>
           {/* <Video className="h-12 w-12 sm:h-16 sm:w-16 lg:h-24 lg:w-24 text-purple-500" /> */}
         </div>
         {isLive && (
@@ -255,9 +288,11 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
 
   return (
     <>
-      <div 
+      <div
         ref={videoContainerRef}
-        className={`aspect-video relative bg-black ${isFullscreen ? 'fixed inset-0 z-50 aspect-auto' : ''}`}
+        className={`aspect-video relative bg-black ${
+          isFullscreen ? "fixed inset-0 z-50 aspect-auto" : ""
+        }`}
         onMouseMove={handleMouseMove}
         onTouchStart={handleMouseMove}
       >
@@ -266,43 +301,53 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
         {/* <AudioTrack trackRef={audioTracks[0]}/> */}
 
         {/* Live badge */}
-        <Badge className={`absolute top-2 left-2 sm:top-4 sm:left-4 bg-red-600 text-white text-xs transition-opacity duration-300 z-50 ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100'}`}>
+        <Badge
+          className={`absolute top-2 left-2 sm:top-4 sm:left-4 bg-red-600 text-white text-xs transition-opacity duration-300 z-50 ${
+            isFullscreen && !showControls ? "opacity-0" : "opacity-100"
+          }`}
+        >
           <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full mr-1 animate-pulse" />
           LIVE
         </Badge>
 
         {/* Multi-camera indicator */}
-        <div className={`absolute top-2 right-2 sm:top-4 sm:right-4 bg-black/70 text-white px-2 py-1 rounded text-xs sm:text-sm transition-opacity duration-300 ${isFullscreen && !showControls ? 'opacity-0' : 'opacity-100'}`}>
-          {/* Viewer Count */}
-          <div className="absolute top-2 right-2">
-                    <Badge
-                      variant="secondary"
-                      className="flex items-center gap-1 text-xs"
-                    >
-                      <Eye className="h-3 w-3" />
-                      {controls?.participantCount - 1}
-                    </Badge>
-                  </div>
+
+        {/* Viewer Count */}
+        <div className="absolute top-2 right-2">
+          <Badge
+            variant="secondary"
+            className="flex items-center gap-1 text-xs"
+          >
+            <Eye className="h-3 w-3" />
+            {controls?.participantCount - 1}
+          </Badge>
         </div>
 
-
-        <InStreamChatOverlay
-          eventId={eventId}
-          isVisible={isChatVisible}
-          onVisibilityToggle={() => setIsChatVisible(!isChatVisible)}
-          isFullscreen={isFullscreen}
-          showControls={showControls}
-          showFullscreenToggle={true}
-          onFullscreenToggle={handleFullscreenToggle}
-        />
+        {!isHome && (
+          <InStreamChatOverlay
+            eventId={eventId}
+            isVisible={isChatVisible}
+            onVisibilityToggle={() => setIsChatVisible(!isChatVisible)}
+            isFullscreen={isFullscreen}
+            showControls={showControls}
+            showFullscreenToggle={true}
+            onFullscreenToggle={handleFullscreenToggle}
+          />
+        )}
 
         {/* Participant info */}
         <div className="absolute bottom-2 right-2 flex justify-end items-start z-10">
           <Badge variant="default">
             {(() => {
               try {
-                const metadata = track?.participant?.metadata ? JSON.parse(track?.participant?.metadata) : {};
-                return metadata.streamName || track?.participant?.name || track?.participant?.identity;
+                const metadata = track?.participant?.metadata
+                  ? JSON.parse(track?.participant?.metadata)
+                  : {};
+                return (
+                  metadata.streamName ||
+                  track?.participant?.name ||
+                  track?.participant?.identity
+                );
               } catch {
                 return track?.participant?.name || track?.participant?.identity;
               }
