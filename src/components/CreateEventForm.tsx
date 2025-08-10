@@ -11,8 +11,6 @@ import CreateEventFormButtons from "@/components/CreateEventFormButtons";
 // Channel functionality completely disabled to prevent infinite loops
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "react-day-picker";
-
 import { useAppContext } from "@/contexts/AppContext";
 import { Link } from "react-router-dom";
 
@@ -187,6 +185,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         .from("host_stripe_accounts")
         .select("stripe_account_id")
         .eq("user_id", user?.id)
+        .eq("account_status", "active")
         .single();
       // console.log(stripeAccount.stripe_account_id);
       const hostStripeAccountId = stripeAccount?.stripe_account_id || null;
@@ -406,9 +405,11 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
     );
   }
 
+  console.log("hostStripeAccountId", hostStripeAccountId);
+
   return (
     <div className="space-y-6 p-4 max-w-4xl mx-auto">
-      {hostStripeAccountId == null && (
+      {!hostStripeAccountId && (
         <div className="text-center w-full bg-red-100">
           <span className="flex md:flex-row flex-col items-center justify-center gap-2 text-red-400 font-semibold border border-red-400 p-2 rounded">
             <TriangleAlert className="text-red-400 text-2xl" />
