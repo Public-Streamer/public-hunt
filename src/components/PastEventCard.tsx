@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Play, Eye, Clock, DollarSign } from "lucide-react";
+import { Play, Eye, Clock, DollarSign, Calendar } from "lucide-react";
 import TooltipWrapper from "@/components/ui/tooltip-wrapper";
 import TicketPurchaseModal from "./TicketPurchaseModal";
 
@@ -26,12 +26,14 @@ interface PastEventCardProps {
   event: PastEvent;
   onPlay: (event: PastEvent) => void;
   onPurchase?: (eventId: string) => void;
+  ranking?: number;
 }
 
 const PastEventCard: React.FC<PastEventCardProps> = ({
   event,
   onPlay,
   onPurchase,
+  ranking,
 }) => {
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const navigate = useNavigate();
@@ -71,74 +73,76 @@ const PastEventCard: React.FC<PastEventCardProps> = ({
 
   return (
     <>
-      <Card
-        className="hover:shadow-lg transition-shadow cursor-pointer group"
-        onClick={handleCardClick}
-      >
-        <CardHeader className="p-0">
-          <div className="relative">
-            <img
-              src={event.thumbnail_url || "/placeholder.svg"}
-              alt={event.title}
-              className="w-full h-48 object-cover rounded-t-lg"
-            />
-            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center rounded-t-lg">
-              <Button
-                onClick={handlePlayClick}
-                className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                size="lg"
-              >
-                <Play className="h-6 w-6 mr-2" />
-                {event.price > 0 ? `Buy & Play - $${event.price}` : "Play"}
-              </Button>
-            </div>
-            <div className="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white px-2 py-1 rounded text-xs">
-              <Clock className="h-3 w-3 inline mr-1" />
-              {formatDuration(event.duration)}
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="p-4">
-          <div className="flex items-start justify-between mb-2">
-            <CardTitle className="text-lg line-clamp-2">
-              {event.title}
-            </CardTitle>
-            <div className="flex items-center gap-2 ml-2">
-              {event.visibility === "private" && (
-                <Badge variant="secondary">Private</Badge>
-              )}
-              {event.price > 0 && (
-                <TooltipWrapper content={`Price: $${event.price}`}>
-                  <Badge className="bg-green-500">
-                    <DollarSign className="h-3 w-3 mr-1" />${event.price}
+      <TooltipWrapper content={`${event.title} - Recorded on ${formatDate(event.recorded_at)}`}>
+        <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={handleCardClick}>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg">{event.title}</CardTitle>
+              <div className="flex items-center gap-2">
+                {ranking && (
+                  <Badge variant="outline" className="bg-gray-50 text-gray-600">
+                    #{ranking}
                   </Badge>
+                )}
+                {event.visibility === "private" && (
+                  <Badge variant="secondary">Private</Badge>
+                )}
+                <Badge variant="outline" className="bg-green-50 text-green-600">
+                  RECORDED
+                </Badge>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-gray-600 mb-2 line-clamp-2">
+              {event.description}
+            </p>
+            
+            <div className="flex items-center text-sm text-gray-500 mb-2">
+              <Clock className="h-4 w-4 mr-1" />
+              <span>{formatDuration(event.duration)}</span>
+              <Calendar className="h-4 w-4 ml-3 mr-1" />
+              <span>{formatDate(event.recorded_at)}</span>
+            </div>
+            
+            {event.tags && event.tags.length > 0 && (
+              <div className="text-sm text-gray-600 mb-2">
+                {event.category && `${event.category} • `}{event.tags.slice(0, 2).join(' • ')}
+              </div>
+            )}
+            
+            <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
+              <TooltipWrapper content="Total views">
+                <span className="flex items-center">
+                  <Eye className="h-4 w-4 mr-1" />
+                  {event.view_count}
+                </span>
+              </TooltipWrapper>
+              {event.price > 0 && (
+                <TooltipWrapper content="Event price">
+                  <span className="flex items-center">
+                    <DollarSign className="h-4 w-4 mr-1" />
+                    ${event.price}
+                  </span>
                 </TooltipWrapper>
               )}
             </div>
-          </div>
-          <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-            {event.description}
-          </p>
-          <div className="flex items-center justify-between text-xs text-gray-500">
-            <TooltipWrapper content="Total views">
-              <span className="flex items-center">
-                <Eye className="h-3 w-3 mr-1" />
-                {event.view_count}
-              </span>
-            </TooltipWrapper>
-            <span>{formatDate(event.recorded_at)}</span>
-          </div>
-          {event.tags && event.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-2">
-              {event.tags.slice(0, 3).map((tag, index) => (
-                <Badge key={index} variant="outline" className="text-xs">
-                  {tag}
-                </Badge>
-              ))}
+            
+            <Button
+              onClick={handlePlayClick}
+              className="w-full mb-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+            >
+              <Play className="h-4 w-4 mr-2" />
+              {event.price > 0 ? `Buy & Play - $${event.price}` : "Play"}
+            </Button>
+            
+            <div className="flex items-center justify-between text-xs text-gray-400">
+              <span>{event.view_count} total views</span>
+              <span>Recorded {formatDate(event.recorded_at)}</span>
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </TooltipWrapper>
 
       <TicketPurchaseModal
         isOpen={showPurchaseModal}
