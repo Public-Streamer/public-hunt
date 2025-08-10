@@ -28,6 +28,7 @@ export const LegalDocumentModal: React.FC<LegalDocumentModalProps> = ({
   const [acknowledgedRisks, setAcknowledgedRisks] = useState(false);
   const [acknowledgedLiability, setAcknowledgedLiability] = useState(false);
   const [acknowledgedCompliance, setAcknowledgedCompliance] = useState(false);
+  const [acknowledgedProhibited, setAcknowledgedProhibited] = useState(false);
 
   const currentDate = new Date().toLocaleDateString();
   
@@ -46,7 +47,7 @@ export const LegalDocumentModal: React.FC<LegalDocumentModalProps> = ({
   
   console.log('- Is Valid Signature:', isValidSignature);
   
-  const canSubmit = isValidSignature && acknowledgedRisks && acknowledgedLiability && acknowledgedCompliance;
+  const canSubmit = isValidSignature && acknowledgedRisks && acknowledgedLiability && acknowledgedCompliance && acknowledgedProhibited;
 
   const getValidationMessage = () => {
     if (!signature.trim()) return 'Please enter your electronic signature';
@@ -54,6 +55,7 @@ export const LegalDocumentModal: React.FC<LegalDocumentModalProps> = ({
     if (!acknowledgedRisks) return 'Please acknowledge that you understand the risks';
     if (!acknowledgedLiability) return 'Please agree to indemnify Public Streamer';
     if (!acknowledgedCompliance) return 'Please agree to comply with laws and platform terms';
+    if (!acknowledgedProhibited) return 'Please confirm you have read and agree to the Terms of Service, including the prohibition on monetizing prohibited content categories listed above';
     return null;
   };
 
@@ -68,7 +70,7 @@ export const LegalDocumentModal: React.FC<LegalDocumentModalProps> = ({
             email: userEmail,
             signature: signature,
             document_type: 'user_agreement',
-            document_version: '1.0',
+            document_version: '1.1',
             ip_address: 'unknown', // Could be enhanced to get real IP
             user_agent: navigator.userAgent
           });
@@ -180,6 +182,21 @@ export const LegalDocumentModal: React.FC<LegalDocumentModalProps> = ({
                     in full force and effect. This agreement shall be governed by the laws of Delaware, USA.
                   </p>
                 </section>
+
+                <section>
+                  <h3 className="font-semibold mb-2">Prohibited Content Monetization Categories</h3>
+                  <ul className="list-disc pl-6 space-y-1">
+                    <li>
+                      Adult Content and Services – Content that contains nudity or explicit sexual acts (including subscriber-only nude images, adult audio/video live chat) is prohibited.
+                    </li>
+                    <li>
+                      Intellectual Property or Proprietary Rights Infringement – This includes the monetization of content that violates copyrights, trademarks, or other proprietary rights, such as leaked music albums or stolen media.
+                    </li>
+                    <li>
+                      Violent Extremism and Hate Speech – Content that engages in, encourages, promotes, or celebrates unlawful violence or hate speech toward any group based on race, religion, disability, gender, sexual orientation, national origin, or any other immutable characteristic is prohibited.
+                    </li>
+                  </ul>
+                </section>
               </div>
             </div>
           </div>
@@ -223,6 +240,19 @@ export const LegalDocumentModal: React.FC<LegalDocumentModalProps> = ({
               />
               <label htmlFor="compliance" className="text-sm font-medium">
                 I certify that I will comply with all laws and platform terms
+              </label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <input 
+                type="checkbox"
+                id="prohibited"
+                checked={acknowledgedProhibited}
+                onChange={(e) => setAcknowledgedProhibited(e.target.checked)}
+                className="w-4 h-4"
+              />
+              <label htmlFor="prohibited" className="text-sm font-medium">
+                I have read and agree to the Public Streamer Terms of Service, including the prohibition on monetizing prohibited content categories listed above.
               </label>
             </div>
           </div>

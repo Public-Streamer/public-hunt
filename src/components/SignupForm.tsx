@@ -112,6 +112,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
   const [acknowledgedRisks, setAcknowledgedRisks] = useState(false);
   const [acknowledgedLiability, setAcknowledgedLiability] = useState(false);
   const [acknowledgedCompliance, setAcknowledgedCompliance] = useState(false);
+  const [acknowledgedProhibited, setAcknowledgedProhibited] = useState(false);
   const [debugStatus, setDebugStatus] = useState('');
   const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [errorDialogConfig, setErrorDialogConfig] = useState({
@@ -410,7 +411,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
   const isValidLegalSignature = userFullName.trim() 
     ? normalizeString(legalSignature) === normalizeString(userFullName)
     : legalSignature.trim().length >= 3;
-  const canSignLegal = isValidLegalSignature && acknowledgedRisks && acknowledgedLiability && acknowledgedCompliance;
+  const canSignLegal = isValidLegalSignature && acknowledgedRisks && acknowledgedLiability && acknowledgedCompliance && acknowledgedProhibited;
   
   const handleLegalDocumentAccept = () => {
     if (canSignLegal) {
@@ -1008,6 +1009,21 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                       <h5 className="font-semibold">3. CONTENT RESPONSIBILITY</h5>
                       <p>You represent that you own all content you upload, that it complies with all laws, and you assume full responsibility for all activities under your account.</p>
                     </div>
+
+                    <div>
+                      <h5 className="font-semibold">Prohibited Content Monetization Categories</h5>
+                      <ul className="list-disc pl-4 space-y-1">
+                        <li>
+                          Adult Content and Services – Content that contains nudity or explicit sexual acts (including subscriber-only nude images, adult audio/video live chat) is prohibited.
+                        </li>
+                        <li>
+                          Intellectual Property or Proprietary Rights Infringement – This includes the monetization of content that violates copyrights, trademarks, or other proprietary rights, such as leaked music albums or stolen media.
+                        </li>
+                        <li>
+                          Violent Extremism and Hate Speech – Content that engages in, encourages, promotes, or celebrates unlawful violence or hate speech toward any group based on race, religion, disability, gender, sexual orientation, national origin, or any other immutable characteristic is prohibited.
+                        </li>
+                      </ul>
+                    </div>
                   </div>
 
                   <div className="space-y-3">
@@ -1041,6 +1057,17 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                       />
                       <Label htmlFor="compliance" className="text-xs">
                         I certify that I will comply with all laws and platform terms
+                      </Label>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="prohibited"
+                        checked={acknowledgedProhibited}
+                        onCheckedChange={(checked) => setAcknowledgedProhibited(!!checked)}
+                      />
+                      <Label htmlFor="prohibited" className="text-xs">
+                        I have read and agree to the Public Streamer Terms of Service, including the prohibition on monetizing prohibited content categories listed above.
                       </Label>
                     </div>
                   </div>

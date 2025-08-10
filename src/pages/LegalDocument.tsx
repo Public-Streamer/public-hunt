@@ -17,6 +17,7 @@ const LegalDocumentPage: React.FC = () => {
   const [acknowledgedRisks, setAcknowledgedRisks] = useState(false);
   const [acknowledgedLiability, setAcknowledgedLiability] = useState(false);
   const [acknowledgedCompliance, setAcknowledgedCompliance] = useState(false);
+  const [acknowledgedProhibited, setAcknowledgedProhibited] = useState(false);
   const [documentSigned, setDocumentSigned] = useState(false);
 
   const currentDate = new Date().toLocaleDateString();
@@ -43,7 +44,7 @@ const LegalDocumentPage: React.FC = () => {
     ? signature.trim().toLowerCase() === userFullName.toLowerCase().trim()
     : signature.trim().length >= 8; // Require at least 8 characters if no user name
   
-  const canSubmit = isValidSignature && acknowledgedRisks && acknowledgedLiability && acknowledgedCompliance;
+  const canSubmit = isValidSignature && acknowledgedRisks && acknowledgedLiability && acknowledgedCompliance && acknowledgedProhibited;
 
   // Add mobile detection and force touch event handling
   useEffect(() => {
@@ -81,7 +82,7 @@ const LegalDocumentPage: React.FC = () => {
             email: user?.email || 'guest@example.com',
             signature: signature,
             document_type: 'user_agreement',
-            document_version: '1.0',
+            document_version: '1.1',
             ip_address: '127.0.0.1', // In production, get real IP
             user_agent: navigator.userAgent
           })
@@ -222,6 +223,7 @@ const LegalDocumentPage: React.FC = () => {
     if (!acknowledgedRisks) return 'Please acknowledge that you understand the risks of live streaming';
     if (!acknowledgedLiability) return 'Please agree to release Public Streamer from liability and provide indemnification';
     if (!acknowledgedCompliance) return 'Please agree to comply with all applicable laws and platform terms';
+    if (!acknowledgedProhibited) return 'Please confirm you have read and agree to the Terms of Service, including the prohibition on monetizing prohibited content categories listed above';
     return null;
   };
 
@@ -375,6 +377,21 @@ const LegalDocumentPage: React.FC = () => {
               <p className="mb-4">
                 If any provision of this agreement is found to be unenforceable, the remainder shall remain in full force and effect.
               </p>
+
+              <div className="mt-6">
+                <h3 className="font-bold text-red-600 mb-2">Prohibited Content Monetization Categories</h3>
+                <ul className="list-disc pl-6 space-y-1">
+                  <li>
+                    Adult Content and Services – Content that contains nudity or explicit sexual acts (including subscriber-only nude images, adult audio/video live chat) is prohibited.
+                  </li>
+                  <li>
+                    Intellectual Property or Proprietary Rights Infringement – This includes the monetization of content that violates copyrights, trademarks, or other proprietary rights, such as leaked music albums or stolen media.
+                  </li>
+                  <li>
+                    Violent Extremism and Hate Speech – Content that engages in, encourages, promotes, or celebrates unlawful violence or hate speech toward any group based on race, religion, disability, gender, sexual orientation, national origin, or any other immutable characteristic is prohibited.
+                  </li>
+                </ul>
+              </div>
 
               <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mt-6">
                 <h3 className="font-bold text-yellow-700 mb-2">ACKNOWLEDGMENT</h3>
