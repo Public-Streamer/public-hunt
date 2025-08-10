@@ -1,37 +1,37 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Search, Clock } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { Input } from '@/components/ui/input';
-import { useDebounce } from '@/hooks/useDebounce';
-import { useEventSearch, SearchResult } from '@/hooks/useEventSearch';
-import { cn } from '@/lib/utils';
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import { Search, Clock } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Input } from "@/components/ui/input";
+import { useDebounce } from "@/hooks/useDebounce";
+import { useEventSearch, SearchResult } from "@/hooks/useEventSearch";
+import { cn } from "@/lib/utils";
 
 interface EventSearchBoxProps {
   placeholder?: string;
   className?: string;
 }
 
-const EventSearchBox: React.FC<EventSearchBoxProps> = ({ 
+const EventSearchBox: React.FC<EventSearchBoxProps> = ({
   placeholder = "Search events, episodes, or channels…",
-  className
+  className,
 }) => {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const navigate = useNavigate();
-  
+
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  
+
   const debouncedQuery = useDebounce(searchQuery, 300);
   const { results, isLoading, error } = useEventSearch(debouncedQuery, {
-    enabled: debouncedQuery.length >= 2
+    enabled: debouncedQuery.length >= 2,
   });
 
   // Load recent searches from localStorage on mount
   useEffect(() => {
-    const stored = localStorage.getItem('recent-event-searches');
+    const stored = localStorage.getItem("recent-event-searches");
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
@@ -43,24 +43,33 @@ const EventSearchBox: React.FC<EventSearchBoxProps> = ({
   }, []);
 
   // Save recent searches to localStorage
-  const saveRecentSearch = useCallback((query: string) => {
-    const newRecent = [query, ...recentSearches.filter(q => q !== query)].slice(0, 5);
-    setRecentSearches(newRecent);
-    localStorage.setItem('recent-event-searches', JSON.stringify(newRecent));
-  }, [recentSearches]);
+  const saveRecentSearch = useCallback(
+    (query: string) => {
+      const newRecent = [
+        query,
+        ...recentSearches.filter((q) => q !== query),
+      ].slice(0, 5);
+      setRecentSearches(newRecent);
+      localStorage.setItem("recent-event-searches", JSON.stringify(newRecent));
+    },
+    [recentSearches]
+  );
 
   const clearRecentSearches = useCallback(() => {
     setRecentSearches([]);
-    localStorage.removeItem('recent-event-searches');
+    localStorage.removeItem("recent-event-searches");
   }, []);
 
-  const handleSelect = useCallback((result: SearchResult) => {
-    const url = result.slug ? `/event/${result.slug}` : `/event/${result.id}`;
-    saveRecentSearch(result.title);
-    navigate(url);
-    setIsOpen(false);
-    setSelectedIndex(-1);
-  }, [navigate, saveRecentSearch]);
+  const handleSelect = useCallback(
+    (result: SearchResult) => {
+      const url = result.slug ? `/event/${result.slug}` : `/event/${result.id}`;
+      saveRecentSearch(result.title);
+      navigate(url);
+      setIsOpen(false);
+      setSelectedIndex(-1);
+    },
+    [navigate, saveRecentSearch]
+  );
 
   const handleRecentSelect = useCallback((query: string) => {
     setSearchQuery(query);
@@ -68,38 +77,53 @@ const EventSearchBox: React.FC<EventSearchBoxProps> = ({
     setSelectedIndex(-1);
   }, []);
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (!isOpen) return;
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (!isOpen) return;
 
-    const items = results.length > 0 ? results : 
-                  (searchQuery.length === 0 ? recentSearches : []);
+      const items =
+        results.length > 0
+          ? results
+          : searchQuery.length === 0
+          ? recentSearches
+          : [];
 
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        setSelectedIndex(prev => (prev + 1) % items.length);
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        setSelectedIndex(prev => prev <= 0 ? items.length - 1 : prev - 1);
-        break;
-      case 'Enter':
-        e.preventDefault();
-        if (selectedIndex >= 0 && selectedIndex < items.length) {
-          if (results.length > 0) {
-            handleSelect(results[selectedIndex]);
-          } else if (searchQuery.length === 0 && recentSearches.length > 0) {
-            handleRecentSelect(recentSearches[selectedIndex]);
+      switch (e.key) {
+        case "ArrowDown":
+          e.preventDefault();
+          setSelectedIndex((prev) => (prev + 1) % items.length);
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          setSelectedIndex((prev) => (prev <= 0 ? items.length - 1 : prev - 1));
+          break;
+        case "Enter":
+          e.preventDefault();
+          if (selectedIndex >= 0 && selectedIndex < items.length) {
+            if (results.length > 0) {
+              handleSelect(results[selectedIndex]);
+            } else if (searchQuery.length === 0 && recentSearches.length > 0) {
+              handleRecentSelect(recentSearches[selectedIndex]);
+            }
           }
-        }
-        break;
-      case 'Escape':
-        setIsOpen(false);
-        setSelectedIndex(-1);
-        inputRef.current?.blur();
-        break;
-    }
-  }, [isOpen, results, recentSearches, searchQuery, selectedIndex, handleSelect, handleRecentSelect]);
+          break;
+        case "Escape":
+          setIsOpen(false);
+          setSelectedIndex(-1);
+          inputRef.current?.blur();
+          break;
+      }
+    },
+    [
+      isOpen,
+      results,
+      recentSearches,
+      searchQuery,
+      selectedIndex,
+      handleSelect,
+      handleRecentSelect,
+    ]
+  );
 
   const handleFocus = useCallback(() => {
     setIsOpen(true);
@@ -119,7 +143,8 @@ const EventSearchBox: React.FC<EventSearchBoxProps> = ({
   const showRecents = searchQuery.length === 0 && recentSearches.length > 0;
   const showResults = debouncedQuery.length >= 2 && results.length > 0;
   const showLoading = debouncedQuery.length >= 2 && isLoading;
-  const showEmpty = debouncedQuery.length >= 2 && !isLoading && results.length === 0 && !error;
+  const showEmpty =
+    debouncedQuery.length >= 2 && !isLoading && results.length === 0 && !error;
   const showError = error && debouncedQuery.length >= 2;
 
   return (
@@ -153,7 +178,9 @@ const EventSearchBox: React.FC<EventSearchBoxProps> = ({
           {showRecents && (
             <div className="p-2">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-muted-foreground font-medium">Recent</span>
+                <span className="text-xs text-muted-foreground font-medium">
+                  Recent
+                </span>
                 <button
                   onClick={clearRecentSearches}
                   className="text-xs text-muted-foreground hover:text-foreground"
@@ -198,14 +225,21 @@ const EventSearchBox: React.FC<EventSearchBoxProps> = ({
                   )}
                   onClick={() => handleSelect(result)}
                 >
-                  <div className="w-10 h-10 rounded-md overflow-hidden bg-muted flex-shrink-0">
+                  <Link
+                    to={
+                      result.slug
+                        ? `/event/${result.slug}`
+                        : `/event/${result.id}`
+                    }
+                    className="w-10 h-10 rounded-md overflow-hidden bg-muted flex-shrink-0"
+                  >
                     {result.thumbnail ? (
                       <img
                         src={result.thumbnail}
                         alt=""
                         className="w-full h-full object-cover"
                         onError={(e) => {
-                          e.currentTarget.src = '/placeholder.gif';
+                          e.currentTarget.src = "/placeholder.gif";
                         }}
                       />
                     ) : (
@@ -213,14 +247,11 @@ const EventSearchBox: React.FC<EventSearchBoxProps> = ({
                         <Search className="h-4 w-4 text-muted-foreground" />
                       </div>
                     )}
-                  </div>
+                  </Link>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{result.title}</p>
-                    {result.channelName && (
-                      <p className="text-xs text-muted-foreground truncate">
-                        {result.channelName}
-                      </p>
-                    )}
+                    <p className="text-sm font-medium truncate">
+                      {result.title}
+                    </p>
                   </div>
                 </div>
               ))}
