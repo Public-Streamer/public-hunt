@@ -1,14 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, DollarSign, Users, Video, Heart, MessageCircle, Share2 } from 'lucide-react';
-import SocialMediaSection from './SocialMediaSection';
-import TicketPurchaseModal from './TicketPurchaseModal';
-import { supabase } from '@/integrations/supabase/client';
-import { useAppContext } from '@/contexts/AppContext';
-import MediaBackground from './MediaBackground';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Calendar,
+  Clock,
+  DollarSign,
+  Users,
+  Video,
+  Heart,
+  MessageCircle,
+  Share2,
+} from "lucide-react";
+import SocialMediaSection from "./SocialMediaSection";
+import TicketPurchaseModal from "./TicketPurchaseModal";
+import { supabase } from "@/integrations/supabase/client";
+import { useAppContext } from "@/contexts/AppContext";
+import MediaBackground from "./MediaBackground";
 
 interface Event {
   id: string;
@@ -38,25 +47,25 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
 
   const checkTicketStatus = async () => {
     if (!user) return;
-    
+
     setCheckingTicket(true);
     try {
       const { data, error } = await supabase
-        .from('tickets')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('event_id', event.id)
-        .eq('status', 'active')
+        .from("tickets")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("event_id", event.id)
+        .eq("status", "active")
         .single();
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error checking ticket status:', error);
+      if (error && error.code !== "PGRST116") {
+        console.error("Error checking ticket status:", error);
         return;
       }
 
       setHasTicket(!!data);
     } catch (error) {
-      console.error('Error checking ticket status:', error);
+      console.error("Error checking ticket status:", error);
     } finally {
       setCheckingTicket(false);
     }
@@ -69,29 +78,32 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
   }, [user, isAuthenticated, event.id]);
 
   const handleCardClick = () => {
-    const eventUrl = (event as any).slug ? `/event/${(event as any).slug}` : `/event/${event.id}`;
+    const eventUrl = (event as any).slug
+      ? `/event/${(event as any).slug}`
+      : `/event/${event.id}`;
     navigate(eventUrl);
   };
 
   const handleAction = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const eventUrl = (event as any).slug ? `/event/${(event as any).slug}` : `/event/${event.id}`;
+    const eventUrl = (event as any).slug
+      ? `/event/${(event as any).slug}`
+      : `/event/${event.id}`;
     navigate(eventUrl);
-    
+
     if (!isAuthenticated) {
-      navigate('/login');
+      navigate("/login");
       return;
     }
-    
-    // For free events or users with tickets, navigate to event page or watch
-    
-      if (event.isLive) {
-        const eventUrl = (event as any).slug ? `/event/${(event as any).slug}` : `/event/${event.id}`;
-        navigate(eventUrl);
-        
-      } 
 
-   
+    // For free events or users with tickets, navigate to event page or watch
+
+    if (event.isLive) {
+      const eventUrl = (event as any).slug
+        ? `/event/${(event as any).slug}`
+        : `/event/${event.id}`;
+      navigate(eventUrl);
+    }
   };
 
   const handleSocialClick = (e: React.MouseEvent) => {
@@ -101,7 +113,6 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
 
   const handlePurchaseSuccess = () => {
     setHasTicket(true);
-
   };
 
   const getButtonText = () => {
@@ -112,14 +123,17 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
     return `Watch Preview`;
   };
 
-  const noThumb = "/placeholder.svg"
-const bgUrl = event.thumbnail ? event.thumbnail : noThumb;
+  const noThumb = "/placeholder.svg";
+  const bgUrl = event.thumbnail ? event.thumbnail : noThumb;
 
   return (
     <div>
-      <Card  className="hover:shadow-lg transition-shadow duration-300 overflow-hidden cursor-pointer" onClick={handleCardClick}>
-        <MediaBackground 
-          src={bgUrl} 
+      <Card
+        className="hover:shadow-lg transition-shadow duration-300 overflow-hidden cursor-pointer"
+        onClick={handleCardClick}
+      >
+        <MediaBackground
+          src={bgUrl}
           className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100"
         >
           <div className="absolute inset-0 flex items-center justify-center">
@@ -135,7 +149,7 @@ const bgUrl = event.thumbnail ? event.thumbnail : noThumb;
             {event.streamerCount} cameras
           </div>
         </MediaBackground>
-        
+
         <CardHeader className="pb-3">
           <CardTitle className="text-lg font-semibold line-clamp-2">
             {event.title}
@@ -144,7 +158,7 @@ const bgUrl = event.thumbnail ? event.thumbnail : noThumb;
             {event.description}
           </p>
         </CardHeader>
-        
+
         <CardContent className="pt-0">
           <div className="space-y-3">
             <div className="flex items-center justify-between text-sm text-gray-600">
@@ -157,7 +171,7 @@ const bgUrl = event.thumbnail ? event.thumbnail : noThumb;
                 {event.time}
               </div>
             </div>
-            
+
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4 text-sm text-gray-600">
                 <span className="flex items-center">
@@ -166,7 +180,7 @@ const bgUrl = event.thumbnail ? event.thumbnail : noThumb;
                 </span>
                 <span>{event.duration}</span>
               </div>
-              
+
               <div className="flex items-center space-x-2">
                 <span className="text-lg font-bold text-green-600 flex items-center">
                   <DollarSign className="h-4 w-4" />
@@ -174,20 +188,22 @@ const bgUrl = event.thumbnail ? event.thumbnail : noThumb;
                 </span>
               </div>
             </div>
-            
-            <Button 
+
+            <Button
               onClick={handleAction}
               disabled={checkingTicket}
               className={`w-full ${
-                event.isLive && (event.price === 0 || hasTicket) 
-                  ? 'bg-red-600 hover:bg-red-700' 
-                  : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700'
+                event.isLive && (event.price === 0 || hasTicket)
+                  ? "bg-red-600 hover:bg-red-700"
+                  : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
               }`}
             >
-              {event.isLive && (event.price === 0 || hasTicket) ? 'Watch Now' : getButtonText()}
+              {event.isLive && (event.price === 0 || hasTicket)
+                ? "Watch Now"
+                : getButtonText()}
             </Button>
-            
-            <div className="flex items-center justify-center gap-1 sm:gap-2 border-t pt-3">
+
+            {/* <div className="flex items-center justify-center gap-1 sm:gap-2 border-t pt-3">
               <Button variant="ghost" size="sm" className="flex items-center space-x-1 flex-1 justify-center min-w-0" onClick={(e) => e.stopPropagation()}>
                 <Heart className="h-4 w-4 flex-shrink-0" />
                 <span className="hidden xs:inline sm:inline">Like</span>
@@ -205,17 +221,17 @@ const bgUrl = event.thumbnail ? event.thumbnail : noThumb;
                 <Share2 className="h-4 w-4 flex-shrink-0" />
                 <span className="hidden xs:inline sm:inline">Share</span>
               </Button>
-            </div>
+            </div> */}
           </div>
         </CardContent>
       </Card>
-      
+
       {/* {showSocial && (
         <div className="mt-4">
           <SocialMediaSection eventId={event.id} type="event" />
         </div>
       )} */}
-      
+
       <TicketPurchaseModal
         isOpen={showPurchaseModal}
         onClose={() => setShowPurchaseModal(false)}
