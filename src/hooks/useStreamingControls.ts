@@ -1250,6 +1250,11 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
         console.log({ result });
 
         if (result.should_close_room) {
+          await supabase
+          .from("events")
+          .update({ time: new Date().toISOString().slice(11, 19), date: new Date().toISOString().slice(0, 10) })
+          .eq("id", eventId);
+          
           await supabase.functions.invoke("manage-livekit-room", {
             body: {
               action: "close",
