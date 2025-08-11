@@ -122,7 +122,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
   };
 
   const isCoreFieldsComplete = () => {
-    return (
+    return !!(
       formData.name?.trim() &&
       formData.category?.trim() &&
       formData.description?.trim() &&

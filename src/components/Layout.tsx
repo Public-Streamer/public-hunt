@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Header from './Header';
+import Footer from './Footer';
 import LoginForm from './LoginForm';
 import { useAppContext } from '@/contexts/AppContext';
 import { useLocation } from 'react-router-dom';
@@ -39,6 +40,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <main className="flex-1">
         {children}
       </main>
+      <Footer />
       {showLoginForm && <LoginForm onClose={handleCloseLogin} redirectUrl={redirectAfterLogin} />}
     </div>
   );

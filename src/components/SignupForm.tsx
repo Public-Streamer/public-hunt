@@ -16,7 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 import { useAppContext } from '@/contexts/AppContext';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import ResetPasswordForm from './ResetPasswordForm';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import ErrorDialog from './ErrorDialog';
@@ -958,7 +958,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                 onCheckedChange={(checked) => setSignupData(prev => ({ ...prev, agreeToTerms: !!checked }))}
               />
               <Label htmlFor="agreeTerms" className="text-sm">
-                I agree to the Terms of Service and Privacy Policy
+                I agree to the <Link to="/terms" className="underline">Terms of Service</Link> and <Link to="/privacy" className="underline">Privacy Policy</Link>
               </Label>
             </div>
 
