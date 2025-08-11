@@ -8,7 +8,7 @@ import { visualizer } from "rollup-plugin-visualizer";
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
-    port: 9090,
+    port: 8080,
   },
   plugins: [
     react(),
@@ -38,7 +38,8 @@ export default defineConfig(({ mode }) => ({
           if (!id.includes("node_modules")) return;
           // Force major islands into their own long-lived chunks
           if (id.includes("livekit")) return "livekit";
-          if (id.includes("@emoji-mart") || id.includes("emoji-mart")) return "emoji";
+          if (id.includes("@emoji-mart") || id.includes("emoji-mart"))
+            return "emoji";
           if (id.includes("@tanstack")) return "react-query";
           if (id.includes("react-router")) return "router";
           if (id.includes("@radix-ui")) return "radix";
