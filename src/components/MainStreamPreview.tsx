@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
-import { VideoTrack } from "@livekit/components-react";
-import { TrackReference } from "@livekit/components-core";
+import { VideoTrackLazy } from "@/lib/livekitLazy";
+import type { TrackReference } from "@livekit/components-core";
 import { Badge } from "@/components/ui/badge";
 import { Eye } from "lucide-react";
 import { useStreamingControls } from "@/hooks/useStreamingControls";
@@ -298,7 +298,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
         onMouseMove={handleMouseMove}
         onTouchStart={handleMouseMove}
       >
-        <VideoTrack trackRef={track} className="w-full h-full object-cover" />
+        <VideoTrackLazy trackRef={track} className="w-full h-full object-cover" />
 
         {/* <AudioTrack trackRef={audioTracks[0]}/> */}
 

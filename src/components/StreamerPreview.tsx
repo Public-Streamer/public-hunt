@@ -1,6 +1,6 @@
 import React from "react";
-import { VideoTrack } from "@livekit/components-react";
-import { TrackReference } from "@livekit/components-core";
+import { VideoTrackLazy } from "@/lib/livekitLazy";
+import type { TrackReference } from "@livekit/components-core";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Mic, MicOff } from "lucide-react";
@@ -31,7 +31,7 @@ const StreamerPreview: React.FC<StreamerPreviewProps> = ({
       onClick={onClick}
     >
       <div className="aspect-video relative">
-        <VideoTrack trackRef={track} className="w-full h-full object-cover" />
+        <VideoTrackLazy trackRef={track} className="w-full h-full object-cover" />
 
         {/* Live badge */}
         <Badge className="absolute top-2 left-2 bg-red-600 text-white text-xs">
@@ -50,11 +50,17 @@ const StreamerPreview: React.FC<StreamerPreviewProps> = ({
 
         {/* Participant info overlay */}
         <div className="absolute bottom-4  bg-gradient-to-t from-black/70 to-transparent p-2">
-           <Badge variant="secondary" className="text-xs">    
+          <Badge variant="secondary" className="text-xs">
             {(() => {
               try {
-                const metadata = participant?.metadata ? JSON.parse(participant.metadata) : {};
-                return metadata.streamName || participant?.name || participant?.identity;
+                const metadata = participant?.metadata
+                  ? JSON.parse(participant.metadata)
+                  : {};
+                return (
+                  metadata.streamName ||
+                  participant?.name ||
+                  participant?.identity
+                );
               } catch {
                 return participant?.name || participant?.identity;
               }

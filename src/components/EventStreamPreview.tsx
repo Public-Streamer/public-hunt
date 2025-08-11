@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Video } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { LiveKitRoom, useTracks } from "@livekit/components-react";
-import { Track } from "livekit-client";
+import { useLiveKitTrackSource } from "@/lib/livekitLazy";
 import MainStreamPreview from "@/components/MainStreamPreview";
 import { useScreenSize } from "@/hooks/use-mobile";
 import MediaBackground from "./MediaBackground";
@@ -124,13 +124,15 @@ const StreamContent: React.FC<{
   mediaUrls: string[];
 }> = ({ eventName, fallbackImage, isBlurred, eventId, mediaUrls }) => {
   const [isMuted, setIsMuted] = useState(true);
-  const videoTracks = useTracks(
-    [Track.Source.Camera, Track.Source.ScreenShare],
-    {
-      updateOnlyOn: [],
-      onlySubscribed: false,
-    }
-  );
+  const TrackSource = useLiveKitTrackSource();
+  const sources = TrackSource
+    ? [TrackSource.Camera, TrackSource.ScreenShare]
+    : [];
+
+  const videoTracks = useTracks(sources, {
+    updateOnlyOn: [],
+    onlySubscribed: false,
+  });
 
   const cameraOff = "/cameraOff.jpg";
 
