@@ -348,7 +348,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     setIsEditingStreamName(true);
   };
 
-  console.log(streamNameValue);
+  // console.log(streamNameValue);
 
   const handleSaveStreamName = async () => {
     if (!localParticipant) return;
