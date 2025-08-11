@@ -238,11 +238,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setAdminRole(data.role);
         
         // Redirect to master admin if owner
-        if (data.role === 'owner') {
-          setTimeout(() => {
-            window.location.href = '/master-admin';
-          }, 1000);
-        }
+        // if (data.role === 'owner') {
+        //   setTimeout(() => {
+        //     window.location.href = '/master-admin';
+        //   }, 1000);
+        // }
       } else {
         setIsAdminUser(false);
         setAdminRole(null);
