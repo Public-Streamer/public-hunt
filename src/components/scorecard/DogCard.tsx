@@ -3,8 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Clock } from "lucide-react";
+import { Plus, Clock, ChevronDown } from "lucide-react";
 import { TimerControl } from "./TimerControl";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { useCountdown, TimerStatus } from "@/hooks/useCountdown";
 import { toast } from "@/hooks/use-toast";
 export type EntryOutcome = "pending" | "+" | "-" | "o" | "/"; // plus / minus / circle / slash
@@ -224,209 +225,266 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
   };
 
   const [customTimers, setCustomTimers] = useState<{ id: string; label: string; seconds: number }[]>([]);
+  const [open, setOpen] = useState(true);
+
+  const runningTimers = useMemo(
+    () => [
+      { key: "tree", label: "Tree", t: treeTimer },
+      { key: "treeBark2", label: "Tree Bark", t: treeBark2Timer },
+      { key: "shine", label: "Shine", t: shineTimer },
+      { key: "trackBark", label: "Track Bark", t: trackBarkTimer },
+      { key: "notHunting", label: "Not Hunt", t: notHuntingTimer },
+      { key: "goneHunting", label: "Gone Hunt", t: goneHuntingTimer },
+      { key: "stationary", label: "Stationary", t: stationaryTimer },
+      { key: "noBark", label: "No Bark", t: stationaryNonBarkTimer },
+    ].filter(({ t }) => t.status === "running"),
+    [
+      treeTimer.status,
+      treeBark2Timer.status,
+      shineTimer.status,
+      trackBarkTimer.status,
+      notHuntingTimer.status,
+      goneHuntingTimer.status,
+      stationaryTimer.status,
+      stationaryNonBarkTimer.status,
+    ]
+  );
+
   return (
-    <Card className="border-2">
-      <CardHeader className="py-3">
-        <CardTitle className="flex items-center justify-between text-base">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="inline-block h-3 w-3 rounded-full" style={{ background: draft.color }} />
-            <span className="truncate">{draft.name}</span>
-            {hasPending && <Badge variant="outline" className="ml-2">Pending</Badge>}
-          </div>
-          <div className="flex items-center gap-2 text-sm">
-            <Clock className="h-4 w-4" />
-            {showCircleAsTotal ? (
-              <>
-                <span className="tabular-nums">Total: {circleTotal}</span>
-                <span className="font-bold">◯</span>
-              </>
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <Card className="border-2">
+        <CardHeader className="py-3">
+          <CardTitle className="flex items-center justify-between text-base">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="inline-block h-3 w-3 rounded-full" style={{ background: draft.color }} />
+              <span className="truncate">{draft.name}</span>
+              {hasPending && <Badge variant="outline" className="ml-2">Pending</Badge>}
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <Clock className="h-4 w-4" />
+              {showCircleAsTotal ? (
+                <>
+                  <span className="tabular-nums">Total: {circleTotal}</span>
+                  <span className="font-bold">◯</span>
+                </>
+              ) : (
+                <>
+                  <span className="tabular-nums">Total: {totalAbs}</span>
+                  {totalIndicator && <span className="font-bold">{totalIndicator}</span>}
+                </>
+              )}
+              <CollapsibleTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="ml-2 h-8 w-8 p-0 rounded-full"
+                  aria-label={open ? "Collapse" : "Expand"}
+                  title={open ? "Collapse" : "Expand"}
+                >
+                  <ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : "rotate-0"}`} />
+                </Button>
+              </CollapsibleTrigger>
+            </div>
+          </CardTitle>
+        </CardHeader>
+
+        {!open && (
+          <CardContent className="pt-0">
+            {runningTimers.length > 0 ? (
+              <div className="flex flex-wrap items-center gap-2">
+                {runningTimers.map((rt) => (
+                  <Badge key={rt.key} variant="secondary" className="text-xs">
+                    {rt.label}: {rt.t.formatted}
+                  </Badge>
+                ))}
+              </div>
             ) : (
-              <>
-                <span className="tabular-nums">Total: {totalAbs}</span>
-                {totalIndicator && <span className="font-bold">{totalIndicator}</span>}
-              </>
+              <div className="text-xs text-muted-foreground">No active timers</div>
             )}
-          </div>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {/* Timers Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2">
-          <div title="Tree Timer: Wait 3 minutes before scoring a tree.">
-            <TimerControl label="Tree 3:00" formatted={treeTimer.formatted} status={treeTimer.status} onStart={treeTimer.start} onPause={treeTimer.pause} onReset={treeTimer.reset} />
-          </div>
-          <div title="Tree Bark Timer: 2-minute bark requirement while treed.">
-            <TimerControl label="Tree Bark 2:00" formatted={treeBark2Timer.formatted} status={treeBark2Timer.status} onStart={treeBark2Timer.start} onPause={treeBark2Timer.pause} onReset={treeBark2Timer.reset} />
-          </div>
-          <div title="Shine Timer: Time allowed to search the tree for coon.">
-            <TimerControl label="Shine 8:00" formatted={shineTimer.formatted} status={shineTimer.status} onStart={shineTimer.start} onPause={shineTimer.pause} onReset={shineTimer.reset} />
-          </div>
-          <div title="Track Bark Timer: 6 minutes for strike requirement.">
-            <TimerControl label="Track Bark 6:00" formatted={trackBarkTimer.formatted} status={trackBarkTimer.status} onStart={trackBarkTimer.start} onPause={trackBarkTimer.pause} onReset={trackBarkTimer.reset} />
-          </div>
-          <div title="Not Hunting Timer: 15 minutes for non-hunting dog.">
-            <div className="relative rounded-md border border-primary/40 bg-primary/5 p-2 space-y-2 pl-3 sm:pl-4">
-              <span aria-hidden className="absolute left-0 top-0 bottom-0 w-1 bg-primary/70 rounded-l-md" />
-              <div className="text-xs sm:text-sm font-semibold text-primary">Linked to Gone Hunt</div>
-              <TimerControl
-                label="Not Hunting 15:00"
-                formatted={notHuntingTimer.formatted}
-                status={notHuntingTimer.status}
-                onStart={notHuntingTimer.start}
-                onPause={notHuntingTimer.pause}
-                onReset={() => { notHuntingTimer.reset(); goneHuntingTimer.reset(); }}
-                className="border-primary/40"
-              />
-              <TimerControl
-                label="Gone Hunt 5:00"
-                formatted={goneHuntingTimer.formatted}
-                status={goneHuntingTimer.status}
-                onStart={startGoneHuntingGuarded}
-                onPause={goneHuntingTimer.pause}
-                onReset={goneHuntingTimer.reset}
-                className="border-primary/40"
-              />
-            </div>
-          </div>
-          <div title="Stationary: 5 minutes; start 2-minute no-bark if barking stops.">
-            <div className="relative rounded-md border border-secondary/40 bg-secondary/5 p-2 space-y-2 pl-3 sm:pl-4">
-              <span aria-hidden className="absolute left-0 top-0 bottom-0 w-1 bg-secondary/70 rounded-l-md" />
-              <div className="text-xs sm:text-sm font-semibold text-secondary">Linked to No Bark</div>
-              <TimerControl
-                label="Stationary 5:00"
-                formatted={stationaryTimer.formatted}
-                status={stationaryTimer.status}
-                onStart={stationaryTimer.start}
-                onPause={stationaryTimer.pause}
-                onReset={() => { stationaryTimer.reset(); stationaryNonBarkTimer.reset(); }}
-                className="border-secondary/40"
-              />
-              <TimerControl
-                label="No Bark 2:00"
-                formatted={stationaryNonBarkTimer.formatted}
-                status={stationaryNonBarkTimer.status}
-                onStart={startNonBarkGuarded}
-                onPause={stationaryNonBarkTimer.pause}
-                onReset={stationaryNonBarkTimer.reset}
-                className="border-secondary/40"
-              />
-            </div>
-          </div>
-        </div>
+          </CardContent>
+        )}
 
-        {/* Quick add buttons */}
-        <div className="flex items-center gap-2 overflow-x-auto">
-          <span className="text-xs text-muted-foreground whitespace-nowrap">Quick Add:</span>
-          {quickStrike.map((p) => (
-            <Button key={`s${p}`} size="sm" variant="secondary" onClick={() => addEntry("strike", p)}>
-              Strike +{p}
-            </Button>
-          ))}
-          {quickTree.map((p) => (
-            <Button key={`t${p}`} size="sm" onClick={() => addEntry("tree", p)}>
-              Tree +{p}
-            </Button>
-          ))}
-          <div className="flex items-center gap-2 ml-2">
-            <Input
-              type="text"
-              inputMode="decimal"
-              placeholder="Custom"
-              className="h-9 w-24"
-              value={customPoints}
-              onChange={(e) => setCustomPoints(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  const v = parseFloat(customPoints);
-                  if (!isNaN(v) && v > 0) {
-                    addEntry("tree", v);
-                    setCustomPoints("");
-                  }
-                }
-              }}
-            />
-            <Button size="sm" variant="secondary" onClick={() => { const v = parseFloat(customPoints); if (!isNaN(v) && v > 0) { addEntry("strike", v); setCustomPoints(""); } }}>
-              Add Strike
-            </Button>
-            <Button size="sm" onClick={() => { const v = parseFloat(customPoints); if (!isNaN(v) && v > 0) { addEntry("tree", v); setCustomPoints(""); } }}>
-              Add Tree
-            </Button>
-          </div>
-        </div>
-
-        {/* Entries List */}
-        <div className="space-y-2">
-          {draft.entries.length === 0 ? (
-            <div className="text-sm text-muted-foreground">No entries yet.</div>
-          ) : (
-            draft.entries.map((e) => {
-              const color = e.outcome === "pending"
-                ? "bg-accent/10 border-accent/30"
-                : e.outcome === "+"
-                ? "bg-primary/20 border-primary/40 transition-colors"
-                : e.outcome === "-"
-                ? "bg-destructive/20 border-destructive/40 transition-colors"
-                : e.outcome === "o"
-                ? "bg-secondary/20 border-secondary/40 transition-colors" // circle
-                : "bg-muted/20 border-muted/40 transition-colors"; // slash
-              const renderPoints = () => {
-                if (e.outcome === "o") {
-                  return (
-                    <span className="font-medium rounded-full ring-2 ring-accent px-2 py-0.5">
-                      {e.points}
-                    </span>
-                  );
-                }
-                if (e.outcome === "/") {
-                  return (
-                    <span className="relative inline-flex items-center justify-center px-2 py-0.5">
-                      <span className="font-medium">{e.points}</span>
-                      <span
-                        aria-hidden
-                        className="pointer-events-none absolute left-0 right-0 top-1/2 h-[2px] bg-muted-foreground/60 rotate-45 origin-center"
-                      />
-                    </span>
-                  );
-                }
-                return <span className="font-medium">{e.points}</span>;
-              };
-              return (
-                <div key={e.id} className={`rounded-md border p-2 ${color}`}>
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Badge variant="secondary" className="capitalize">{e.type}</Badge>
-                      {renderPoints()}
-                      {e.outcome !== "pending" && (
-                        <span className="ml-1 font-bold">
-                          {e.outcome === "+" ? "+" : e.outcome === "-" ? "–" : e.outcome === "o" ? "◯" : "╱"}
-                        </span>
-                      )}
-                      {e.outcome === "pending" && <Badge variant="outline">pending</Badge>}
-                    </div>
-                    <div className="flex items-center gap-1 sm:gap-2 flex-wrap overflow-x-auto max-w-full">
-                      <Button size="sm" variant="outline" className="h-10 w-10 sm:h-12 sm:w-12 p-0 text-base sm:text-xl font-bold hover-scale shrink-0" onClick={() => setOutcome(e.id, "+")} title="Plus points" aria-label="Plus points">+</Button>
-                      <Button size="sm" variant="outline" className="h-10 w-10 sm:h-12 sm:w-12 p-0 text-base sm:text-xl font-bold hover-scale shrink-0" onClick={() => setOutcome(e.id, "-")} title="Minus points" aria-label="Minus points">–</Button>
-                      <Button size="sm" variant="outline" className="h-10 w-10 sm:h-12 sm:w-12 p-0 text-base sm:text-xl font-bold hover-scale shrink-0" onClick={() => setOutcome(e.id, "o")} title="Circle" aria-label="Circle">◯</Button>
-                      <Button size="sm" variant="outline" className="h-10 w-10 sm:h-12 sm:w-12 p-0 text-base sm:text-xl font-bold hover-scale shrink-0" onClick={() => setOutcome(e.id, "/")} title="Slash" aria-label="Slash">╱</Button>
-                      <Button size="sm" variant="outline" className="h-10 w-10 sm:h-12 sm:w-12 p-0 text-[10px] sm:text-xs font-semibold hover-scale shrink-0" onClick={() => removeEntry(e.id)} title="Delete" aria-label="Delete">Del</Button>
-                    </div>
-                  </div>
+        <CollapsibleContent asChild>
+          <CardContent className="space-y-3">
+            {/* Timers Row */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2">
+              <div title="Tree Timer: Wait 3 minutes before scoring a tree.">
+                <TimerControl label="Tree 3:00" formatted={treeTimer.formatted} status={treeTimer.status} onStart={treeTimer.start} onPause={treeTimer.pause} onReset={treeTimer.reset} />
+              </div>
+              <div title="Tree Bark Timer: 2-minute bark requirement while treed.">
+                <TimerControl label="Tree Bark 2:00" formatted={treeBark2Timer.formatted} status={treeBark2Timer.status} onStart={treeBark2Timer.start} onPause={treeBark2Timer.pause} onReset={treeBark2Timer.reset} />
+              </div>
+              <div title="Shine Timer: Time allowed to search the tree for coon.">
+                <TimerControl label="Shine 8:00" formatted={shineTimer.formatted} status={shineTimer.status} onStart={shineTimer.start} onPause={shineTimer.pause} onReset={shineTimer.reset} />
+              </div>
+              <div title="Track Bark Timer: 6 minutes for strike requirement.">
+                <TimerControl label="Track Bark 6:00" formatted={trackBarkTimer.formatted} status={trackBarkTimer.status} onStart={trackBarkTimer.start} onPause={trackBarkTimer.pause} onReset={trackBarkTimer.reset} />
+              </div>
+              <div title="Not Hunting Timer: 15 minutes for non-hunting dog.">
+                <div className="relative rounded-md border border-primary/40 bg-primary/5 p-2 space-y-2 pl-3 sm:pl-4">
+                  <span aria-hidden className="absolute left-0 top-0 bottom-0 w-1 bg-primary/70 rounded-l-md" />
+                  <div className="text-xs sm:text-sm font-semibold text-primary">Linked to Gone Hunt</div>
+                  <TimerControl
+                    label="Not Hunting 15:00"
+                    formatted={notHuntingTimer.formatted}
+                    status={notHuntingTimer.status}
+                    onStart={notHuntingTimer.start}
+                    onPause={notHuntingTimer.pause}
+                    onReset={() => { notHuntingTimer.reset(); goneHuntingTimer.reset(); }}
+                    className="border-primary/40"
+                  />
+                  <TimerControl
+                    label="Gone Hunt 5:00"
+                    formatted={goneHuntingTimer.formatted}
+                    status={goneHuntingTimer.status}
+                    onStart={startGoneHuntingGuarded}
+                    onPause={goneHuntingTimer.pause}
+                    onReset={goneHuntingTimer.reset}
+                    className="border-primary/40"
+                  />
                 </div>
-              );
-            })
-          )}
-        </div>
+              </div>
+              <div title="Stationary: 5 minutes; start 2-minute no-bark if barking stops.">
+                <div className="relative rounded-md border border-secondary/40 bg-secondary/5 p-2 space-y-2 pl-3 sm:pl-4">
+                  <span aria-hidden className="absolute left-0 top-0 bottom-0 w-1 bg-secondary/70 rounded-l-md" />
+                  <div className="text-xs sm:text-sm font-semibold text-secondary">Linked to No Bark</div>
+                  <TimerControl
+                    label="Stationary 5:00"
+                    formatted={stationaryTimer.formatted}
+                    status={stationaryTimer.status}
+                    onStart={stationaryTimer.start}
+                    onPause={stationaryTimer.pause}
+                    onReset={() => { stationaryTimer.reset(); stationaryNonBarkTimer.reset(); }}
+                    className="border-secondary/40"
+                  />
+                  <TimerControl
+                    label="No Bark 2:00"
+                    formatted={stationaryNonBarkTimer.formatted}
+                    status={stationaryNonBarkTimer.status}
+                    onStart={startNonBarkGuarded}
+                    onPause={stationaryNonBarkTimer.pause}
+                    onReset={stationaryNonBarkTimer.reset}
+                    className="border-secondary/40"
+                  />
+                </div>
+              </div>
+            </div>
 
-        {/* Handler / Notes optional */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          <Input
-            placeholder="Handler name"
-            value={draft.handler || ""}
-            onChange={(e) => setDraft({ ...draft, handler: e.target.value })}
-            onBlur={onBlurCommit}
-          />
-        </div>
-      </CardContent>
-    </Card>
+            {/* Quick add buttons */}
+            <div className="flex items-center gap-2 overflow-x-auto">
+              <span className="text-xs text-muted-foreground whitespace-nowrap">Quick Add:</span>
+              {quickStrike.map((p) => (
+                <Button key={`s${p}`} size="sm" variant="secondary" onClick={() => addEntry("strike", p)}>
+                  Strike +{p}
+                </Button>
+              ))}
+              {quickTree.map((p) => (
+                <Button key={`t${p}`} size="sm" onClick={() => addEntry("tree", p)}>
+                  Tree +{p}
+                </Button>
+              ))}
+              <div className="flex items-center gap-2 ml-2">
+                <Input
+                  type="text"
+                  inputMode="decimal"
+                  placeholder="Custom"
+                  className="h-9 w-24"
+                  value={customPoints}
+                  onChange={(e) => setCustomPoints(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      const v = parseFloat(customPoints);
+                      if (!isNaN(v) && v > 0) {
+                        addEntry("tree", v);
+                        setCustomPoints("");
+                      }
+                    }
+                  }}
+                />
+                <Button size="sm" variant="secondary" onClick={() => { const v = parseFloat(customPoints); if (!isNaN(v) && v > 0) { addEntry("strike", v); setCustomPoints(""); } }}>
+                  Add Strike
+                </Button>
+                <Button size="sm" onClick={() => { const v = parseFloat(customPoints); if (!isNaN(v) && v > 0) { addEntry("tree", v); setCustomPoints(""); } }}>
+                  Add Tree
+                </Button>
+              </div>
+            </div>
+
+            {/* Entries List */}
+            <div className="space-y-2">
+              {draft.entries.length === 0 ? (
+                <div className="text-sm text-muted-foreground">No entries yet.</div>
+              ) : (
+                draft.entries.map((e) => {
+                  const color = e.outcome === "pending"
+                    ? "bg-accent/10 border-accent/30"
+                    : e.outcome === "+"
+                    ? "bg-primary/20 border-primary/40 transition-colors"
+                    : e.outcome === "-"
+                    ? "bg-destructive/20 border-destructive/40 transition-colors"
+                    : e.outcome === "o"
+                    ? "bg-secondary/20 border-secondary/40 transition-colors" // circle
+                    : "bg-muted/20 border-muted/40 transition-colors"; // slash
+                  const renderPoints = () => {
+                    if (e.outcome === "o") {
+                      return (
+                        <span className="font-medium rounded-full ring-2 ring-accent px-2 py-0.5">
+                          {e.points}
+                        </span>
+                      );
+                    }
+                    if (e.outcome === "/") {
+                      return (
+                        <span className="relative inline-flex items-center justify-center px-2 py-0.5">
+                          <span className="font-medium">{e.points}</span>
+                          <span
+                            aria-hidden
+                            className="pointer-events-none absolute left-0 right-0 top-1/2 h-[2px] bg-muted-foreground/60 rotate-45 origin-center"
+                          />
+                        </span>
+                      );
+                    }
+                    return <span className="font-medium">{e.points}</span>;
+                  };
+                  return (
+                    <div key={e.id} className={`rounded-md border p-2 ${color}`}>
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 text-sm">
+                          <Badge variant="secondary" className="capitalize">{e.type}</Badge>
+                          {renderPoints()}
+                          {e.outcome !== "pending" && (
+                            <span className="ml-1 font-bold">
+                              {e.outcome === "+" ? "+" : e.outcome === "-" ? "–" : e.outcome === "o" ? "◯" : "╱"}
+                            </span>
+                          )}
+                          {e.outcome === "pending" && <Badge variant="outline">pending</Badge>}
+                        </div>
+                        <div className="flex items-center gap-1 sm:gap-2 flex-wrap overflow-x-auto max-w-full">
+                          <Button size="sm" variant="outline" className="h-10 w-10 sm:h-12 sm:w-12 p-0 text-base sm:text-xl font-bold hover-scale shrink-0" onClick={() => setOutcome(e.id, "+")} title="Plus points" aria-label="Plus points">+</Button>
+                          <Button size="sm" variant="outline" className="h-10 w-10 sm:h-12 sm:w-12 p-0 text-base sm:text-xl font-bold hover-scale shrink-0" onClick={() => setOutcome(e.id, "-")} title="Minus points" aria-label="Minus points">–</Button>
+                          <Button size="sm" variant="outline" className="h-10 w-10 sm:h-12 sm:w-12 p-0 text-base sm:text-xl font-bold hover-scale shrink-0" onClick={() => setOutcome(e.id, "o")} title="Circle" aria-label="Circle">◯</Button>
+                          <Button size="sm" variant="outline" className="h-10 w-10 sm:h-12 sm:w-12 p-0 text-base sm:text-xl font-bold hover-scale shrink-0" onClick={() => setOutcome(e.id, "/")} title="Slash" aria-label="Slash">╱</Button>
+                          <Button size="sm" variant="outline" className="h-10 w-10 sm:h-12 sm:w-12 p-0 text-[10px] sm:text-xs font-semibold hover-scale shrink-0" onClick={() => removeEntry(e.id)} title="Delete" aria-label="Delete">Del</Button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Handler / Notes optional */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <Input
+                placeholder="Handler name"
+                value={draft.handler || ""}
+                onChange={(e) => setDraft({ ...draft, handler: e.target.value })}
+                onBlur={onBlurCommit}
+              />
+            </div>
+          </CardContent>
+        </CollapsibleContent>
+      </Card>
+    </Collapsible>
   );
 };
