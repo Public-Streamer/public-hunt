@@ -91,28 +91,18 @@ const EventPage: React.FC = () => {
   useEffect(() => {
     if (!eventId) return;
     fetchEventData();
-    checkTicketStatus();
-
-    // Cleanup meta tags when component unmounts
-    // return () => {
-    //   resetDefaultMetaTags();
-    // };
   }, [eventId]);
 
   useEffect(() => {
     if (currentUser && eventData) {
       checkStreamerStatus();
+      checkTicketStatus();
     }
   }, [currentUser, eventData]);
 
   // Optimized real-time subscription for essential event updates only
   useEffect(() => {
     if (!eventData?.id) return;
-
-    console.log(
-      "[EventPage] Setting up real-time subscription for event:",
-      eventData.id
-    );
 
     const subscription = supabase
       .channel(`event-page-${eventData.id}`)
