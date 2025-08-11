@@ -1015,7 +1015,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
             </Card>
 
             {/* Live Chat */}
-            <LiveChatSection eventId={eventId} />
+            {/* <LiveChatSection eventId={eventId} /> */}
 
             {/* Stage Share Menu - Only for hosts */}
             {userRole === "host" && (
