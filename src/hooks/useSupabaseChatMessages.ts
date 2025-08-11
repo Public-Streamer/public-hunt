@@ -149,7 +149,7 @@ export const useSupabaseChatMessages = (eventId: string) => {
           event: "*",
           schema: "public",
           table: "event_chat_messages",
-          filter: `event_id=eq.${eventId}`,
+          // filter: `event_id=eq.${eventId}`,
         },
         (payload) => {
           console.log("payload", payload);
@@ -213,10 +213,6 @@ export const useSupabaseChatMessages = (eventId: string) => {
       });
 
     return () => {
-      console.log(
-        `🧹 [Chat-${eventId}] Cleaning up subscription for channel:`,
-        channelName
-      );
       supabase.removeChannel(channel);
       setConnectionStatus("disconnected");
     };
