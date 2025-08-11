@@ -10,6 +10,7 @@ import {
   MapPin,
   ArrowLeft,
   Loader2,
+  Flag,
 } from "lucide-react";
 import { LiveKitRoom, RoomAudioRenderer } from "@livekit/components-react";
 import "@livekit/components-styles";
@@ -18,6 +19,8 @@ import { PreStreamChatArchive } from "@/components/PreStreamChatArchive";
 import SocialShareMenu from "@/components/SocialShareMenu";
 import TicketPurchaseModal from "@/components/TicketPurchaseModal";
 import StreamPreviewContainer from "@/components/StreamPreviewContainer";
+import { ReportEventModal } from "@/components/ReportEventModal";
+import { useReportEvent } from "@/hooks/useReportEvent";
 import { CoonHuntScoreboard } from "@/components/CoonHuntScoreboard";
 import { CustomScoreboard } from "@/components/CustomScoreboard";
 import { PinnedMessageSection } from "@/components/PinnedMessageSection";
@@ -75,6 +78,7 @@ const EventPage: React.FC = () => {
   const [roomName, setRoomName] = useState<string | null>(null);
   const [serverUrl, setServerUrl] = useState<string | null>(null);
   const [isStreamer, setIsStreamer] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
 
   // Separate state for frequently changing data to prevent full re-renders
   const [viewerCount, setViewerCount] = useState(0);
@@ -166,6 +170,16 @@ const EventPage: React.FC = () => {
     () => isEventHost || isStreamer,
     [isEventHost, isStreamer]
   );
+
+  const isViewer = useMemo(
+    () => !!currentUser && !isEventHost && !isStreamer,
+    [currentUser, isEventHost, isStreamer]
+  );
+
+  const { alreadyReported: hasReported, loading: reportStatusLoading, checkStatus: refreshReportStatus } = useReportEvent({
+    eventId: eventData?.id || "",
+    enabled: !!(eventData?.id && isViewer),
+  });
 
   // Generate LiveKit token for viewers when they have access
   useEffect(() => {
@@ -394,6 +408,19 @@ const EventPage: React.FC = () => {
     eventData?.ticket_price,
     handlePayment,
   ]);
+
+  const handleReportClick = useCallback(() => {
+    if (!currentUser) {
+      toast({
+        title: "Sign In Required",
+        description: "Please sign in to report this event",
+        variant: "destructive",
+      });
+      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+      return;
+    }
+    setShowReportModal(true);
+  }, [currentUser, navigate, toast]);
 
   const handlePurchaseSuccess = () => {
     setHasTicket(true);
@@ -805,19 +832,43 @@ const EventPage: React.FC = () => {
                 />
               </CardContent>
             </Card>
+
+            {currentUser && !isEventHost && !isStreamer && (
+              <Card>
+                <CardHeader className="p-3 sm:p-3">
+                  <CardTitle className="text-base sm:text-lg">Report Event</CardTitle>
+                </CardHeader>
+                <CardContent className="p-3 sm:p-3">
+                  <Button variant="outline" onClick={handleReportClick} disabled={hasReported || reportStatusLoading}>
+                    <Flag className="h-4 w-4 mr-2" /> {hasReported ? "Reported" : "Report Event"}
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>
       {eventData && (
-        <TicketPurchaseModal
-          isOpen={showPurchaseModal}
-          onClose={() => setShowPurchaseModal(false)}
-          eventId={eventData.id}
-          eventTitle={eventData.name}
-          price={eventData.ticket_price}
-          hostStripeAccountId={eventData.host_stripe_account_id}
-          onPurchaseSuccess={handlePurchaseSuccess}
-        />
+        <>
+          <TicketPurchaseModal
+            isOpen={showPurchaseModal}
+            onClose={() => setShowPurchaseModal(false)}
+            eventId={eventData.id}
+            eventTitle={eventData.name}
+            price={eventData.ticket_price}
+            hostStripeAccountId={eventData.host_stripe_account_id}
+            onPurchaseSuccess={handlePurchaseSuccess}
+          />
+          {currentUser && !isEventHost && !isStreamer && (
+            <ReportEventModal
+              open={showReportModal}
+              onOpenChange={setShowReportModal}
+              eventId={eventData.id}
+              disabled={hasReported}
+              onReported={() => refreshReportStatus()}
+            />
+          )}
+        </>
       )}
     </div>
   );
