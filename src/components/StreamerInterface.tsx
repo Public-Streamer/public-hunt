@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { useLocalParticipant, useParticipants, useTracks } from "@livekit/components-react";
+import {
+  useLocalParticipant,
+  useParticipants,
+  useTracks,
+} from "@livekit/components-react";
 import { VideoTrackLazy, useLiveKitTrackSource } from "@/lib/livekitLazy";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -344,6 +348,8 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     setIsEditingStreamName(true);
   };
 
+  console.log(streamNameValue);
+
   const handleSaveStreamName = async () => {
     if (!localParticipant) return;
 
@@ -392,19 +398,17 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   };
 
   // Get local camera track
-  const localCameraTracks = useTracks(
-    TrackSource ? [TrackSource.Camera] : [],
-    { onlySubscribed: false }
-  );
+  const localCameraTracks = useTracks(TrackSource ? [TrackSource.Camera] : [], {
+    onlySubscribed: false,
+  });
   const localCameraTrack = localCameraTracks.find(
     (t) => t.participant === localParticipant
   );
 
   // Get other participants' camera tracks
-  const otherCameraTracks = useTracks(
-    TrackSource ? [TrackSource.Camera] : [],
-    { onlySubscribed: true }
-  ).filter((t) => t.participant !== localParticipant);
+  const otherCameraTracks = useTracks(TrackSource ? [TrackSource.Camera] : [], {
+    onlySubscribed: true,
+  }).filter((t) => t.participant !== localParticipant);
 
   if (!localParticipant) {
     return (
@@ -611,6 +615,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
 
                   {/* In-Stream Chat Overlay */}
                   <InStreamChatOverlay
+                    camName={streamName}
                     eventId={eventId}
                     isVisible={isChatVisible}
                     onVisibilityToggle={() => setIsChatVisible(!isChatVisible)}

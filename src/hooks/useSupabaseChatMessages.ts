@@ -13,13 +13,17 @@ interface ChatMessage {
   created_at: string;
 }
 
-export const useSupabaseChatMessages = (eventId: string) => {
+export const useSupabaseChatMessages = (eventId: string,  camName?: string) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [connectionStatus, setConnectionStatus] = useState<
     "connecting" | "connected" | "disconnected" | "error"
   >("connecting");
-  const { currentUserProfile, isAuthenticated } = useAppContext();
+  const { currentUserProfile, isAuthenticated, user } = useAppContext();
+  
+  if(camName === user?.email){
+    camName = ""
+  }
 
   // Fetch existing messages
   const fetchMessages = useCallback(async () => {
@@ -63,7 +67,7 @@ export const useSupabaseChatMessages = (eventId: string) => {
             event_id: eventId,
             user_id: currentUserProfile.user_id,
             username: currentUserProfile.username || "unknown",
-            display_name: currentUserProfile.display_name || "Anonymous",
+            display_name: camName ? camName : currentUserProfile.display_name || "Anonymous",
             profile_picture_url: currentUserProfile.profile_picture_url || null,
             message: messageContent,
             message_type: "user",
@@ -79,7 +83,7 @@ export const useSupabaseChatMessages = (eventId: string) => {
         throw error;
       }
     },
-    [eventId, currentUserProfile, isAuthenticated]
+    [eventId, currentUserProfile, isAuthenticated, camName]
   );
 
   // Delete message function
