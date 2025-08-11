@@ -45,12 +45,12 @@ import { useEventLiveStatus } from "@/hooks/useEventLiveStatus";
 import StageShareMenu from "@/components/StageShareMenu";
 import EventSharePanel from "@/components/EventSharePanel";
 import { useScreenSize } from "@/hooks/use-mobile";
+import { useMobileMediaPermissions } from "@/hooks/useMobileMediaPermissions";
 import LiveStreamLogo from "@/components/ui/live-stream-logo";
 import CameraSwitchButton from "@/components/CameraSwitchButton";
 import TorchButton from "@/components/TorchButton";
 import LiveChatSection from "@/components/LiveChatSection";
-import { useMobileMediaPermissions } from "@/hooks/useMobileMediaPermissions";
-import { CoonHuntScoreboard } from "@/components/CoonHuntScoreboard";
+import { CoonhoundScorecardV2 } from "@/components/scorecard/CoonhoundScorecardV2";
 import { CustomScoreboard } from "@/components/CustomScoreboard";
 import { ScoreboardGameSelector } from "@/components/ScoreboardGameSelector";
 import { PinnedMessageSection } from "@/components/PinnedMessageSection";
@@ -779,7 +779,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                         </div>
                       </div>
                     ) : selectedGameType === "coon_hunt" ? (
-                      <CoonHuntScoreboard
+                      <CoonhoundScorecardV2
                         eventId={eventId}
                         isHost={userRole === "host"}
                       />

@@ -28,7 +28,6 @@ import TicketPurchaseModal from "@/components/TicketPurchaseModal";
 import StreamPreviewContainer from "@/components/StreamPreviewContainer";
 import { ReportEventModal } from "@/components/ReportEventModal";
 import { useReportEvent } from "@/hooks/useReportEvent";
-import { CoonHuntScoreboard } from "@/components/CoonHuntScoreboard";
 import { CustomScoreboard } from "@/components/CustomScoreboard";
 import { PinnedMessageSection } from "@/components/PinnedMessageSection";
 import EventStreamPreview from "@/components/EventStreamPreview";
@@ -640,7 +639,7 @@ const EventPage: React.FC = () => {
                             isHost={false}
                           />
                         ) : selectedGameType === "coon_hunt" ? (
-                          <CoonHuntScoreboard
+                          <CustomScoreboard
                             eventId={eventData.id}
                             isHost={false}
                           />
