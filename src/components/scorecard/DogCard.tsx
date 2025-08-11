@@ -1,11 +1,11 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Circle, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { Plus, Clock } from "lucide-react";
 import { TimerControl } from "./TimerControl";
-import { useCountdown } from "@/hooks/useCountdown";
+import { useCountdown, TimerStatus } from "@/hooks/useCountdown";
 import { toast } from "@/hooks/use-toast";
 export type EntryOutcome = "pending" | "+" | "-" | "o"; // plus / minus / circle
 export type EntryType = "strike" | "tree";
@@ -40,6 +40,14 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange }) => {
   const treeTimer = useCountdown(3 * 60, {
     onComplete: () => {
       toast({ title: "Tree time finished", description: `${draft.name}: tree time ended` });
+      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+        try { (navigator as any).vibrate?.(200); } catch {}
+      }
+    },
+  });
+  const treeBark2Timer = useCountdown(2 * 60, {
+    onComplete: () => {
+      toast({ title: "Tree bark timer expired", description: `${draft.name}: 2-minute tree bark rule expired` });
       if (typeof navigator !== "undefined" && "vibrate" in navigator) {
         try { (navigator as any).vibrate?.(200); } catch {}
       }
@@ -145,9 +153,12 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange }) => {
       </CardHeader>
       <CardContent className="space-y-3">
         {/* Timers Row */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
           <div title="Tree Timer: Wait 3 minutes before scoring a tree.">
             <TimerControl label="Tree 3:00" formatted={treeTimer.formatted} status={treeTimer.status} onStart={treeTimer.start} onPause={treeTimer.pause} onReset={treeTimer.reset} />
+          </div>
+          <div title="Tree Bark Timer: 2-minute bark requirement while treed.">
+            <TimerControl label="Tree Bark 2:00" formatted={treeBark2Timer.formatted} status={treeBark2Timer.status} onStart={treeBark2Timer.start} onPause={treeBark2Timer.pause} onReset={treeBark2Timer.reset} />
           </div>
           <div title="Shine Timer: Time allowed to search the tree for coon.">
             <TimerControl label="Shine 8:00" formatted={shineTimer.formatted} status={shineTimer.status} onStart={shineTimer.start} onPause={shineTimer.pause} onReset={shineTimer.reset} />
@@ -191,25 +202,40 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange }) => {
           ) : (
             draft.entries.map((e) => {
               const color = e.outcome === "pending"
-                ? "bg-accent/10"
+                ? "bg-accent/10 border-accent/30"
                 : e.outcome === "+"
-                ? "bg-primary/10"
+                ? "bg-primary/20 border-primary/40 transition-colors"
                 : e.outcome === "-"
-                ? "bg-destructive/10"
-                : "bg-secondary/10"; // circle
+                ? "bg-destructive/20 border-destructive/40 transition-colors"
+                : "bg-secondary/20 border-secondary/40 transition-colors"; // circle
+              const renderPoints = () => {
+                if (e.outcome === "o") {
+                  return (
+                    <span className="font-medium rounded-full ring-2 ring-accent px-2 py-0.5">
+                      {e.points}
+                    </span>
+                  );
+                }
+                return <span className="font-medium">{e.points}</span>;
+              };
               return (
                 <div key={e.id} className={`rounded-md border p-2 ${color}`}>
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 text-sm">
                       <Badge variant="secondary" className="capitalize">{e.type}</Badge>
-                      <span className="font-medium">{e.points}</span>
+                      {renderPoints()}
+                      {e.outcome !== "pending" && (
+                        <span className="ml-1 font-bold">
+                          {e.outcome === "+" ? "+" : e.outcome === "-" ? "–" : "◯"}
+                        </span>
+                      )}
                       {e.outcome === "pending" && <Badge variant="outline">pending</Badge>}
                     </div>
                     <div className="flex items-center gap-1">
-                      <Button size="sm" variant="outline" className="h-10 w-10 p-0" onClick={() => setOutcome(e.id, "+")} title="Plus points"><CheckCircle2 className="h-4 w-4" /></Button>
-                      <Button size="sm" variant="outline" className="h-10 w-10 p-0" onClick={() => setOutcome(e.id, "-")} title="Minus points"><XCircle className="h-4 w-4" /></Button>
-                      <Button size="sm" variant="outline" className="h-10 w-10 p-0" onClick={() => setOutcome(e.id, "o")} title="Circle"><Circle className="h-4 w-4" /></Button>
-                      <Button size="sm" variant="ghost" className="h-10 w-10 p-0" onClick={() => removeEntry(e.id)} title="Remove"><Plus className="h-4 w-4 rotate-45" /></Button>
+                      <Button size="sm" variant="outline" className="h-12 w-12 p-0 text-xl font-bold hover-scale" onClick={() => setOutcome(e.id, "+")} title="Plus points">+</Button>
+                      <Button size="sm" variant="outline" className="h-12 w-12 p-0 text-xl font-bold hover-scale" onClick={() => setOutcome(e.id, "-")} title="Minus points">–</Button>
+                      <Button size="sm" variant="outline" className="h-12 w-12 p-0 text-xl font-bold hover-scale" onClick={() => setOutcome(e.id, "o")} title="Circle">◯</Button>
+                      <Button size="sm" variant="ghost" className="h-12 w-12 p-0" onClick={() => removeEntry(e.id)} title="Remove"><Plus className="h-4 w-4 rotate-45" /></Button>
                     </div>
                   </div>
                 </div>
