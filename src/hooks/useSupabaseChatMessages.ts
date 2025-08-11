@@ -146,55 +146,37 @@ export const useSupabaseChatMessages = (eventId: string) => {
       .on(
         "postgres_changes",
         {
-          event: "*",
+          event: "INSERT",
+          schema: "public",
+          table: "event_chat_messages",
+          filter: `event_id=eq.${eventId}`,
+        },
+        (payload) => {
+          const newMessage = payload.new as ChatMessage;
+
+          setMessages((prev) => {
+            const updated = [...prev, newMessage];
+            return updated;
+          });
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
           schema: "public",
           table: "event_chat_messages",
           // filter: `event_id=eq.${eventId}`,
         },
         (payload) => {
-          console.log("payload", payload);
-          console.log(
-            `✅ [Chat-${eventId}] Received real-time message:`,
-            payload.new
-          );
-          const newMessage = payload.new as ChatMessage;
-
+          const deletedMessageId = payload.old.id;
           setMessages((prev) => {
-            const updated = [...prev, newMessage];
-            console.log(
-              `📝 [Chat-${eventId}] Updated messages count:`,
-              updated.length
-            );
+            const updated = prev.filter((msg) => msg.id !== deletedMessageId);
             return updated;
           });
         }
       )
-      // .on(
-      //   "postgres_changes",
-      //   {
-      //     event: "DELETE",
-      //     schema: "public",
-      //     table: "event_chat_messages",
-      //     filter: `event_id=eq.${eventId}`,
-      //   },
-      //   (payload) => {
-      //     console.log(
-      //       `🗑️ [Chat-${eventId}] Received real-time deletion:`,
-      //       payload.old
-      //     );
-      //     const deletedMessageId = payload.old.id;
-      //     setMessages((prev) => {
-      //       const updated = prev.filter((msg) => msg.id !== deletedMessageId);
-      //       console.log(
-      //         `📝 [Chat-${eventId}] Updated messages count after deletion:`,
-      //         updated.length
-      //       );
-      //       return updated;
-      //     });
-      //   }
-      // )
       .subscribe((status) => {
-        console.log(`🔄 [Chat-${eventId}] Subscription status:`, status);
         if (status === "SUBSCRIBED") {
           setConnectionStatus("connected");
           console.log(
