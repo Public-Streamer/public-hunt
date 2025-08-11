@@ -90,8 +90,8 @@ const EventPage: React.FC = () => {
 
   useEffect(() => {
     if (!eventId) return;
-
     fetchEventData();
+    checkTicketStatus();
 
     // Cleanup meta tags when component unmounts
     // return () => {
@@ -101,7 +101,6 @@ const EventPage: React.FC = () => {
 
   useEffect(() => {
     if (currentUser && eventData) {
-      checkTicketStatus();
       checkStreamerStatus();
     }
   }, [currentUser, eventData]);
@@ -261,7 +260,7 @@ const EventPage: React.FC = () => {
     }
   };
 
-  const checkTicketStatus = async () => {
+  const checkTicketStatus = useCallback(async () => {
     if (!currentUser || !eventData) return;
 
     // For free events, automatically grant access
@@ -287,7 +286,7 @@ const EventPage: React.FC = () => {
     } finally {
       setCheckingTicket(false);
     }
-  };
+  }, [currentUser, eventData]);
 
   const checkStreamerStatus = async () => {
     if (!currentUser || !eventData) return;

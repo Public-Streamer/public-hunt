@@ -46,12 +46,7 @@ serve(async (req) => {
     switch (event.type) {
       case "payment_intent.succeeded": {
         const paymentIntent = event.data.object;
-        const { eventId, userId, platformFee } = paymentIntent.metadata;
-        console.log("Payment succeeded for:", {
-          eventId,
-          userId,
-          platformFee,
-        });
+        const { eventId, userId } = paymentIntent.metadata;
         // Create ticket record
         const { error: ticketError } = await supabase.from("tickets").insert({
           user_id: userId,
@@ -64,21 +59,14 @@ serve(async (req) => {
           console.error("Error creating ticket:", ticketError);
           throw ticketError;
         }
-        // Log successful payment processing
-        console.log(
-          "Ticket created successfully for payment:",
-          paymentIntent.id
-        );
         break;
       }
       case "payment_intent.payment_failed": {
         const paymentIntent = event.data.object;
-        console.log("Payment failed:", paymentIntent.id);
         break;
       }
       case "account.updated": {
         const account = event.data.object;
-        console.log("Stripe account updated:", account.id);
         break;
       }
       default:

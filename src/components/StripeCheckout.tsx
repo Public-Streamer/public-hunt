@@ -51,23 +51,23 @@ const CheckoutForm: React.FC<StripeCheckoutProps> = ({
         }
 
         // Check if user already has a ticket
-        const { data: existingTicket } = await supabase
-          .from("tickets")
-          .select("*")
-          .eq("event_id", eventId)
-          .eq("user_id", user.user.id)
-          .eq("status", "active")
-          .single();
+        // const { data: existingTicket } = await supabase
+        //   .from("tickets")
+        //   .select("*")
+        //   .eq("event_id", eventId)
+        //   .eq("user_id", user.user.id)
+        //   .eq("status", "active")
+        //   .single();
 
-        if (existingTicket) {
-          toast({
-            title: "Already Purchased",
-            description: "You already have a ticket for this event",
-            variant: "default",
-          });
-          onSuccess(); // Trigger success flow since they already have access
-          return;
-        }
+        // if (existingTicket) {
+        //   toast({
+        //     title: "Already Purchased",
+        //     description: "You already have a ticket for this event",
+        //     variant: "default",
+        //   });
+        //   // onSuccess(); // Trigger success flow since they already have access
+        //   return;
+        // }
 
         const { data, error } = await supabase.functions.invoke(
           "process-ticket-payment",
@@ -103,7 +103,7 @@ const CheckoutForm: React.FC<StripeCheckoutProps> = ({
     };
 
     checkTicketAndInitializePayment();
-  }, [eventId, price, hostStripeAccountId, onSuccess]);
+  }, [eventId, price, hostStripeAccountId, toast]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -136,6 +136,17 @@ const CheckoutForm: React.FC<StripeCheckoutProps> = ({
           description: error.message || "Please try again.",
           variant: "destructive",
         });
+      }
+      // if (paymentIntent?.status === "processing") {
+      //   setPaymentProcessing(true);
+      // }
+      if (paymentIntent?.status === "succeeded") {
+        toast({
+          title: "Payment Successful",
+          description: "Your payment has been processed successfully.",
+          variant: "default",
+        });
+        onSuccess();
       }
     } catch (error) {
       console.error("Payment error:", error);
