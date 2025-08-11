@@ -36,6 +36,7 @@ const quickTree = [125, 75, 50, 25];
 
 export const DogCard: React.FC<DogCardProps> = ({ dog, onChange }) => {
   const [draft, setDraft] = useState<DogData>(dog);
+  const [customPoints, setCustomPoints] = useState<string>("");
 
   const treeTimer = useCountdown(3 * 60, {
     onComplete: () => {
@@ -77,6 +78,23 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange }) => {
       }
     },
   });
+  const stationaryTimer = useCountdown(5 * 60, {
+    onComplete: () => {
+      toast({ title: "Stationary finished", description: `${draft.name}: 5-minute stationary completed` });
+      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+        try { (navigator as any).vibrate?.(200); } catch {}
+      }
+    },
+  });
+  const stationaryNonBarkTimer = useCountdown(2 * 60, {
+    onComplete: () => {
+      toast({ title: "No bark 2:00 expired", description: `${draft.name}: resetting stationary` });
+      stationaryTimer.reset(5 * 60);
+      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+        try { (navigator as any).vibrate?.(200); } catch {}
+      }
+    },
+  });
   const total = useMemo(() => {
     return draft.entries.reduce((sum, e) => {
       if (e.outcome === "+") return sum + e.points;
@@ -85,6 +103,9 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange }) => {
       return sum; // pending doesn't count
     }, 0);
   }, [draft.entries]);
+
+  const totalAbs = Math.abs(total);
+  const totalIndicator = total > 0 ? "+" : total < 0 ? "–" : "";
 
   const hasPending = draft.entries.some((e) => e.outcome === "pending");
 
@@ -111,6 +132,14 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange }) => {
   };
   const removeEntry = (id: string) => {
     setDraft((prev) => ({ ...prev, entries: prev.entries.filter((e) => e.id !== id) }));
+  };
+
+  const startNonBarkGuarded = () => {
+    if (stationaryTimer.status !== "running") {
+      toast({ title: "Start Stationary first", description: "Begin the 5-minute stationary before starting the 2-minute no-bark", variant: "destructive" });
+      return;
+    }
+    stationaryNonBarkTimer.start();
   };
 
   const onBlurCommit = () => onChange(draft, total);
@@ -147,13 +176,14 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange }) => {
           </div>
           <div className="flex items-center gap-2 text-sm">
             <Clock className="h-4 w-4" />
-            <span className="tabular-nums">Total: {total}</span>
+            <span className="tabular-nums">Total: {totalAbs}</span>
+            {totalIndicator && <span className="font-bold">{totalIndicator}</span>}
           </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         {/* Timers Row */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-6 gap-2">
           <div title="Tree Timer: Wait 3 minutes before scoring a tree.">
             <TimerControl label="Tree 3:00" formatted={treeTimer.formatted} status={treeTimer.status} onStart={treeTimer.start} onPause={treeTimer.pause} onReset={treeTimer.reset} />
           </div>
@@ -168,6 +198,26 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange }) => {
           </div>
           <div title="Not Hunting Timer: 15 minutes for non-hunting dog.">
             <TimerControl label="Not Hunting 15:00" formatted={notHuntingTimer.formatted} status={notHuntingTimer.status} onStart={notHuntingTimer.start} onPause={notHuntingTimer.pause} onReset={notHuntingTimer.reset} />
+          </div>
+          <div title="Stationary: 5 minutes; start 2-minute no-bark if barking stops.">
+            <div className="space-y-2">
+              <TimerControl
+                label="Stationary 5:00"
+                formatted={stationaryTimer.formatted}
+                status={stationaryTimer.status}
+                onStart={stationaryTimer.start}
+                onPause={stationaryTimer.pause}
+                onReset={() => { stationaryTimer.reset(); stationaryNonBarkTimer.reset(); }}
+              />
+              <TimerControl
+                label="No Bark 2:00"
+                formatted={stationaryNonBarkTimer.formatted}
+                status={stationaryNonBarkTimer.status}
+                onStart={startNonBarkGuarded}
+                onPause={stationaryNonBarkTimer.pause}
+                onReset={stationaryNonBarkTimer.reset}
+              />
+            </div>
           </div>
         </div>
 
@@ -184,14 +234,30 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange }) => {
               Tree +{p}
             </Button>
           ))}
-          <div className="flex items-center gap-1 ml-2">
-            <Input type="number" inputMode="numeric" placeholder="Custom" className="h-9 w-24" onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                const v = Number((e.target as HTMLInputElement).value);
-                if (!isNaN(v) && v > 0) addEntry("tree", v);
-              }
-            }} />
-            <Badge variant="outline">strike/tree</Badge>
+          <div className="flex items-center gap-2 ml-2">
+            <Input
+              type="text"
+              inputMode="decimal"
+              placeholder="Custom"
+              className="h-9 w-24"
+              value={customPoints}
+              onChange={(e) => setCustomPoints(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  const v = parseFloat(customPoints);
+                  if (!isNaN(v) && v > 0) {
+                    addEntry("tree", v);
+                    setCustomPoints("");
+                  }
+                }
+              }}
+            />
+            <Button size="sm" variant="secondary" onClick={() => { const v = parseFloat(customPoints); if (!isNaN(v) && v > 0) { addEntry("strike", v); setCustomPoints(""); } }}>
+              Add Strike
+            </Button>
+            <Button size="sm" onClick={() => { const v = parseFloat(customPoints); if (!isNaN(v) && v > 0) { addEntry("tree", v); setCustomPoints(""); } }}>
+              Add Tree
+            </Button>
           </div>
         </div>
 
@@ -235,7 +301,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange }) => {
                       <Button size="sm" variant="outline" className="h-12 w-12 p-0 text-xl font-bold hover-scale" onClick={() => setOutcome(e.id, "+")} title="Plus points">+</Button>
                       <Button size="sm" variant="outline" className="h-12 w-12 p-0 text-xl font-bold hover-scale" onClick={() => setOutcome(e.id, "-")} title="Minus points">–</Button>
                       <Button size="sm" variant="outline" className="h-12 w-12 p-0 text-xl font-bold hover-scale" onClick={() => setOutcome(e.id, "o")} title="Circle">◯</Button>
-                      <Button size="sm" variant="ghost" className="h-12 w-12 p-0" onClick={() => removeEntry(e.id)} title="Remove"><Plus className="h-4 w-4 rotate-45" /></Button>
+                      <Button size="sm" variant="outline" className="h-12 w-12 p-0 text-xs font-semibold hover-scale" onClick={() => removeEntry(e.id)} title="Delete">Del</Button>
                     </div>
                   </div>
                 </div>
