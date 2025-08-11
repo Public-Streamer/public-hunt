@@ -342,7 +342,6 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
     } catch (error) {
       console.error('Error saving team changes:', error);
       toast({ title: 'Error', description: 'Failed to save changes', variant: 'destructive' });
-      fetchTeams();
     }
   };
 
@@ -380,7 +379,6 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
     } catch (error) {
       console.error('Error saving all changes:', error);
       toast({ title: 'Error', description: 'Failed to save all changes', variant: 'destructive' });
-      fetchTeams();
     }
   };
 
