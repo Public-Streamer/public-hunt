@@ -68,6 +68,7 @@ interface StreamerInterfaceProps {
   isLive: boolean;
   userRole?: "host" | "streamer";
   userId?: string;
+  eventHostId?: string;
 }
 
 export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
@@ -76,6 +77,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   isLive,
   userRole,
   userId,
+  eventHostId,
 }) => {
   const { localParticipant } = useLocalParticipant();
   const participants = useParticipants();
@@ -614,6 +616,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                     eventId={eventId}
                     isVisible={isChatVisible}
                     onVisibilityToggle={() => setIsChatVisible(!isChatVisible)}
+                    eventHostId={eventHostId}
                   />
 
                   {/* Stream Status Overlay */}

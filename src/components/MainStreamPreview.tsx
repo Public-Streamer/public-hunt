@@ -16,6 +16,7 @@ interface MainStreamPreviewProps {
   isMuted: boolean;
   eventId: string;
   mediaUrls: string[];
+  eventHostId?: string;
 }
 
 const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
@@ -26,6 +27,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
   isMuted,
   eventId,
   mediaUrls,
+  eventHostId,
 }) => {
   const videoContainerRef = useRef<HTMLDivElement>(null);
   const videoElementRef = useRef<HTMLVideoElement>(null);
@@ -332,6 +334,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
             showControls={showControls}
             showFullscreenToggle={true}
             onFullscreenToggle={handleFullscreenToggle}
+            eventHostId={eventHostId}
           />
         )}
 

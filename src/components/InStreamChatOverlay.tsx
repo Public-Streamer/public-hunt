@@ -1,9 +1,12 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
-import { MessageCircle, X, Plane, Maximize, Minimize } from "lucide-react";
+import { MessageCircle, X, Plane, Maximize, Minimize, Trash2 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useSupabaseChatMessages } from "@/hooks/useSupabaseChatMessages";
+import { useAppContext } from "@/contexts/AppContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface InStreamChatOverlayProps {
   eventId: string;
@@ -14,6 +17,7 @@ interface InStreamChatOverlayProps {
   showFullscreenToggle?: boolean;
   onFullscreenToggle?: () => void;
   className?: string;
+  eventHostId?: string;
 }
 
 const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
@@ -24,14 +28,18 @@ const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
   showControls = true,
   showFullscreenToggle = false,
   onFullscreenToggle,
-  className = ""
+  className = "",
+  eventHostId
 }) => {
-  const { messages, sendMessage } = useSupabaseChatMessages(eventId);
+  const { messages, sendMessage, deleteMessage } = useSupabaseChatMessages(eventId);
+  const { currentUserProfile } = useAppContext();
+  const { toast } = useToast();
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [chatMessage, setChatMessage] = useState("");
   const [isScrolledToBottom, setIsScrolledToBottom] = useState(true);
   const [initialRender, setInitialRender] = useState(true);
   const [showScrollDown, setShowScrollDown] = useState(false);
+  const [deletingMessageId, setDeletingMessageId] = useState<string | null>(null);
 
   // Auto-scroll to bottom on initial render
   useEffect(() => {
@@ -93,6 +101,28 @@ const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
     }
   };
 
+  const handleDeleteMessage = async (messageId: string) => {
+    setDeletingMessageId(messageId);
+    try {
+      await deleteMessage(messageId);
+      toast({
+        title: "Message deleted",
+        description: "The message has been removed from the chat.",
+      });
+    } catch (error) {
+      console.error("Failed to delete message:", error);
+      toast({
+        title: "Failed to delete message",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingMessageId(null);
+    }
+  };
+
+  const isCurrentUserHost = currentUserProfile?.user_id === eventHostId;
+
   return (
     <div className={className}>
       {/* Chat Messages Overlay - Enhanced with Full History */}
@@ -129,20 +159,60 @@ const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
                 return (
                   <div
                     key={`${message.id}-${index}`}
-                    className="py-1.5 px-2 sm:px-3 text-white rounded-lg max-w-[45vw] sm:max-w-xs md:max-w-sm shadow-lg animate-fade-in transition-all duration-300 hover:bg-black/20"
+                    className="py-1.5 px-2 sm:px-3 text-white rounded-lg max-w-[45vw] sm:max-w-xs md:max-w-sm shadow-lg animate-fade-in transition-all duration-300 hover:bg-black/20 group"
                     style={{
                       wordWrap: "break-word",
                       hyphens: "auto",
                       opacity: baseOpacity,
                     }}
                   >
-                    <div className="flex flex-col">
-                      <span className="font-semibold text-blue-200 text-xs sm:text-sm leading-tight truncate max-w-full">
-                        {message.display_name || "Anonymous"}
-                      </span>
-                      <span className="text-white text-xs sm:text-sm leading-relaxed break-words">
-                        {message.message}
-                      </span>
+                    <div className="flex items-start justify-between">
+                      <div className="flex flex-col flex-1 min-w-0">
+                        <span className="font-semibold text-blue-200 text-xs sm:text-sm leading-tight truncate max-w-full">
+                          {message.display_name || "Anonymous"}
+                        </span>
+                        <span className="text-white text-xs sm:text-sm leading-relaxed break-words">
+                          {message.message}
+                        </span>
+                      </div>
+                      {isCurrentUserHost && (
+                        <div className="flex-shrink-0 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 text-white/60 hover:text-red-400 hover:bg-red-900/20"
+                                disabled={deletingMessageId === message.id}
+                                aria-label="Delete message"
+                              >
+                                {deletingMessageId === message.id ? (
+                                  <div className="h-3 w-3 animate-spin rounded-full border-2 border-white/60 border-t-transparent" />
+                                ) : (
+                                  <Trash2 className="h-3 w-3" />
+                                )}
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete message</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Delete this message? This can't be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDeleteMessage(message.id)}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );

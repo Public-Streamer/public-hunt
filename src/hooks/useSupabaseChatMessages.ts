@@ -72,6 +72,41 @@ export const useSupabaseChatMessages = (eventId: string) => {
     }
   }, [eventId, currentUserProfile, isAuthenticated]);
 
+  // Delete message function
+  const deleteMessage = useCallback(async (messageId: string) => {
+    if (!messageId || !isAuthenticated) {
+      throw new Error('Cannot delete message: missing required data');
+    }
+
+    // Optimistic update - remove message from local state
+    const messageToDelete = messages.find(msg => msg.id === messageId);
+    if (!messageToDelete) return; // Message already deleted or not found
+
+    setMessages(prev => prev.filter(msg => msg.id !== messageId));
+
+    try {
+      const { error } = await supabase
+        .from('event_chat_messages')
+        .delete()
+        .eq('id', messageId);
+
+      if (error) {
+        console.error('Error deleting message:', error);
+        // Rollback optimistic update
+        setMessages(prev => {
+          const updated = [...prev, messageToDelete].sort((a, b) => 
+            new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+          );
+          return updated;
+        });
+        throw error;
+      }
+    } catch (error) {
+      console.error('Failed to delete message:', error);
+      throw error;
+    }
+  }, [messages, isAuthenticated]);
+
   // Set up real-time subscription
   useEffect(() => {
     if (!eventId) return;
@@ -105,6 +140,24 @@ export const useSupabaseChatMessages = (eventId: string) => {
           });
         }
       )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'event_chat_messages',
+          filter: `event_id=eq.${eventId}`
+        },
+        (payload) => {
+          console.log(`🗑️ [Chat-${eventId}] Received real-time deletion:`, payload.old);
+          const deletedMessageId = payload.old.id;
+          setMessages(prev => {
+            const updated = prev.filter(msg => msg.id !== deletedMessageId);
+            console.log(`📝 [Chat-${eventId}] Updated messages count after deletion:`, updated.length);
+            return updated;
+          });
+        }
+      )
       .subscribe((status) => {
         console.log(`🔄 [Chat-${eventId}] Subscription status:`, status);
         if (status === 'SUBSCRIBED') {
@@ -133,6 +186,7 @@ export const useSupabaseChatMessages = (eventId: string) => {
     messages,
     loading,
     sendMessage,
+    deleteMessage,
     canSend: isAuthenticated && currentUserProfile,
     connectionStatus
   };
