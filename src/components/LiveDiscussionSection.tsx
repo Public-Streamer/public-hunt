@@ -1,10 +1,8 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, Suspense } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import data from '@emoji-mart/data';
-import Picker from '@emoji-mart/react';
 import { MessageCircle, Send, Smile } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAppContext } from "@/contexts/AppContext";
@@ -12,6 +10,15 @@ import TooltipWrapper from "@/components/ui/tooltip-wrapper";
 import { formatDistanceToNow } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useSupabaseChatMessages } from "@/hooks/useSupabaseChatMessages";
+
+// Lazy emoji picker to avoid bundling heavy data on initial load
+const EmojiPickerLazy = React.lazy(async () => {
+  const [{ default: Picker }, data] = await Promise.all([
+    import('@emoji-mart/react'),
+    import('@emoji-mart/data'),
+  ]);
+  return { default: (props: any) => <Picker data={data} {...props} /> };
+});
 
 interface LiveDiscussionSectionProps {
   eventId: string;
@@ -134,27 +141,28 @@ const LiveDiscussionSection: React.FC<LiveDiscussionSectionProps> = ({
                     </button>
                     {showEmojiPicker && (
                       <div ref={emojiPickerRef} className="absolute z-20 mt-12 sm:mt-10">
-                        <Picker
-                          data={data}
-                          onEmojiSelect={(emoji: { native: string }) => {
-                            if (textareaRef.current) {
-                              const start = textareaRef.current.selectionStart;
-                              const end = textareaRef.current.selectionEnd;
-                              const before = newMessage.slice(0, start);
-                              const after = newMessage.slice(end);
-                              setNewMessage(before + emoji.native + after);
-                              setTimeout(() => {
-                                textareaRef.current?.focus();
-                                textareaRef.current?.setSelectionRange(start + emoji.native.length, start + emoji.native.length);
-                              }, 0);
-                            } else {
-                              setNewMessage((msg) => msg + emoji.native);
-                            }
-                            setShowEmojiPicker(false);
-                          }}
-                          theme="light"
-                          style={{ position: 'absolute', left: 0 }}
-                        />
+                        <Suspense fallback={null}>
+                          <EmojiPickerLazy
+                            onEmojiSelect={(emoji: { native: string }) => {
+                              if (textareaRef.current) {
+                                const start = textareaRef.current.selectionStart;
+                                const end = textareaRef.current.selectionEnd;
+                                const before = newMessage.slice(0, start);
+                                const after = newMessage.slice(end);
+                                setNewMessage(before + emoji.native + after);
+                                setTimeout(() => {
+                                  textareaRef.current?.focus();
+                                  textareaRef.current?.setSelectionRange(start + emoji.native.length, start + emoji.native.length);
+                                }, 0);
+                              } else {
+                                setNewMessage((msg) => msg + emoji.native);
+                              }
+                              setShowEmojiPicker(false);
+                            }}
+                            theme="light"
+                            style={{ position: 'absolute', left: 0 }}
+                          />
+                        </Suspense>
                       </div>
                     )}
                   </div>

@@ -1,4 +1,11 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  Suspense,
+  startTransition,
+} from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,7 +19,7 @@ import {
   Loader2,
   Flag,
 } from "lucide-react";
-import { LiveKitRoom, RoomAudioRenderer } from "@livekit/components-react";
+import { LiveKitRoomLazy, RoomAudioRendererLazy } from "@/lib/livekitLazy";
 import "@livekit/components-styles";
 import LiveDiscussionSection from "@/components/LiveDiscussionSection";
 import { PreStreamChatArchive } from "@/components/PreStreamChatArchive";
@@ -30,7 +37,6 @@ import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { useAppContext } from "@/contexts/AppContext";
 import { updateEventMetaTags, resetDefaultMetaTags } from "@/lib/metaTags";
-import { useStreamingControls } from "@/hooks/useStreamingControls";
 import { useScoreboardTeams } from "@/hooks/useScoreboardTeams";
 import { useEventScoreboardMeta } from "@/hooks/useEventScoreboardMeta";
 import { getShareableEventUrl } from "@/lib/shareUtils";
@@ -176,7 +182,11 @@ const EventPage: React.FC = () => {
     [currentUser, isEventHost, isStreamer]
   );
 
-  const { alreadyReported: hasReported, loading: reportStatusLoading, checkStatus: refreshReportStatus } = useReportEvent({
+  const {
+    alreadyReported: hasReported,
+    loading: reportStatusLoading,
+    checkStatus: refreshReportStatus,
+  } = useReportEvent({
     eventId: eventData?.id || "",
     enabled: !!(eventData?.id && isViewer),
   });
@@ -387,13 +397,15 @@ const EventPage: React.FC = () => {
       );
       return;
     }
-    setShowPurchaseModal(true);
+    startTransition(() => setShowPurchaseModal(true));
   }, [currentUser, navigate, toast]);
 
   const handleWatchNow = useCallback(() => {
     if (!currentUser) {
-      navigate(
-        `/login?redirect=${encodeURIComponent(window.location.pathname)}`
+      startTransition(() =>
+        navigate(
+          `/login?redirect=${encodeURIComponent(window.location.pathname)}`
+        )
       );
       return;
     }
@@ -416,7 +428,9 @@ const EventPage: React.FC = () => {
         description: "Please sign in to report this event",
         variant: "destructive",
       });
-      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+      navigate(
+        `/login?redirect=${encodeURIComponent(window.location.pathname)}`
+      );
       return;
     }
     setShowReportModal(true);
@@ -436,11 +450,11 @@ const EventPage: React.FC = () => {
     const stageUrl = eventData?.slug
       ? `/stage/${eventData.slug}`
       : `/stage/${eventData?.id || eventId}`;
-    navigate(stageUrl);
+    startTransition(() => navigate(stageUrl));
   };
 
   const goBackToEvents = () => {
-    navigate("/events");
+    startTransition(() => navigate("/events"));
   };
 
   const AdmissionButton = () => {
@@ -587,83 +601,76 @@ const EventPage: React.FC = () => {
             {/* Event Preview Card - Always show StreamPreviewContainer in pink area */}
             <Card className="overflow-hidden">
               {isLive && roomName && livekitToken && serverUrl ? (
-                <LiveKitRoom
-                  token={livekitToken}
-                  serverUrl={serverUrl}
-                  options={{
-                    adaptiveStream: true,
-                    dynacast: true,
-                  }}
-                  connect={true}
+                <Suspense
+                  fallback={<div className="aspect-video w-full bg-black/5" />}
                 >
-                  <StreamPreviewContainer
-                    mediaUrls={eventData.media_urls || ["/placeholder.gif"]}
-                    eventName={eventData.name}
-                    isLive={eventData.is_live}
-                    hasAccess={hasTicket || canEnterStage}
-                    isLoggedIn={!!currentUser}
-                    eventId={eventData.id}
-                  />
-                  <RoomAudioRenderer />
-
-                  {/* Pinned Message Section */}
-                  <div className="">
-                    <PinnedMessageSection
+                  <LiveKitRoomLazy
+                    token={livekitToken}
+                    serverUrl={serverUrl}
+                    options={{
+                      adaptiveStream: true,
+                      dynacast: true,
+                    }}
+                    connect={true}
+                  >
+                    <StreamPreviewContainer
+                      mediaUrls={eventData.media_urls || ["/placeholder.gif"]}
+                      eventName={eventData.name}
+                      isLive={eventData.is_live}
+                      hasAccess={hasTicket || canEnterStage}
+                      isLoggedIn={!!currentUser}
                       eventId={eventData.id}
-                      isHost={false}
                     />
-                  </div>
+                    <RoomAudioRendererLazy />
 
-                  {/* Scoreboard - Show only when there are teams */}
-                  {currentUser && showScoreboard && (
-                    <div className="p-5">
-                      {selectedGameType === "custom" ? (
-                        <CustomScoreboard
-                          eventId={eventData.id}
-                          isHost={false}
-                        />
-                      ) : selectedGameType === "coon_hunt" ? (
-                        <CoonHuntScoreboard
-                          eventId={eventData.id}
-                          isHost={false}
-                        />
-                      ) : null}
-                    </div>
-                  )}
-
-                  {/* Show full viewer interface below if user has access */}
-                  {/* {(hasTicket || canEnterStage) && (
-                    <div className="mt-6">
-                      <ViewerInterface
+                    {/* Pinned Message Section */}
+                    <div className="">
+                      <PinnedMessageSection
                         eventId={eventData.id}
-                        hasAccess={true}
-                        onUpgrade={handlePayment}
-                        showUpgradePrompt={false}
+                        isHost={false}
                       />
                     </div>
-                  )} */}
-                  {/* Live Discussion Section */}
-                  {eventData.is_live &&
-                    livekitToken &&
-                    (hasTicket || canEnterStage) && (
-                      <LiveDiscussionSection
-                        eventId={eventData.id}
-                        currentUserProfile={
-                          currentUserProfile
-                            ? {
-                                id: currentUserProfile.id,
-                                username:
-                                  currentUserProfile.display_name || "User",
-                                display_name:
-                                  currentUserProfile.display_name || "User",
-                                profile_picture_url:
-                                  currentUserProfile.profile_picture_url || "",
-                              }
-                            : undefined
-                        }
-                      />
+
+                    {/* Scoreboard - Show only when there are teams */}
+                    {currentUser && showScoreboard && (
+                      <div className="p-5">
+                        {selectedGameType === "custom" ? (
+                          <CustomScoreboard
+                            eventId={eventData.id}
+                            isHost={false}
+                          />
+                        ) : selectedGameType === "coon_hunt" ? (
+                          <CoonHuntScoreboard
+                            eventId={eventData.id}
+                            isHost={false}
+                          />
+                        ) : null}
+                      </div>
                     )}
-                </LiveKitRoom>
+
+                    {eventData.is_live &&
+                      livekitToken &&
+                      (hasTicket || canEnterStage) && (
+                        <LiveDiscussionSection
+                          eventId={eventData.id}
+                          currentUserProfile={
+                            currentUserProfile
+                              ? {
+                                  id: currentUserProfile.id,
+                                  username:
+                                    currentUserProfile.display_name || "User",
+                                  display_name:
+                                    currentUserProfile.display_name || "User",
+                                  profile_picture_url:
+                                    currentUserProfile.profile_picture_url ||
+                                    "",
+                                }
+                              : undefined
+                          }
+                        />
+                      )}
+                  </LiveKitRoomLazy>
+                </Suspense>
               ) : (
                 <MediaBackground
                   src={eventData.media_urls?.[0]}
@@ -836,11 +843,18 @@ const EventPage: React.FC = () => {
             {currentUser && !isEventHost && !isStreamer && (
               <Card>
                 <CardHeader className="p-3 sm:p-3">
-                  <CardTitle className="text-base sm:text-lg">Report Event</CardTitle>
+                  <CardTitle className="text-base sm:text-lg">
+                    Report Event
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="p-3 sm:p-3">
-                  <Button variant="outline" onClick={handleReportClick} disabled={hasReported || reportStatusLoading}>
-                    <Flag className="h-4 w-4 mr-2" /> {hasReported ? "Reported" : "Report Event"}
+                  <Button
+                    variant="outline"
+                    onClick={handleReportClick}
+                    disabled={hasReported || reportStatusLoading}
+                  >
+                    <Flag className="h-4 w-4 mr-2" />{" "}
+                    {hasReported ? "Reported" : "Report Event"}
                   </Button>
                 </CardContent>
               </Card>

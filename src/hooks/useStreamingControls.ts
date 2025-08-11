@@ -6,7 +6,8 @@ import {
   useMediaDevices,
   useMediaDeviceSelect,
 } from "@livekit/components-react";
-import { Track } from "livekit-client";
+// import { Track } from "livekit-client";
+import { useLiveKitTrackSource } from "@/lib/livekitLazy";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -49,6 +50,8 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   const room = useRoomContext();
 
   console.log("room name", room.name);
+
+  const TrackSource = useLiveKitTrackSource();
 
   const [isStreaming, setIsStreaming] = useState(false);
   const [isVideoEnabled, setIsVideoEnabled] = useState(false);
@@ -880,9 +883,9 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
 
       try {
         // Get the native MediaStreamTrack from LiveKit's video track
-        const cameraPublication = localParticipant?.getTrackPublication(
-          Track.Source.Camera
-        );
+        const cameraPublication = TrackSource
+          ? localParticipant?.getTrackPublication(TrackSource.Camera)
+          : undefined;
         const videoTrack = cameraPublication?.track;
 
         if (!videoTrack || !("mediaStreamTrack" in videoTrack)) {
@@ -1030,7 +1033,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       setIsTorchSupported(false);
       setIsTorchEnabled(false);
     }
-  }, [currentFacingMode, localParticipant]);
+  }, [currentFacingMode, localParticipant, TrackSource]);
 
   const toggleTorch = useCallback(async () => {
     console.log("[Torch] Toggle requested, current state:", isTorchEnabled);
@@ -1042,13 +1045,22 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       return;
     }
 
+    // Guard for TrackSource not loaded
+    const cameraPublication = TrackSource
+      ? localParticipant.getTrackPublication(TrackSource.Camera)
+      : undefined;
+    if (!TrackSource) {
+      console.warn("[Torch] Track source not loaded yet; skipping torch toggle");
+      return;
+    }
+
     try {
       const newTorchState = !isTorchEnabled;
 
       // Get current video track
-      const cameraPublication = localParticipant.getTrackPublication(
-        Track.Source.Camera
-      );
+      // const cameraPublication = localParticipant.getTrackPublication(
+      //   Track.Source.Camera
+      // );
 
       if (
         !cameraPublication?.track ||
@@ -1149,7 +1161,13 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       setIsTorchSupported(false);
       setIsTorchEnabled(false);
     }
-  }, [localParticipant, currentFacingMode, isTorchEnabled, isTorchSupported]);
+  }, [
+    localParticipant,
+    currentFacingMode,
+    isTorchEnabled,
+    isTorchSupported,
+    TrackSource,
+  ]);
 
   const startStream = useCallback(async () => {
     try {

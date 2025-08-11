@@ -1,12 +1,6 @@
 import React, { useState, useEffect } from "react";
-import {
-  VideoTrack,
-  AudioTrack,
-  useLocalParticipant,
-  useParticipants,
-  useTracks,
-} from "@livekit/components-react";
-import { Track } from "livekit-client";
+import { useLocalParticipant, useParticipants, useTracks } from "@livekit/components-react";
+import { VideoTrackLazy, useLiveKitTrackSource } from "@/lib/livekitLazy";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -85,6 +79,8 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   const screenSize = useScreenSize();
   const { checkScreenShareSupport } = useMobileMediaPermissions();
   const { toast } = useToast();
+
+  const TrackSource = useLiveKitTrackSource();
 
   // Edit state management
   const [isEditing, setIsEditing] = useState(false);
@@ -396,17 +392,19 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   };
 
   // Get local camera track
-  const localCameraTracks = useTracks([Track.Source.Camera], {
-    onlySubscribed: false,
-  });
+  const localCameraTracks = useTracks(
+    TrackSource ? [TrackSource.Camera] : [],
+    { onlySubscribed: false }
+  );
   const localCameraTrack = localCameraTracks.find(
     (t) => t.participant === localParticipant
   );
 
   // Get other participants' camera tracks
-  const otherCameraTracks = useTracks([Track.Source.Camera], {
-    onlySubscribed: true,
-  }).filter((t) => t.participant !== localParticipant);
+  const otherCameraTracks = useTracks(
+    TrackSource ? [TrackSource.Camera] : [],
+    { onlySubscribed: true }
+  ).filter((t) => t.participant !== localParticipant);
 
   if (!localParticipant) {
     return (
@@ -598,9 +596,9 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
               <CardContent className="p-3 sm:p-3">
                 <div className=" aspect-video bg-muted rounded-lg overflow-hidden relative">
                   {localCameraTrack && controls.isVideoEnabled ? (
-                    <VideoTrack
-                      trackRef={localCameraTrack}
-                      style={{ width: "100%", height: "100%" }}
+                    <VideoTrackLazy
+                      trackRef={localCameraTrack as any}
+                      className="w-full h-full"
                     />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center bg-muted">
@@ -662,9 +660,9 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                         key={trackRef.participant.sid}
                         className="aspect-video bg-muted rounded-lg overflow-hidden relative"
                       >
-                        <VideoTrack
-                          trackRef={trackRef}
-                          style={{ width: "100%", height: "100%" }}
+                        <VideoTrackLazy
+                          trackRef={trackRef as any}
+                          className="w-full h-full"
                         />
                         <div className="absolute bottom-2 left-2">
                           <Badge variant="secondary" className="text-xs">

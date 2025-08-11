@@ -1,3 +1,4 @@
+import React, { Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,12 +10,13 @@ import Layout from "@/components/Layout";
 import Index from "./pages/Index";
 import Create from "./pages/Create";
 import CreateEpisode from "./pages/CreateEpisode";
-import Channels from "./pages/Channels";
-import ChannelPage from "./pages/ChannelPage";
+// import Channels from "./pages/Channels";
+// import ChannelPage from "./pages/ChannelPage";
 import Events from "./pages/Events";
-import EventPage from "./pages/EventPage";
-import StagePage from "./pages/StagePage";
-import Profile from "./pages/Profile";
+
+const StagePage = React.lazy(() => import("./pages/StagePage"));
+const EventPage = React.lazy(() => import("./pages/EventPage"));
+const Profile = React.lazy(() => import("./pages/Profile"));
 import CompanyProfile from "./pages/CompanyProfile";
 import Login from "./pages/Login";
 import PaymentSetup from "./pages/PaymentSetup";
@@ -43,43 +45,45 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <Layout>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/create" element={<Create />} />
-                <Route path="/create-episode" element={<CreateEpisode />} />
-                {/* <Route path="/channels" element={<Channels />} /> */}
-                {/* <Route path="/channel/:channelId" element={<ChannelPage />} /> */}
-                <Route path="/events" element={<Events />} />
-                <Route path="/event/:eventId" element={<EventPage />} />
-                <Route path="/stage/:eventId" element={<StagePage />} />
-                {/* <Route path="/profile" element={<Profile />} /> */}
-                <Route path="/profile/:userId" element={<Profile />} />
-                <Route
-                  path="/company/:companyId"
-                  element={<CompanyProfile />}
-                />
-                <Route path="/login" element={<Login />} />
-                <Route path="/payments" element={<PaymentSetup />} />
-                <Route path="/past-events" element={<PastEvents />} />
-                <Route path="/my-ads" element={<MyAds />} />
-                <Route path="/advertisers" element={<Advertisers />} />
-                <Route path="/create-ad" element={<CreateAd />} />
-                <Route path="/ad-library" element={<AdLibrary />} />
-                <Route
-                  path="/advertiser-dashboard"
-                  element={<AdvertiserDashboard />}
-                />
-                <Route path="/withdraw" element={<WithdrawFunds />} />
-                <Route path="/master-admin" element={<MasterAdmin />} />
-                <Route path="/qa" element={<QA />} />
-                <Route path="/legal" element={<LegalDocumentPage />} />
-                <Route path="/terms" element={<Terms />} />
-                <Route path="/privacy" element={<Privacy />} />
-                <Route path="/post/:postId" element={<Post />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Layout>
+            <Suspense fallback={<div className="p-6">Loading…</div>}>
+              <Layout>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/create" element={<Create />} />
+                  <Route path="/create-episode" element={<CreateEpisode />} />
+                  {/* <Route path="/channels" element={<Channels />} /> */}
+                  {/* <Route path="/channel/:channelId" element={<ChannelPage />} /> */}
+                  <Route path="/events" element={<Events />} />
+                  <Route path="/event/:eventId" element={<EventPage />} />
+                  <Route path="/stage/:eventId" element={<StagePage />} />
+                  {/* <Route path="/profile" element={<Profile />} /> */}
+                  <Route path="/profile/:userId" element={<Profile />} />
+                  <Route
+                    path="/company/:companyId"
+                    element={<CompanyProfile />}
+                  />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/payments" element={<PaymentSetup />} />
+                  <Route path="/past-events" element={<PastEvents />} />
+                  <Route path="/my-ads" element={<MyAds />} />
+                  <Route path="/advertisers" element={<Advertisers />} />
+                  <Route path="/create-ad" element={<CreateAd />} />
+                  <Route path="/ad-library" element={<AdLibrary />} />
+                  <Route
+                    path="/advertiser-dashboard"
+                    element={<AdvertiserDashboard />}
+                  />
+                  <Route path="/withdraw" element={<WithdrawFunds />} />
+                  <Route path="/master-admin" element={<MasterAdmin />} />
+                  <Route path="/qa" element={<QA />} />
+                  <Route path="/legal" element={<LegalDocumentPage />} />
+                  <Route path="/terms" element={<Terms />} />
+                  <Route path="/privacy" element={<Privacy />} />
+                  <Route path="/post/:postId" element={<Post />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Layout>
+            </Suspense>
           </BrowserRouter>
         </AppProvider>
       </TooltipProvider>

@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
 import { useParams, Navigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { LiveKitRoom, RoomAudioRenderer } from "@livekit/components-react";
+import { LiveKitRoomLazy, RoomAudioRendererLazy } from "@/lib/livekitLazy";
 import "@livekit/components-styles";
 import { StreamerInterface } from "@/components/StreamerInterface";
 import { toast } from "sonner";
@@ -321,36 +321,38 @@ const StagePage: React.FC = () => {
   }
 
   return (
-    <LiveKitRoom
-      token={token}
-      serverUrl={serverUrl}
-      connectOptions={{
-        autoSubscribe: true,
-      }}
-      onConnected={() => {
-        console.log("LiveKit room connected");
-        toast.success("Connected to live stream");
-      }}
-      onDisconnected={(reason) => {
-        console.log("LiveKit room disconnected:", reason);
-        toast.info("Disconnected from live stream");
-      }}
-      onError={(error) => {
-        console.error("LiveKit room error:", error);
-        toast.error("Live stream connection error: " + error.message);
-      }}
-      style={{ height: "100vh" }}
-    >
-      <RoomAudioRenderer />
-      <StreamerInterface
-        eventId={event.id}
-        eventTitle={event.name}
-        isLive={event.is_live}
-        userRole={userRole}
-        userId={user?.id}
-        eventHostId={event.created_by}
-      />
-    </LiveKitRoom>
+    <Suspense fallback={<div className="aspect-video w-full bg-black/5" />}>
+      <LiveKitRoomLazy
+        token={token}
+        serverUrl={serverUrl}
+        connectOptions={{
+          autoSubscribe: true,
+        }}
+        onConnected={() => {
+          console.log("LiveKit room connected");
+          toast.success("Connected to live stream");
+        }}
+        onDisconnected={(reason) => {
+          console.log("LiveKit room disconnected:", reason);
+          toast.info("Disconnected from live stream");
+        }}
+        onError={(error) => {
+          console.error("LiveKit room error:", error);
+          toast.error("Live stream connection error: " + error.message);
+        }}
+        style={{ height: "100vh" }}
+      >
+        <RoomAudioRendererLazy />
+        <StreamerInterface
+          eventId={event.id}
+          eventTitle={event.name}
+          isLive={event.is_live}
+          userRole={userRole}
+          userId={user?.id}
+          eventHostId={event.created_by}
+        />
+      </LiveKitRoomLazy>
+    </Suspense>
   );
 };
 

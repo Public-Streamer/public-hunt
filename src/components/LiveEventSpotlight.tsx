@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
+import { lazy, Suspense, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Eye, Clock, Loader } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { LiveKitRoom, useTracks } from "@livekit/components-react";
-import { Track } from "livekit-client";
+import { useLiveKitTrackSource } from "@/lib/livekitLazy";
 import MainStreamPreview from "@/components/MainStreamPreview";
 import MediaBackground from "@/components/MediaBackground";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -28,6 +28,61 @@ interface StreamPreviewProps {
   eventName: string;
   fallbackImage: string;
 }
+
+// Lazy wrapper for LiveKitRoom to avoid static imports
+const LiveKitRoomLazy = lazy(() =>
+  import("@livekit/components-react").then((m) => ({ default: m.LiveKitRoom }))
+);
+
+// Lazy StreamContent that uses useTracks from @livekit/components-react
+const StreamContentLazy = lazy(() =>
+  import("@livekit/components-react").then((m) => {
+    const { useTracks } = m;
+    const Comp: React.FC<{
+      eventName: string;
+      fallbackImage: string;
+      event: any;
+    }> = ({ eventName, fallbackImage, event }) => {
+      const [isMuted, setIsMuted] = useState(false);
+      const TrackSource = useLiveKitTrackSource();
+      const sources = TrackSource ? [TrackSource.Camera, TrackSource.ScreenShare] : [];
+
+      const videoTracks = useTracks(sources, {
+        updateOnlyOn: [],
+        onlySubscribed: false,
+      });
+
+      const activeVideoTracks = videoTracks.filter(
+        (track) => track.publication && track.participant.identity !== "viewer"
+      );
+
+      if (activeVideoTracks.length === 0) {
+        return (
+          <MediaBackground
+            src={fallbackImage}
+            alt={eventName}
+            className="w-full h-full group-hover:scale-105 transition-transform duration-300"
+          />
+        );
+      }
+
+      return (
+        <div className={`w-full h-full transition-all duration-500`}>
+          <MainStreamPreview
+            mediaUrls={event?.mediaUrls || []}
+            track={activeVideoTracks[0] as any}
+            eventName={eventName}
+            isLive={true}
+            isMuted={isMuted}
+            setIsMuted={setIsMuted}
+            eventId={event?.id}
+          />
+        </div>
+      );
+    };
+    return { default: Comp };
+  })
+);
 
 const StreamPreview: React.FC<StreamPreviewProps> = ({
   event,
@@ -90,18 +145,20 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({
 
   return (
     <div className="relative w-full h-full">
-      <LiveKitRoom
-        token={token}
-        serverUrl={serverUrl}
-        connect={true}
-        className="w-full h-full"
-      >
-        <StreamContent
-          eventName={eventName}
-          fallbackImage={fallbackImage}
-          event={event}
-        />
-      </LiveKitRoom>
+      <Suspense fallback={<div className="w-full h-full" />}> 
+        <LiveKitRoomLazy
+          token={token}
+          serverUrl={serverUrl}
+          connect={true}
+          className="w-full h-full"
+        >
+          <StreamContentLazy
+            eventName={eventName}
+            fallbackImage={fallbackImage}
+            event={event}
+          />
+        </LiveKitRoomLazy>
+      </Suspense>
 
       <div className="absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity duration-500 backdrop-blur-[1px] z-0">
         <div className="text-center text-white p-6 max-w-xs"></div>
@@ -110,49 +167,6 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({
   );
 };
 
-const StreamContent: React.FC<{
-  eventName: string;
-  fallbackImage: string;
-  event: any;
-}> = ({ eventName, fallbackImage }) => {
-  const [isMuted, setIsMuted] = useState(false);
-
-  const videoTracks = useTracks(
-    [Track.Source.Camera, Track.Source.ScreenShare],
-    {
-      updateOnlyOn: [],
-      onlySubscribed: false,
-    }
-  );
-
-  const activeVideoTracks = videoTracks.filter(
-    (track) => track.publication && track.participant.identity !== "viewer"
-  );
-
-  if (activeVideoTracks.length === 0) {
-    return (
-      <MediaBackground
-        src={fallbackImage}
-        alt={eventName}
-        className="w-full h-full group-hover:scale-105 transition-transform duration-300"
-      />
-    );
-  }
-
-  return (
-    <div className={`w-full h-full transition-all duration-500`}>
-      <MainStreamPreview
-        mediaUrls={event?.mediaUrls || []}
-        track={activeVideoTracks[0]}
-        eventName={eventName}
-        isLive={true}
-        isMuted={isMuted}
-        setIsMuted={setIsMuted}
-        eventId={event?.id}
-      />
-    </div>
-  );
-};
 
 const LiveEventSpotlight: React.FC = () => {
   // Move this function above useQuery so it can be used inside queryFn
