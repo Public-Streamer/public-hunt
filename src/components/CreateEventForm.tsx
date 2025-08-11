@@ -240,9 +240,9 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       media_urls: mediaFiles.map((f) => f.url).filter(Boolean),
       is_live: false,
       created_by: user.id,
-      host_stripe_account_id: hostStripeAccountId ?? null,
+      stripe_account_id: hostStripeAccountId ?? null,
       payment_enabled: ticketPrice > 0 && hostStripeAccountId !== null,
-      
+
       // channel_id: selectedChannelId || null, // Temporarily disabled
     };
 
@@ -335,7 +335,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
           // media_urls: mediaFiles[0].url,
           is_live: false,
           created_by: user.id,
-          host_stripe_account_id: hostStripeAccountId ?? null,
+          stripe_account_id: hostStripeAccountId ?? null,
           payment_enabled: ticketPrice > 0 && hostStripeAccountId !== null,
           // channel_id: channelRequiresApproval ? null : selectedChannelId || null, // Temporarily disabled
         })

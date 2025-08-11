@@ -39,31 +39,9 @@ import { updateEventMetaTags, resetDefaultMetaTags } from "@/lib/metaTags";
 import { useScoreboardTeams } from "@/hooks/useScoreboardTeams";
 import { useEventScoreboardMeta } from "@/hooks/useEventScoreboardMeta";
 import { getShareableEventUrl } from "@/lib/shareUtils";
+import { Database } from "@/integrations/supabase/types";
 
-interface EventData {
-  id: string;
-  name: string;
-  description: string;
-  ticket_price: number;
-  date: string;
-  time: string;
-  location: string;
-  category: string;
-  is_live: boolean;
-  viewer_count: number;
-  livekit_room_name: string;
-  media_urls: string[];
-  created_by: string;
-  created_at: string;
-  updated_at: string;
-  host_stripe_account_id?: string;
-  slug?: string;
-  slug_counter?: number;
-  metadata?: {
-    selectedGameType?: string;
-    customFields?: any[];
-  };
-}
+type EventData = Database["public"]["Tables"]["events"]["Row"];
 
 const EventPage: React.FC = () => {
   console.log("[EventPage] Component render started");
@@ -869,7 +847,7 @@ const EventPage: React.FC = () => {
             eventId={eventData.id}
             eventTitle={eventData.name}
             price={eventData.ticket_price}
-            hostStripeAccountId={eventData.host_stripe_account_id}
+            hostStripeAccountId={eventData.stripe_account_id}
             onPurchaseSuccess={handlePurchaseSuccess}
           />
           {currentUser && !isEventHost && !isStreamer && (

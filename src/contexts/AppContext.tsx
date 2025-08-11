@@ -4,7 +4,6 @@ import { User } from "@supabase/supabase-js";
 import { toast } from "@/hooks/use-toast";
 import type { Database } from "@/integrations/supabase/types";
 import { useQuery } from "@tanstack/react-query";
-import { id } from "zod/v4/locales";
 
 type currentUserProfile = Database["public"]["Tables"]["user_profiles"]["Row"];
 
