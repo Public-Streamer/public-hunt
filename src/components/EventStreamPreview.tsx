@@ -7,6 +7,7 @@ import { LiveKitRoom, useTracks } from "@livekit/components-react";
 import { Track } from "livekit-client";
 import MainStreamPreview from "@/components/MainStreamPreview";
 import { useScreenSize } from "@/hooks/use-mobile";
+import MediaBackground from "./MediaBackground";
 
 interface EventStreamPreviewProps {
   eventId: string;
@@ -81,13 +82,7 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({
   }, [token, serverUrl]);
 
   if (!token || !serverUrl) {
-    return (
-      <img
-        src={fallbackImage}
-        alt={eventName}
-        className="w-full h-full object-cover"
-      />
-    );
+    return <MediaBackground src={mediaUrls[0]} className="h-full" />;
   }
 
   return (
@@ -137,18 +132,14 @@ const StreamContent: React.FC<{
     }
   );
 
+  const cameraOff = "/cameraOff.jpg";
+
   const activeVideoTracks = videoTracks.filter(
     (track) => track.publication && track.participant.identity !== "viewer"
   );
 
   if (activeVideoTracks.length === 0) {
-    return (
-      <img
-        src={fallbackImage}
-        alt={eventName}
-        className="w-full h-full object-cover"
-      />
-    );
+    return <MediaBackground src={cameraOff} className="h-full" />;
   }
 
   return (
@@ -203,26 +194,30 @@ const EventStreamPreview: React.FC<EventStreamPreviewProps> = ({
               mediaUrls={mediaUrls}
             />
           ) : (
-            <div className="flex flex-col items-center justify-center h-full space-y-4">
-              <Video className="h-16 w-16 text-purple-500" />
-              <div className="text-red-500 font-medium">
-                Show 10 Sec preview here
-              </div>
-              {isLive && (
-                <Badge className="bg-red-600 hover:bg-red-700">LIVE</Badge>
-              )}
-              {isLive && (
-                <div className="w-1/2">
-                  <Button
-                    size={screenSize === "mobile" ? "xs" : "sm"}
-                    onClick={handlePreviewClick}
-                    className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3"
-                  >
-                    Preview
-                  </Button>
+            <MediaBackground src={mediaUrls[0]} className="h-full">
+              <div className="flex flex-col items-center justify-center h-full space-y-4 bg-black/80">
+                <Video className="h-16 w-16 text-purple-500" />
+                <div className="text-white font-medium">
+                  Show 10 Sec preview here
                 </div>
-              )}
-            </div>
+                {isLive && (
+                  <Badge className="bg-red-600 hover:bg-red-700 text-white">
+                    LIVE
+                  </Badge>
+                )}
+                {isLive && (
+                  <div className="w-1/2">
+                    <Button
+                      size={screenSize === "mobile" ? "xs" : "sm"}
+                      onClick={handlePreviewClick}
+                      className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3"
+                    >
+                      Preview
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </MediaBackground>
           )}
         </div>
       </div>
