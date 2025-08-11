@@ -19,6 +19,7 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+    dedupe: ["react", "react-dom"],
   },
   build: {
     sourcemap: false, // Optional: Disable sourcemaps in production
@@ -42,7 +43,7 @@ export default defineConfig(({ mode }) => ({
             return "emoji";
           if (id.includes("@tanstack")) return "react-query";
           if (id.includes("react-router")) return "router";
-          if (id.includes("@radix-ui")) return "radix";
+          // Removed radix chunk to avoid isolating it from React
           if (id.includes("date-fns")) return "dates";
           if (id.includes("lucide-react")) return "icons";
           if (id.includes("@supabase")) return "supabase";
