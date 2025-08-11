@@ -11,6 +11,7 @@ const Footer: React.FC = () => {
         <nav className="flex items-center justify-start sm:justify-end gap-6 text-sm">
           <Link to="/terms" className="hover:underline">Terms of Service</Link>
           <Link to="/privacy" className="hover:underline">Privacy Policy</Link>
+          <Link to="/report" className="hover:underline">Report / DMCA</Link>
         </nav>
       </div>
     </footer>
