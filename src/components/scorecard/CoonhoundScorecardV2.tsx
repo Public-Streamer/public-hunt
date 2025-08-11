@@ -41,11 +41,30 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
   const [loading, setLoading] = useState(false);
   const [huntMinutes, setHuntMinutes] = useState<60 | 90 | 120>(120);
 
-  // Cast-wide timers
-  const huntTimer = useCountdown(huntMinutes * 60);
-  const trackTimer = useCountdown(6 * 60);
-  const globalShineTimer = useCountdown(8 * 60);
-
+  const huntTimer = useCountdown(huntMinutes * 60, {
+    onComplete: () => {
+      toast({ title: "Hunt time finished", description: "Main hunt timer ended" });
+      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+        try { (navigator as any).vibrate?.(200); } catch {}
+      }
+    },
+  });
+  const trackTimer = useCountdown(6 * 60, {
+    onComplete: () => {
+      toast({ title: "Track timer finished", description: "Global track timer ended" });
+      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+        try { (navigator as any).vibrate?.(200); } catch {}
+      }
+    },
+  });
+  const globalShineTimer = useCountdown(8 * 60, {
+    onComplete: () => {
+      toast({ title: "Global shine finished", description: "Shine time ended" });
+      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+        try { (navigator as any).vibrate?.(200); } catch {}
+      }
+    },
+  });
   const fetchTeams = async () => {
     try {
       const { data, error } = await supabase.functions.invoke('scoreboard-operations', {
@@ -77,6 +96,8 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
   };
 
   const totalPending = useMemo(() => dogs.reduce((acc, d) => acc + d.entries.filter(e => e.outcome === 'pending').length, 0), [dogs]);
+
+  // SEO: Ensure semantic, accessible structure is used in headings/sections (handled by page layout)
 
   // Add dog
   const [newDog, setNewDog] = useState("");
@@ -121,9 +142,15 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
           </CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <TimerControl label="Main Hunt" formatted={huntTimer.formatted} status={huntTimer.status} onStart={huntTimer.start} onPause={huntTimer.pause} onReset={() => huntTimer.reset(huntMinutes * 60)} />
-          <TimerControl label="Track 6:00" formatted={trackTimer.formatted} status={trackTimer.status} onStart={trackTimer.start} onPause={trackTimer.pause} onReset={trackTimer.reset} />
-          <TimerControl label="Global Shine 8:00" formatted={globalShineTimer.formatted} status={globalShineTimer.status} onStart={globalShineTimer.start} onPause={globalShineTimer.pause} onReset={globalShineTimer.reset} />
+          <div title="Main Hunt Timer: Select duration then control the clock.">
+            <TimerControl label="Main Hunt" formatted={huntTimer.formatted} status={huntTimer.status} onStart={huntTimer.start} onPause={huntTimer.pause} onReset={() => huntTimer.reset(huntMinutes * 60)} />
+          </div>
+          <div title="Global Track Timer: 6 minutes for strike requirement.">
+            <TimerControl label="Track 6:00" formatted={trackTimer.formatted} status={trackTimer.status} onStart={trackTimer.start} onPause={trackTimer.pause} onReset={trackTimer.reset} />
+          </div>
+          <div title="Global Shine Timer: 8 minutes when multiple dogs are involved.">
+            <TimerControl label="Global Shine 8:00" formatted={globalShineTimer.formatted} status={globalShineTimer.status} onStart={globalShineTimer.start} onPause={globalShineTimer.pause} onReset={globalShineTimer.reset} />
+          </div>
         </CardContent>
       </Card>
 
