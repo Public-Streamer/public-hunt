@@ -151,7 +151,7 @@ const EventPage: React.FC = () => {
           // console.log("[EventPage] Real-time event update received:", payload);
 
           if (payload.new) {
-            // console.log("[EventPage] Updating event data:", payload.new)
+            console.log("[EventPage] Updating event data:", payload.new);
             setEventData(payload.new as EventData);
             setIsLive(payload.new.is_live);
           }

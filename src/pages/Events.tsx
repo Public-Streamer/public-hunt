@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -108,53 +108,9 @@ const Events: React.FC = () => {
     }
   }, [activeTab]);
 
-  useEffect(() => {
-    fetchEvents();
-
-    // Check if there's an event parameter in URL to highlight
-    const eventParam = searchParams.get("event");
-    if (eventParam) {
-      setHighlightedEvent(eventParam);
-      // Clear highlight after 3 seconds
-      setTimeout(() => setHighlightedEvent(null), 3000);
-    }
-
-    // Set up real-time subscription for live events (excluding pinned message updates)
-    const subscription = supabase
-      .channel("events-changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "events",
-        },
-        (payload) => {
-          // Only refetch if it's not just a pinned message update
-          if (
-            payload.new &&
-            payload.old &&
-            JSON.stringify({ ...payload.old, pinned_message: null }) !==
-              JSON.stringify({ ...payload.new, pinned_message: null })
-          ) {
-            fetchEvents();
-          } else if (payload.eventType !== "UPDATE") {
-            // Always refetch for INSERT/DELETE
-            fetchEvents();
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(subscription);
-    };
-  }, [searchParams]);
-
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
     try {
       setLoading(true);
-      console.log("Fetching events...");
 
       // Fetch live events
       const { data: liveEventsData, error: liveError } = await supabase
@@ -170,7 +126,7 @@ const Events: React.FC = () => {
 
       // Fetch scheduled events (not live, including events with null created_by)
       const today = new Date().toISOString().split("T")[0];
-      console.log("Today:", today);
+
       const { data: scheduledEventsData, error: scheduledError } =
         await supabase
           .from("events")
@@ -202,10 +158,6 @@ const Events: React.FC = () => {
         }
       }
 
-      console.log("Live events:", liveEventsData);
-      console.log("Scheduled events:", scheduledEventsData);
-      console.log("My events:", myEventsData);
-
       setLiveEvents(liveEventsData || []);
       setScheduledEvents(scheduledEventsData || []);
       setMyEvents(myEventsData);
@@ -214,7 +166,115 @@ const Events: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentUserProfile?.user_id]);
+
+  // Helpers to update lists in-place based on realtime payloads
+  const upsertById = useCallback((list: Event[], item: Event) => {
+    const idx = list.findIndex((e) => e.id === item.id);
+    if (idx >= 0) {
+      const copy = list.slice();
+      copy[idx] = item;
+      return copy;
+    }
+    return [item, ...list];
+  }, []);
+
+  const removeById = useCallback((list: Event[], id: string) => {
+    return list.filter((e) => e.id !== id);
+  }, []);
+
+  const isScheduledEvent = useCallback((e: Event) => {
+    const today = new Date().toISOString().split("T")[0];
+    const nowTime = new Date().toISOString().slice(11, 19);
+    return !e.is_live && e.date >= today && e.time >= nowTime;
+  }, []);
+
+  const handleUpsertEvent = useCallback(
+    (e: Event) => {
+      const mine =
+        !!currentUserProfile?.user_id &&
+        e.created_by === currentUserProfile.user_id;
+      const live = !!e.is_live;
+      const scheduled = isScheduledEvent(e);
+
+      setLiveEvents((prev) =>
+        live ? upsertById(prev, e) : removeById(prev, e.id)
+      );
+      setScheduledEvents((prev) =>
+        scheduled ? upsertById(prev, e) : removeById(prev, e.id)
+      );
+      setMyEvents((prev) =>
+        mine ? upsertById(prev, e) : removeById(prev, e.id)
+      );
+    },
+    [currentUserProfile?.user_id, isScheduledEvent, upsertById, removeById]
+  );
+
+  // Realtime-only delete handler (renamed to avoid clashing with UI delete handler below)
+  const handleDeleteEventRt = useCallback(
+    (id: string) => {
+      setLiveEvents((prev) => removeById(prev, id));
+      setScheduledEvents((prev) => removeById(prev, id));
+      setMyEvents((prev) => removeById(prev, id));
+    },
+    [removeById]
+  );
+
+  useEffect(() => {
+    fetchEvents();
+
+    // Check if there's an event parameter in URL to highlight
+    const eventParam = searchParams.get("event");
+    if (eventParam) {
+      setHighlightedEvent(eventParam);
+      // Clear highlight after 3 seconds
+      setTimeout(() => setHighlightedEvent(null), 3000);
+    }
+
+    // Set up real-time subscription for events
+    // Local type to avoid using 'any' for realtime payload
+    type PostgresChangeEvent<T> = {
+      eventType: "INSERT" | "UPDATE" | "DELETE";
+      new: T | null;
+      old: Partial<T> | null;
+    };
+
+    const subscription = supabase
+      .channel("events-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "events",
+        },
+        (payload) => {
+          const {
+            eventType,
+            new: newRow,
+            old: oldRow,
+          } = payload as unknown as PostgresChangeEvent<Event>;
+          try {
+            if (eventType === "INSERT" || eventType === "UPDATE") {
+              if (newRow) {
+                handleUpsertEvent(newRow);
+              }
+            } else if (eventType === "DELETE") {
+              if (oldRow?.id) {
+                handleDeleteEventRt(oldRow.id as string);
+              }
+            }
+          } catch (err) {
+            console.error("Realtime events handler error:", err);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(subscription);
+    };
+  }, [searchParams, fetchEvents, handleUpsertEvent, handleDeleteEventRt]);
 
   function getTimeUntilStart(startDate: Date): string {
     const now = new Date();
