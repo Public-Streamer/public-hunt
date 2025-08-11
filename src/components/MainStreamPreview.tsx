@@ -6,14 +6,11 @@ import { Eye } from "lucide-react";
 import { useStreamingControls } from "@/hooks/useStreamingControls";
 import MediaBackground from "./MediaBackground";
 import InStreamChatOverlay from "./InStreamChatOverlay";
-import { useAppContext } from "@/contexts/AppContext";
 
 interface MainStreamPreviewProps {
   track?: TrackReference;
   eventName: string;
   isLive: boolean;
-  setIsMuted: any;
-  isMuted: boolean;
   eventId: string;
   mediaUrls: string[];
   eventHostId?: string;
@@ -23,8 +20,6 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
   track,
   eventName,
   isLive,
-  setIsMuted,
-  isMuted,
   eventId,
   mediaUrls,
   eventHostId,
@@ -298,7 +293,10 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
         onMouseMove={handleMouseMove}
         onTouchStart={handleMouseMove}
       >
-        <VideoTrackLazy trackRef={track} className="w-full h-full object-cover" />
+        <VideoTrackLazy
+          trackRef={track}
+          className="w-full h-full object-cover"
+        />
 
         {/* <AudioTrack trackRef={audioTracks[0]}/> */}
 

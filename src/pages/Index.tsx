@@ -73,18 +73,6 @@ const Index: React.FC = () => {
     };
   }, [queryClient]);
 
-  // console.log(events);
-
-  // if (currentView === 'stage' && selectedEvent) {
-  //   const event = events.find(e => e.id === selectedEvent);
-  //   return (
-  //     <StageView
-  //       eventTitle={event?.title || 'Live Event'}
-  //       streams={mockStreams}
-  //     />
-  //   );
-  // }
-
   return (
     <div className="bg-white min-h-screen">
       {/* Search Bar at the top */}
