@@ -883,6 +883,50 @@ export type Database = {
           },
         ]
       }
+      event_reports: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          reason_category: Database["public"]["Enums"]["report_reason"]
+          reason_text: string | null
+          reporter_ip: string | null
+          reporter_user_id: string
+          status: Database["public"]["Enums"]["report_status"]
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          reason_category: Database["public"]["Enums"]["report_reason"]
+          reason_text?: string | null
+          reporter_ip?: string | null
+          reporter_user_id: string
+          status?: Database["public"]["Enums"]["report_status"]
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          reason_category?: Database["public"]["Enums"]["report_reason"]
+          reason_text?: string | null
+          reporter_ip?: string | null
+          reporter_user_id?: string
+          status?: Database["public"]["Enums"]["report_status"]
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_reports_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_scoreboard: {
         Row: {
           created_at: string | null
@@ -1031,6 +1075,7 @@ export type Database = {
           name: string
           payment_enabled: boolean | null
           pinned_message: string | null
+          report_count: number
           slug: string | null
           slug_counter: number | null
           stream_quality: string | null
@@ -1058,6 +1103,7 @@ export type Database = {
           name: string
           payment_enabled?: boolean | null
           pinned_message?: string | null
+          report_count?: number
           slug?: string | null
           slug_counter?: number | null
           stream_quality?: string | null
@@ -1085,6 +1131,7 @@ export type Database = {
           name?: string
           payment_enabled?: boolean | null
           pinned_message?: string | null
+          report_count?: number
           slug?: string | null
           slug_counter?: number | null
           stream_quality?: string | null
@@ -1871,6 +1918,15 @@ export type Database = {
     Enums: {
       admin_role: "owner" | "master" | "manager" | "administrator"
       channel_role: "channel_master" | "channel_admin" | "member"
+      report_reason:
+        | "spam_scam"
+        | "hate_harassment"
+        | "sexual_nudity"
+        | "violence"
+        | "copyright_ip"
+        | "misleading"
+        | "other"
+      report_status: "pending" | "reviewed" | "dismissed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2000,6 +2056,16 @@ export const Constants = {
     Enums: {
       admin_role: ["owner", "master", "manager", "administrator"],
       channel_role: ["channel_master", "channel_admin", "member"],
+      report_reason: [
+        "spam_scam",
+        "hate_harassment",
+        "sexual_nudity",
+        "violence",
+        "copyright_ip",
+        "misleading",
+        "other",
+      ],
+      report_status: ["pending", "reviewed", "dismissed"],
     },
   },
 } as const
