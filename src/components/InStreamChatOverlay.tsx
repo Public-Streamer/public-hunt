@@ -24,6 +24,7 @@ import {
 import { useSupabaseChatMessages } from "@/hooks/useSupabaseChatMessages";
 import { useAppContext } from "@/contexts/AppContext";
 import { useToast } from "@/hooks/use-toast";
+import { useScreenSize } from "@/hooks/use-mobile";
 
 interface InStreamChatOverlayProps {
   eventId: string;
@@ -55,6 +56,7 @@ const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
     camName
   );
   const { currentUserProfile } = useAppContext();
+  const screenSize = useScreenSize();
   const { toast } = useToast();
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [chatMessage, setChatMessage] = useState("");
@@ -258,7 +260,7 @@ const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
       )}
 
       {/* Scroll Down Button */}
-      {showScrollDown && (
+      {/* {showScrollDown && (
         <button
           className="scroll-down-btn"
           onClick={handleScrollDownClick}
@@ -266,12 +268,12 @@ const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
         >
           Scroll Down
         </button>
-      )}
+      )} */}
 
       {/* Scroll to bottom button - Fixed position */}
       {isVisible && !isScrolledToBottom && messages.length > 0 && (
         <div
-          className={`absolute bottom-16 left-2 bg-black/60 backdrop-blur-sm text-white rounded-full p-2 cursor-pointer hover:bg-black/80 transition-all duration-200 shadow-lg z-30 ${
+          className={`absolute bottom-12 left-2 bg-black/60 backdrop-blur-sm text-white rounded-full p-2 cursor-pointer hover:bg-black/80 transition-all duration-200 shadow-lg z-30 ${
             isFullscreen && !showControls ? "opacity-0" : "opacity-100"
           }`}
           onClick={() => {
@@ -305,8 +307,8 @@ const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
               <Button
                 onClick={handleSendMessage}
                 disabled={!chatMessage.trim()}
-                size="sm"
-                className="absolute right-1 top-1 h-8 w-8 rounded-md bg-white/20 hover:bg-white/30 transition-all duration-200 border-none p-0"
+                size={screenSize === "mobile" ? "xs" : "sm"}
+                className="absolute right-1 top-1 h-6 w-6 rounded-md bg-white/20 hover:bg-white/30 transition-all duration-200 border-none p-0"
               >
                 <Plane className="h-4 w-4 text-white rotate-45" />
               </Button>
@@ -322,7 +324,7 @@ const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
             {/* Chat Toggle Button */}
             <Button
               onClick={onVisibilityToggle}
-              size="sm"
+              size={screenSize === "mobile" ? "xs" : "sm"}
               variant="outline"
               className="bg-black/60 border-white/40 text-white hover:bg-black/80 h-5 px-3 shadow-lg backdrop-blur-sm"
             >
@@ -340,7 +342,7 @@ const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
             {showFullscreenToggle && onFullscreenToggle && (
               <Button
                 onClick={onFullscreenToggle}
-                size="sm"
+                size={screenSize === "mobile" ? "xs" : "sm"}
                 variant="outline"
                 className="bg-black/60 border-white/40 text-white hover:bg-black/80 h-5 w-10 px-0 shadow-lg backdrop-blur-sm"
               >

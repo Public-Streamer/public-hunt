@@ -1,10 +1,10 @@
-import * as React from "react"
-import { TooltipWrapper } from "@/components/ui/tooltip-wrapper"
-import { cn } from "@/lib/utils"
+import * as React from "react";
+import { TooltipWrapper } from "@/components/ui/tooltip-wrapper";
+import { cn } from "@/lib/utils";
 
 type InputProps = React.InputHTMLAttributes<HTMLInputElement> & {
   tooltipContent?: string;
-}
+};
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, tooltipContent, ...props }, ref) => {
@@ -18,19 +18,15 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         ref={ref}
         {...props}
       />
-    )
+    );
 
     if (tooltipContent) {
-      return (
-        <TooltipWrapper content={tooltipContent}>
-          {input}
-        </TooltipWrapper>
-      )
+      return <TooltipWrapper content={tooltipContent}>{input}</TooltipWrapper>;
     }
 
-    return input
+    return input;
   }
-)
-Input.displayName = "Input"
+);
+Input.displayName = "Input";
 
-export { Input }
+export { Input };
