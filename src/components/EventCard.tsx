@@ -12,6 +12,8 @@ import {
   Heart,
   MessageCircle,
   Share2,
+  Eye,
+  Timer,
 } from "lucide-react";
 import SocialMediaSection from "./SocialMediaSection";
 import TicketPurchaseModal from "./TicketPurchaseModal";
@@ -129,7 +131,7 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
   return (
     <div>
       <Card
-        className="hover:shadow-lg transition-shadow duration-300 overflow-hidden cursor-pointer"
+        className="hover:shadow-xl transition-transform duration-300 overflow-hidden cursor-pointer h-full flex flex-col justify-between   "
         onClick={handleCardClick}
       >
         <MediaBackground
@@ -145,9 +147,13 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
               LIVE
             </Badge>
           )}
-          <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-sm">
-            {event.streamerCount} cameras
-          </div>
+          {/* <Badge
+            variant="outline"
+            className="absolute top-2 right-2 text-white px-2 py-1 rounded text-sm"
+          >
+            <Eye className="h-4 w-4 mr-1" />
+            {event.streamerCount}
+          </Badge> */}
         </MediaBackground>
 
         <CardHeader className="pb-3">
@@ -160,7 +166,7 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
         </CardHeader>
 
         <CardContent className="pt-0">
-          <div className="space-y-3">
+          <div className="space-y-3 flex flex-col justify-end h-full">
             <div className="flex items-center justify-between text-sm text-gray-600">
               <div className="flex items-center">
                 <Calendar className="h-4 w-4 mr-1" />
@@ -178,7 +184,10 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
                   <Users className="h-4 w-4 mr-1" />
                   {event.viewers}
                 </span>
-                <span>{event.duration}</span>
+                <span className="flex items-center">
+                  {" "}
+                  <Timer className="h-4 w-4 mr-1" /> {event.duration}
+                </span>
               </div>
 
               <div className="flex items-center space-x-2">

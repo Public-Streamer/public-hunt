@@ -84,7 +84,13 @@ const PastEventCard: React.FC<PastEventCardProps> = ({
   return (
     <>
       <TooltipWrapper
-        content={`${(event.name || event.title) ?? 'Event'}${(event.recorded_at || event.date) ? ` - Recorded on ${formatDate((event.recorded_at || event.date) as string)}` : ''}`}
+        content={`${(event.name || event.title) ?? "Event"}${
+          event.recorded_at || event.date
+            ? ` - Recorded on ${formatDate(
+                (event.recorded_at || event.date) as string
+              )}`
+            : ""
+        }`}
       >
         <Card
           className="hover:shadow-lg transition-shadow cursor-pointer space-y-2"
@@ -92,7 +98,9 @@ const PastEventCard: React.FC<PastEventCardProps> = ({
         >
           <CardHeader>
             <div className="flex items-start justify-between gap-2">
-              <CardTitle className="text-lg">{event.name || event.title}</CardTitle>
+              <CardTitle className="text-lg">
+                {event.name || event.title}
+              </CardTitle>
               <div className="flex items-center gap-2">
                 {ranking && (
                   <Badge variant="outline" className="bg-gray-50 text-gray-600">
@@ -123,7 +131,9 @@ const PastEventCard: React.FC<PastEventCardProps> = ({
               {(event.recorded_at || event.date) && (
                 <>
                   <Calendar className="h-4 w-4 ml-3 mr-1" />
-                  <span>{formatDate((event.recorded_at || event.date) as string)}</span>
+                  <span>
+                    {formatDate((event.recorded_at || event.date) as string)}
+                  </span>
                 </>
               )}
             </div>
@@ -152,11 +162,11 @@ const PastEventCard: React.FC<PastEventCardProps> = ({
             </div>
 
             <Button
-              onClick={handlePlayClick}
+              onClick={handleCardClick}
               className="w-full mb-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
             >
-              <Play className="h-4 w-4 mr-2" />
-              {event.price > 0 ? `Buy & Play - $${event.price}` : "Play"}
+              <Eye className="h-4 w-4 mr-2" />
+              {event.price > 0 ? `Details - $${event.price}` : "Details"}
             </Button>
 
             <div className="flex items-center justify-between text-xs text-gray-400">
