@@ -834,15 +834,28 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                       <span className="truncate">Go Live</span>
                     </Button>
                   ) : (
-                    <Button
-                      onClick={controls.stopStream}
-                      variant="destructive"
-                      className="w-full text-xs sm:text-sm"
-                      size={screenSize === "mobile" ? "sm" : "lg"}
-                    >
-                      <Square className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                      Stop Stream
-                    </Button>
+                    <div className="space-y-2">
+                      <Button
+                        onClick={controls.stopStream}
+                        variant="destructive"
+                        className="w-full text-xs sm:text-sm"
+                        size={screenSize === "mobile" ? "sm" : "lg"}
+                      >
+                        <Square className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                        Stop Stream (for you)
+                      </Button>
+                      {userRole === "host" && (
+                        <Button
+                          onClick={controls.stopEvent}
+                          variant="destructive"
+                          className="w-full text-xs sm:text-sm"
+                          size={screenSize === "mobile" ? "sm" : "lg"}
+                        >
+                          <Square className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                          Stop Event (for all)
+                        </Button>
+                      )}
+                    </div>
                   )}
                 </div>
 

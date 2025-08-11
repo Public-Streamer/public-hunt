@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import { useState, useCallback, useEffect } from "react";
 import {
   useLocalParticipant,
@@ -23,6 +24,7 @@ export interface StreamingControls {
   toggleScreenShare: () => Promise<void>;
   startStream: () => Promise<void>;
   stopStream: () => Promise<void>;
+  stopEvent: () => Promise<void>;
   participantCount: number;
   // Camera switching functionality
   availableCameras: MediaDeviceInfo[];
@@ -151,7 +153,9 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
         label.includes("rear") ||
         label.includes("environment")
       ) {
-        console.log("📱 MOBILE DEBUG - Classified as ENVIRONMENT camera (standard)");
+        console.log(
+          "📱 MOBILE DEBUG - Classified as ENVIRONMENT camera (standard)"
+        );
         return "environment";
       }
 
@@ -159,24 +163,34 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       // On most Android devices: camera2 0 = back, camera2 1 = front
       // On some devices: camera 0 = back, camera 1 = front
       if (label.includes("camera2 0") || label.includes("camera 0")) {
-        console.log("📱 MOBILE DEBUG - Classified as ENVIRONMENT camera (Android numeric - camera 0)");
+        console.log(
+          "📱 MOBILE DEBUG - Classified as ENVIRONMENT camera (Android numeric - camera 0)"
+        );
         return "environment";
       }
-      
+
       if (label.includes("camera2 1") || label.includes("camera 1")) {
-        console.log("📱 MOBILE DEBUG - Classified as USER camera (Android numeric - camera 1)");
+        console.log(
+          "📱 MOBILE DEBUG - Classified as USER camera (Android numeric - camera 1)"
+        );
         return "user";
       }
 
       // Fallback: Use device enumeration order for Android devices with generic labels
       const isAndroid = /Android/.test(navigator.userAgent);
       if (isAndroid && videoDevices.length >= 2) {
-        const deviceIndex = videoDevices.findIndex(d => d.deviceId === device.deviceId);
+        const deviceIndex = videoDevices.findIndex(
+          (d) => d.deviceId === device.deviceId
+        );
         if (deviceIndex === 0) {
-          console.log("📱 MOBILE DEBUG - Classified as USER camera (Android fallback - first device)");
+          console.log(
+            "📱 MOBILE DEBUG - Classified as USER camera (Android fallback - first device)"
+          );
           return "user";
         } else if (deviceIndex === 1) {
-          console.log("📱 MOBILE DEBUG - Classified as ENVIRONMENT camera (Android fallback - second device)");
+          console.log(
+            "📱 MOBILE DEBUG - Classified as ENVIRONMENT camera (Android fallback - second device)"
+          );
           return "environment";
         }
       }
@@ -190,41 +204,58 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   // Sync currentFacingMode with the actual active camera from LiveKit
   useEffect(() => {
     if (!currentCamera || videoDevices.length === 0) {
-      console.log("📱 MOBILE DEBUG - Camera sync skipped: no current camera or devices");
+      console.log(
+        "📱 MOBILE DEBUG - Camera sync skipped: no current camera or devices"
+      );
       return;
     }
 
-    const activeCamera = videoDevices.find(device => device.deviceId === currentCamera);
+    const activeCamera = videoDevices.find(
+      (device) => device.deviceId === currentCamera
+    );
     if (!activeCamera) {
-      console.log("📱 MOBILE DEBUG - Camera sync skipped: active camera not found in device list");
+      console.log(
+        "📱 MOBILE DEBUG - Camera sync skipped: active camera not found in device list"
+      );
       return;
     }
 
     const detectedFacingMode = getCameraType(activeCamera);
-    if (detectedFacingMode !== "unknown" && detectedFacingMode !== currentFacingMode) {
+    if (
+      detectedFacingMode !== "unknown" &&
+      detectedFacingMode !== currentFacingMode
+    ) {
       console.log(
         "📱 MOBILE DEBUG - Camera sync: Updating facing mode",
-        JSON.stringify({
-          previousFacingMode: currentFacingMode,
-          detectedFacingMode: detectedFacingMode,
-          activeCamera: {
-            deviceId: activeCamera.deviceId,
-            label: activeCamera.label,
+        JSON.stringify(
+          {
+            previousFacingMode: currentFacingMode,
+            detectedFacingMode: detectedFacingMode,
+            activeCamera: {
+              deviceId: activeCamera.deviceId,
+              label: activeCamera.label,
+            },
           },
-        }, null, 2)
+          null,
+          2
+        )
       );
       setCurrentFacingMode(detectedFacingMode);
     } else {
       console.log(
         "📱 MOBILE DEBUG - Camera sync: No change needed",
-        JSON.stringify({
-          currentFacingMode: currentFacingMode,
-          detectedFacingMode: detectedFacingMode,
-          activeCamera: {
-            deviceId: activeCamera.deviceId,
-            label: activeCamera.label,
+        JSON.stringify(
+          {
+            currentFacingMode: currentFacingMode,
+            detectedFacingMode: detectedFacingMode,
+            activeCamera: {
+              deviceId: activeCamera.deviceId,
+              label: activeCamera.label,
+            },
           },
-        }, null, 2)
+          null,
+          2
+        )
       );
     }
   }, [currentCamera, videoDevices, getCameraType, currentFacingMode]);
@@ -812,27 +843,29 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       const isAndroid = /Android/.test(userAgent);
       const isSafari = /Safari/.test(userAgent) && !/Chrome/.test(userAgent);
       const isChrome = /Chrome/.test(userAgent);
-      
+
       return {
         isIOS,
         isAndroid,
         isSafari,
         isChrome,
         isMobile: isIOS || isAndroid,
-        userAgent
+        userAgent,
       };
     };
 
     const checkTorchSupport = async () => {
       const deviceInfo = getDeviceInfo();
-      console.log('[Torch] Enhanced torch detection starting:', {
+      console.log("[Torch] Enhanced torch detection starting:", {
         currentFacingMode,
         deviceInfo,
-        hasLocalParticipant: !!localParticipant
+        hasLocalParticipant: !!localParticipant,
       });
-      
-      if (currentFacingMode !== 'environment') {
-        console.log('[Torch] Not environment camera, setting torch support to false');
+
+      if (currentFacingMode !== "environment") {
+        console.log(
+          "[Torch] Not environment camera, setting torch support to false"
+        );
         setIsTorchSupported(false);
         setIsTorchEnabled(false);
         return;
@@ -840,22 +873,28 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
 
       // For non-mobile devices, assume no torch support
       if (!deviceInfo.isMobile) {
-        console.log('[Torch] Desktop device detected, no torch support');
+        console.log("[Torch] Desktop device detected, no torch support");
         setIsTorchSupported(false);
         return;
       }
 
       try {
         // Get the native MediaStreamTrack from LiveKit's video track
-        const cameraPublication = localParticipant?.getTrackPublication(Track.Source.Camera);
+        const cameraPublication = localParticipant?.getTrackPublication(
+          Track.Source.Camera
+        );
         const videoTrack = cameraPublication?.track;
-        
-        if (!videoTrack || !('mediaStreamTrack' in videoTrack)) {
-          console.log('[Torch] No video track available, using optimistic detection for mobile');
-          
+
+        if (!videoTrack || !("mediaStreamTrack" in videoTrack)) {
+          console.log(
+            "[Torch] No video track available, using optimistic detection for mobile"
+          );
+
           // Optimistic approach: assume torch support on mobile back cameras
-          if (deviceInfo.isMobile && currentFacingMode === 'environment') {
-            console.log('[Torch] Optimistic torch support enabled for mobile back camera');
+          if (deviceInfo.isMobile && currentFacingMode === "environment") {
+            console.log(
+              "[Torch] Optimistic torch support enabled for mobile back camera"
+            );
             setIsTorchSupported(true);
           } else {
             setIsTorchSupported(false);
@@ -864,63 +903,83 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
         }
 
         const nativeTrack = (videoTrack as any).mediaStreamTrack;
-        console.log('[Torch] Native track found, starting multi-method detection');
+        console.log(
+          "[Torch] Native track found, starting multi-method detection"
+        );
 
-        // Method 1: Check getCapabilities() 
+        // Method 1: Check getCapabilities()
         let torchSupportedByCapabilities = false;
-        if (typeof nativeTrack.getCapabilities === 'function') {
+        if (typeof nativeTrack.getCapabilities === "function") {
           try {
             const capabilities = nativeTrack.getCapabilities();
-            console.log('[Torch] Method 1 - Track capabilities:', capabilities);
+            console.log("[Torch] Method 1 - Track capabilities:", capabilities);
             torchSupportedByCapabilities = capabilities.torch === true;
           } catch (capError) {
-            console.log('[Torch] Method 1 - getCapabilities failed:', capError);
+            console.log("[Torch] Method 1 - getCapabilities failed:", capError);
           }
         }
 
         // Method 2: Check getSupportedConstraints()
         let torchSupportedByConstraints = false;
-        if (typeof navigator.mediaDevices?.getSupportedConstraints === 'function') {
+        if (
+          typeof navigator.mediaDevices?.getSupportedConstraints === "function"
+        ) {
           try {
-            const supportedConstraints = navigator.mediaDevices.getSupportedConstraints();
-            console.log('[Torch] Method 2 - Supported constraints:', supportedConstraints);
-            torchSupportedByConstraints = (supportedConstraints as any).torch === true;
+            const supportedConstraints =
+              navigator.mediaDevices.getSupportedConstraints();
+            console.log(
+              "[Torch] Method 2 - Supported constraints:",
+              supportedConstraints
+            );
+            torchSupportedByConstraints =
+              (supportedConstraints as any).torch === true;
           } catch (constraintError) {
-            console.log('[Torch] Method 2 - getSupportedConstraints failed:', constraintError);
+            console.log(
+              "[Torch] Method 2 - getSupportedConstraints failed:",
+              constraintError
+            );
           }
         }
 
         // Method 3: Progressive constraint testing
         let torchSupportedByTesting = false;
         try {
-          console.log('[Torch] Method 3 - Testing constraint application');
-          
+          console.log("[Torch] Method 3 - Testing constraint application");
+
           // Try to apply a torch constraint temporarily to test support
           const currentSettings = nativeTrack.getSettings();
-          console.log('[Torch] Current track settings:', currentSettings);
-          
+          console.log("[Torch] Current track settings:", currentSettings);
+
           // Test constraint application with current torch state
           await nativeTrack.applyConstraints({ torch: false });
-          console.log('[Torch] Method 3 - Standard constraint test passed');
+          console.log("[Torch] Method 3 - Standard constraint test passed");
           torchSupportedByTesting = true;
         } catch (testError) {
-          console.log('[Torch] Method 3 - Standard constraint test failed, trying advanced format');
-          
+          console.log(
+            "[Torch] Method 3 - Standard constraint test failed, trying advanced format"
+          );
+
           try {
-            await nativeTrack.applyConstraints({ advanced: [{ torch: false }] });
-            console.log('[Torch] Method 3 - Advanced constraint test passed');
+            await nativeTrack.applyConstraints({
+              advanced: [{ torch: false }],
+            });
+            console.log("[Torch] Method 3 - Advanced constraint test passed");
             torchSupportedByTesting = true;
           } catch (advancedError) {
-            console.log('[Torch] Method 3 - All constraint tests failed:', advancedError);
+            console.log(
+              "[Torch] Method 3 - All constraint tests failed:",
+              advancedError
+            );
           }
         }
 
         // Method 4: Device-specific logic
         let torchSupportedByDevice = false;
-        if (deviceInfo.isMobile && currentFacingMode === 'environment') {
+        if (deviceInfo.isMobile && currentFacingMode === "environment") {
           if (deviceInfo.isIOS && deviceInfo.isSafari) {
             // iOS Safari: More reliable API support on newer devices
-            torchSupportedByDevice = torchSupportedByCapabilities || torchSupportedByConstraints;
+            torchSupportedByDevice =
+              torchSupportedByCapabilities || torchSupportedByConstraints;
           } else if (deviceInfo.isAndroid && deviceInfo.isChrome) {
             // Android Chrome: Less reliable API, use optimistic approach
             torchSupportedByDevice = true; // Assume support, test during actual usage
@@ -932,27 +991,31 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
           capabilities: torchSupportedByCapabilities,
           constraints: torchSupportedByConstraints,
           testing: torchSupportedByTesting,
-          device: torchSupportedByDevice
+          device: torchSupportedByDevice,
         };
 
-        console.log('[Torch] All detection methods completed:', detectionResults);
+        console.log(
+          "[Torch] All detection methods completed:",
+          detectionResults
+        );
 
         // Decision logic: any positive result enables torch support
-        const finalTorchSupport = 
-          torchSupportedByCapabilities || 
-          torchSupportedByConstraints || 
-          torchSupportedByTesting || 
+        const finalTorchSupport =
+          torchSupportedByCapabilities ||
+          torchSupportedByConstraints ||
+          torchSupportedByTesting ||
           torchSupportedByDevice;
 
-        console.log('[Torch] Final torch support decision:', finalTorchSupport);
+        console.log("[Torch] Final torch support decision:", finalTorchSupport);
         setIsTorchSupported(finalTorchSupport);
-
       } catch (error) {
-        console.warn('[Torch] Error in enhanced torch detection:', error);
-        
+        console.warn("[Torch] Error in enhanced torch detection:", error);
+
         // Fallback: optimistic approach for mobile devices
-        if (deviceInfo.isMobile && currentFacingMode === 'environment') {
-          console.log('[Torch] Fallback: enabling optimistic torch support for mobile');
+        if (deviceInfo.isMobile && currentFacingMode === "environment") {
+          console.log(
+            "[Torch] Fallback: enabling optimistic torch support for mobile"
+          );
           setIsTorchSupported(true);
         } else {
           setIsTorchSupported(false);
@@ -961,7 +1024,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
     };
 
     // Only check when we have environment camera mode
-    if (currentFacingMode === 'environment') {
+    if (currentFacingMode === "environment") {
       checkTorchSupport();
     } else {
       setIsTorchSupported(false);
@@ -970,10 +1033,12 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   }, [currentFacingMode, localParticipant]);
 
   const toggleTorch = useCallback(async () => {
-    console.log('[Torch] Toggle requested, current state:', isTorchEnabled);
-    
+    console.log("[Torch] Toggle requested, current state:", isTorchEnabled);
+
     if (!localParticipant || currentFacingMode !== "environment") {
-      console.log('[Torch] Torch toggle blocked - missing participant or not back camera');
+      console.log(
+        "[Torch] Torch toggle blocked - missing participant or not back camera"
+      );
       return;
     }
 
@@ -984,15 +1049,22 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       const cameraPublication = localParticipant.getTrackPublication(
         Track.Source.Camera
       );
-      
-      if (!cameraPublication?.track || !('mediaStreamTrack' in cameraPublication.track)) {
-        console.warn('[Torch] No video track or mediaStreamTrack available for torch control');
+
+      if (
+        !cameraPublication?.track ||
+        !("mediaStreamTrack" in cameraPublication.track)
+      ) {
+        console.warn(
+          "[Torch] No video track or mediaStreamTrack available for torch control"
+        );
         toast.error("Camera not available for torch control");
         return;
       }
 
       const nativeTrack = (cameraPublication.track as any).mediaStreamTrack;
-      console.log('[Torch] Applying constraints to native track:', { torch: newTorchState });
+      console.log("[Torch] Applying constraints to native track:", {
+        torch: newTorchState,
+      });
 
       let constraintApplied = false;
       let lastError: any = null;
@@ -1000,32 +1072,37 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       // Method 1: Try standard constraint format
       try {
         await nativeTrack.applyConstraints({ torch: newTorchState });
-        console.log('[Torch] Standard constraint applied successfully');
+        console.log("[Torch] Standard constraint applied successfully");
         constraintApplied = true;
       } catch (standardError) {
-        console.warn('[Torch] Standard constraint failed:', standardError);
+        console.warn("[Torch] Standard constraint failed:", standardError);
         lastError = standardError;
-        
+
         // Method 2: Try advanced constraint format
         try {
           await nativeTrack.applyConstraints({
-            advanced: [{ torch: newTorchState }]
+            advanced: [{ torch: newTorchState }],
           });
-          console.log('[Torch] Advanced constraint applied successfully');
+          console.log("[Torch] Advanced constraint applied successfully");
           constraintApplied = true;
         } catch (advancedError) {
-          console.warn('[Torch] Advanced constraint failed:', advancedError);
+          console.warn("[Torch] Advanced constraint failed:", advancedError);
           lastError = advancedError;
 
           // Method 3: Try with video constraints wrapper
           try {
             await nativeTrack.applyConstraints({
-              video: { torch: newTorchState }
+              video: { torch: newTorchState },
             } as any);
-            console.log('[Torch] Video-wrapped constraint applied successfully');
+            console.log(
+              "[Torch] Video-wrapped constraint applied successfully"
+            );
             constraintApplied = true;
           } catch (videoError) {
-            console.warn('[Torch] Video-wrapped constraint failed:', videoError);
+            console.warn(
+              "[Torch] Video-wrapped constraint failed:",
+              videoError
+            );
             lastError = videoError;
           }
         }
@@ -1034,34 +1111,40 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       if (constraintApplied) {
         setIsTorchEnabled(newTorchState);
         toast.success(`Torch ${newTorchState ? "on" : "off"}`);
-        console.log(`[Torch] Successfully ${newTorchState ? 'enabled' : 'disabled'} torch`);
-        
+        console.log(
+          `[Torch] Successfully ${newTorchState ? "enabled" : "disabled"} torch`
+        );
+
         // If this was the first successful toggle and torch wasn't previously supported,
         // update torch support status
         if (!isTorchSupported) {
-          console.log('[Torch] First successful toggle detected, updating support status');
+          console.log(
+            "[Torch] First successful toggle detected, updating support status"
+          );
           setIsTorchSupported(true);
         }
       } else {
-        throw lastError || new Error('All constraint application methods failed');
+        throw (
+          lastError || new Error("All constraint application methods failed")
+        );
       }
     } catch (error) {
-      console.error('[Torch] Error toggling torch:', error);
-      
+      console.error("[Torch] Error toggling torch:", error);
+
       // Provide device-specific error messages
       const userAgent = navigator.userAgent;
       const isIOS = /iPad|iPhone|iPod/.test(userAgent);
       const isAndroid = /Android/.test(userAgent);
-      
+
       let errorMessage = "Failed to toggle torch";
       if (isIOS) {
         errorMessage = "Torch not available on this iOS device/browser";
       } else if (isAndroid) {
         errorMessage = "Torch not supported on this Android device";
       }
-      
+
       toast.error(errorMessage);
-      
+
       // Update support status if torch definitively doesn't work
       setIsTorchSupported(false);
       setIsTorchEnabled(false);
@@ -1069,16 +1152,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   }, [localParticipant, currentFacingMode, isTorchEnabled, isTorchSupported]);
 
   const startStream = useCallback(async () => {
-    console.log(
-      "📱 MOBILE DEBUG - Start stream button clicked - beginning permission flow"
-    );
-
     try {
-      // Step 1: Immediate permission request in user interaction context
-      console.log(
-        "📱 MOBILE DEBUG - Step 1: Requesting permissions immediately in click handler"
-      );
-
       // Use a more direct approach - request permissions using native getUserMedia
       // This bypasses any potential issues with the custom permission hook
       let cameraGranted = false;
@@ -1217,6 +1291,50 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
     currentFacingMode,
     isTorchEnabled,
   ]);
+  const closeRoom = useCallback(
+    async (session: any) => {
+      try {
+        await supabase
+          .from("events")
+          .update({
+            time: new Date().toISOString().slice(11, 19),
+            date: new Date().toISOString().slice(0, 10),
+          })
+          .eq("id", eventId);
+
+        await supabase.functions.invoke("manage-livekit-room", {
+          body: {
+            action: "close",
+            eventId,
+          },
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        });
+        console.log(`room closed for event: ${eventId}`);
+      } catch (error) {
+        console.error("Error closing room:", error);
+      }
+    },
+    [eventId]
+  );
+
+  // Helper: fetch event URL (by slug if available)
+  const fetchEventUrl = useCallback(async (): Promise<string> => {
+    const { data: eventData } = await supabase
+      .from("events")
+      .select("slug")
+      .eq("id", eventId)
+      .single();
+
+    return eventData?.slug ? `/event/${eventData.slug}` : `/event/${eventId}`;
+  }, [eventId]);
+
+  // Helper: navigate to event page
+  const navigateToEvent = useCallback(async () => {
+    const eventUrl = await fetchEventUrl();
+    navigate(eventUrl);
+  }, [fetchEventUrl, navigate]);
 
   const stopStream = useCallback(async () => {
     try {
@@ -1241,8 +1359,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       await supabase
         .from("event_streams")
         .update({ is_active: false })
-        .eq("event_id", eventId)
-        .eq("streamer_id", session.user.id);
+        .eq("event_id", eventId);
 
       setTimeout(async () => {
         const result = await checkAndUpdateLiveStatus();
@@ -1250,34 +1367,10 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
         console.log({ result });
 
         if (result.should_close_room) {
-          await supabase
-          .from("events")
-          .update({ time: new Date().toISOString().slice(11, 19), date: new Date().toISOString().slice(0, 10) })
-          .eq("id", eventId);
-          
-          await supabase.functions.invoke("manage-livekit-room", {
-            body: {
-              action: "close",
-              eventId,
-            },
-            headers: {
-              Authorization: `Bearer ${session.access_token}`,
-            },
-          });
-          console.log(`room closed for event: ${eventId}`);
+          await closeRoom(session);
         }
-        
-        // Fetch event data to get slug for navigation
-        const { data: eventData } = await supabase
-          .from('events')
-          .select('slug')
-          .eq('id', eventId)
-          .single();
-        
-        const eventUrl = eventData?.slug ? `/event/${eventData.slug}` : `/event/${eventId}`;
-        navigate(eventUrl);
 
-        // Modify your code at line 663 to this:
+        await navigateToEvent();
       }, 10);
 
       toast.success("Stream stopped");
@@ -1293,8 +1386,50 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
     toggleAudioLiveButton,
     isVideoEnabled,
     isAudioEnabled,
-    navigate,
+    navigateToEvent,
+    closeRoom,
   ]);
+
+  const stopEvent = useCallback(async () => {
+    try {
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+      if (sessionError || !session) {
+        throw new Error("Please log in to access this stream");
+      }
+      const { data, error } = await supabase
+        .from("events")
+        .update({ is_live: false })
+        .eq("id", eventId);
+
+      await supabase
+        .from("event_participants")
+        .update({ is_live: false })
+        .eq("event_id", eventId);
+
+      await supabase
+        .from("event_streams")
+        .update({ is_active: false })
+        .eq("event_id", eventId);
+
+      await closeRoom(session);
+
+      await navigateToEvent();
+
+      if (error) {
+        console.error("Error stopping event:", error);
+        toast.error("Failed to stop event");
+        return;
+      }
+
+      toast.success("Event stopped successfully");
+    } catch (error) {
+      console.error("Error stopping event:", error);
+      toast.error("Failed to stop event");
+    }
+  }, [eventId, closeRoom, navigateToEvent]);
 
   return {
     isVideoEnabled,
@@ -1308,6 +1443,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
     toggleScreenShare,
     startStream,
     stopStream,
+    stopEvent,
     participantCount,
     availableCameras: videoDevices,
     currentCamera,
