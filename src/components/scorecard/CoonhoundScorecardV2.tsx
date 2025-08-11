@@ -49,6 +49,21 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
     ? "bg-destructive/10 text-destructive"
     : "bg-muted text-muted-foreground";
 
+  const syncCastTimers = useCallback(async () => {
+    try {
+      const timers = {
+        mainHunt: { status: huntTimer.status, remaining: huntTimer.remaining },
+        track: { status: trackTimer.status, remaining: trackTimer.remaining },
+        globalShine: { status: globalShineTimer.status, remaining: globalShineTimer.remaining },
+      };
+      await supabase.functions.invoke('scoreboard-operations', {
+        body: { action: 'updateCastTimers', eventId, timers }
+      });
+    } catch (e) {
+      console.warn('Failed to sync cast timers', e);
+    }
+  }, [eventId]);
+
   const huntTimer = useCountdown(huntMinutes * 60, {
     onComplete: () => {
       toast({ title: "Hunt time finished", description: "Main hunt timer ended" });

@@ -17,7 +17,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { action, eventId, teamName, teamColor, teamId, score, custom_fields, pinnedMessage, pinnedMessages, messageId, newOrder, scoreboardType } = await req.json()
+  const { action, eventId, teamName, teamColor, teamId, score, custom_fields, pinnedMessage, pinnedMessages, messageId, newOrder, scoreboardType, timers } = await req.json()
 
     switch (action) {
       case 'fetch':
@@ -278,12 +278,56 @@ serve(async (req) => {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })
 
-      default:
-        throw new Error('Invalid action')
+      case 'updateDogTimers': {
+        const nowIso = new Date().toISOString()
+        const { data: teamRow, error: teamFetchError } = await supabaseClient
+          .from('event_scoreboard')
+          .select('custom_fields')
+          .eq('id', teamId)
+          .single()
+        if (teamFetchError) throw teamFetchError
+        const current = (teamRow?.custom_fields as any) || {}
+        const updated = {
+          ...current,
+          timers: { ...(current.timers || {}), ...(timers || {}) },
+          timers_server_updated_at: nowIso,
+        }
+        const { error: teamUpdateError } = await supabaseClient
+          .from('event_scoreboard')
+          .update({ custom_fields: updated })
+          .eq('id', teamId)
+        if (teamUpdateError) throw teamUpdateError
+        return new Response(JSON.stringify({ success: true, serverUpdatedAt: nowIso }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+
+      case 'updateCastTimers': {
+        const nowIso = new Date().toISOString()
+        const { data: evRow, error: evFetchError } = await supabaseClient
+          .from('events')
+          .select('metadata')
+          .eq('id', eventId)
+          .single()
+        if (evFetchError) throw evFetchError
+        const meta = (evRow?.metadata as any) || {}
+        const updatedMeta = {
+          ...meta,
+          scorecard_cast_timers: { ...(timers || {}), server_updated_at: nowIso },
+        }
+        const { error: evUpdateError } = await supabaseClient
+          .from('events')
+          .update({ metadata: updatedMeta })
+          .eq('id', eventId)
+        if (evUpdateError) throw evUpdateError
+        return new Response(JSON.stringify({ success: true, serverUpdatedAt: nowIso }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
     }
   } catch (error) {
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: (error as Error).message }),
       {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,12 +42,16 @@ interface DogCardProps {
       noBark: { formatted: string; status: TimerStatus };
     }
   ) => void;
+  onTimerAction?: (
+    dogId: string,
+    timers: Record<string, { status: TimerStatus; remaining: number }>
+  ) => void;
 }
 
 const quickStrike = [100, 75, 50, 25];
 const quickTree = [125, 75, 50, 25];
 
-export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot }) => {
+export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot, onTimerAction }) => {
   const [draft, setDraft] = useState<DogData>(dog);
   const [customPoints, setCustomPoints] = useState<string>("");
 
@@ -189,6 +193,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
       return;
     }
     stationaryNonBarkTimer.start();
+    onTimerAction?.(draft.id, snapshotTimers());
   };
   
   const startGoneHuntingGuarded = () => {
@@ -201,6 +206,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
       return;
     }
     goneHuntingTimer.start();
+    onTimerAction?.(draft.id, snapshotTimers());
   };
 
   const onBlurCommit = () => onChange(draft, total);
@@ -249,6 +255,27 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
       stationaryNonBarkTimer.status,
     ]
   );
+
+  const snapshotTimers = useCallback(() => ({
+    tree: { status: treeTimer.status, remaining: treeTimer.remaining },
+    treeBark2: { status: treeBark2Timer.status, remaining: treeBark2Timer.remaining },
+    shine: { status: shineTimer.status, remaining: shineTimer.remaining },
+    trackBark: { status: trackBarkTimer.status, remaining: trackBarkTimer.remaining },
+    notHunting: { status: notHuntingTimer.status, remaining: notHuntingTimer.remaining },
+    goneHunting: { status: goneHuntingTimer.status, remaining: goneHuntingTimer.remaining },
+    stationary: { status: stationaryTimer.status, remaining: stationaryTimer.remaining },
+    noBark: { status: stationaryNonBarkTimer.status, remaining: stationaryNonBarkTimer.remaining },
+  }), [
+    treeTimer.status, treeTimer.remaining,
+    treeBark2Timer.status, treeBark2Timer.remaining,
+    shineTimer.status, shineTimer.remaining,
+    trackBarkTimer.status, trackBarkTimer.remaining,
+    notHuntingTimer.status, notHuntingTimer.remaining,
+    goneHuntingTimer.status, goneHuntingTimer.remaining,
+    stationaryTimer.status, stationaryTimer.remaining,
+    stationaryNonBarkTimer.status, stationaryNonBarkTimer.remaining,
+  ]);
+
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
