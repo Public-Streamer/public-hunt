@@ -34,6 +34,7 @@ import LegalDocumentPage from "./pages/LegalDocument";
 import Post from "./pages/Post";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
+import ReportDMCA from "./pages/ReportDMCA";
 
 const queryClient = new QueryClient();
 
@@ -79,6 +80,7 @@ const App = () => (
                   <Route path="/legal" element={<LegalDocumentPage />} />
                   <Route path="/terms" element={<Terms />} />
                   <Route path="/privacy" element={<Privacy />} />
+                  <Route path="/report" element={<ReportDMCA />} />
                   <Route path="/post/:postId" element={<Post />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>

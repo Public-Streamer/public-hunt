@@ -60,7 +60,7 @@ const LegalAgreementBody: React.FC<LegalAgreementBodyProps> = ({
 
         {includeProhibited && (
           <div className="mt-2">
-            <ProhibitedCategories />
+            <ProhibitedCategories heading="Acceptable Use & Prohibited Monetization Categories" />
           </div>
         )}
       </div>

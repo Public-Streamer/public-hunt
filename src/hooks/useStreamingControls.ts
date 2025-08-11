@@ -574,6 +574,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       toggleScreenShare: async () => {},
       startStream: async () => {},
       stopStream: async () => {},
+      stopEvent: async () => {},
       participantCount: 0,
       availableCameras: [],
       currentCamera: null,
