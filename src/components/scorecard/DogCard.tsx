@@ -403,12 +403,12 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
                       )}
                       {e.outcome === "pending" && <Badge variant="outline">pending</Badge>}
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Button size="sm" variant="outline" className="h-12 w-12 p-0 text-xl font-bold hover-scale" onClick={() => setOutcome(e.id, "+")} title="Plus points">+</Button>
-                      <Button size="sm" variant="outline" className="h-12 w-12 p-0 text-xl font-bold hover-scale" onClick={() => setOutcome(e.id, "-")} title="Minus points">–</Button>
-                      <Button size="sm" variant="outline" className="h-12 w-12 p-0 text-xl font-bold hover-scale" onClick={() => setOutcome(e.id, "o")} title="Circle">◯</Button>
-                      <Button size="sm" variant="outline" className="h-12 w-12 p-0 text-xl font-bold hover-scale" onClick={() => setOutcome(e.id, "/")} title="Slash">╱</Button>
-                      <Button size="sm" variant="outline" className="h-12 w-12 p-0 text-xs font-semibold hover-scale" onClick={() => removeEntry(e.id)} title="Delete">Del</Button>
+                    <div className="flex items-center gap-1 sm:gap-2 flex-wrap overflow-x-auto max-w-full">
+                      <Button size="sm" variant="outline" className="h-10 w-10 sm:h-12 sm:w-12 p-0 text-base sm:text-xl font-bold hover-scale shrink-0" onClick={() => setOutcome(e.id, "+")} title="Plus points" aria-label="Plus points">+</Button>
+                      <Button size="sm" variant="outline" className="h-10 w-10 sm:h-12 sm:w-12 p-0 text-base sm:text-xl font-bold hover-scale shrink-0" onClick={() => setOutcome(e.id, "-")} title="Minus points" aria-label="Minus points">–</Button>
+                      <Button size="sm" variant="outline" className="h-10 w-10 sm:h-12 sm:w-12 p-0 text-base sm:text-xl font-bold hover-scale shrink-0" onClick={() => setOutcome(e.id, "o")} title="Circle" aria-label="Circle">◯</Button>
+                      <Button size="sm" variant="outline" className="h-10 w-10 sm:h-12 sm:w-12 p-0 text-base sm:text-xl font-bold hover-scale shrink-0" onClick={() => setOutcome(e.id, "/")} title="Slash" aria-label="Slash">╱</Button>
+                      <Button size="sm" variant="outline" className="h-10 w-10 sm:h-12 sm:w-12 p-0 text-[10px] sm:text-xs font-semibold hover-scale shrink-0" onClick={() => removeEntry(e.id)} title="Delete" aria-label="Delete">Del</Button>
                     </div>
                   </div>
                 </div>
