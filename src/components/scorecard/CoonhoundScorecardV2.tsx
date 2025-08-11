@@ -40,6 +40,14 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
   const [dogs, setDogs] = useState<DogData[]>([]);
   const [loading, setLoading] = useState(false);
   const [huntMinutes, setHuntMinutes] = useState<60 | 90 | 120>(120);
+  const [timerOverview, setTimerOverview] = useState<Record<string, any>>({});
+  const colorCls = (s: TimerStatus) => s === "running"
+    ? "bg-primary/10 text-primary"
+    : s === "paused"
+    ? "bg-accent/10 text-accent-foreground"
+    : s === "finished"
+    ? "bg-destructive/10 text-destructive"
+    : "bg-muted text-muted-foreground";
 
   const huntTimer = useCountdown(huntMinutes * 60, {
     onComplete: () => {
@@ -150,6 +158,64 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
           </div>
           <div title="Global Shine Timer: 8 minutes when multiple dogs are involved.">
             <TimerControl label="Global Shine 8:00" formatted={globalShineTimer.formatted} status={globalShineTimer.status} onStart={globalShineTimer.start} onPause={globalShineTimer.pause} onReset={globalShineTimer.reset} />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="py-3"><CardTitle className="text-base">Timers Overview</CardTitle></CardHeader>
+        <CardContent className="space-y-3">
+          <div className="text-xs text-muted-foreground">Cast-wide</div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <div className={`rounded-md p-2 border ${colorCls(huntTimer.status)}`}>
+              <div className="flex items-center justify-between text-xs">
+                <span>Main Hunt</span>
+                <span className="tabular-nums font-semibold">{huntTimer.formatted}</span>
+              </div>
+            </div>
+            <div className={`rounded-md p-2 border ${colorCls(trackTimer.status)}`}>
+              <div className="flex items-center justify-between text-xs">
+                <span>Track 6:00</span>
+                <span className="tabular-nums font-semibold">{trackTimer.formatted}</span>
+              </div>
+            </div>
+            <div className={`rounded-md p-2 border ${colorCls(globalShineTimer.status)}`}>
+              <div className="flex items-center justify-between text-xs">
+                <span>Global Shine 8:00</span>
+                <span className="tabular-nums font-semibold">{globalShineTimer.formatted}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {dogs.map((d) => {
+              const snap = timerOverview[d.id];
+              if (!snap) return null;
+              const label = (k: string) => k.replace(/([A-Z])/g, " $1").trim();
+              const keys: string[] = ["tree","treeBark2","shine","trackBark","notHunting","stationary","noBark"];
+              return (
+                <div key={d.id}>
+                  <div className="text-xs font-medium flex items-center gap-2 mb-1">
+                    <span className="inline-block h-2 w-2 rounded-full" style={{ background: d.color }} />
+                    <span className="truncate">{d.name}</span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+                    {keys.map((k) => {
+                      const t = snap[k];
+                      if (!t) return null;
+                      return (
+                        <div key={k} className={`rounded-md p-2 border ${colorCls(t.status)}`}>
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="capitalize">{label(k)}</span>
+                            <span className="tabular-nums font-semibold">{t.formatted}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </CardContent>
       </Card>

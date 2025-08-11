@@ -57,7 +57,8 @@ export function useCountdown(initialSeconds: number, opts: UseCountdownOptions =
     raf.current = null;
     startedAt.current = null;
     carried.current = 0;
-    const d = Math.max(0, Math.floor(newSeconds ?? duration));
+    const base = typeof newSeconds === "number" && !Number.isNaN(newSeconds) ? newSeconds : duration;
+    const d = Math.max(0, Math.floor(base));
     setStatus("idle");
     setRemaining(d);
   }, [duration]);
@@ -68,11 +69,12 @@ export function useCountdown(initialSeconds: number, opts: UseCountdownOptions =
   }, []);
 
   const formatted = useMemo(() => {
-    const secs = Math.ceil(remaining);
+    const safeRemaining = Number.isFinite(remaining) ? remaining : duration;
+    const secs = Math.max(0, Math.ceil(safeRemaining));
     const m = Math.floor(secs / 60).toString().padStart(2, "0");
     const s = (secs % 60).toString().padStart(2, "0");
     return `${m}:${s}`;
-  }, [remaining]);
+  }, [remaining, duration]);
 
   return { remaining, formatted, status, start, pause, reset };
 }

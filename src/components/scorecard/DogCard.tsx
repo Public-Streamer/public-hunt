@@ -29,12 +29,24 @@ export interface DogData {
 interface DogCardProps {
   dog: DogData;
   onChange: (dog: DogData, newTotal: number) => void; // bubble up updates
+  onTimerSnapshot?: (
+    dogId: string,
+    snapshot: {
+      tree: { formatted: string; status: TimerStatus };
+      treeBark2: { formatted: string; status: TimerStatus };
+      shine: { formatted: string; status: TimerStatus };
+      trackBark: { formatted: string; status: TimerStatus };
+      notHunting: { formatted: string; status: TimerStatus };
+      stationary: { formatted: string; status: TimerStatus };
+      noBark: { formatted: string; status: TimerStatus };
+    }
+  ) => void;
 }
 
 const quickStrike = [100, 75, 50, 25];
 const quickTree = [125, 75, 50, 25];
 
-export const DogCard: React.FC<DogCardProps> = ({ dog, onChange }) => {
+export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot }) => {
   const [draft, setDraft] = useState<DogData>(dog);
   const [customPoints, setCustomPoints] = useState<string>("");
 
@@ -95,6 +107,28 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange }) => {
       }
     },
   });
+  useEffect(() => {
+    onTimerSnapshot?.(draft.id, {
+      tree: { formatted: treeTimer.formatted, status: treeTimer.status },
+      treeBark2: { formatted: treeBark2Timer.formatted, status: treeBark2Timer.status },
+      shine: { formatted: shineTimer.formatted, status: shineTimer.status },
+      trackBark: { formatted: trackBarkTimer.formatted, status: trackBarkTimer.status },
+      notHunting: { formatted: notHuntingTimer.formatted, status: notHuntingTimer.status },
+      stationary: { formatted: stationaryTimer.formatted, status: stationaryTimer.status },
+      noBark: { formatted: stationaryNonBarkTimer.formatted, status: stationaryNonBarkTimer.status },
+    });
+  }, [
+    draft.id,
+    treeTimer.formatted, treeTimer.status,
+    treeBark2Timer.formatted, treeBark2Timer.status,
+    shineTimer.formatted, shineTimer.status,
+    trackBarkTimer.formatted, trackBarkTimer.status,
+    notHuntingTimer.formatted, notHuntingTimer.status,
+    stationaryTimer.formatted, stationaryTimer.status,
+    stationaryNonBarkTimer.formatted, stationaryNonBarkTimer.status,
+    onTimerSnapshot,
+  ]);
+
   const total = useMemo(() => {
     return draft.entries.reduce((sum, e) => {
       if (e.outcome === "+") return sum + e.points;
