@@ -5,6 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { ChevronDown, ChevronUp, User, MoreHorizontal, X, Edit } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import EventPermissionCheckboxes from '@/components/EventPermissionCheckboxes';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 
 interface TeamMember {
   id: string;
@@ -153,6 +155,24 @@ const EventRoleManager: React.FC<EventRoleManagerProps> = ({
               memberName={member.name}
               memberEmail={member.email}
             />
+
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id={`judge-${member.id}`}
+                checked={member.permissions.includes('scorecard_judge')}
+                disabled={disabled || (member.confirmed && !isEditing)}
+                onCheckedChange={(checked) => {
+                  const isChecked = checked === true;
+                  const next = isChecked
+                    ? Array.from(new Set([...(member.permissions || []), 'scorecard_judge']))
+                    : (member.permissions || []).filter((p) => p !== 'scorecard_judge');
+                  onPermissionsChange(next);
+                }}
+              />
+              <Label htmlFor={`judge-${member.id}`} className="text-sm">
+                Judge permissions
+              </Label>
+            </div>
             
             {(!member.confirmed || isEditing) && !disabled && member.permissions.length > 0 && (
               <div className="flex justify-center mt-6">

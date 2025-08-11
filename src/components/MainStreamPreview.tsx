@@ -11,6 +11,9 @@ interface MainStreamPreviewProps {
   track?: TrackReference;
   eventName: string;
   isLive: boolean;
+  // Keep compatibility with callers; not used internally
+  setIsMuted?: React.Dispatch<React.SetStateAction<boolean>>;
+  isMuted?: boolean;
   eventId: string;
   mediaUrls: string[];
   eventHostId?: string;
@@ -20,6 +23,9 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
   track,
   eventName,
   isLive,
+  // compatibility props (unused)
+  setIsMuted,
+  isMuted,
   eventId,
   mediaUrls,
   eventHostId,

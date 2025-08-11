@@ -126,6 +126,33 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   const [teams, setTeams] = useState<any[]>([]);
   const [loadingScoreboard, setLoadingScoreboard] = useState(true);
 
+  // Judge permission (scorecard access)
+  const [isJudge, setIsJudge] = useState(false);
+  useEffect(() => {
+    const checkJudge = async () => {
+      try {
+        if (!userId) return;
+        const { data, error } = await supabase
+          .from('event_streamers')
+          .select('permissions')
+          .eq('event_id', eventId)
+          .eq('streamer_id', userId)
+          .maybeSingle();
+        if (!error && data?.permissions) {
+          setIsJudge((data.permissions as string[]).includes('scorecard_judge'));
+        } else {
+          setIsJudge(false);
+        }
+      } catch (e) {
+        setIsJudge(false);
+      }
+    };
+    checkJudge();
+  }, [eventId, userId]);
+
+  const canManageScoreboard = userRole === 'host' || isJudge;
+  const canSeeScoreboard = canManageScoreboard;
+
   // Load event metadata and selected game type
   const loadEventData = async () => {
     try {
@@ -704,23 +731,13 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
             />
 
             {/* Scoreboard Section - Show for hosts (when creating or managing) and streamers (when teams exist) */}
-            {(userRole === "host" || userRole === "streamer") &&
-              // Show scoreboard card if:
-              // 1. Host and no game type selected (to allow creation) OR
-              // 2. Host and has selected a game type (to allow team management) OR
-              // 3. Streamer and has teams for the selected game type
-              ((userRole === "host" &&
-                (!selectedGameType || selectedGameType)) ||
-                (userRole === "streamer" &&
-                  ((selectedGameType === "custom" && hasCustomTeams) ||
-                    (selectedGameType === "coon_hunt" &&
-                      hasCoonHuntTeams)))) && (
+            {canSeeScoreboard && (
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle>
-                      {userRole === "host" ? " Leaderboard" : " Leaderboard"}
+                      {canManageScoreboard ? " Leaderboard" : " Leaderboard"}
                     </CardTitle>
-                    {userRole === "host" && selectedGameType && (
+                    {canManageScoreboard && selectedGameType && (
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button
@@ -781,12 +798,12 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                     ) : selectedGameType === "coon_hunt" ? (
                       <CoonhoundScorecardV2
                         eventId={eventId}
-                        isHost={userRole === "host"}
+                        isHost={canManageScoreboard}
                       />
                     ) : selectedGameType === "custom" ? (
                       <CustomScoreboard
                         eventId={eventId}
-                        isHost={userRole === "host"}
+                        isHost={canManageScoreboard}
                       />
                     ) : (
                       <div className="text-center py-8 text-muted-foreground">
