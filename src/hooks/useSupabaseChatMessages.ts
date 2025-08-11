@@ -179,18 +179,12 @@ export const useSupabaseChatMessages = (eventId: string) => {
       .subscribe((status) => {
         if (status === "SUBSCRIBED") {
           setConnectionStatus("connected");
-          console.log(
-            `🎉 [Chat-${eventId}] Successfully subscribed to real-time updates`
-          );
         } else if (status === "CHANNEL_ERROR") {
           setConnectionStatus("error");
-          console.error(`❌ [Chat-${eventId}] Channel subscription error`);
         } else if (status === "TIMED_OUT") {
           setConnectionStatus("error");
-          console.error(`⏰ [Chat-${eventId}] Channel subscription timed out`);
         } else if (status === "CLOSED") {
           setConnectionStatus("disconnected");
-          console.log(`🔌 [Chat-${eventId}] Channel subscription closed`);
         }
       });
 
