@@ -38,9 +38,9 @@ export const TimerControl: React.FC<TimerControlProps> = ({
         <div className="text-lg tabular-nums font-semibold">{formatted}</div>
       </div>
       <div className="mt-3 grid grid-cols-3 gap-2">
-          <Button size="sm" className="h-12 text-base sm:text-lg" onClick={onStart} disabled={status === "running"} aria-label="Start timer">Start</Button>
-          <Button size="sm" variant="outline" className="h-12 text-base sm:text-lg" onClick={onPause} disabled={status !== "running"} aria-label="Pause timer">Pause</Button>
-          <Button size="sm" variant="secondary" className="h-12 text-base sm:text-lg" onClick={onReset} aria-label="Reset timer">Reset</Button>
+          <Button size="sm" className="h-9 sm:h-10 md:h-11 px-2 sm:px-3 whitespace-nowrap text-[11px] sm:text-xs md:text-sm min-w-[64px]" onClick={onStart} disabled={status === "running"} aria-label="Start timer">Start</Button>
+          <Button size="sm" variant="outline" className="h-9 sm:h-10 md:h-11 px-2 sm:px-3 whitespace-nowrap text-[11px] sm:text-xs md:text-sm min-w-[64px]" onClick={onPause} disabled={status !== "running"} aria-label="Pause timer">Pause</Button>
+          <Button size="sm" variant="secondary" className="h-9 sm:h-10 md:h-11 px-2 sm:px-3 whitespace-nowrap text-[11px] sm:text-xs md:text-sm min-w-[64px]" onClick={onReset} aria-label="Reset timer">Reset</Button>
       </div>
     </div>
   );

@@ -251,7 +251,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
       </CardHeader>
       <CardContent className="space-y-3">
         {/* Timers Row */}
-        <div className="grid grid-cols-2 sm:grid-cols-6 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2">
           <div title="Tree Timer: Wait 3 minutes before scoring a tree.">
             <TimerControl label="Tree 3:00" formatted={treeTimer.formatted} status={treeTimer.status} onStart={treeTimer.start} onPause={treeTimer.pause} onReset={treeTimer.reset} />
           </div>
@@ -265,7 +265,8 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
             <TimerControl label="Track Bark 6:00" formatted={trackBarkTimer.formatted} status={trackBarkTimer.status} onStart={trackBarkTimer.start} onPause={trackBarkTimer.pause} onReset={trackBarkTimer.reset} />
           </div>
           <div title="Not Hunting Timer: 15 minutes for non-hunting dog.">
-            <div className="space-y-2">
+            <div className="rounded-md border border-primary/30 bg-primary/5 p-2 space-y-2">
+              <div className="text-[10px] font-medium text-primary/80">Linked to Gone Hunt</div>
               <TimerControl
                 label="Not Hunting 15:00"
                 formatted={notHuntingTimer.formatted}
@@ -273,6 +274,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
                 onStart={notHuntingTimer.start}
                 onPause={notHuntingTimer.pause}
                 onReset={() => { notHuntingTimer.reset(); goneHuntingTimer.reset(); }}
+                className="border-primary/30"
               />
               <TimerControl
                 label="Gone Hunt 5:00"
@@ -281,11 +283,13 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
                 onStart={startGoneHuntingGuarded}
                 onPause={goneHuntingTimer.pause}
                 onReset={goneHuntingTimer.reset}
+                className="border-primary/30"
               />
             </div>
           </div>
           <div title="Stationary: 5 minutes; start 2-minute no-bark if barking stops.">
-            <div className="space-y-2">
+            <div className="rounded-md border border-secondary/30 bg-secondary/5 p-2 space-y-2">
+              <div className="text-[10px] font-medium text-secondary/80">Linked to No Bark</div>
               <TimerControl
                 label="Stationary 5:00"
                 formatted={stationaryTimer.formatted}
@@ -293,6 +297,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
                 onStart={stationaryTimer.start}
                 onPause={stationaryTimer.pause}
                 onReset={() => { stationaryTimer.reset(); stationaryNonBarkTimer.reset(); }}
+                className="border-secondary/30"
               />
               <TimerControl
                 label="No Bark 2:00"
@@ -301,6 +306,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
                 onStart={startNonBarkGuarded}
                 onPause={stationaryNonBarkTimer.pause}
                 onReset={stationaryNonBarkTimer.reset}
+                className="border-secondary/30"
               />
             </div>
           </div>
