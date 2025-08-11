@@ -167,12 +167,12 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
     }
   };
 
-  // Total = (±strike) + (±tree) - minus ; circle not counted (consistent with your current logic)
-  const calculateTotalScore = (cf: CoonHuntTeam['custom_fields']) => {
+  // Total = oldScore + (±strike) + (±tree) - minus
+  const calculateTotalScore = (cf: CoonHuntTeam['custom_fields'], currentScore: number = 0) => {
     const strike = Number(cf?.strike_points || 0);
     const tree = Number(cf?.tree_points || 0);
     const minus = Number(cf?.minus_points || 0);
-    return strike + tree - minus;
+    return currentScore + strike + tree - minus;
   };
 
   const createTeam = async () => {
@@ -321,7 +321,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
       return;
     }
 
-    const newScore = calculateTotalScore(updatedFields);
+    const newScore = calculateTotalScore(updatedFields, team.score);
 
     try {
       const { error } = await supabase.functions.invoke('scoreboard-operations', {
@@ -366,7 +366,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
           return; // stop batch to let host fix
         }
 
-        const newScore = calculateTotalScore(updatedFields);
+        const newScore = calculateTotalScore(updatedFields, team.score);
         const { error } = await supabase.functions.invoke('scoreboard-operations', {
           body: { action: 'updateTeam', teamId, custom_fields: updatedFields, team_name: team.team_name, team_color: team.team_color, score: newScore }
         });
@@ -407,7 +407,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({ eventId,
       minus_points: Number(editingDraft.custom_fields?.minus_points || 0),
     };
 
-    const newScore = calculateTotalScore(cf);
+    const newScore = calculateTotalScore(cf, editingDraft.score);
 
     try {
       const { error } = await supabase.functions.invoke('scoreboard-operations', {
