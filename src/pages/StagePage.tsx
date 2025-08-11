@@ -33,12 +33,12 @@ const StagePage: React.FC = () => {
       // Import utility functions to handle both UUID and slug
       const { parseEventIdentifier } = await import("@/lib/eventUtils");
       const { isUuid, identifier } = parseEventIdentifier(eventId);
-      
+
       // Fetch event data by UUID or slug
-      const eventQuery = isUuid 
+      const eventQuery = isUuid
         ? supabase.from("events").select("*").eq("id", identifier)
         : supabase.from("events").select("*").eq("slug", identifier);
-        
+
       const { data, error } = await eventQuery.single();
 
       if (error) {
@@ -120,8 +120,6 @@ const StagePage: React.FC = () => {
 
     checkAuthAndAssignRole();
   }, [eventId, event, inviteToken]);
-
-  console.log({ user, userRole, event, inviteToken });
 
   // Generate LiveKit token when event and user role are available
   useEffect(() => {
@@ -283,11 +281,13 @@ const StagePage: React.FC = () => {
 
   if (!user) {
     const redirectUrl = window.location.pathname + window.location.search;
-  
-    const redirectWithToken = inviteToken 
-      ? `${redirectUrl}${redirectUrl.includes('?') ? '&' : '?'}token=${inviteToken}`
+
+    const redirectWithToken = inviteToken
+      ? `${redirectUrl}${
+          redirectUrl.includes("?") ? "&" : "?"
+        }token=${inviteToken}`
       : redirectUrl;
-    
+
     return (
       <Navigate
         to={`/login?redirect=${encodeURIComponent(redirectWithToken)}`}
