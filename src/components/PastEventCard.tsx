@@ -20,16 +20,16 @@ interface PastEvent {
   view_count: number;
   tags: string[];
   category: string;
-  date: string;
-  slug: string;
-  created_at: string;
-  updated_at: string;
-  name: string;
-  time: string;
-  location: string;
-  ticket_price: number;
-  is_live: boolean;
-  viewer_count: number;
+  date?: string;
+  slug?: string;
+  created_at?: string;
+  updated_at?: string;
+  name?: string;
+  time?: string;
+  location?: string;
+  ticket_price?: number;
+  is_live?: boolean;
+  viewer_count?: number;
 }
 
 interface PastEventCardProps {
@@ -84,7 +84,7 @@ const PastEventCard: React.FC<PastEventCardProps> = ({
   return (
     <>
       <TooltipWrapper
-        content={`${event.name} - Recorded on ${formatDate(event.date)}`}
+        content={`${(event.name || event.title) ?? 'Event'}${(event.recorded_at || event.date) ? ` - Recorded on ${formatDate((event.recorded_at || event.date) as string)}` : ''}`}
       >
         <Card
           className="hover:shadow-lg transition-shadow cursor-pointer space-y-2"
@@ -92,7 +92,7 @@ const PastEventCard: React.FC<PastEventCardProps> = ({
         >
           <CardHeader>
             <div className="flex items-start justify-between gap-2">
-              <CardTitle className="text-lg">{event.name}</CardTitle>
+              <CardTitle className="text-lg">{event.name || event.title}</CardTitle>
               <div className="flex items-center gap-2">
                 {ranking && (
                   <Badge variant="outline" className="bg-gray-50 text-gray-600">
@@ -114,10 +114,18 @@ const PastEventCard: React.FC<PastEventCardProps> = ({
             </p>
 
             <div className="flex items-center text-sm text-gray-500 mb-2">
-              <Clock className="h-4 w-4 mr-1" />
-              <span>{event.time}</span>
-              <Calendar className="h-4 w-4 ml-3 mr-1" />
-              <span>{event.date}</span>
+              {event.time && (
+                <>
+                  <Clock className="h-4 w-4 mr-1" />
+                  <span>{event.time}</span>
+                </>
+              )}
+              {(event.recorded_at || event.date) && (
+                <>
+                  <Calendar className="h-4 w-4 ml-3 mr-1" />
+                  <span>{formatDate((event.recorded_at || event.date) as string)}</span>
+                </>
+              )}
             </div>
 
             {event.tags && event.tags.length > 0 && (
@@ -163,7 +171,7 @@ const PastEventCard: React.FC<PastEventCardProps> = ({
         isOpen={showPurchaseModal}
         onClose={() => setShowPurchaseModal(false)}
         eventId={event.id}
-        eventTitle={event.title}
+        eventTitle={(event.title || event.name) as string}
         price={event.price}
         onPurchaseSuccess={handlePurchaseSuccess}
       />

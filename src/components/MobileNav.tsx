@@ -138,6 +138,25 @@ const MobileNav: React.FC<MobileNavProps> = ({
             <span className="font-medium">Q&A</span>
           </Link>
         </nav>
+        <div className="mt-6">
+          <h4 className="text-xs uppercase tracking-wider text-gray-500 mb-2">Legal</h4>
+          <Link
+            to="/terms"
+            onClick={onClose}
+            className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <IdCard className="h-5 w-5 text-gray-600" />
+            <span className="text-sm">Terms of Service</span>
+          </Link>
+          <Link
+            to="/privacy"
+            onClick={onClose}
+            className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <IdCard className="h-5 w-5 text-gray-600" />
+            <span className="text-sm">Privacy Policy</span>
+          </Link>
+        </div>
 
         <div className="mt-8 pt-6 border-t border-gray-200">
           {isAuthenticated ? (
