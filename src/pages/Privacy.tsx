@@ -44,9 +44,6 @@ const Privacy: React.FC = () => {
 
   return (
     <div>
-      <header className="sr-only">
-        <h1>Privacy Policy</h1>
-      </header>
       <main className="max-w-4xl mx-auto px-4 py-10">
         <article className="prose prose-neutral max-w-none">
           <h1>Privacy Policy</h1>
@@ -75,6 +72,12 @@ const Privacy: React.FC = () => {
             <h2>Your Choices</h2>
             <p>
               You can update or delete certain information from your profile and adjust privacy settings.
+            </p>
+          </section>
+          <section>
+            <h2>Safety, Risk, and Enforcement</h2>
+            <p>
+              We take steps to protect users and comply with payment and legal requirements. This may include reviewing content for prohibited monetization categories, restricting monetization, pausing payouts, or sharing limited information with our payment processor strictly for fraud, risk, or compliance purposes as outlined in this Privacy Policy.
             </p>
           </section>
         </article>

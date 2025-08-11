@@ -45,9 +45,6 @@ const Terms: React.FC = () => {
 
   return (
     <div>
-      <header className="sr-only">
-        <h1>Terms of Service</h1>
-      </header>
       <main className="max-w-4xl mx-auto px-4 py-10">
         <article className="prose prose-neutral max-w-none">
           <h1>Terms of Service</h1>
