@@ -1,7 +1,7 @@
 // Centralized legal content for reuse across the app
 // Keep this as the single source of truth for legal agreement text and versioning
 
-export const LEGAL_VERSION = '1.1';
+export const LEGAL_VERSION = '1.2';
 
 export const LEGAL_NOTICE =
   "This document contains critical legal terms that LIMIT PUBLIC STREAMER'S LIABILITY and TRANSFER RISKS TO YOU. Read carefully before signing.";
@@ -23,6 +23,11 @@ export const LEGAL_BODY_SECTIONS: { title: string; body: string }[] = [
     title: '3. CONTENT RESPONSIBILITY',
     body:
       'You represent that you own all content you upload, that it complies with all laws, and you assume full responsibility for all activities under your account.'
+  },
+  {
+    title: '4. ACCEPTABLE USE & PROHIBITED MONETIZATION CATEGORIES',
+    body:
+      'Monetizing content in the prohibited categories listed below is strictly forbidden and may result in account termination and payment disablement to comply with Stripe Terms. See the “Prohibited Content Monetization Categories” list that follows.'
   }
 ];
 

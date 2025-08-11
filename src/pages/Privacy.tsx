@@ -66,6 +66,12 @@ const Privacy: React.FC = () => {
             </p>
           </section>
           <section>
+            <h2>Payment Processing and Fraud Prevention (Stripe)</h2>
+            <p>
+              We use Stripe to process payments. Stripe may collect and process your payment information; Public Streamer does not store full card details. We share only the minimum necessary data (e.g., email, name, order info) to complete transactions and prevent fraud. See Stripe’s Privacy Policy for details.
+            </p>
+          </section>
+          <section>
             <h2>Your Choices</h2>
             <p>
               You can update or delete certain information from your profile and adjust privacy settings.
