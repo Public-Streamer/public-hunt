@@ -103,7 +103,7 @@ const CheckoutForm: React.FC<StripeCheckoutProps> = ({
     };
 
     checkTicketAndInitializePayment();
-  }, [eventId, price, hostStripeAccountId, toast]);
+  }, []);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
