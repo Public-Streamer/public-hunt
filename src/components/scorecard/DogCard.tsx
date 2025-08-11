@@ -7,7 +7,7 @@ import { Plus, Clock } from "lucide-react";
 import { TimerControl } from "./TimerControl";
 import { useCountdown, TimerStatus } from "@/hooks/useCountdown";
 import { toast } from "@/hooks/use-toast";
-export type EntryOutcome = "pending" | "+" | "-" | "o"; // plus / minus / circle
+export type EntryOutcome = "pending" | "+" | "-" | "o" | "/"; // plus / minus / circle / slash
 export type EntryType = "strike" | "tree";
 
 export interface ScoreEntry {
@@ -90,6 +90,15 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
       }
     },
   });
+  const goneHuntingTimer = useCountdown(5 * 60, {
+    onComplete: () => {
+      toast({ title: "Gone hunting 5:00 finished", description: `${draft.name}: resetting Not Hunting 15:00` });
+      notHuntingTimer.reset(15 * 60);
+      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+        try { (navigator as any).vibrate?.(200); } catch {}
+      }
+    },
+  });
   const stationaryTimer = useCountdown(5 * 60, {
     onComplete: () => {
       toast({ title: "Stationary finished", description: `${draft.name}: 5-minute stationary completed` });
@@ -134,12 +143,17 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
       if (e.outcome === "+") return sum + e.points;
       if (e.outcome === "-") return sum - e.points;
       if (e.outcome === "o") return sum; // circle doesn't change
+      if (e.outcome === "/") return sum; // slashed strike doesn't change
       return sum; // pending doesn't count
     }, 0);
   }, [draft.entries]);
 
   const totalAbs = Math.abs(total);
   const totalIndicator = total > 0 ? "+" : total < 0 ? "–" : "";
+  const circleTotal = useMemo(() => {
+    return draft.entries.reduce((sum, e) => (e.outcome === "o" ? sum + e.points : sum), 0);
+  }, [draft.entries]);
+  const showCircleAsTotal = total === 0 && circleTotal > 0;
 
   const hasPending = draft.entries.some((e) => e.outcome === "pending");
 
@@ -175,9 +189,20 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
     }
     stationaryNonBarkTimer.start();
   };
+  
+  const startGoneHuntingGuarded = () => {
+    if (notHuntingTimer.status !== "running") {
+      toast({
+        title: "Start Not Hunting first",
+        description: "Begin the 15-minute not hunting timer before starting the 5-minute gone hunting",
+        variant: "destructive",
+      });
+      return;
+    }
+    goneHuntingTimer.start();
+  };
 
   const onBlurCommit = () => onChange(draft, total);
-
   // Lightweight custom timer component (per-dog)
   const CustomTimer: React.FC<{ cfg: { id: string; label: string; seconds: number }; onRemove: () => void }> = ({ cfg, onRemove }) => {
     const t = useCountdown(cfg.seconds, {
@@ -210,8 +235,17 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
           </div>
           <div className="flex items-center gap-2 text-sm">
             <Clock className="h-4 w-4" />
-            <span className="tabular-nums">Total: {totalAbs}</span>
-            {totalIndicator && <span className="font-bold">{totalIndicator}</span>}
+            {showCircleAsTotal ? (
+              <>
+                <span className="tabular-nums">Total: {circleTotal}</span>
+                <span className="font-bold">◯</span>
+              </>
+            ) : (
+              <>
+                <span className="tabular-nums">Total: {totalAbs}</span>
+                {totalIndicator && <span className="font-bold">{totalIndicator}</span>}
+              </>
+            )}
           </div>
         </CardTitle>
       </CardHeader>
@@ -231,7 +265,24 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
             <TimerControl label="Track Bark 6:00" formatted={trackBarkTimer.formatted} status={trackBarkTimer.status} onStart={trackBarkTimer.start} onPause={trackBarkTimer.pause} onReset={trackBarkTimer.reset} />
           </div>
           <div title="Not Hunting Timer: 15 minutes for non-hunting dog.">
-            <TimerControl label="Not Hunting 15:00" formatted={notHuntingTimer.formatted} status={notHuntingTimer.status} onStart={notHuntingTimer.start} onPause={notHuntingTimer.pause} onReset={notHuntingTimer.reset} />
+            <div className="space-y-2">
+              <TimerControl
+                label="Not Hunting 15:00"
+                formatted={notHuntingTimer.formatted}
+                status={notHuntingTimer.status}
+                onStart={notHuntingTimer.start}
+                onPause={notHuntingTimer.pause}
+                onReset={() => { notHuntingTimer.reset(); goneHuntingTimer.reset(); }}
+              />
+              <TimerControl
+                label="Gone Hunt 5:00"
+                formatted={goneHuntingTimer.formatted}
+                status={goneHuntingTimer.status}
+                onStart={startGoneHuntingGuarded}
+                onPause={goneHuntingTimer.pause}
+                onReset={goneHuntingTimer.reset}
+              />
+            </div>
           </div>
           <div title="Stationary: 5 minutes; start 2-minute no-bark if barking stops.">
             <div className="space-y-2">
@@ -307,12 +358,25 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
                 ? "bg-primary/20 border-primary/40 transition-colors"
                 : e.outcome === "-"
                 ? "bg-destructive/20 border-destructive/40 transition-colors"
-                : "bg-secondary/20 border-secondary/40 transition-colors"; // circle
+                : e.outcome === "o"
+                ? "bg-secondary/20 border-secondary/40 transition-colors" // circle
+                : "bg-muted/20 border-muted/40 transition-colors"; // slash
               const renderPoints = () => {
                 if (e.outcome === "o") {
                   return (
                     <span className="font-medium rounded-full ring-2 ring-accent px-2 py-0.5">
                       {e.points}
+                    </span>
+                  );
+                }
+                if (e.outcome === "/") {
+                  return (
+                    <span className="relative inline-flex items-center justify-center px-2 py-0.5">
+                      <span className="font-medium">{e.points}</span>
+                      <span
+                        aria-hidden
+                        className="pointer-events-none absolute left-0 right-0 top-1/2 h-[2px] bg-muted-foreground/60 rotate-45 origin-center"
+                      />
                     </span>
                   );
                 }
@@ -326,7 +390,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
                       {renderPoints()}
                       {e.outcome !== "pending" && (
                         <span className="ml-1 font-bold">
-                          {e.outcome === "+" ? "+" : e.outcome === "-" ? "–" : "◯"}
+                          {e.outcome === "+" ? "+" : e.outcome === "-" ? "–" : e.outcome === "o" ? "◯" : "╱"}
                         </span>
                       )}
                       {e.outcome === "pending" && <Badge variant="outline">pending</Badge>}
@@ -335,6 +399,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
                       <Button size="sm" variant="outline" className="h-12 w-12 p-0 text-xl font-bold hover-scale" onClick={() => setOutcome(e.id, "+")} title="Plus points">+</Button>
                       <Button size="sm" variant="outline" className="h-12 w-12 p-0 text-xl font-bold hover-scale" onClick={() => setOutcome(e.id, "-")} title="Minus points">–</Button>
                       <Button size="sm" variant="outline" className="h-12 w-12 p-0 text-xl font-bold hover-scale" onClick={() => setOutcome(e.id, "o")} title="Circle">◯</Button>
+                      <Button size="sm" variant="outline" className="h-12 w-12 p-0 text-xl font-bold hover-scale" onClick={() => setOutcome(e.id, "/")} title="Slash">╱</Button>
                       <Button size="sm" variant="outline" className="h-12 w-12 p-0 text-xs font-semibold hover-scale" onClick={() => removeEntry(e.id)} title="Delete">Del</Button>
                     </div>
                   </div>
