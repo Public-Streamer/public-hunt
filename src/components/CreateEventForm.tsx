@@ -145,13 +145,13 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
   };
 
   const canGoLiveWithTeam = () => {
-    return (
+    return !!(
       isCoreFieldsComplete() &&
       selectedStreamers.length >= 1 &&
       selectedStreamers.every((s) => s.confirmed && s.permissions.length > 0) &&
       teamConfirmed &&
       ticketPrice > 0 &&
-      hostStripeAccountId
+      !!hostStripeAccountId
     );
   };
 
