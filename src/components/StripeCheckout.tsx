@@ -93,12 +93,12 @@ const CheckoutForm: React.FC<StripeCheckoutProps> = ({
         }
       } catch (error) {
         console.error("Payment initialization error:", error);
-        toast({
-          title: "Payment Setup Failed",
-          description:
-            error instanceof Error ? error.message : "Please try again.",
-          variant: "destructive",
-        });
+        // toast({
+        //   title: "Payment Setup Failed",
+        //   description:
+        //     error instanceof Error ? error.message : "Please try again.",
+        //   variant: "destructive",
+        // });
       }
     };
 
