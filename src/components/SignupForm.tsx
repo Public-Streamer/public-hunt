@@ -24,6 +24,7 @@ import UserSearchBox from './UserSearchBox';
 import { BirthdaySelector } from './BirthdaySelector';
 import ValidationMessage from './ValidationMessage';
 import { useFormValidation, validationRules } from '@/hooks/useFormValidation';
+import LegalAgreementBody from '@/components/legal/LegalAgreementBody';
 
 interface SignupFormProps {
   onClose: () => void;
@@ -993,37 +994,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onClose, onSuccess, inline = fa
                   </div>
 
                   <div className="space-y-3 text-xs max-h-40 overflow-y-auto border p-3 bg-white">
-                    <h4 className="font-bold">PUBLIC STREAMER PLATFORM USER AGREEMENT</h4>
-                    
-                    <div>
-                      <h5 className="font-semibold">1. LIABILITY WAIVER</h5>
-                      <p>Public Streamer, LLC shall NOT be liable for any content you create, third-party claims, copyright violations, privacy violations, financial losses, or any damages arising from your use of the platform.</p>
-                    </div>
-                    
-                    <div>
-                      <h5 className="font-semibold">2. INDEMNIFICATION</h5>
-                      <p>You agree to DEFEND, INDEMNIFY, and HOLD HARMLESS Public Streamer from all claims, damages, and expenses arising from your use of the platform or content you upload.</p>
-                    </div>
-                    
-                    <div>
-                      <h5 className="font-semibold">3. CONTENT RESPONSIBILITY</h5>
-                      <p>You represent that you own all content you upload, that it complies with all laws, and you assume full responsibility for all activities under your account.</p>
-                    </div>
-
-                    <div>
-                      <h5 className="font-semibold">Prohibited Content Monetization Categories</h5>
-                      <ul className="list-disc pl-4 space-y-1">
-                        <li>
-                          Adult Content and Services – Content that contains nudity or explicit sexual acts (including subscriber-only nude images, adult audio/video live chat) is prohibited.
-                        </li>
-                        <li>
-                          Intellectual Property or Proprietary Rights Infringement – This includes the monetization of content that violates copyrights, trademarks, or other proprietary rights, such as leaked music albums or stolen media.
-                        </li>
-                        <li>
-                          Violent Extremism and Hate Speech – Content that engages in, encourages, promotes, or celebrates unlawful violence or hate speech toward any group based on race, religion, disability, gender, sexual orientation, national origin, or any other immutable characteristic is prohibited.
-                        </li>
-                      </ul>
-                    </div>
+                    <LegalAgreementBody size="xs" />
                   </div>
 
                   <div className="space-y-3">

@@ -8,6 +8,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { TooltipWrapper } from '@/components/ui/tooltip-wrapper';
+import LegalAgreementBody from '@/components/legal/LegalAgreementBody';
+import { LEGAL_VERSION } from '@/content/legal/terms';
 
 interface LegalDocumentModalProps {
   isOpen: boolean;
@@ -70,7 +72,7 @@ export const LegalDocumentModal: React.FC<LegalDocumentModalProps> = ({
             email: userEmail,
             signature: signature,
             document_type: 'user_agreement',
-            document_version: '1.1',
+            document_version: LEGAL_VERSION,
             ip_address: 'unknown', // Could be enhanced to get real IP
             user_agent: navigator.userAgent
           });
@@ -109,96 +111,7 @@ export const LegalDocumentModal: React.FC<LegalDocumentModalProps> = ({
         
         <div className="p-6 max-h-[60vh] overflow-y-auto">
           <div className="space-y-6 text-sm">
-            <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-              <h3 className="font-bold text-red-700 mb-2">IMPORTANT LEGAL NOTICE</h3>
-              <p className="text-red-700">
-                This document contains critical legal terms that LIMIT PUBLIC STREAMER'S LIABILITY and TRANSFER RISKS TO YOU. 
-                Read carefully before signing. Consult legal counsel if needed.
-              </p>
-            </div>
-
-            <div>
-              <h2 className="text-lg font-bold mb-4">PUBLIC STREAMER PLATFORM USER AGREEMENT AND INDEMNIFICATION WAIVER</h2>
-              
-              <div className="space-y-4">
-                <section>
-                  <h3 className="font-semibold mb-2">1. COMPREHENSIVE LIABILITY WAIVER</h3>
-                  <p className="mb-2">
-                    By using the Public Streamer platform, you acknowledge and agree that Public Streamer, LLC, its officers, directors, 
-                    employees, agents, and affiliates (collectively "Public Streamer Parties") shall NOT be liable for any:
-                  </p>
-                  <ul className="list-disc pl-6 space-y-1">
-                    <li>Content you create, upload, stream, or distribute through the platform</li>
-                    <li>Third-party claims arising from your use of the platform</li>
-                    <li>Copyright, trademark, or intellectual property violations in your content</li>
-                    <li>Defamatory, offensive, or illegal content you publish</li>
-                    <li>Privacy violations or unauthorized disclosure of personal information</li>
-                    <li>Financial losses, business interruption, or reputational damage</li>
-                    <li>Any direct, indirect, incidental, consequential, or punitive damages</li>
-                  </ul>
-                </section>
-
-                <section>
-                  <h3 className="font-semibold mb-2">2. COMPLETE INDEMNIFICATION</h3>
-                  <p>
-                    You agree to DEFEND, INDEMNIFY, and HOLD HARMLESS all Public Streamer Parties from and against any and all 
-                    claims, damages, costs, liabilities, and expenses (including reasonable attorneys' fees) arising from or 
-                    relating to:
-                  </p>
-                  <ul className="list-disc pl-6 space-y-1 mt-2">
-                    <li>Your use or misuse of the Public Streamer platform</li>
-                    <li>Any content you upload, stream, or make available through the platform</li>
-                    <li>Your violation of any law, regulation, or third-party rights</li>
-                    <li>Any breach of this agreement or platform terms of service</li>
-                    <li>Any negligent or wrongful act or omission by you or your agents</li>
-                  </ul>
-                </section>
-
-                <section>
-                  <h3 className="font-semibold mb-2">3. CONTENT RESPONSIBILITY AND COMPLIANCE</h3>
-                  <p className="mb-2">You represent, warrant, and covenant that:</p>
-                  <ul className="list-disc pl-6 space-y-1">
-                    <li>You own or have proper licenses for all content you upload or stream</li>
-                    <li>Your content does not violate any copyright, trademark, privacy, or other rights</li>
-                    <li>Your content complies with all applicable laws and regulations</li>
-                    <li>You will not use the platform for any illegal or unauthorized purpose</li>
-                    <li>You assume full responsibility for all content and activities under your account</li>
-                  </ul>
-                </section>
-
-                <section>
-                  <h3 className="font-semibold mb-2">4. DISPUTE RESOLUTION</h3>
-                  <p>
-                    Any disputes shall be resolved through binding arbitration in accordance with the rules of the 
-                    American Arbitration Association. You waive any right to participate in class action lawsuits 
-                    against Public Streamer.
-                  </p>
-                </section>
-
-                <section>
-                  <h3 className="font-semibold mb-2">5. SEVERABILITY AND ENFORCEABILITY</h3>
-                  <p>
-                    If any provision of this agreement is deemed unenforceable, the remaining provisions shall remain 
-                    in full force and effect. This agreement shall be governed by the laws of Delaware, USA.
-                  </p>
-                </section>
-
-                <section>
-                  <h3 className="font-semibold mb-2">Prohibited Content Monetization Categories</h3>
-                  <ul className="list-disc pl-6 space-y-1">
-                    <li>
-                      Adult Content and Services – Content that contains nudity or explicit sexual acts (including subscriber-only nude images, adult audio/video live chat) is prohibited.
-                    </li>
-                    <li>
-                      Intellectual Property or Proprietary Rights Infringement – This includes the monetization of content that violates copyrights, trademarks, or other proprietary rights, such as leaked music albums or stolen media.
-                    </li>
-                    <li>
-                      Violent Extremism and Hate Speech – Content that engages in, encourages, promotes, or celebrates unlawful violence or hate speech toward any group based on race, religion, disability, gender, sexual orientation, national origin, or any other immutable characteristic is prohibited.
-                    </li>
-                  </ul>
-                </section>
-              </div>
-            </div>
+            <LegalAgreementBody size="sm" />
           </div>
         </div>
 

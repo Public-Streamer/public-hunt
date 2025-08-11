@@ -9,6 +9,8 @@ import { AlertTriangle, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAppContext } from '@/contexts/AppContext';
+import LegalAgreementBody from '@/components/legal/LegalAgreementBody';
+import { LEGAL_VERSION } from '@/content/legal/terms';
 
 const LegalDocumentPage: React.FC = () => {
   const { user } = useAppContext();
@@ -82,7 +84,7 @@ const LegalDocumentPage: React.FC = () => {
             email: user?.email || 'guest@example.com',
             signature: signature,
             document_type: 'user_agreement',
-            document_version: '1.1',
+            document_version: LEGAL_VERSION,
             ip_address: '127.0.0.1', // In production, get real IP
             user_agent: navigator.userAgent
           })
@@ -312,96 +314,7 @@ const LegalDocumentPage: React.FC = () => {
 
         <ScrollArea className="h-96 mb-6 border rounded-lg p-4">
           <div className="space-y-6 text-sm">
-            <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-              <h3 className="font-bold text-red-700 mb-2">IMPORTANT LEGAL NOTICE</h3>
-              <p className="text-red-700">
-                This document contains critical legal terms that LIMIT PUBLIC STREAMER'S LIABILITY and TRANSFER RISKS TO YOU. 
-                Read carefully before signing. Consult legal counsel if needed.
-              </p>
-            </div>
-
-            <div>
-              <h2 className="text-lg font-bold mb-4">PUBLIC STREAMER PLATFORM USER AGREEMENT AND INDEMNIFICATION WAIVER</h2>
-              
-              <h3 className="font-bold text-red-600 mb-2">1. ASSUMPTION OF RISK</h3>
-              <p className="mb-4">
-                You acknowledge that live streaming involves inherent risks including but not limited to: technical failures, 
-                content disputes, copyright claims, privacy violations, harassment, doxxing, financial losses, reputation damage, 
-                legal liability, and personal safety concerns. You voluntarily assume ALL such risks.
-              </p>
-
-              <h3 className="font-bold text-red-600 mb-2">2. RELEASE AND WAIVER OF LIABILITY</h3>
-              <p className="mb-4">
-                You hereby RELEASE, WAIVE, DISCHARGE and COVENANT NOT TO SUE Public Streamer, its officers, directors, 
-                employees, agents, and affiliates from ALL liability, claims, demands, losses, or damages arising from or 
-                related to your use of the platform, including but not limited to any injuries, damages, or losses caused 
-                by the negligence of Public Streamer.
-              </p>
-
-              <h3 className="font-bold text-red-600 mb-2">3. INDEMNIFICATION</h3>
-              <p className="mb-4">
-                You agree to INDEMNIFY, DEFEND, and HOLD HARMLESS Public Streamer from and against ALL claims, liabilities, 
-                damages, losses, costs, expenses, and attorney fees arising out of or related to: (a) your use of the platform; 
-                (b) your content; (c) your violation of these terms; (d) your violation of any rights of another; or 
-                (e) your conduct in connection with the platform.
-              </p>
-
-              <h3 className="font-bold text-red-600 mb-2">4. LIMITATION OF LIABILITY</h3>
-              <p className="mb-4">
-                IN NO EVENT SHALL PUBLIC STREAMER BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, 
-                OR PUNITIVE DAMAGES, INCLUDING WITHOUT LIMITATION, LOSS OF PROFITS, DATA, USE, GOODWILL, OR OTHER 
-                INTANGIBLE LOSSES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
-              </p>
-
-              <h3 className="font-bold text-red-600 mb-2">5. CONTENT AND COPYRIGHT</h3>
-              <p className="mb-4">
-                You represent and warrant that you own or have the necessary rights to all content you stream. 
-                You agree to comply with all applicable copyright laws and acknowledge that copyright infringement 
-                may result in account termination and legal action against you personally.
-              </p>
-
-              <h3 className="font-bold text-red-600 mb-2">6. NO WARRANTIES</h3>
-              <p className="mb-4">
-                THE PLATFORM IS PROVIDED "AS IS" WITHOUT ANY WARRANTIES OF ANY KIND. PUBLIC STREAMER DISCLAIMS 
-                ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-                PURPOSE, AND NON-INFRINGEMENT.
-              </p>
-
-              <h3 className="font-bold text-red-600 mb-2">7. GOVERNING LAW AND JURISDICTION</h3>
-              <p className="mb-4">
-                This agreement shall be governed by and construed in accordance with the laws of [JURISDICTION]. 
-                Any disputes shall be resolved exclusively in the courts of [JURISDICTION].
-              </p>
-
-              <h3 className="font-bold text-red-600 mb-2">8. SEVERABILITY</h3>
-              <p className="mb-4">
-                If any provision of this agreement is found to be unenforceable, the remainder shall remain in full force and effect.
-              </p>
-
-              <div className="mt-6">
-                <h3 className="font-bold text-red-600 mb-2">Prohibited Content Monetization Categories</h3>
-                <ul className="list-disc pl-6 space-y-1">
-                  <li>
-                    Adult Content and Services – Content that contains nudity or explicit sexual acts (including subscriber-only nude images, adult audio/video live chat) is prohibited.
-                  </li>
-                  <li>
-                    Intellectual Property or Proprietary Rights Infringement – This includes the monetization of content that violates copyrights, trademarks, or other proprietary rights, such as leaked music albums or stolen media.
-                  </li>
-                  <li>
-                    Violent Extremism and Hate Speech – Content that engages in, encourages, promotes, or celebrates unlawful violence or hate speech toward any group based on race, religion, disability, gender, sexual orientation, national origin, or any other immutable characteristic is prohibited.
-                  </li>
-                </ul>
-              </div>
-
-              <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mt-6">
-                <h3 className="font-bold text-yellow-700 mb-2">ACKNOWLEDGMENT</h3>
-                <p className="text-yellow-700">
-                  BY SIGNING BELOW, YOU ACKNOWLEDGE THAT YOU HAVE READ AND UNDERSTOOD THIS AGREEMENT, 
-                  THAT YOU HAVE BEEN ADVISED TO SEEK LEGAL COUNSEL, AND THAT YOU ARE VOLUNTARILY 
-                  WAIVING SUBSTANTIAL LEGAL RIGHTS.
-                </p>
-              </div>
-            </div>
+            <LegalAgreementBody size="sm" />
           </div>
         </ScrollArea>
 
