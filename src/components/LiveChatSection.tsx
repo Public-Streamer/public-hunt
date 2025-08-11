@@ -12,8 +12,17 @@ interface LiveChatSectionProps {
   eventId: string;
 }
 
-const LiveChatSection: React.FC<LiveChatSectionProps> = ({ className, eventId }) => {
-  const { messages, loading: messagesLoading, sendMessage, canSend } = useSupabaseChatMessages(eventId);
+const LiveChatSection: React.FC<LiveChatSectionProps> = ({
+  className,
+  eventId,
+}) => {
+  const {
+    messages,
+    loading: messagesLoading,
+    sendMessage,
+    canSend,
+  } = useSupabaseChatMessages(eventId);
+  console.log(messages);
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -21,7 +30,9 @@ const LiveChatSection: React.FC<LiveChatSectionProps> = ({ className, eventId })
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     if (messagesEndRef.current) {
-      const scrollContainer = messagesEndRef.current.closest('[data-radix-scroll-area-viewport]');
+      const scrollContainer = messagesEndRef.current.closest(
+        "[data-radix-scroll-area-viewport]"
+      );
       if (scrollContainer) {
         scrollContainer.scrollTop = scrollContainer.scrollHeight;
       }
@@ -34,7 +45,7 @@ const LiveChatSection: React.FC<LiveChatSectionProps> = ({ className, eventId })
 
     setLoading(true);
     const messageContent = newMessage.trim();
-    
+
     try {
       await sendMessage(messageContent);
       setNewMessage("");
@@ -92,9 +103,9 @@ const LiveChatSection: React.FC<LiveChatSectionProps> = ({ className, eventId })
                   >
                     <Avatar className="w-6 h-6 sm:w-8 sm:h-8 flex-shrink-0">
                       {message.profile_picture_url ? (
-                        <AvatarImage 
-                          src={message.profile_picture_url} 
-                          alt={message.display_name} 
+                        <AvatarImage
+                          src={message.profile_picture_url}
+                          alt={message.display_name}
                         />
                       ) : (
                         <AvatarFallback className="text-xs">
