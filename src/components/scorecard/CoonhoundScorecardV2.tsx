@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { TimerControl } from "./TimerControl";
 import { useCountdown, TimerStatus } from "@/hooks/useCountdown";
 import { DogCard, DogData, ScoreEntry } from "./DogCard";
@@ -59,6 +60,36 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
   const [loading, setLoading] = useState(false);
   const [huntMinutes, setHuntMinutes] = useState<60 | 90 | 120>(120);
   const [timerOverview, setTimerOverview] = useState<Record<string, any>>({});
+
+  // Collapsible sections: default collapsed for viewers, open for hosts/judges
+  const [openHunt, setOpenHunt] = useState<boolean>(!!isHost);
+  const [openSummary, setOpenSummary] = useState<boolean>(!!isHost);
+  const [openDetails, setOpenDetails] = useState<boolean>(!!isHost);
+  const [openDogIds, setOpenDogIds] = useState<Record<string, boolean>>({});
+
+  // Glow highlight state map: keys like `hunt`, `dog:{id}`, `summary`, `details`
+  const [glow, setGlow] = useState<Record<string, { colorVar: string; until: number }>>({});
+  const triggerGlow = useCallback((key: string, colorVar: string, ms = 5000) => {
+    setGlow((prev) => ({ ...prev, [key]: { colorVar, until: Date.now() + ms } }));
+  }, []);
+  useEffect(() => {
+    const id = setInterval(() => {
+      const now = Date.now();
+      setGlow((prev) => {
+        const next: typeof prev = {} as any;
+        let changed = false;
+        for (const k in prev) {
+          if (prev[k].until > now) next[k] = prev[k]; else changed = true;
+        }
+        return changed ? next : prev;
+      });
+    }, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Realtime channel for scoreboard/timer sync
+  const rtChannelRef = React.useRef<ReturnType<typeof supabase.channel> | null>(null);
+
   const colorCls = (s: TimerStatus) => s === "running"
     ? "bg-primary/10 text-primary"
     : s === "paused"
