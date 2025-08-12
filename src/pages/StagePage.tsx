@@ -84,6 +84,7 @@ const StagePage: React.FC = () => {
     if (eventData) {
       setEvent(eventData);
       if (streamData) {
+        console.log("Stream data setting up:", streamData);
         setStreamId(streamData.id);
       }
     }
