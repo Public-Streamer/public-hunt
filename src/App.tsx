@@ -39,16 +39,6 @@ import ReportDMCA from "./pages/ReportDMCA";
 const queryClient = new QueryClient();
 
 const App = () => {
-  useEffect(() => {
-    const handler = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      e.returnValue = "";
-      alert("Please logout before closing the page");
-    };
-    window.addEventListener("beforeunload", handler);
-    return () => window.removeEventListener("beforeunload", handler);
-  }, []);
-
   return (
     <ThemeProvider defaultTheme="light">
       <QueryClientProvider client={queryClient}>
