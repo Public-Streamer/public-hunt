@@ -136,9 +136,9 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       formData.name?.trim() &&
       formData.category?.trim() &&
       formData.description?.trim() &&
-      formData.date?.trim() &&
-      formData.time?.trim() &&
-      formData.location?.trim() &&
+      // formData.date?.trim() &&
+      // formData.time?.trim() &&
+      // formData.location?.trim() &&
       ticketPrice !== undefined &&
       ticketPrice !== null
     );
@@ -296,6 +296,14 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
   // console.log(mediaFiles);
 
   const handleCreateEvent = async (e: React.FormEvent) => {
+    const now = new Date();
+    const today = now.toISOString().split("T")[0];
+    const currentTime = now.toTimeString().slice(0, 5);
+    let location = formData.location;
+    if (!location?.trim()) {
+      location = await getCurrentLocation();
+    }
+
     e.preventDefault();
 
     if (ticketPrice > 0 && !hostStripeAccountId) {
@@ -326,9 +334,9 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         .insert({
           name: formData.name,
           description: formData.description,
-          date: formData.date,
-          time: formData.time,
-          location: formData.location,
+          date: formData.date || today,
+          time: formData.time || currentTime,
+          location: formData.location || location,
           category: formData.category,
           ticket_price: ticketPrice,
           media_urls: mediaFiles.map((f) => f.url).filter(Boolean),
@@ -388,8 +396,22 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
 
       toast({
         title: "Event Created!",
-        description: "Your event has been created successfully.",
+        description:
+          "Your event has been created successfully. You will be redirected soon.",
       });
+
+      const { data: slugData, error: slugError } = await supabase
+        .from("events")
+        .select("slug")
+        .eq("id", data.id)
+        .single();
+
+      if (slugError) throw slugError;
+      const slug = slugData.slug;
+
+      setTimeout(() => {
+        window.location.href = `/event/${slug}`;
+      }, 1000);
 
       onSubmit(e);
     } catch (error) {
