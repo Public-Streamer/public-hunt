@@ -57,15 +57,14 @@ const StagePage: React.FC = () => {
   const { data: streamData } = useQuery({
     queryKey: ["stream", eventId],
     queryFn: async () => {
-      if (!eventId) {
-        toast.error("Event ID is required");
+      if (!eventData.id) {
         throw new Error("Event ID is required");
       }
 
       const streamQuery = supabase
         .from("event_streams")
         .select("id, streamer_counts")
-        .eq("event_id", eventId);
+        .eq("event_id", eventData.id);
 
       const { data, error } = await streamQuery.single();
 
@@ -76,7 +75,7 @@ const StagePage: React.FC = () => {
 
       return data;
     },
-    enabled: !!eventId,
+    enabled: !!eventData.id,
   });
 
   // Update local state when event data changes
