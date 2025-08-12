@@ -23,6 +23,9 @@ interface ScorecardSummaryProps {
   dogs: DogData[];
   timerOverview: Record<string, Record<string, DogTimerSnapshotUI>>;
   castTimers: CastTimerBlock[];
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  glowClassName?: string;
 }
 
 const statusCls = (s: TimerStatus) =>
@@ -86,13 +89,18 @@ const calcTotals = (entries: DogData["entries"]) => {
   return { total, pending, plus, minus, circle };
 };
 
-export const ScorecardSummary: React.FC<ScorecardSummaryProps> = ({ dogs, timerOverview, castTimers }) => {
+export const ScorecardSummary: React.FC<ScorecardSummaryProps> = ({ dogs, timerOverview, castTimers, open: controlledOpen, onOpenChange, glowClassName }) => {
   const activeCast = useMemo(() => castTimers.filter((c) => c.status === "running"), [castTimers]);
-  const [open, setOpen] = useState(true);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState<boolean>(controlledOpen ?? false);
+  const open = controlledOpen ?? uncontrolledOpen;
+  const setOpen = (v: boolean) => {
+    if (controlledOpen === undefined) setUncontrolledOpen(v);
+    onOpenChange?.(v);
+  };
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
-      <Card>
+      <Card className={`glow-surface ${glowClassName ?? ''}`}>
         <CardHeader className="py-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-base">Scorecard Summary</CardTitle>

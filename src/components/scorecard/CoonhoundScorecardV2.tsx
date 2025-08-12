@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ScorecardSummary } from "./ScorecardSummary";
 import { ScorecardDetails } from "./ScorecardDetails";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ChevronDown } from "lucide-react";
 interface Props { eventId: string; isHost: boolean }
 
 // Utility to map from DB rows to DogData
@@ -61,11 +62,30 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
   const [huntMinutes, setHuntMinutes] = useState<60 | 90 | 120>(120);
   const [timerOverview, setTimerOverview] = useState<Record<string, any>>({});
 
-  // Collapsible sections: default collapsed for viewers, open for hosts/judges
-  const [openHunt, setOpenHunt] = useState<boolean>(!!isHost);
-  const [openSummary, setOpenSummary] = useState<boolean>(!!isHost);
-  const [openDetails, setOpenDetails] = useState<boolean>(!!isHost);
+  // Collapsible sections: default collapsed for all at load
+  const [openHunt, setOpenHunt] = useState<boolean>(false);
+  const [openSummary, setOpenSummary] = useState<boolean>(false);
+  const [openDetails, setOpenDetails] = useState<boolean>(false);
   const [openDogIds, setOpenDogIds] = useState<Record<string, boolean>>({});
+  const [expandAllMode, setExpandAllMode] = useState(false);
+  const expandAll = useCallback(() => {
+    setOpenHunt(true); setOpenSummary(true); setOpenDetails(true);
+    setOpenDogIds((prev) => {
+      const next: Record<string, boolean> = { ...prev };
+      for (const d of dogs) next[d.id] = true;
+      return next;
+    });
+    setExpandAllMode(true);
+  }, [dogs]);
+  const collapseAll = useCallback(() => {
+    setOpenHunt(false); setOpenSummary(false); setOpenDetails(false);
+    setOpenDogIds((prev) => {
+      const next: Record<string, boolean> = { ...prev };
+      for (const d of dogs) next[d.id] = false;
+      return next;
+    });
+    setExpandAllMode(false);
+  }, [dogs]);
 
 // Glow highlight state map: keys like `hunt`, `dog:{id}`, `summary`, `details`
 const [glow, setGlow] = useState<Record<string, { variant: 'success' | 'danger' | 'warning' | 'info' | 'pending'; until: number }>>({});
@@ -287,7 +307,7 @@ useEffect(() => {
   setOpenDogIds((prev) => {
     if (Object.keys(prev).length) return prev; // keep user's choices
     const next: Record<string, boolean> = {};
-    for (const d of dogs) next[d.id] = !!isHost; // collapsed by default for viewers
+    for (const d of dogs) next[d.id] = false; // collapsed by default for all
     return next;
   });
 }, [dogs, isHost]);

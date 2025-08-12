@@ -11,6 +11,9 @@ interface ScorecardDetailsProps {
   dogs: DogData[];
   onSave: (dog: DogData, newTotal: number) => void;
   canEdit?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  glowClassName?: string;
 }
 
 const calcTotals = (entries: DogData["entries"]) => {
@@ -26,14 +29,19 @@ const calcTotals = (entries: DogData["entries"]) => {
 
 const outcomeSymbol = (o: string) => (o === "+" ? "+" : o === "-" ? "–" : o === "o" ? "◯" : o === "/" ? "╱" : "…");
 
-export const ScorecardDetails: React.FC<ScorecardDetailsProps> = ({ dogs, onSave, canEdit = false }) => {
-  const [open, setOpen] = useState(true);
+export const ScorecardDetails: React.FC<ScorecardDetailsProps> = ({ dogs, onSave, canEdit = false, open: controlledOpen, onOpenChange, glowClassName }) => {
+  const [uncontrolledOpen, setUncontrolledOpen] = useState<boolean>(controlledOpen ?? false);
+  const open = controlledOpen ?? uncontrolledOpen;
+  const setOpen = (v: boolean) => {
+    if (controlledOpen === undefined) setUncontrolledOpen(v);
+    onOpenChange?.(v);
+  };
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
-      <Card>
+      <Card className={`glow-surface ${glowClassName ?? ''}`}>
         <CardHeader className="py-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-base">Scorecard</CardTitle>
+            <CardTitle className="text-base">Full Scorecard</CardTitle>
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="icon" aria-label="Toggle scorecard">
                 <ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} />
