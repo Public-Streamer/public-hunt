@@ -10,7 +10,7 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ScorecardSummary } from "./ScorecardSummary";
 import { ScorecardDetails } from "./ScorecardDetails";
-
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 interface Props { eventId: string; isHost: boolean }
 
 // Utility to map from DB rows to DogData
@@ -225,6 +225,15 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
           </div>
         </CardContent>
       </Card>
+
+      {!isHost && (
+        <Alert variant="info">
+          <AlertTitle>View-only mode</AlertTitle>
+          <AlertDescription>
+            You can view all teams and timers in real time. Only the Event Creator and streamers with Judge permission can add, edit, delete, or control timers.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <ScorecardSummary
         dogs={dogs}
