@@ -30,7 +30,8 @@ interface StreamRow {
 
 serve(async (req) => {
   try {
-    const thresholdSec = Number("60");
+    const url = new URL(req.url);
+    const thresholdSec = Number(url.searchParams.get("thresholdSec") ?? "20");
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");

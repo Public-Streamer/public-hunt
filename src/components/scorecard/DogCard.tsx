@@ -225,12 +225,8 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
   const setOutcome = (id: string, outcome: EntryOutcome) => {
     const entry = draft.entries.find((e) => e.id === id);
     if (entry?.type === "tree" && treeTimer.status !== "finished") {
-      // 2-Minute No-Bark Rule Fix: allow immediate minus once 2:00 no-bark expires
-      const canMinusNow = outcome === "-" && treeBark2Timer.status === "finished";
-      if (!canMinusNow) {
-        toast({ title: "Tree timer active", description: "Cannot score tree until 3:00 expires", variant: "destructive" });
-        return;
-      }
+      toast({ title: "Tree timer active", description: "Cannot score tree until 3:00 expires", variant: "destructive" });
+      return;
     }
     const updatedEntries = draft.entries.map((e) => (e.id === id ? { ...e, outcome } : e));
     const updated: DogData = { ...draft, entries: updatedEntries };
