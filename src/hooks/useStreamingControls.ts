@@ -530,36 +530,49 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   //   [eventId]
   // );
 
-  const checkAndUpdateLiveStatus =
-    useCallback(async (): Promise<LiveStatusResult | null> => {
-      try {
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession();
-        if (sessionError || !session) return null;
+  // const checkAndUpdateLiveStatus =
+  //   useCallback(async (): Promise<LiveStatusResult | null> => {
+  //     try {
+  //       const {
+  //         data: { session },
+  //         error: sessionError,
+  //       } = await supabase.auth.getSession();
+  //       if (sessionError || !session) return null;
 
-        // Use a database transaction with advisory lock to prevent race conditions
-        const { data, error } = await supabase.rpc(
-          "update_event_live_status_atomic" as any,
-          {
-            p_event_id: eventId,
-          }
-        );
+  //       // Use a database transaction with advisory lock to prevent race conditions
+  //       const { data, error } = await supabase.rpc(
+  //         "update_event_live_status_atomic" as any,
+  //         {
+  //           p_event_id: eventId,
+  //         }
+  //       );
 
-        if (error) {
-          console.error("Error in atomic live status update:", error);
-          return null;
-        }
+  //       if (error) {
+  //         console.error("Error in atomic live status update:", error);
+  //         return null;
+  //       }
 
-        // Extract the result from the returned data
-        const result = Array.isArray(data) ? data[0] : data;
-        return result as LiveStatusResult;
-      } catch (error) {
-        console.error("Error updating event live status:", error);
-        return null;
-      }
-    }, [eventId]);
+  //       // Extract the result from the returned data
+  //       const result = Array.isArray(data) ? data[0] : data;
+  //       return result as LiveStatusResult;
+  //     } catch (error) {
+  //       console.error("Error updating event live status:", error);
+  //       return null;
+  //     }
+  //   }, [eventId]);
+
+  const checkStreamerCounts = useCallback(async () => {
+    const { data, error } = await supabase
+      .from("event_streams")
+      .select("streamer_counts")
+      .eq("event_id", eventId)
+      .single();
+    if (error) {
+      console.error("Error checking streamer counts:", error);
+      return null;
+    }
+    return data?.streamer_counts;
+  }, [eventId]);
 
   // Safety check for room context
   if (!room || !localParticipant) {
@@ -1255,7 +1268,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
         setIsStreaming(true);
         setGoLive(true);
 
-        await updateParticipantLiveStatus(true);
+        // await updateParticipantLiveStatus(true);
 
         if (cameraGranted && !isVideoEnabled) {
           console.log("📱 MOBILE DEBUG - Enabling camera");
@@ -1274,9 +1287,9 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
           toast.success("Camera and microphone ready!");
         }
 
-        setTimeout(async () => {
-          await checkAndUpdateLiveStatus();
-        }, 10);
+        // setTimeout(async () => {
+        //   await checkAndUpdateLiveStatus();
+        // }, 10);
 
         // Single-row aggregator per event:
         // Upsert by event_id with streamer_counts and is_active=true.
@@ -1319,8 +1332,6 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
     },
     [
       eventId,
-      checkAndUpdateLiveStatus,
-      updateParticipantLiveStatus,
       toggleVideoLiveButton,
       toggleAudioLiveButton,
       isVideoEnabled,
@@ -1334,25 +1345,15 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   const closeRoom = useCallback(
     async (session: any) => {
       try {
-        await Promise.all([
-          supabase
-            .from("events")
-            .update({
-              time: new Date().toISOString().slice(11, 19),
-              date: new Date().toISOString().slice(0, 10),
-            })
-            .eq("id", eventId),
-          supabase.from("event_streams").delete().eq("event_id", eventId),
-          supabase.functions.invoke("manage-livekit-room", {
-            body: {
-              action: "close",
-              eventId,
-            },
-            headers: {
-              Authorization: `Bearer ${session.access_token}`,
-            },
-          }),
-        ]);
+        await supabase.functions.invoke("manage-livekit-room", {
+          body: {
+            action: "close",
+            eventId,
+          },
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        });
       } catch (error) {
         console.error("Error closing room:", error);
       }
@@ -1398,11 +1399,8 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       }
 
       setTimeout(async () => {
-        const result = await checkAndUpdateLiveStatus();
-
-        console.log({ result });
-
-        if (result && result.should_close_room) {
+        const result = await checkStreamerCounts();
+        if (result && result < 2) {
           const {
             data: { session: latestSession },
           } = await supabase.auth.getSession();
@@ -1421,7 +1419,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
     }
   }, [
     updateParticipantLiveStatus,
-    checkAndUpdateLiveStatus,
+    checkStreamerCounts,
     toggleVideoLiveButton,
     toggleAudioLiveButton,
     isVideoEnabled,
