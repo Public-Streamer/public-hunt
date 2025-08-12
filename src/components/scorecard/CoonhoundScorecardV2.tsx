@@ -21,6 +21,10 @@ function fromRow(row: any): DogData {
     color: row.team_color,
     entries,
     handler: cf.handler_name || "",
+    dogName: cf.dog_name || "",
+    cityState: cf.city_state || "",
+    breed: cf.breed || "",
+    age: typeof cf.age === 'number' ? cf.age : cf.age ? Number(cf.age) : undefined,
   };
 }
 
@@ -31,6 +35,10 @@ function toPayload(d: DogData) {
     team_color: d.color,
     custom_fields: {
       handler_name: d.handler,
+      dog_name: d.dogName,
+      city_state: d.cityState,
+      breed: d.breed,
+      age: d.age,
       entries: d.entries,
     },
   } as const;
@@ -271,6 +279,7 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
             onChange={handleDogChange}
             onTimerSnapshot={(dogId, snap) => setTimerOverview((prev) => ({ ...prev, [dogId]: snap }))}
             onTimerAction={handleDogTimerAction}
+            canEdit={isHost}
           />
         ))}
       </div>

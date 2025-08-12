@@ -25,6 +25,10 @@ export interface DogData {
   color: string; // team_color
   entries: ScoreEntry[];
   handler?: string;
+  dogName?: string; // dog's registered name
+  cityState?: string; // City, State
+  breed?: string;
+  age?: number;
 }
 
 interface DogCardProps {
@@ -46,12 +50,13 @@ interface DogCardProps {
     dogId: string,
     timers: Record<string, { status: TimerStatus; remaining: number }>
   ) => void;
+  canEdit?: boolean;
 }
 
 const quickStrike = [100, 75, 50, 25];
 const quickTree = [125, 75, 50, 25];
 
-export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot, onTimerAction }) => {
+export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot, onTimerAction, canEdit = true }) => {
   const [draft, setDraft] = useState<DogData>(dog);
   const [customPoints, setCustomPoints] = useState<string>("");
 
@@ -500,13 +505,46 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
               )}
             </div>
 
-            {/* Handler / Notes optional */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {/* Dog/Team Details */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+              <Input
+                placeholder="Team name"
+                value={draft.name}
+                onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+                onBlur={onBlurCommit}
+              />
+              <Input
+                placeholder="Dog name"
+                value={draft.dogName || ""}
+                onChange={(e) => setDraft({ ...draft, dogName: e.target.value })}
+                onBlur={onBlurCommit}
+              />
               <Input
                 placeholder="Handler name"
                 value={draft.handler || ""}
                 onChange={(e) => setDraft({ ...draft, handler: e.target.value })}
                 onBlur={onBlurCommit}
+              />
+              <Input
+                placeholder="City, State"
+                value={draft.cityState || ""}
+                onChange={(e) => setDraft({ ...draft, cityState: e.target.value })}
+                onBlur={onBlurCommit}
+              />
+              <Input
+                placeholder="Breed"
+                value={draft.breed || ""}
+                onChange={(e) => setDraft({ ...draft, breed: e.target.value })}
+                onBlur={onBlurCommit}
+              />
+              <Input
+                type="number"
+                placeholder="Age"
+                value={draft.age?.toString() || ""}
+                onChange={(e) => setDraft({ ...draft, age: e.target.value === "" ? undefined : Number(e.target.value) })}
+                onBlur={onBlurCommit}
+                min={0}
+                step={1}
               />
             </div>
           </CardContent>
