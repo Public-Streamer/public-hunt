@@ -61,6 +61,7 @@ const quickTree = [125, 75, 50, 25];
 export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot, onTimerAction, canEdit = true }) => {
   const [draft, setDraft] = useState<DogData>(dog);
   const [customPoints, setCustomPoints] = useState<string>("");
+  const [treeMinusBlink, setTreeMinusBlink] = useState(false);
 
   const treeTimer = useCountdown(3 * 60, {
     onComplete: () => {
@@ -76,6 +77,22 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
       if (typeof navigator !== "undefined" && "vibrate" in navigator) {
         try { (navigator as any).vibrate?.(200); } catch {}
       }
+      // Auto-minus the most recent pending tree entry (if any), reset Tree timer, and blink alert
+      let updatedEntries = draft.entries;
+      const lastPendingTreeIndex = [...draft.entries]
+        .map((e, i) => ({ e, i }))
+        .filter(({ e }) => e.type === "tree" && e.outcome === "pending")
+        .pop()?.i;
+      if (lastPendingTreeIndex !== undefined) {
+        updatedEntries = draft.entries.map((e, i) => (i === lastPendingTreeIndex ? { ...e, outcome: "-" as const } : e));
+      }
+      const updated: DogData = { ...draft, entries: updatedEntries };
+      setDraft(updated);
+      onChange(updated, computeTotal(updated.entries));
+      treeTimer.reset(3 * 60);
+      setTreeMinusBlink(true);
+      setTimeout(() => setTreeMinusBlink(false), 4000);
+      onTimerAction?.(draft.id, snapshotTimers());
     },
   });
   const shineTimer = useCountdown(8 * 60, {
@@ -355,13 +372,20 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
 
         <CollapsibleContent asChild>
           <CardContent className="space-y-3">
+            {treeMinusBlink && (
+              <div className="rounded-md border border-destructive bg-destructive/10 text-destructive font-semibold p-2 animate-pulse">
+                Dog minused on tree
+              </div>
+            )}
             {/* Timers Row */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2">
-              <div title="Tree Timer: Wait 3 minutes before scoring a tree.">
-                <TimerControl label="Tree 3:00" formatted={treeTimer.formatted} status={treeTimer.status} onStart={treeTimer.start} onPause={treeTimer.pause} onReset={treeTimer.reset} />
-              </div>
-              <div title="Tree Bark Timer: 2-minute bark requirement while treed.">
-                <TimerControl label="Tree Bark 2:00" formatted={treeBark2Timer.formatted} status={treeBark2Timer.status} onStart={treeBark2Timer.start} onPause={treeBark2Timer.pause} onReset={treeBark2Timer.reset} />
+              <div title="Tree timers are linked: if Bark 2:00 expires, dog is minused and Tree resets.">
+                <div className="relative rounded-md border border-primary/40 bg-primary/5 p-2 space-y-2 pl-3 sm:pl-4">
+                  <span aria-hidden className="absolute left-0 top-0 bottom-0 w-1 bg-primary/70 rounded-l-md" />
+                  <div className="text-xs sm:text-sm font-semibold text-primary">Linked to Tree Bark</div>
+                  <TimerControl label="Tree 3:00" formatted={treeTimer.formatted} status={treeTimer.status} onStart={treeTimer.start} onPause={treeTimer.pause} onReset={treeTimer.reset} className="border-primary/40" />
+                  <TimerControl label="Tree Bark 2:00" formatted={treeBark2Timer.formatted} status={treeBark2Timer.status} onStart={treeBark2Timer.start} onPause={treeBark2Timer.pause} onReset={treeBark2Timer.reset} className="border-primary/40" />
+                </div>
               </div>
               <div title="Shine Timer: Time allowed to search the tree for coon.">
                 <TimerControl label="Shine 8:00" formatted={shineTimer.formatted} status={shineTimer.status} onStart={shineTimer.start} onPause={shineTimer.pause} onReset={shineTimer.reset} />
