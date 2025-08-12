@@ -219,7 +219,8 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
             {dogs.map((d) => {
               const snap = timerOverview[d.id];
               if (!snap) return null;
-              const label = (k: string) => k.replace(/([A-Z])/g, " $1").trim();
+              const labelMap: Record<string, string> = { tree: "Tree", treeBark2: "Tree Bark", shine: "Shine", trackBark: "Track Bark", notHunting: "Not Hunt", stationary: "Stationary", noBark: "No Bark" };
+              const label = (k: string) => labelMap[k] ?? k.replace(/([A-Z])/g, " $1").trim();
               const durationsMin: Record<string, number> = { tree: 3, treeBark2: 2, shine: 8, trackBark: 6, notHunting: 15, stationary: 5, noBark: 2 };
               const keys: string[] = ["tree","treeBark2","shine","trackBark","notHunting","stationary","noBark"];
               const running = keys
