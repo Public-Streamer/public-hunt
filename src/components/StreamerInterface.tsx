@@ -41,7 +41,6 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useStreamingControls } from "@/hooks/useStreamingControls";
-import { useEventLiveStatus } from "@/hooks/useEventLiveStatus";
 import StageShareMenu from "@/components/StageShareMenu";
 import EventSharePanel from "@/components/EventSharePanel";
 import { useScreenSize } from "@/hooks/use-mobile";
@@ -49,7 +48,6 @@ import { useMobileMediaPermissions } from "@/hooks/useMobileMediaPermissions";
 import LiveStreamLogo from "@/components/ui/live-stream-logo";
 import CameraSwitchButton from "@/components/CameraSwitchButton";
 import TorchButton from "@/components/TorchButton";
-import LiveChatSection from "@/components/LiveChatSection";
 import { CoonhoundScorecardV2 } from "@/components/scorecard/CoonhoundScorecardV2";
 import { CustomScoreboard } from "@/components/CustomScoreboard";
 import { ScoreboardGameSelector } from "@/components/ScoreboardGameSelector";
@@ -67,6 +65,7 @@ interface StreamerInterfaceProps {
   userRole?: "host" | "streamer";
   userId?: string;
   eventHostId?: string;
+  streamId?: string;
 }
 
 export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
@@ -76,6 +75,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   userRole,
   userId,
   eventHostId,
+  streamId,
 }) => {
   const { localParticipant } = useLocalParticipant();
   const participants = useParticipants();
@@ -444,38 +444,37 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   }, [localCameraTracks, otherCameraTracks]);
 
   // Heartbeat: mark streamer as active periodically so server can detect ungraceful closes
-  // useEffect(() => {
-  //   if (!eventId || !userId) return;
+  useEffect(() => {
+    if (!eventId || !userId || !streamId) return;
 
-  //   let cancelled = false;
+    let cancelled = false;
 
-  //   const sendHeartbeat = async () => {
-  //     try {
-  //       if (cancelled) return;
-  //       // Update existing stream row to mark it active and refresh updated_at
-  //       await supabase
-  //         .from("event_streams")
-  //         .update({
-  //           is_active: true,
-  //           updated_at: new Date().toISOString(),
-  //           streamer_counts: totalTracksLength,
-  //         })
-  //         .eq("event_id", eventId)
-  //         .eq("streamer_id", userId);
-  //     } catch (err) {
-  //       console.error("error in hearbeat ", err)
-  //     }
-  //   };
+    const sendHeartbeat = async () => {
+      try {
+        if (cancelled) return;
+        // Update existing stream row to mark it active and refresh updated_at
+        await supabase
+          .from("event_streams")
+          .update({
+            is_active: true,
+            updated_at: new Date().toISOString(),
+            streamer_counts: totalTracksLength,
+          })
+          .eq("id", streamId);
+      } catch (err) {
+        console.error("error in hearbeat ", err);
+      }
+    };
 
-  //   // Kickoff immediately and then at interval
-  //   sendHeartbeat();
-  //   const interval = setInterval(sendHeartbeat, 10000);
+    // Kickoff immediately and then at interval
+    sendHeartbeat();
+    const interval = setInterval(sendHeartbeat, 10000);
 
-  //   return () => {
-  //     cancelled = true;
-  //     clearInterval(interval);
-  //   };
-  // }, [eventId, userId, totalTracksLength]);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [eventId, userId, totalTracksLength, streamId]);
 
   if (!localParticipant) {
     return (
