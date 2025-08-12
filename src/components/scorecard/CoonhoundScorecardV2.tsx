@@ -194,13 +194,13 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
   return (
     <div className="space-y-4">
       {/* Cast-wide timers */}
-      <Card>
+      <Card className="relative overflow-hidden">
         <CardHeader className="py-3">
           <CardTitle className="flex items-center justify-between text-base">
             <span>Hunt Timers</span>
             <div className="flex items-center gap-2">
               <Select value={String(huntMinutes)} onValueChange={(v) => { const m = Number(v) as 60 | 90 | 120; setHuntMinutes(m); huntTimer.reset(m * 60); syncCastTimers(); }}>
-                <SelectTrigger className="h-8 w-32"><SelectValue placeholder="Hunt" /></SelectTrigger>
+                <SelectTrigger disabled={!isHost} className="h-8 w-32"><SelectValue placeholder="Hunt" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="60">60 min</SelectItem>
                   <SelectItem value="90">90 min</SelectItem>
@@ -210,18 +210,23 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
             </div>
           </CardTitle>
         </CardHeader>
+        {!isHost && (
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+            <span className="text-4xl sm:text-5xl font-extrabold uppercase tracking-widest text-foreground/15 -rotate-12 select-none">VIEW ONLY</span>
+          </div>
+        )}
         <CardContent className="grid grid-cols-1 sm:grid-cols-4 gap-2">
           <div title="Main Hunt Timer: Select duration then control the clock.">
-            <TimerControl allowPause label="Main Hunt" formatted={huntTimer.formatted} status={huntTimer.status} onStart={() => { huntTimer.start(); babbleMainTimer.reset(); babbleMainTimer.start(); syncCastTimers(); }} onPause={() => { huntTimer.pause(); syncCastTimers(); }} onReset={() => { huntTimer.reset(huntMinutes * 60); syncCastTimers(); }} />
+            <TimerControl disabled={!isHost} allowPause label="Main Hunt" formatted={huntTimer.formatted} status={huntTimer.status} onStart={() => { huntTimer.start(); babbleMainTimer.reset(); babbleMainTimer.start(); syncCastTimers(); }} onPause={() => { huntTimer.pause(); syncCastTimers(); }} onReset={() => { huntTimer.reset(huntMinutes * 60); syncCastTimers(); }} />
           </div>
           <div title="Global Track Timer: 6 minutes for strike requirement.">
-            <TimerControl label="Track 6:00" formatted={trackTimer.formatted} status={trackTimer.status} onStart={() => { trackTimer.start(); syncCastTimers(); }} onPause={() => { trackTimer.pause(); syncCastTimers(); }} onReset={() => { trackTimer.reset(); syncCastTimers(); }} />
+            <TimerControl disabled={!isHost} label="Track 6:00" formatted={trackTimer.formatted} status={trackTimer.status} onStart={() => { trackTimer.start(); syncCastTimers(); }} onPause={() => { trackTimer.pause(); syncCastTimers(); }} onReset={() => { trackTimer.reset(); syncCastTimers(); }} />
           </div>
           <div title="Global Shine Timer: 8 minutes when multiple dogs are involved.">
-            <TimerControl label="Global Shine 8:00" formatted={globalShineTimer.formatted} status={globalShineTimer.status} onStart={() => { globalShineTimer.start(); syncCastTimers(); }} onPause={() => { globalShineTimer.pause(); syncCastTimers(); }} onReset={() => { globalShineTimer.reset(); syncCastTimers(); }} />
+            <TimerControl disabled={!isHost} label="Global Shine 8:00" formatted={globalShineTimer.formatted} status={globalShineTimer.status} onStart={() => { globalShineTimer.start(); syncCastTimers(); }} onPause={() => { globalShineTimer.pause(); syncCastTimers(); }} onReset={() => { globalShineTimer.reset(); syncCastTimers(); }} />
           </div>
           <div title="Babbling Stopwatch: auto-starts with Main Hunt start.">
-            <TimerControl label="Babbling 1 Minute 1:00" formatted={babbleMainTimer.formatted} status={babbleMainTimer.status} onStart={() => { babbleMainTimer.start(); syncCastTimers(); }} onPause={() => { babbleMainTimer.pause(); syncCastTimers(); }} onReset={() => { babbleMainTimer.reset(); syncCastTimers(); }} />
+            <TimerControl disabled={!isHost} label="Babbling 1 Minute 1:00" formatted={babbleMainTimer.formatted} status={babbleMainTimer.status} onStart={() => { babbleMainTimer.start(); syncCastTimers(); }} onPause={() => { babbleMainTimer.pause(); syncCastTimers(); }} onReset={() => { babbleMainTimer.reset(); syncCastTimers(); }} />
           </div>
         </CardContent>
       </Card>

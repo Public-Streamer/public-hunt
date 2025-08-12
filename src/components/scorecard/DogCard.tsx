@@ -398,7 +398,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
-      <Card className="border-2">
+      <Card className="border-2 relative overflow-hidden">
         <CardHeader className="py-3">
           <CardTitle className="flex items-center justify-between text-lg sm:text-xl font-extrabold text-foreground">
             <div className="flex items-center gap-2 min-w-0">
@@ -475,6 +475,12 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
             </div>
           </CardTitle>
         </CardHeader>
+
+        {!canEdit && (
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+            <span className="text-4xl sm:text-5xl font-extrabold uppercase tracking-widest text-foreground/15 -rotate-12 select-none">VIEW ONLY</span>
+          </div>
+        )}
 
         {!open && (
           <CardContent className="pt-0">
