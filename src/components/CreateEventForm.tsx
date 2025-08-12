@@ -13,6 +13,8 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppContext } from "@/contexts/AppContext";
 import { Link } from "react-router-dom";
+import { useFormValidation, validationRules } from "@/hooks/useFormValidation";
+import ValidationMessage from "@/components/ValidationMessage";
 
 interface MediaFile {
   id: string;
@@ -71,6 +73,54 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
   const [hostStripeAccountId, setHostStripeAccountId] = useState<string | null>(
     null
   );
+
+  // Add form validation
+  const { validateField, getFieldValidation } = useFormValidation({ realTime: true });
+
+  // Validation helper function
+  const getFieldValidationClass = (fieldName: string) => {
+    const validation = getFieldValidation(fieldName);
+    if (!validation) return "";
+    
+    if (validation.isValid) {
+      return "border-green-500 bg-green-50 focus-visible:border-green-600";
+    } else {
+      return "border-red-500 bg-red-50 focus-visible:border-red-600";
+    }
+  };
+
+  // Handle input change with validation
+  const handleInputChangeWithValidation = (field: string, value: string | number) => {
+    onInputChange(field, value);
+    
+    // Validate required fields
+    switch (field) {
+      case 'name':
+        validateField('name', value, [validationRules.required('Event Name is required')]);
+        break;
+      case 'category':
+        validateField('category', value, [validationRules.required('Category is required')]);
+        break;
+      case 'description':
+        validateField('description', value, [validationRules.required('Description is required')]);
+        break;
+      case 'date':
+        if (value) {
+          validateField('date', value, []);
+        }
+        break;
+      case 'time':
+        if (value) {
+          validateField('time', value, []);
+        }
+        break;
+      case 'location':
+        if (value) {
+          validateField('location', value, []);
+        }
+        break;
+    }
+  };
 
   const handleStreamersChange = (streamers: SelectedMember[]) => {
     setSelectedStreamers(streamers);
@@ -462,7 +512,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 gap-6">
-              <div>
+               <div>
                 <Label
                   htmlFor="eventName"
                   className="text-base font-bold mb-2 block"
@@ -472,13 +522,21 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
                 <Input
                   id="eventName"
                   value={formData.name || ""}
-                  onChange={(e) => onInputChange("name", e.target.value)}
+                  onChange={(e) => handleInputChangeWithValidation("name", e.target.value)}
+                  onBlur={(e) => handleInputChangeWithValidation("name", e.target.value)}
                   required
-                  className="text-lg p-4 min-h-[48px] touch-manipulation"
+                  className={`text-lg p-4 min-h-[48px] touch-manipulation ${getFieldValidationClass("name")}`}
                   placeholder="Enter event name"
                 />
+                {getFieldValidation("name") && (
+                  <ValidationMessage
+                    type={getFieldValidation("name")!.type}
+                    message={getFieldValidation("name")!.message}
+                    className="mt-1"
+                  />
+                )}
               </div>
-              <div>
+               <div>
                 <Label
                   htmlFor="eventCategory"
                   className="text-base font-bold mb-2 block"
@@ -488,11 +546,19 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
                 <Input
                   id="eventCategory"
                   value={formData.category || ""}
-                  onChange={(e) => onInputChange("category", e.target.value)}
+                  onChange={(e) => handleInputChangeWithValidation("category", e.target.value)}
+                  onBlur={(e) => handleInputChangeWithValidation("category", e.target.value)}
                   required
-                  className="text-lg p-4 min-h-[48px] touch-manipulation"
+                  className={`text-lg p-4 min-h-[48px] touch-manipulation ${getFieldValidationClass("category")}`}
                   placeholder="Enter event category"
                 />
+                {getFieldValidation("category") && (
+                  <ValidationMessage
+                    type={getFieldValidation("category")!.type}
+                    message={getFieldValidation("category")!.message}
+                    className="mt-1"
+                  />
+                )}
               </div>
             </div>
             <div>
@@ -505,12 +571,20 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
               <Textarea
                 id="eventDescription"
                 value={formData.description || ""}
-                onChange={(e) => onInputChange("description", e.target.value)}
+                onChange={(e) => handleInputChangeWithValidation("description", e.target.value)}
+                onBlur={(e) => handleInputChangeWithValidation("description", e.target.value)}
                 rows={4}
                 required
-                className="text-lg p-4 min-h-[120px] touch-manipulation resize-none"
+                className={`text-lg p-4 min-h-[120px] touch-manipulation resize-none ${getFieldValidationClass("description")}`}
                 placeholder="Describe your event"
               />
+              {getFieldValidation("description") && (
+                <ValidationMessage
+                  type={getFieldValidation("description")!.type}
+                  message={getFieldValidation("description")!.message}
+                  className="mt-1"
+                />
+              )}
             </div>
 
             {/* Channel selector temporarily disabled
@@ -563,7 +637,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
+               <div>
                 <Label
                   htmlFor="eventDate"
                   className="text-base font-bold mb-2 block"
@@ -577,9 +651,17 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
                   id="eventDate"
                   type="date"
                   value={formData.date || ""}
-                  onChange={(e) => onInputChange("date", e.target.value)}
-                  className="text-lg p-4 min-h-[48px] touch-manipulation"
+                  onChange={(e) => handleInputChangeWithValidation("date", e.target.value)}
+                  onBlur={(e) => handleInputChangeWithValidation("date", e.target.value)}
+                  className={`text-lg p-4 min-h-[48px] touch-manipulation ${getFieldValidationClass("date")}`}
                 />
+                {getFieldValidation("date") && (
+                  <ValidationMessage
+                    type={getFieldValidation("date")!.type}
+                    message={getFieldValidation("date")!.message}
+                    className="mt-1"
+                  />
+                )}
               </div>
               <div>
                 <Label
@@ -595,9 +677,17 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
                   id="eventTime"
                   type="time"
                   value={formData.time || ""}
-                  onChange={(e) => onInputChange("time", e.target.value)}
-                  className="text-lg p-4 min-h-[48px] touch-manipulation"
+                  onChange={(e) => handleInputChangeWithValidation("time", e.target.value)}
+                  onBlur={(e) => handleInputChangeWithValidation("time", e.target.value)}
+                  className={`text-lg p-4 min-h-[48px] touch-manipulation ${getFieldValidationClass("time")}`}
                 />
+                {getFieldValidation("time") && (
+                  <ValidationMessage
+                    type={getFieldValidation("time")!.type}
+                    message={getFieldValidation("time")!.message}
+                    className="mt-1"
+                  />
+                )}
               </div>
             </div>
             <div>
@@ -610,13 +700,21 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
                   (optional - auto-detected if blank)
                 </span>
               </Label>
-              <Input
+               <Input
                 id="eventLocation"
                 value={formData.location || ""}
-                onChange={(e) => onInputChange("location", e.target.value)}
-                className="text-lg p-4 min-h-[48px] touch-manipulation"
+                onChange={(e) => handleInputChangeWithValidation("location", e.target.value)}
+                onBlur={(e) => handleInputChangeWithValidation("location", e.target.value)}
+                className={`text-lg p-4 min-h-[48px] touch-manipulation ${getFieldValidationClass("location")}`}
                 placeholder="Enter event location or leave blank for auto-detection"
               />
+              {getFieldValidation("location") && (
+                <ValidationMessage
+                  type={getFieldValidation("location")!.type}
+                  message={getFieldValidation("location")!.message}
+                  className="mt-1"
+                />
+              )}
             </div>
           </CardContent>
         </Card>
