@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useCallback } from "react";
+import React, { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,6 +68,8 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
   const [draft, setDraft] = useState<DogData>(dog);
   const [customPoints, setCustomPoints] = useState<string>("");
   const [treeMinusBlink, setTreeMinusBlink] = useState(false);
+  const pedigreeInputRef = useRef<HTMLInputElement>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
 
   const treeTimer = useCountdown(3 * 60, {
     onComplete: () => {
@@ -608,32 +610,33 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
             {/* Dog Media Uploads */}
             <div className="flex items-center gap-4 flex-wrap">
               <div className="flex items-center gap-2">
-                <input id={`pedigree-${draft.id}`} type="file" accept="image/*" className="hidden" onChange={onFileChangePedigree} />
-                <label htmlFor={`pedigree-${draft.id}`}>
-                  <Button size="sm" variant="outline" asChild={false}>
-                    <span className="inline-flex items-center"><Upload className="h-4 w-4 mr-1" /> Pedigree</span>
-                  </Button>
-                </label>
+                <input ref={pedigreeInputRef} type="file" accept="image/*,application/pdf" className="hidden" onChange={onFileChangePedigree} />
+                <Button size="sm" variant="outline" onClick={() => pedigreeInputRef.current?.click()}>
+                  <span className="inline-flex items-center"><Upload className="h-4 w-4 mr-1" /> Pedigree</span>
+                </Button>
                 {draft.pedigreeImageUrl && (
-                  <a href={draft.pedigreeImageUrl} target="_blank" rel="noopener noreferrer" className="text-xs underline">
-                    View
-                  </a>
+                  <>
+                    <a href={draft.pedigreeImageUrl} target="_blank" rel="noopener noreferrer" className="text-xs underline">View</a>
+                    <a href={draft.pedigreeImageUrl} download className="text-xs underline">Download</a>
+                  </>
                 )}
               </div>
               <div className="flex items-center gap-2">
-                <input id={`dogphoto-${draft.id}`} type="file" accept="image/*" className="hidden" onChange={onFileChangePhoto} />
-                <label htmlFor={`dogphoto-${draft.id}`}>
-                  <Button size="sm" variant="secondary" asChild={false}>
-                    <span className="inline-flex items-center"><Upload className="h-4 w-4 mr-1" /> Dog Photo</span>
-                  </Button>
-                </label>
+                <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={onFileChangePhoto} />
+                <Button size="sm" variant="secondary" onClick={() => photoInputRef.current?.click()}>
+                  <span className="inline-flex items-center"><Upload className="h-4 w-4 mr-1" /> Dog Photo</span>
+                </Button>
                 {draft.dogPhotoUrl && (
-                  <img
-                    src={draft.dogPhotoUrl}
-                    alt={`Dog photo for ${draft.dogName || draft.name}`}
-                    className="h-8 w-8 rounded object-cover border border-border"
-                    loading="lazy"
-                  />
+                  <>
+                    <img
+                      src={draft.dogPhotoUrl}
+                      alt={`Dog photo for ${draft.dogName || draft.name}`}
+                      className="h-8 w-8 rounded object-cover border border-border"
+                      loading="lazy"
+                    />
+                    <a href={draft.dogPhotoUrl} target="_blank" rel="noopener noreferrer" className="text-xs underline">View</a>
+                    <a href={draft.dogPhotoUrl} download className="text-xs underline">Download</a>
+                  </>
                 )}
               </div>
             </div>
