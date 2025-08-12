@@ -11,7 +11,7 @@ const StagePage: React.FC = () => {
   const { eventId } = useParams<{ eventId: string }>();
   const [searchParams] = useSearchParams();
 
-  const [event, setEvent] = useState<any>(null);
+  // const [event, setEvent] = useState<any>(null);
   const [streamId, setStreamId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState<"host" | "streamer" | null>(null);
@@ -57,14 +57,14 @@ const StagePage: React.FC = () => {
   const { data: streamData } = useQuery({
     queryKey: ["stream", eventId],
     queryFn: async () => {
-      if (!eventData.id) {
+      if (!eventData?.id) {
         throw new Error("Event ID is required");
       }
 
       const streamQuery = supabase
         .from("event_streams")
         .select("id, streamer_counts")
-        .eq("event_id", eventData.id);
+        .eq("event_id", eventData?.id);
 
       const { data, error } = await streamQuery.single();
 
@@ -80,14 +80,11 @@ const StagePage: React.FC = () => {
 
   // Update local state when event data changes
   useEffect(() => {
-    if (eventData) {
-      setEvent(eventData);
-      if (streamData) {
-        console.log("Stream data setting up:", streamData);
-        setStreamId(streamData.id);
-      }
+    if (streamData) {
+      console.log("Stream data setting up:", streamData);
+      setStreamId(streamData.id);
     }
-  }, [eventData, streamData]);
+  }, [streamData]);
 
   useEffect(() => {
     const checkAuthAndAssignRole = async () => {
@@ -111,10 +108,10 @@ const StagePage: React.FC = () => {
         }
 
         // Wait for event data from React Query
-        if (!event) return;
+        if (!eventData) return;
 
         // Check if user is host (event creator)
-        if (event.created_by === currentUser.id) {
+        if (eventData?.created_by === currentUser.id) {
           setUserRole("host");
           return;
         }
@@ -123,7 +120,7 @@ const StagePage: React.FC = () => {
         const { data: streamerData } = await supabase
           .from("event_streamers")
           .select("*")
-          .eq("event_id", event.id)
+          .eq("event_id", eventData?.id)
           .eq("streamer_id", currentUser.id)
           .single();
 
@@ -150,12 +147,13 @@ const StagePage: React.FC = () => {
     };
 
     checkAuthAndAssignRole();
-  }, [eventId, event, inviteToken]);
+  }, [eventId, eventData, inviteToken]);
 
   // Generate LiveKit token when event and user role are available
   useEffect(() => {
     const generateToken = async () => {
-      if (!event?.id || !userRole || !user || tokenGenerated.current) return;
+      if (!eventData?.id || !userRole || !user || tokenGenerated.current)
+        return;
 
       try {
         setTokenLoading(true);
@@ -189,7 +187,7 @@ const StagePage: React.FC = () => {
             const { data: tokenData, error: tokenError } =
               await supabase.functions.invoke("create-livekit-token", {
                 body: {
-                  eventId: event.id,
+                  eventId: eventData?.id,
                   userRole: "streamer",
                   permissions: {
                     roomJoin: true,
@@ -247,7 +245,7 @@ const StagePage: React.FC = () => {
           "create-livekit-token",
           {
             body: {
-              eventId: event.id,
+              eventId: eventData?.id,
               userRole,
             },
             headers: {
@@ -379,12 +377,12 @@ const StagePage: React.FC = () => {
       >
         <RoomAudioRendererLazy />
         <StreamerInterface
-          eventId={event.id}
-          eventTitle={event.name}
-          isLive={event.is_live}
+          eventId={eventData?.id}
+          eventTitle={eventData?.name}
+          isLive={eventData?.is_live}
           userRole={userRole}
           userId={user?.id}
-          eventHostId={event.created_by}
+          eventHostId={eventData?.created_by}
           streamId={streamId}
         />
       </LiveKitRoomLazy>
