@@ -19,6 +19,8 @@ const StagePage: React.FC = () => {
   const [serverUrl, setServerUrl] = useState<string>("");
   const [tokenLoading, setTokenLoading] = useState(false);
   const tokenGenerated = useRef(false);
+  // Store access token for optional best-effort unload pings
+  const accessTokenRef = useRef<string | null>(null);
   const inviteToken = searchParams.get("token");
 
   // Use React Query for event data
@@ -193,6 +195,8 @@ const StagePage: React.FC = () => {
               "Generated streamer token for invited user:",
               user?.email
             );
+            // Save access token for optional keepalive usage
+            accessTokenRef.current = session.access_token;
             return;
           } catch (err) {
             console.error("Invite token validation failed:", err);
@@ -234,6 +238,8 @@ const StagePage: React.FC = () => {
         setToken(data.token);
         setServerUrl(data.serverUrl);
         tokenGenerated.current = true;
+        // Save access token for optional keepalive usage
+        accessTokenRef.current = session.access_token;
         console.log("LiveKit token generated successfully:", {
           roomName: data.roomName,
           serverUrl: data.serverUrl,
@@ -258,6 +264,36 @@ const StagePage: React.FC = () => {
       generateToken();
     }
   }, [event?.id, userRole, user, inviteToken]);
+
+  // Heartbeat: mark streamer as active periodically so server can detect ungraceful closes
+  useEffect(() => {
+    if (!event?.id || !user?.id) return;
+
+    let cancelled = false;
+
+    const sendHeartbeat = async () => {
+      try {
+        if (cancelled) return;
+        // Update existing stream row to mark it active and refresh updated_at
+        await supabase
+          .from("event_streams")
+          .update({ is_active: true, updated_at: new Date().toISOString() })
+          .eq("event_id", event.id)
+          .eq("streamer_id", user.id);
+      } catch (err) {
+        // Ignore transient errors
+      }
+    };
+
+    // Kickoff immediately and then at interval
+    sendHeartbeat();
+    const interval = setInterval(sendHeartbeat, 10000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [event?.id, user?.id]);
 
   // Cleanup token generation flag on unmount
   useEffect(() => {

@@ -1,4 +1,4 @@
-import React, { Suspense } from "react";
+import React, { Suspense, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -38,59 +38,71 @@ import ReportDMCA from "./pages/ReportDMCA";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <ThemeProvider defaultTheme="light">
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <AppProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Suspense fallback={<div className="p-6">Loading…</div>}>
-              <Layout>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/create" element={<Create />} />
-                  <Route path="/create-episode" element={<CreateEpisode />} />
-                  {/* <Route path="/channels" element={<Channels />} /> */}
-                  {/* <Route path="/channel/:channelId" element={<ChannelPage />} /> */}
-                  <Route path="/events" element={<Events />} />
-                  <Route path="/event/:eventId" element={<EventPage />} />
-                  <Route path="/stage/:eventId" element={<StagePage />} />
-                  {/* <Route path="/profile" element={<Profile />} /> */}
-                  <Route path="/profile/:userId" element={<Profile />} />
-                  <Route
-                    path="/company/:companyId"
-                    element={<CompanyProfile />}
-                  />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/payments" element={<PaymentSetup />} />
-                  <Route path="/past-events" element={<PastEvents />} />
-                  <Route path="/my-ads" element={<MyAds />} />
-                  <Route path="/advertisers" element={<Advertisers />} />
-                  <Route path="/create-ad" element={<CreateAd />} />
-                  <Route path="/ad-library" element={<AdLibrary />} />
-                  <Route
-                    path="/advertiser-dashboard"
-                    element={<AdvertiserDashboard />}
-                  />
-                  <Route path="/withdraw" element={<WithdrawFunds />} />
-                  <Route path="/master-admin" element={<MasterAdmin />} />
-                  <Route path="/qa" element={<QA />} />
-                  <Route path="/legal" element={<LegalDocumentPage />} />
-                  <Route path="/terms" element={<Terms />} />
-                  <Route path="/privacy" element={<Privacy />} />
-                  <Route path="/report" element={<ReportDMCA />} />
-                  <Route path="/post/:postId" element={<Post />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </Layout>
-            </Suspense>
-          </BrowserRouter>
-        </AppProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
-  </ThemeProvider>
-);
+const App = () => {
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+      alert("Please logout before closing the page");
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, []);
+
+  return (
+    <ThemeProvider defaultTheme="light">
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <AppProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Suspense fallback={<div className="p-6">Loading…</div>}>
+                <Layout>
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/create" element={<Create />} />
+                    <Route path="/create-episode" element={<CreateEpisode />} />
+                    {/* <Route path="/channels" element={<Channels />} /> */}
+                    {/* <Route path="/channel/:channelId" element={<ChannelPage />} /> */}
+                    <Route path="/events" element={<Events />} />
+                    <Route path="/event/:eventId" element={<EventPage />} />
+                    <Route path="/stage/:eventId" element={<StagePage />} />
+                    {/* <Route path="/profile" element={<Profile />} /> */}
+                    <Route path="/profile/:userId" element={<Profile />} />
+                    <Route
+                      path="/company/:companyId"
+                      element={<CompanyProfile />}
+                    />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/payments" element={<PaymentSetup />} />
+                    <Route path="/past-events" element={<PastEvents />} />
+                    <Route path="/my-ads" element={<MyAds />} />
+                    <Route path="/advertisers" element={<Advertisers />} />
+                    <Route path="/create-ad" element={<CreateAd />} />
+                    <Route path="/ad-library" element={<AdLibrary />} />
+                    <Route
+                      path="/advertiser-dashboard"
+                      element={<AdvertiserDashboard />}
+                    />
+                    <Route path="/withdraw" element={<WithdrawFunds />} />
+                    <Route path="/master-admin" element={<MasterAdmin />} />
+                    <Route path="/qa" element={<QA />} />
+                    <Route path="/legal" element={<LegalDocumentPage />} />
+                    <Route path="/terms" element={<Terms />} />
+                    <Route path="/privacy" element={<Privacy />} />
+                    <Route path="/report" element={<ReportDMCA />} />
+                    <Route path="/post/:postId" element={<Post />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </Layout>
+              </Suspense>
+            </BrowserRouter>
+          </AppProvider>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
+  );
+};
 
 export default App;
