@@ -85,7 +85,10 @@ serve(async (req) => {
         .limit(1);
 
       if (activeErr) {
-        console.error(`Error checking active streams for event ${ev.id}:`, activeErr);
+        console.error(
+          `Error checking active streams for event ${ev.id}:`,
+          activeErr
+        );
         continue;
       }
 
@@ -99,7 +102,10 @@ serve(async (req) => {
           .eq("id", ev.id);
 
         if (updateEventErr) {
-          console.error(`Error updating event ${ev.id} to not live:`, updateEventErr);
+          console.error(
+            `Error updating event ${ev.id} to not live:`,
+            updateEventErr
+          );
           continue;
         }
 
@@ -142,9 +148,9 @@ serve(async (req) => {
     );
   } catch (err) {
     console.error("cleanup-stale-streams error:", err);
-    return new Response(
-      JSON.stringify({ ok: false, error: String(err) }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ ok: false, error: String(err) }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 });

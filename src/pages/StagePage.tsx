@@ -265,35 +265,8 @@ const StagePage: React.FC = () => {
     }
   }, [event?.id, userRole, user, inviteToken]);
 
-  // Heartbeat: mark streamer as active periodically so server can detect ungraceful closes
-  useEffect(() => {
-    if (!event?.id || !user?.id) return;
 
-    let cancelled = false;
 
-    const sendHeartbeat = async () => {
-      try {
-        if (cancelled) return;
-        // Update existing stream row to mark it active and refresh updated_at
-        await supabase
-          .from("event_streams")
-          .update({ is_active: true, updated_at: new Date().toISOString() })
-          .eq("event_id", event.id)
-          .eq("streamer_id", user.id);
-      } catch (err) {
-        // Ignore transient errors
-      }
-    };
-
-    // Kickoff immediately and then at interval
-    sendHeartbeat();
-    const interval = setInterval(sendHeartbeat, 10000);
-
-    return () => {
-      cancelled = true;
-      clearInterval(interval);
-    };
-  }, [event?.id, user?.id]);
 
   // Cleanup token generation flag on unmount
   useEffect(() => {

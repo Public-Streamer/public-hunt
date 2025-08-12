@@ -1051,7 +1051,9 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       ? localParticipant.getTrackPublication(TrackSource.Camera)
       : undefined;
     if (!TrackSource) {
-      console.warn("[Torch] Track source not loaded yet; skipping torch toggle");
+      console.warn(
+        "[Torch] Track source not loaded yet; skipping torch toggle"
+      );
       return;
     }
 
@@ -1170,146 +1172,150 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
     TrackSource,
   ]);
 
-  const startStream = useCallback(async () => {
-    try {
-      // Use a more direct approach - request permissions using native getUserMedia
-      // This bypasses any potential issues with the custom permission hook
-      let cameraGranted = false;
-      let microphoneGranted = false;
-
+  const startStream = useCallback(
+    async (streamerCount: number) => {
       try {
-        console.log(
-          "📱 MOBILE DEBUG - Attempting direct getUserMedia call for both camera and mic"
-        );
-        const constraints: MediaStreamConstraints = {
-          video: {
-            facingMode: { ideal: currentFacingMode },
-            width: { ideal: 1280, max: 1920 },
-            height: { ideal: 720, max: 1080 },
-          } as MediaTrackConstraints,
-          audio: {
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true,
-          },
-        };
+        // Use a more direct approach - request permissions using native getUserMedia
+        // This bypasses any potential issues with the custom permission hook
+        let cameraGranted = false;
+        let microphoneGranted = false;
 
-        // Add torch constraint for back camera if enabled
-        if (currentFacingMode === "environment" && isTorchEnabled) {
-          (constraints.video as any).torch = true;
+        try {
+          console.log(
+            "📱 MOBILE DEBUG - Attempting direct getUserMedia call for both camera and mic"
+          );
+          const constraints: MediaStreamConstraints = {
+            video: {
+              facingMode: { ideal: currentFacingMode },
+              width: { ideal: 1280, max: 1920 },
+              height: { ideal: 720, max: 1080 },
+            } as MediaTrackConstraints,
+            audio: {
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true,
+            },
+          };
+
+          // Add torch constraint for back camera if enabled
+          if (currentFacingMode === "environment" && isTorchEnabled) {
+            (constraints.video as any).torch = true;
+          }
+
+          const stream = await navigator.mediaDevices.getUserMedia(constraints);
+
+          // Check what we got
+          const videoTracks = stream.getVideoTracks();
+          const audioTracks = stream.getAudioTracks();
+
+          cameraGranted = videoTracks.length > 0;
+          microphoneGranted = audioTracks.length > 0;
+
+          console.log("📱 MOBILE DEBUG - Direct getUserMedia success:", {
+            cameraGranted,
+            microphoneGranted,
+            videoTracks: videoTracks.length,
+            audioTracks: audioTracks.length,
+          });
+
+          // Stop the test stream immediately
+          stream.getTracks().forEach((track) => track.stop());
+        } catch (directError) {
+          console.log(
+            "📱 MOBILE DEBUG - Direct getUserMedia failed, falling back to individual requests:",
+            directError
+          );
+
+          // Fallback: try individual permission requests
+          const permissions = await requestBothPermissions(currentFacingMode);
+          cameraGranted = permissions.camera;
+          microphoneGranted = permissions.microphone;
         }
 
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        // Step 2: Check if at least one permission was granted
+        if (!cameraGranted && !microphoneGranted) {
+          console.log(
+            "📱 MOBILE DEBUG - No permissions granted, aborting stream start"
+          );
+          toast.error(
+            "Camera and microphone access is required to start streaming. Please tap 'Allow' when prompted, or enable permissions in your browser settings."
+          );
+          return;
+        }
 
-        // Check what we got
-        const videoTracks = stream.getVideoTracks();
-        const audioTracks = stream.getAudioTracks();
+        console.log(
+          "📱 MOBILE DEBUG - Step 2: Permissions granted, proceeding with stream setup"
+        );
 
-        cameraGranted = videoTracks.length > 0;
-        microphoneGranted = audioTracks.length > 0;
+        // Step 3: Check authentication
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession();
+        if (sessionError || !session) {
+          throw new Error("Please log in to access this stream");
+        }
 
-        console.log("📱 MOBILE DEBUG - Direct getUserMedia success:", {
-          cameraGranted,
-          microphoneGranted,
-          videoTracks: videoTracks.length,
-          audioTracks: audioTracks.length,
+        // Step 4: Set streaming state after successful permission check
+        console.log("📱 MOBILE DEBUG - Step 4: Setting streaming state");
+        setIsStreaming(true);
+        setGoLive(true);
+
+        await updateParticipantLiveStatus(true);
+
+        // Step 5: Enable the granted permissions
+        if (cameraGranted && !isVideoEnabled) {
+          console.log("📱 MOBILE DEBUG - Enabling camera");
+          toggleVideoLiveButton(true);
+        }
+        if (microphoneGranted && !isAudioEnabled) {
+          console.log("📱 MOBILE DEBUG - Enabling microphone");
+          toggleAudioLiveButton(true);
+        }
+
+        // Step 6: Provide feedback about permissions
+        if (!cameraGranted) {
+          toast.warning("Camera access denied - streaming with audio only");
+        } else if (!microphoneGranted) {
+          toast.warning("Microphone access denied - streaming with video only");
+        } else {
+          toast.success("Camera and microphone ready!");
+        }
+
+        setTimeout(async () => {
+          await checkAndUpdateLiveStatus();
+        }, 10);
+
+        // TODO: we need to check if there is already a event stream with the same eventId , if yes, just update , or if no the instert
+        await supabase.from("event_streams").insert({
+          event_id: eventId,
+          streamer_id: session.user.id,
+          stream_name: "Main Stream",
+          is_active: true,
+          streamer_counts: streamerCount,
         });
 
-        // Stop the test stream immediately
-        stream.getTracks().forEach((track) => track.stop());
-      } catch (directError) {
-        console.log(
-          "📱 MOBILE DEBUG - Direct getUserMedia failed, falling back to individual requests:",
-          directError
-        );
-
-        // Fallback: try individual permission requests
-        const permissions = await requestBothPermissions(currentFacingMode);
-        cameraGranted = permissions.camera;
-        microphoneGranted = permissions.microphone;
+        toast.success("Stream started successfully");
+      } catch (error) {
+        setIsStreaming(false);
+        setGoLive(false);
+        toast.error("Failed to start stream");
+        console.error("Start stream error:", error);
       }
-
-      // Step 2: Check if at least one permission was granted
-      if (!cameraGranted && !microphoneGranted) {
-        console.log(
-          "📱 MOBILE DEBUG - No permissions granted, aborting stream start"
-        );
-        toast.error(
-          "Camera and microphone access is required to start streaming. Please tap 'Allow' when prompted, or enable permissions in your browser settings."
-        );
-        return;
-      }
-
-      console.log(
-        "📱 MOBILE DEBUG - Step 2: Permissions granted, proceeding with stream setup"
-      );
-
-      // Step 3: Check authentication
-      const {
-        data: { session },
-        error: sessionError,
-      } = await supabase.auth.getSession();
-      if (sessionError || !session) {
-        throw new Error("Please log in to access this stream");
-      }
-
-      // Step 4: Set streaming state after successful permission check
-      console.log("📱 MOBILE DEBUG - Step 4: Setting streaming state");
-      setIsStreaming(true);
-      setGoLive(true);
-
-      await updateParticipantLiveStatus(true);
-
-      // Step 5: Enable the granted permissions
-      if (cameraGranted && !isVideoEnabled) {
-        console.log("📱 MOBILE DEBUG - Enabling camera");
-        toggleVideoLiveButton(true);
-      }
-      if (microphoneGranted && !isAudioEnabled) {
-        console.log("📱 MOBILE DEBUG - Enabling microphone");
-        toggleAudioLiveButton(true);
-      }
-
-      // Step 6: Provide feedback about permissions
-      if (!cameraGranted) {
-        toast.warning("Camera access denied - streaming with audio only");
-      } else if (!microphoneGranted) {
-        toast.warning("Microphone access denied - streaming with video only");
-      } else {
-        toast.success("Camera and microphone ready!");
-      }
-
-      setTimeout(async () => {
-        await checkAndUpdateLiveStatus();
-      }, 10);
-
-      // Create event stream record
-      await supabase.from("event_streams").insert({
-        event_id: eventId,
-        streamer_id: session.user.id,
-        stream_name: "Main Stream",
-        is_active: true,
-      });
-
-      toast.success("Stream started successfully");
-    } catch (error) {
-      setIsStreaming(false);
-      setGoLive(false);
-      toast.error("Failed to start stream");
-      console.error("Start stream error:", error);
-    }
-  }, [
-    eventId,
-    checkAndUpdateLiveStatus,
-    updateParticipantLiveStatus,
-    toggleVideoLiveButton,
-    toggleAudioLiveButton,
-    isVideoEnabled,
-    isAudioEnabled,
-    requestBothPermissions,
-    currentFacingMode,
-    isTorchEnabled,
-  ]);
+    },
+    [
+      eventId,
+      checkAndUpdateLiveStatus,
+      updateParticipantLiveStatus,
+      toggleVideoLiveButton,
+      toggleAudioLiveButton,
+      isVideoEnabled,
+      isAudioEnabled,
+      requestBothPermissions,
+      currentFacingMode,
+      isTorchEnabled,
+    ]
+  );
   const closeRoom = useCallback(
     async (session: any) => {
       try {

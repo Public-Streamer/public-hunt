@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   useLocalParticipant,
   useParticipants,
@@ -133,13 +133,15 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
       try {
         if (!userId) return;
         const { data, error } = await supabase
-          .from('event_streamers')
-          .select('permissions')
-          .eq('event_id', eventId)
-          .eq('streamer_id', userId)
+          .from("event_streamers")
+          .select("permissions")
+          .eq("event_id", eventId)
+          .eq("streamer_id", userId)
           .maybeSingle();
         if (!error && data?.permissions) {
-          setIsJudge((data.permissions as string[]).includes('scorecard_judge'));
+          setIsJudge(
+            (data.permissions as string[]).includes("scorecard_judge")
+          );
         } else {
           setIsJudge(false);
         }
@@ -150,7 +152,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     checkJudge();
   }, [eventId, userId]);
 
-  const canManageScoreboard = userRole === 'host' || isJudge;
+  const canManageScoreboard = userRole === "host" || isJudge;
   const canSeeScoreboard = canManageScoreboard;
 
   // Load event metadata and selected game type
@@ -436,6 +438,44 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   const otherCameraTracks = useTracks(TrackSource ? [TrackSource.Camera] : [], {
     onlySubscribed: true,
   }).filter((t) => t.participant !== localParticipant);
+
+  const totalTracksLength = useMemo(() => {
+    return localCameraTracks.length + otherCameraTracks.length;
+  }, [localCameraTracks, otherCameraTracks]);
+
+  // Heartbeat: mark streamer as active periodically so server can detect ungraceful closes
+  useEffect(() => {
+    if (!eventId || userId) return;
+
+    let cancelled = false;
+
+    const sendHeartbeat = async () => {
+      try {
+        if (cancelled) return;
+        // Update existing stream row to mark it active and refresh updated_at
+        await supabase
+          .from("event_streams")
+          .update({
+            is_active: true,
+            updated_at: new Date().toISOString(),
+            streamerCounts: totalTracksLength,
+          })
+          .eq("event_id", eventId)
+          .eq("streamer_id", userId);
+      } catch (err) {
+        // Ignore transient errors
+      }
+    };
+
+    // Kickoff immediately and then at interval
+    sendHeartbeat();
+    const interval = setInterval(sendHeartbeat, 10000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [event?.id, user?.id, totalTracksLength]);
 
   if (!localParticipant) {
     return (
@@ -732,96 +772,94 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
 
             {/* Scoreboard Section - Show for hosts (when creating or managing) and streamers (when teams exist) */}
             {canSeeScoreboard && (
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle>
-                      {canManageScoreboard ? " Leaderboard" : " Leaderboard"}
-                    </CardTitle>
-                    {canManageScoreboard && selectedGameType && (
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size={
-                              screenSize === "mobile" || screenSize === "tablet"
-                                ? "xs"
-                                : "sm"
-                            }
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle>
+                    {canManageScoreboard ? " Leaderboard" : " Leaderboard"}
+                  </CardTitle>
+                  {canManageScoreboard && selectedGameType && (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size={
+                            screenSize === "mobile" || screenSize === "tablet"
+                              ? "xs"
+                              : "sm"
+                          }
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          Delete
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Scoreboard</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete this scoreboard?
+                            This will permanently remove all teams and scores.
+                            This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={handleDeleteScoreboard}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                           >
-                            <Trash2 className="h-4 w-4" />
-                            Delete
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>
-                              Delete Scoreboard
-                            </AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to delete this scoreboard?
-                              This will permanently remove all teams and scores.
-                              This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={handleDeleteScoreboard}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            >
-                              Delete Scoreboard
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    )}
-                  </CardHeader>
-                  <CardContent>
-                    {loadingScoreboard ? (
-                      <div className="text-center py-8">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                            Delete Scoreboard
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
+                </CardHeader>
+                <CardContent>
+                  {loadingScoreboard ? (
+                    <div className="text-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                      <p className="text-muted-foreground">
+                        Loading scoreboard...
+                      </p>
+                    </div>
+                  ) : !selectedGameType ? (
+                    <div className="text-center py-8">
+                      <div className="space-y-4">
                         <p className="text-muted-foreground">
-                          Loading scoreboard...
+                          Create a specialized scoreboard for your competition
                         </p>
+                        <ScoreboardGameSelector
+                          onGameSelect={handleGameTypeSelect}
+                        />
                       </div>
-                    ) : !selectedGameType ? (
-                      <div className="text-center py-8">
-                        <div className="space-y-4">
-                          <p className="text-muted-foreground">
-                            Create a specialized scoreboard for your competition
-                          </p>
-                          <ScoreboardGameSelector
-                            onGameSelect={handleGameTypeSelect}
-                          />
-                        </div>
-                      </div>
-                    ) : selectedGameType === "coon_hunt" ? (
-                      <CoonhoundScorecardV2
-                        eventId={eventId}
-                        isHost={canManageScoreboard}
-                      />
-                    ) : selectedGameType === "custom" ? (
-                      <CustomScoreboard
-                        eventId={eventId}
-                        isHost={canManageScoreboard}
-                      />
-                    ) : (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <p>This game type is not yet supported.</p>
-                        {userRole === "host" && (
-                          <Button
-                            variant="outline"
-                            onClick={() => setLocalSelectedGameType(null)}
-                            className="mt-4"
-                          >
-                            Choose Different Game
-                          </Button>
-                        )}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              )}
+                    </div>
+                  ) : selectedGameType === "coon_hunt" ? (
+                    <CoonhoundScorecardV2
+                      eventId={eventId}
+                      isHost={canManageScoreboard}
+                    />
+                  ) : selectedGameType === "custom" ? (
+                    <CustomScoreboard
+                      eventId={eventId}
+                      isHost={canManageScoreboard}
+                    />
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <p>This game type is not yet supported.</p>
+                      {userRole === "host" && (
+                        <Button
+                          variant="outline"
+                          onClick={() => setLocalSelectedGameType(null)}
+                          className="mt-4"
+                        >
+                          Choose Different Game
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
             {/* Event Production Team - Only for hosts */}
             {userRole === "host" && <EventProductionTeam eventId={eventId} />}
