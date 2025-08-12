@@ -149,15 +149,17 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
     onTimerSnapshot,
   ]);
 
-  const total = useMemo(() => {
-    return draft.entries.reduce((sum, e) => {
+  const computeTotal = (entries: ScoreEntry[]) => {
+    return entries.reduce((sum, e) => {
       if (e.outcome === "+") return sum + e.points;
       if (e.outcome === "-") return sum - e.points;
       if (e.outcome === "o") return sum; // circle doesn't change
       if (e.outcome === "/") return sum; // slashed strike doesn't change
       return sum; // pending doesn't count
     }, 0);
-  }, [draft.entries]);
+  };
+
+  const total = useMemo(() => computeTotal(draft.entries), [draft.entries]);
 
   const totalAbs = Math.abs(total);
   const totalIndicator = total > 0 ? "+" : total < 0 ? "–" : "";
@@ -169,13 +171,10 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
   const hasPending = draft.entries.some((e) => e.outcome === "pending");
 
   const addEntry = (type: EntryType, points: number) => {
-    setDraft((prev) => ({
-      ...prev,
-      entries: [
-        ...prev.entries,
-        { id: crypto.randomUUID(), type, points, outcome: "pending", at: new Date().toISOString() },
-      ],
-    }));
+    const newEntry: ScoreEntry = { id: crypto.randomUUID(), type, points, outcome: "pending", at: new Date().toISOString() };
+    const updated: DogData = { ...draft, entries: [...draft.entries, newEntry] };
+    setDraft(updated);
+    onChange(updated, computeTotal(updated.entries));
   };
 
   const setOutcome = (id: string, outcome: EntryOutcome) => {
@@ -184,13 +183,15 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
       toast({ title: "Tree timer active", description: "Cannot score tree until 3:00 expires", variant: "destructive" });
       return;
     }
-    setDraft((prev) => ({
-      ...prev,
-      entries: prev.entries.map((e) => (e.id === id ? { ...e, outcome } : e)),
-    }));
+    const updatedEntries = draft.entries.map((e) => (e.id === id ? { ...e, outcome } : e));
+    const updated: DogData = { ...draft, entries: updatedEntries };
+    setDraft(updated);
+    onChange(updated, computeTotal(updated.entries));
   };
   const removeEntry = (id: string) => {
-    setDraft((prev) => ({ ...prev, entries: prev.entries.filter((e) => e.id !== id) }));
+    const updated: DogData = { ...draft, entries: draft.entries.filter((e) => e.id !== id) };
+    setDraft(updated);
+    onChange(updated, computeTotal(updated.entries));
   };
 
   const startNonBarkGuarded = () => {
