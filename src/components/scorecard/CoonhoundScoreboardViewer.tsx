@@ -3,6 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import type { TimerStatus } from "@/hooks/useCountdown";
+import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
+import { ChevronDown } from "lucide-react";
 
 interface Props { eventId: string }
 
@@ -54,12 +57,32 @@ export const CoonhoundScoreboardViewer: React.FC<Props> = ({ eventId }) => {
   const [castTimers, setCastTimers] = useState<CastTimers>({});
   const [teams, setTeams] = useState<TeamRow[]>([]);
 
-  // Tick to re-render formatted timers smoothly
+  // Collapsible open states (collapsed by default for viewers)
+  const [openHunt, setOpenHunt] = useState(false);
+  const [openSummary, setOpenSummary] = useState(false);
+  const [openDetails, setOpenDetails] = useState(false);
+
+  // Glow highlights
+  const [glow, setGlow] = useState<Record<string, { variant: 'success' | 'danger' | 'warning' | 'info' | 'pending'; until: number }>>({});
+  const triggerGlow = (key: string, variant: 'success' | 'danger' | 'warning' | 'info' | 'pending', ms = 5000) => {
+    setGlow((prev) => ({ ...prev, [key]: { variant, until: Date.now() + ms } }));
+  };
   useEffect(() => {
-    const iv = setInterval(() => {
-      // No state change needed; trigger re-render by toggling a dummy state if desired
-      setTick((t) => (t + 1) % 1000000);
+    const id = setInterval(() => {
+      const now = Date.now();
+      setGlow((prev) => {
+        const next: typeof prev = {} as any;
+        let changed = false;
+        for (const k in prev) { if (prev[k].until > now) next[k] = prev[k]; else changed = true; }
+        return changed ? next : prev;
+      });
     }, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Tick for smooth display of running timers
+  useEffect(() => {
+    const iv = setInterval(() => setTick((t) => (t + 1) % 1000000), 1000);
     return () => clearInterval(iv);
   }, []);
   const [tick, setTick] = useState(0);
@@ -95,19 +118,47 @@ export const CoonhoundScoreboardViewer: React.FC<Props> = ({ eventId }) => {
         (payload) => {
           const meta = (payload.new as any)?.metadata;
           const ct = meta?.scorecard_cast_timers as CastTimers | undefined;
-          if (ct) setCastTimers(ct);
+          if (ct) {
+            setCastTimers(ct);
+            setOpenHunt(true);
+            triggerGlow('hunt', 'warning');
+          }
         }
       )
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "event_scoreboard", filter: `event_id=eq.${eventId}` },
-        (payload) => setTeams((prev) => [...prev, payload.new as TeamRow])
+        (payload) => {
+          setTeams((prev) => [...prev, payload.new as TeamRow]);
+          setOpenSummary(true); setOpenDetails(true);
+          triggerGlow('summary', 'info'); triggerGlow('details', 'info');
+        }
       )
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "event_scoreboard", filter: `event_id=eq.${eventId}` },
-        (payload) =>
-          setTeams((prev) => prev.map((t) => (t.id === (payload.new as any).id ? (payload.new as TeamRow) : t)))
+        (payload) => {
+          const oldCF = (payload.old as any)?.custom_fields || {};
+          const newCF = (payload.new as any)?.custom_fields || {};
+          setTeams((prev) => prev.map((t) => (t.id === (payload.new as any).id ? (payload.new as TeamRow) : t)));
+          // Detect entry outcome change
+          const oldEntries = Array.isArray(oldCF.entries) ? oldCF.entries : [];
+          const newEntries = Array.isArray(newCF.entries) ? newCF.entries : [];
+          let variant: 'success' | 'danger' | 'warning' | 'info' | 'pending' = 'info';
+          for (const e of newEntries) {
+            const before = oldEntries.find((x: any) => x.id === e.id);
+            if (before && before.outcome !== e.outcome) {
+              if (e.outcome === '+') variant = 'success';
+              else if (e.outcome === '-') variant = 'danger';
+              else if (e.outcome === 'o') variant = 'warning';
+              else if (e.outcome === 'pending') variant = 'info';
+              break;
+            }
+          }
+          setOpenSummary(true); setOpenDetails(true);
+          triggerGlow('summary', variant); triggerGlow('details', variant);
+          triggerGlow(`dog:${(payload.new as any).id}`, variant);
+        }
       )
       .on(
         "postgres_changes",
@@ -170,9 +221,22 @@ export const CoonhoundScoreboardViewer: React.FC<Props> = ({ eventId }) => {
     return snap?.status === "running";
   });
 
+  const calcTotals = (entries: any[]) => {
+    let plus = 0, minus = 0, circle = 0, pending = 0;
+    for (const e of entries || []) {
+      if (e.outcome === "+") plus += e.points;
+      else if (e.outcome === "-") minus += e.points;
+      else if (e.outcome === "o") circle += e.points;
+      else if (e.outcome === "pending") pending += e.points;
+    }
+    const total = plus - minus;
+    return { plus, minus, circle, pending, total };
+  };
+
   return (
     <div className="space-y-4">
-      <Card>
+      {/* Hunt Timers */}
+      <Card className={`glow-surface ${glow['hunt'] ? 'glow-active glow-warning' : ''}`}>
         <CardHeader className="py-3">
           <CardTitle className="text-base">Hunt Timers</CardTitle>
         </CardHeader>
@@ -199,32 +263,79 @@ export const CoonhoundScoreboardViewer: React.FC<Props> = ({ eventId }) => {
         </CardContent>
       </Card>
 
-      <Card>
+      {/* Scorecard Summary */}
+      <Card className={`glow-surface ${glow['summary'] ? 'glow-active glow-info' : ''}`}>
         <CardHeader className="py-3">
-          <CardTitle className="text-base">Dog Timers</CardTitle>
+          <CardTitle className="text-base">Scorecard Summary</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {teams.map((t) => {
+            const cf = (t.custom_fields as any) || {};
+            const entries = Array.isArray(cf.entries) ? cf.entries : [];
+            const { plus, minus, circle, pending, total } = calcTotals(entries);
+            return (
+              <div key={t.id} className="rounded-md border p-3 glow-surface">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="text-base sm:text-lg font-extrabold flex items-center gap-2 text-foreground">
+                      <span className="inline-block h-2 w-2 rounded-full" style={{ background: t.team_color || 'hsl(var(--primary))' }} />
+                      <span className="truncate">{t.team_name}</span>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 text-xs justify-end">
+                    {plus > 0 && (<Badge variant="outline" className="bg-primary/10 text-primary border-primary/40"><span className="tabular-nums">{plus}</span><span className="ml-1">+</span></Badge>)}
+                    {minus > 0 && (<Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/40"><span className="tabular-nums">{minus}</span><span className="ml-1">-</span></Badge>)}
+                    {circle > 0 && (<Badge variant="warning" className="rounded-full ring-1 ring-yellow-500/40"><span className="tabular-nums">{circle}</span><span className="ml-1">◯</span></Badge>)}
+                    {pending > 0 && (<Badge variant="outline" className="pulse">Pending: <span className="ml-1 tabular-nums">{pending}</span></Badge>)}
+                    {total === 0 && circle > 0 ? (
+                      <Badge variant="warning" className="rounded-full ring-1 ring-yellow-500/40">Total: <span className="ml-1 tabular-nums">{circle}</span><span className="ml-1">◯</span></Badge>
+                    ) : (
+                      <Badge variant="secondary" className={`${total > 0 ? "text-primary bg-primary/10 border-primary/40" : total < 0 ? "text-destructive bg-destructive/10 border-destructive/40" : "text-muted-foreground"} border`}>Total: <span className="ml-1 tabular-nums">{Math.abs(total)}</span>{total !== 0 && <span className="ml-1">{total > 0 ? "+" : "-"}</span>}</Badge>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </CardContent>
+      </Card>
+
+      {/* Full Scorecard */}
+      <Card className={`glow-surface ${glow['details'] ? 'glow-active glow-info' : ''}`}>
+        <CardHeader className="py-3">
+          <CardTitle className="text-base">Full Scorecard</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           {teams.length === 0 ? (
             <div className="text-sm text-muted-foreground">No dogs on the card.</div>
           ) : (
             teams.map((t) => {
-              const running = runningDogTimers(t);
+              const cf = (t.custom_fields as any) || {};
+              const entries = Array.isArray(cf.entries) ? cf.entries : [];
               return (
-                <div key={t.id} className="border rounded-md p-2">
+                <div key={t.id} className={`border rounded-md p-2 ${glow[`dog:${t.id}`] ? `glow-active ${
+                  glow[`dog:${t.id}`]!.variant === 'success' ? 'glow-success' :
+                  glow[`dog:${t.id}`]!.variant === 'danger' ? 'glow-danger' :
+                  glow[`dog:${t.id}`]!.variant === 'warning' ? 'glow-warning' :
+                  glow[`dog:${t.id}`]!.variant === 'info' ? 'glow-info' : 'glow-pending' }` : ''}`}>
                   <div className="text-xs font-medium flex items-center gap-2 mb-2">
-                    <span className="inline-block h-2 w-2 rounded-full" style={{ background: t.team_color || "var(--primary)" }} />
+                    <span className="inline-block h-2 w-2 rounded-full" style={{ background: t.team_color || 'hsl(var(--primary))' }} />
                     <span className="truncate">{t.team_name}</span>
                   </div>
-                  {running.length > 0 ? (
-                    <div className="flex flex-wrap items-center gap-2">
-                      {running.map((rt) => (
-                        <Badge key={rt.key} variant="secondary" className="text-xs">
-                          {rt.label}: {rt.formatted}
-                        </Badge>
+                  {entries.length > 0 ? (
+                    <div className="space-y-1">
+                      {entries.map((e: any) => (
+                        <div key={e.id} className="flex items-center justify-between text-xs border rounded p-1">
+                          <div className="flex items-center gap-2">
+                            <Badge variant="secondary" className="capitalize">{e.type}</Badge>
+                            <span className="tabular-nums">{e.points}</span>
+                          </div>
+                          <div className="font-bold">{e.outcome === '+' ? '+' : e.outcome === '-' ? '–' : e.outcome === 'o' ? '◯' : e.outcome === '/' ? '╱' : '…'}</div>
+                        </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="text-xs text-muted-foreground">No active timers</div>
+                    <div className="text-xs text-muted-foreground">No strikes or trees recorded.</div>
                   )}
                 </div>
               );
