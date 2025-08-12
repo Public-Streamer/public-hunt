@@ -1299,7 +1299,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
           streamer_counts: streamerCount,
         });
 
-        const { data: event, error: eventError } = await supabase
+        const { error: eventError } = await supabase
           .from("events")
           .update({
             is_live: true,
@@ -1307,8 +1307,8 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
           .eq("id", eventId)
           .single();
 
-        if (eventError || !event) {
-          throw new Error("Failed to update event status");
+        if (eventError) {
+          console.error("Failed to update event status", eventError);
         }
 
         const { error: upsertErr } = await supabase
@@ -1411,6 +1411,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       }
 
       setTimeout(async () => {
+        console.log("called stop stream");
         const result = await checkStreamerCounts();
         if (result && result < 2) {
           const {
