@@ -55,6 +55,7 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
         mainHunt: { status: huntTimer.status, remaining: huntTimer.remaining },
         track: { status: trackTimer.status, remaining: trackTimer.remaining },
         globalShine: { status: globalShineTimer.status, remaining: globalShineTimer.remaining },
+        mainHuntMinutes: huntMinutes,
       };
       await supabase.functions.invoke('scoreboard-operations', {
         body: { action: 'updateCastTimers', eventId, timers }
@@ -62,7 +63,7 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
     } catch (e) {
       console.warn('Failed to sync cast timers', e);
     }
-  }, [eventId]);
+  }, [eventId, huntMinutes]);
 
   const huntTimer = useCountdown(huntMinutes * 60, {
     onComplete: () => {
@@ -196,9 +197,9 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
           <div className="text-xs text-muted-foreground">Cast-wide</div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             {[
-              { key: "hunt", label: "Main Hunt", status: huntTimer.status, formatted: huntTimer.formatted },
-              { key: "track", label: "Track 6:00", status: trackTimer.status, formatted: trackTimer.formatted },
-              { key: "shine", label: "Global Shine 8:00", status: globalShineTimer.status, formatted: globalShineTimer.formatted },
+              { key: "hunt", label: `Main Hunt ${huntMinutes} minutes`, status: huntTimer.status, formatted: huntTimer.formatted },
+              { key: "track", label: "Track 6 minutes", status: trackTimer.status, formatted: trackTimer.formatted },
+              { key: "shine", label: "Global Shine 8 minutes", status: globalShineTimer.status, formatted: globalShineTimer.formatted },
             ]
               .filter((b) => b.status === "running")
               .map((b) => (
@@ -219,6 +220,7 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
               const snap = timerOverview[d.id];
               if (!snap) return null;
               const label = (k: string) => k.replace(/([A-Z])/g, " $1").trim();
+              const durationsMin: Record<string, number> = { tree: 3, treeBark2: 2, shine: 8, trackBark: 6, notHunting: 15, stationary: 5, noBark: 2 };
               const keys: string[] = ["tree","treeBark2","shine","trackBark","notHunting","stationary","noBark"];
               const running = keys
                 .map((k) => ({ key: k, t: snap[k] }))
@@ -234,7 +236,7 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
                     {running.map(({ key, t }) => (
                       <div key={key} className={`rounded-md p-2 border ${colorCls(t.status)}`}>
                         <div className="flex items-center justify-between text-xs">
-                          <span className="capitalize">{label(key)}</span>
+                          <span className="capitalize">{`${label(key)} ${durationsMin[key]} minutes`}</span>
                           <span className="tabular-nums font-semibold">{t.formatted}</span>
                         </div>
                       </div>

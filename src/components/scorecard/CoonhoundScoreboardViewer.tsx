@@ -133,19 +133,31 @@ export const CoonhoundScoreboardViewer: React.FC<Props> = ({ eventId }) => {
       stationary: "Stationary",
       noBark: "No Bark",
     };
+    const minutes: Record<string, number> = {
+      tree: 3,
+      treeBark2: 2,
+      shine: 8,
+      trackBark: 6,
+      notHunting: 15,
+      goneHunting: 5,
+      stationary: 5,
+      noBark: 2,
+    };
     return Object.entries(timers)
       .filter(([k, v]) => typeof v === "object" && (v as any).status === "running")
       .map(([k, v]) => {
         const snap = v as { status: TimerStatus; remaining: number };
         const remaining = liveRemaining(snap.remaining, serverUpdatedAt, snap.status);
-        return { key: k, label: labels[k] || k, formatted: formatMMSS(remaining), status: snap.status };
+        const base = labels[k] || (k as string);
+        const label = minutes[k as string] ? `${base} ${minutes[k as string]} minutes` : base;
+        return { key: k, label, formatted: formatMMSS(remaining), status: snap.status };
       });
   };
 
   const castBlocks = [
     { key: "mainHunt", label: "Main Hunt" },
-    { key: "track", label: "Track 6:00" },
-    { key: "globalShine", label: "Global Shine 8:00" },
+    { key: "track", label: "Track 6 minutes" },
+    { key: "globalShine", label: "Global Shine 8 minutes" },
   ] as const;
 
   const visibleCastBlocks = castBlocks.filter((b) => {
@@ -169,7 +181,7 @@ export const CoonhoundScoreboardViewer: React.FC<Props> = ({ eventId }) => {
                 return (
                   <div key={b.key} className={`rounded-md p-2 border ${statusCls(snap?.status || "idle")}`}>
                     <div className="flex items-center justify-between text-xs">
-                      <span>{b.label}</span>
+                      <span>{b.key === "mainHunt" && (castTimers as any).mainHuntMinutes ? `Main Hunt ${(castTimers as any).mainHuntMinutes} minutes` : b.label}</span>
                       <span className="tabular-nums font-semibold">{formatted}</span>
                     </div>
                   </div>
