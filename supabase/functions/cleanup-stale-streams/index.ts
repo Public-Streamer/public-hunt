@@ -49,17 +49,17 @@ serve(async (req) => {
 
     const cutoffIso = new Date(Date.now() - thresholdSec * 1000).toISOString();
 
-    // 1) Mark stale streams inactive (where updated_at < cutoff and is_active = true)
-    const { error: markStaleErr } = await admin
-      .from("event_streams")
-      .update({ is_active: false })
-      .lt("updated_at", cutoffIso)
-      .eq("is_active", true);
+    // // 1) Mark stale streams inactive (where updated_at < cutoff and is_active = true)
+    // const { error: markStaleErr } = await admin
+    //   .from("event_streams")
+    //   .update({ is_active: false })
+    //   .lt("updated_at", cutoffIso)
+    //   .eq("is_active", true);
 
-    if (markStaleErr) {
-      console.error("Error marking stale streams:", markStaleErr);
-      throw markStaleErr;
-    }
+    // if (markStaleErr) {
+    //   console.error("Error marking stale streams:", markStaleErr);
+    //   throw markStaleErr;
+    // }
 
     // 2) Find live events
     const { data: liveEvents, error: liveEventsErr } = await admin
@@ -81,7 +81,7 @@ serve(async (req) => {
         .from("event_streams")
         .select("id")
         .eq("event_id", ev.id)
-        .eq("is_active", true)
+        .lt("updated_at", cutoffIso)
         .single();
 
       if (activeErr) {
