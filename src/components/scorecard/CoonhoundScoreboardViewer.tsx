@@ -148,6 +148,11 @@ export const CoonhoundScoreboardViewer: React.FC<Props> = ({ eventId }) => {
     { key: "globalShine", label: "Global Shine 8:00" },
   ] as const;
 
+  const visibleCastBlocks = castBlocks.filter((b) => {
+    const snap = (castTimers as any)[b.key] as { status: TimerStatus; remaining: number } | undefined;
+    return snap?.status === "running";
+  });
+
   return (
     <div className="space-y-4">
       <Card>
@@ -156,20 +161,23 @@ export const CoonhoundScoreboardViewer: React.FC<Props> = ({ eventId }) => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            {castBlocks.map((b) => {
-              const snap = (castTimers as any)[b.key] as { status: TimerStatus; remaining: number } | undefined;
-              const running = snap?.status === "running";
-              const rem = liveRemaining(snap?.remaining, castTimers.server_updated_at, snap?.status || "idle");
-              const formatted = formatMMSS(rem);
-              return (
-                <div key={b.key} className={`rounded-md p-2 border ${statusCls(snap?.status || "idle")}`}>
-                  <div className="flex items-center justify-between text-xs">
-                    <span>{b.label}</span>
-                    <span className="tabular-nums font-semibold">{formatted}</span>
+            {visibleCastBlocks.length > 0 ? (
+              visibleCastBlocks.map((b) => {
+                const snap = (castTimers as any)[b.key] as { status: TimerStatus; remaining: number } | undefined;
+                const rem = liveRemaining(snap?.remaining, castTimers.server_updated_at, snap?.status || "idle");
+                const formatted = formatMMSS(rem);
+                return (
+                  <div key={b.key} className={`rounded-md p-2 border ${statusCls(snap?.status || "idle")}`}>
+                    <div className="flex items-center justify-between text-xs">
+                      <span>{b.label}</span>
+                      <span className="tabular-nums font-semibold">{formatted}</span>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            ) : (
+              <div className="text-sm text-muted-foreground">No active cast timers</div>
+            )}
           </div>
         </CardContent>
       </Card>
