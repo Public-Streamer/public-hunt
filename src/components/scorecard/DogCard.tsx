@@ -44,6 +44,7 @@ interface DogCardProps {
       shine: { formatted: string; status: TimerStatus };
       trackBark: { formatted: string; status: TimerStatus };
       notHunting: { formatted: string; status: TimerStatus };
+      goneHunting: { formatted: string; status: TimerStatus };
       stationary: { formatted: string; status: TimerStatus };
       noBark: { formatted: string; status: TimerStatus };
       walk: { formatted: string; status: TimerStatus };
@@ -183,6 +184,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
       trackBark: { formatted: trackBarkTimer.formatted, status: trackBarkTimer.status },
       walk: { formatted: walkTimer.formatted, status: walkTimer.status },
       notHunting: { formatted: notHuntingTimer.formatted, status: notHuntingTimer.status },
+      goneHunting: { formatted: goneHuntingTimer.formatted, status: goneHuntingTimer.status },
       stationary: { formatted: stationaryTimer.formatted, status: stationaryTimer.status },
       noBark: { formatted: stationaryNonBarkTimer.formatted, status: stationaryNonBarkTimer.status },
     });
@@ -194,6 +196,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
     trackBarkTimer.formatted, trackBarkTimer.status,
     walkTimer.formatted, walkTimer.status,
     notHuntingTimer.formatted, notHuntingTimer.status,
+    goneHuntingTimer.formatted, goneHuntingTimer.status,
     stationaryTimer.formatted, stationaryTimer.status,
     stationaryNonBarkTimer.formatted, stationaryNonBarkTimer.status,
     onTimerSnapshot,

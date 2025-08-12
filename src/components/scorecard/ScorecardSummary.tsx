@@ -37,6 +37,7 @@ const labelMap: Record<string, string> = {
   shine: "Shine",
   trackBark: "Track Bark",
   notHunting: "Not Hunt",
+  goneHunting: "Gone Hunt",
   stationary: "Stationary",
   noBark: "No Bark",
 };
@@ -46,6 +47,7 @@ const durationsMin: Record<string, number> = {
   shine: 8,
   trackBark: 6,
   notHunting: 15,
+  goneHunting: 5,
   stationary: 5,
   noBark: 2,
 };
@@ -55,6 +57,7 @@ const keys: string[] = [
   "shine",
   "trackBark",
   "notHunting",
+  "goneHunting",
   "stationary",
   "noBark",
 ];
