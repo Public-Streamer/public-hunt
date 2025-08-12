@@ -733,160 +733,6 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
               </CardContent>
             </Card>
 
-            {/* Other Participants */}
-            {otherCameraTracks.length > 0 && (
-              <Card>
-                <CardHeader className="p-3 sm:p-3">
-                  <CardTitle className="text-sm sm:text-base">
-                    Other Streamers
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-3 sm:p-3">
-                  <div
-                    className={`grid gap-2 sm:gap-4 ${
-                      screenSize === "mobile" ? "grid-cols-1" : "grid-cols-2"
-                    }`}
-                  >
-                    {otherCameraTracks.map((trackRef) => (
-                      <div
-                        key={trackRef.participant.sid}
-                        className="aspect-video bg-muted rounded-lg overflow-hidden relative"
-                      >
-                        <VideoTrackLazy
-                          trackRef={trackRef as any}
-                          className="w-full h-full"
-                        />
-                        <div className="absolute bottom-2 left-2">
-                          <Badge variant="secondary" className="text-xs">
-                            {(() => {
-                              try {
-                                const metadata = trackRef.participant.metadata
-                                  ? JSON.parse(trackRef.participant.metadata)
-                                  : {};
-                                return (
-                                  metadata.streamName ||
-                                  trackRef.participant.name ||
-                                  trackRef.participant.identity
-                                );
-                              } catch {
-                                return (
-                                  trackRef.participant.name ||
-                                  trackRef.participant.identity
-                                );
-                              }
-                            })()}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Pinned Message Section */}
-            <PinnedMessageSection
-              eventId={eventId}
-              isHost={userRole === "host"}
-            />
-
-            {/* Scoreboard Section - Show for hosts (when creating or managing) and streamers (when teams exist) */}
-            {canSeeScoreboard && (
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle>
-                    {canManageScoreboard ? " Leaderboard" : " Leaderboard"}
-                  </CardTitle>
-                  {canManageScoreboard && selectedGameType && (
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size={
-                            screenSize === "mobile" || screenSize === "tablet"
-                              ? "xs"
-                              : "sm"
-                          }
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          Delete
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Delete Scoreboard</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Are you sure you want to delete this scoreboard?
-                            This will permanently remove all teams and scores.
-                            This action cannot be undone.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={handleDeleteScoreboard}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          >
-                            Delete Scoreboard
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  )}
-                </CardHeader>
-                <CardContent>
-                  {loadingScoreboard ? (
-                    <div className="text-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                      <p className="text-muted-foreground">
-                        Loading scoreboard...
-                      </p>
-                    </div>
-                  ) : !selectedGameType ? (
-                    <div className="text-center py-8">
-                      <div className="space-y-4">
-                        <p className="text-muted-foreground">
-                          Create a specialized scoreboard for your competition
-                        </p>
-                        <ScoreboardGameSelector
-                          onGameSelect={handleGameTypeSelect}
-                        />
-                      </div>
-                    </div>
-                  ) : selectedGameType === "coon_hunt" ? (
-                    <CoonhoundScorecardV2
-                      eventId={eventId}
-                      isHost={canManageScoreboard}
-                    />
-                  ) : selectedGameType === "custom" ? (
-                    <CustomScoreboard
-                      eventId={eventId}
-                      isHost={canManageScoreboard}
-                    />
-                  ) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <p>This game type is not yet supported.</p>
-                      {userRole === "host" && (
-                        <Button
-                          variant="outline"
-                          onClick={() => setLocalSelectedGameType(null)}
-                          className="mt-4"
-                        >
-                          Choose Different Game
-                        </Button>
-                      )}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Event Production Team - Only for hosts */}
-            {userRole === "host" && <EventProductionTeam eventId={eventId} />}
-          </div>
-
-          {/* Controls Panel */}
-          <div className="space-y-3 sm:space-y-4">
             {/* Stream Controls */}
             <Card>
               <CardHeader className="p-3 sm:p-3">
@@ -1061,6 +907,161 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                 )}
               </CardContent>
             </Card>
+
+            {/* Other Participants */}
+            {otherCameraTracks.length > 0 && (
+              <Card>
+                <CardHeader className="p-3 sm:p-3">
+                  <CardTitle className="text-sm sm:text-base">
+                    Other Streamers
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-3 sm:p-3">
+                  <div
+                    className={`grid gap-2 sm:gap-4 ${
+                      screenSize === "mobile" ? "grid-cols-1" : "grid-cols-2"
+                    }`}
+                  >
+                    {otherCameraTracks.map((trackRef) => (
+                      <div
+                        key={trackRef.participant.sid}
+                        className="aspect-video bg-muted rounded-lg overflow-hidden relative"
+                      >
+                        <VideoTrackLazy
+                          trackRef={trackRef as any}
+                          className="w-full h-full"
+                        />
+                        <div className="absolute bottom-2 left-2">
+                          <Badge variant="secondary" className="text-xs">
+                            {(() => {
+                              try {
+                                const metadata = trackRef.participant.metadata
+                                  ? JSON.parse(trackRef.participant.metadata)
+                                  : {};
+                                return (
+                                  metadata.streamName ||
+                                  trackRef.participant.name ||
+                                  trackRef.participant.identity
+                                );
+                              } catch {
+                                return (
+                                  trackRef.participant.name ||
+                                  trackRef.participant.identity
+                                );
+                              }
+                            })()}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Pinned Message Section */}
+            <PinnedMessageSection
+              eventId={eventId}
+              isHost={userRole === "host"}
+            />
+
+            {/* Scoreboard Section - Show for hosts (when creating or managing) and streamers (when teams exist) */}
+            {canSeeScoreboard && (
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle>
+                    {canManageScoreboard ? " Leaderboard" : " Leaderboard"}
+                  </CardTitle>
+                  {canManageScoreboard && selectedGameType && (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size={
+                            screenSize === "mobile" || screenSize === "tablet"
+                              ? "xs"
+                              : "sm"
+                          }
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          Delete
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Scoreboard</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete this scoreboard?
+                            This will permanently remove all teams and scores.
+                            This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={handleDeleteScoreboard}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Delete Scoreboard
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
+                </CardHeader>
+                <CardContent>
+                  {loadingScoreboard ? (
+                    <div className="text-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                      <p className="text-muted-foreground">
+                        Loading scoreboard...
+                      </p>
+                    </div>
+                  ) : !selectedGameType ? (
+                    <div className="text-center py-8">
+                      <div className="space-y-4">
+                        <p className="text-muted-foreground">
+                          Create a specialized scoreboard for your competition
+                        </p>
+                        <ScoreboardGameSelector
+                          onGameSelect={handleGameTypeSelect}
+                        />
+                      </div>
+                    </div>
+                  ) : selectedGameType === "coon_hunt" ? (
+                    <CoonhoundScorecardV2
+                      eventId={eventId}
+                      isHost={canManageScoreboard}
+                    />
+                  ) : selectedGameType === "custom" ? (
+                    <CustomScoreboard
+                      eventId={eventId}
+                      isHost={canManageScoreboard}
+                    />
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <p>This game type is not yet supported.</p>
+                      {userRole === "host" && (
+                        <Button
+                          variant="outline"
+                          onClick={() => setLocalSelectedGameType(null)}
+                          className="mt-4"
+                        >
+                          Choose Different Game
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Event Production Team - Only for hosts */}
+            {userRole === "host" && <EventProductionTeam eventId={eventId} />}
+          </div>
+
+          {/* Controls Panel */}
+          <div className="space-y-3 sm:space-y-4">
 
             {/* Stream Info */}
             <Card>
