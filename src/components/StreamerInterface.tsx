@@ -41,7 +41,6 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useStreamingControls } from "@/hooks/useStreamingControls";
-import { useEventLiveStatus } from "@/hooks/useEventLiveStatus";
 import StageShareMenu from "@/components/StageShareMenu";
 import EventSharePanel from "@/components/EventSharePanel";
 import { useScreenSize } from "@/hooks/use-mobile";
@@ -49,7 +48,6 @@ import { useMobileMediaPermissions } from "@/hooks/useMobileMediaPermissions";
 import LiveStreamLogo from "@/components/ui/live-stream-logo";
 import CameraSwitchButton from "@/components/CameraSwitchButton";
 import TorchButton from "@/components/TorchButton";
-import LiveChatSection from "@/components/LiveChatSection";
 import { CoonhoundScorecardV2 } from "@/components/scorecard/CoonhoundScorecardV2";
 import { CustomScoreboard } from "@/components/CustomScoreboard";
 import { ScoreboardGameSelector } from "@/components/ScoreboardGameSelector";
@@ -67,6 +65,7 @@ interface StreamerInterfaceProps {
   userRole?: "host" | "streamer";
   userId?: string;
   eventHostId?: string;
+  streamId?: string;
 }
 
 export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
@@ -76,6 +75,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   userRole,
   userId,
   eventHostId,
+  streamId,
 }) => {
   const { localParticipant } = useLocalParticipant();
   const participants = useParticipants();
@@ -445,7 +445,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
 
   // Heartbeat: mark streamer as active periodically so server can detect ungraceful closes
   useEffect(() => {
-    if (!eventId || !userId) return;
+    if (!eventId || !userId || !streamId) return;
 
     let cancelled = false;
 
@@ -460,10 +460,9 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
             updated_at: new Date().toISOString(),
             streamer_counts: totalTracksLength,
           })
-          .eq("event_id", eventId)
-          .eq("streamer_id", userId);
+          .eq("id", streamId);
       } catch (err) {
-        // Ignore transient errors
+        console.error("error in hearbeat ", err);
       }
     };
 
@@ -475,7 +474,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
       cancelled = true;
       clearInterval(interval);
     };
-  }, [eventId, userId, totalTracksLength]);
+  }, [eventId, userId, totalTracksLength, streamId]);
 
   if (!localParticipant) {
     return (

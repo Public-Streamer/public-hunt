@@ -12,6 +12,7 @@ const StagePage: React.FC = () => {
   const [searchParams] = useSearchParams();
 
   const [event, setEvent] = useState<any>(null);
+  const [streamId, setStreamId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState<"host" | "streamer" | null>(null);
   const [user, setUser] = useState<any>(null);
@@ -53,12 +54,40 @@ const StagePage: React.FC = () => {
     enabled: !!eventId,
   });
 
+  const { data: streamData } = useQuery({
+    queryKey: ["stream", eventId],
+    queryFn: async () => {
+      if (!eventId) {
+        toast.error("Event ID is required");
+        throw new Error("Event ID is required");
+      }
+
+      const streamQuery = supabase
+        .from("event_streams")
+        .select("id, streamer_counts")
+        .eq("event_id", eventId);
+
+      const { data, error } = await streamQuery.single();
+
+      if (error) {
+        toast.error("Stream not found");
+        throw new Error(error.message);
+      }
+
+      return data;
+    },
+    enabled: !!eventId,
+  });
+
   // Update local state when event data changes
   useEffect(() => {
     if (eventData) {
       setEvent(eventData);
+      if (streamData) {
+        setStreamId(streamData.id);
+      }
     }
-  }, [eventData]);
+  }, [eventData, streamData]);
 
   useEffect(() => {
     const checkAuthAndAssignRole = async () => {
@@ -265,9 +294,6 @@ const StagePage: React.FC = () => {
     }
   }, [event?.id, userRole, user, inviteToken]);
 
-
-
-
   // Cleanup token generation flag on unmount
   useEffect(() => {
     return () => {
@@ -359,6 +385,7 @@ const StagePage: React.FC = () => {
           userRole={userRole}
           userId={user?.id}
           eventHostId={event.created_by}
+          streamId={streamId}
         />
       </LiveKitRoomLazy>
     </Suspense>
