@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useMobileMediaPermissions } from "./useMobileMediaPermissions";
+import { useQueryClient } from "@tanstack/react-query";
 
 export interface StreamingControls {
   isVideoEnabled: boolean;
@@ -59,6 +60,8 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   const [isAudioEnabled, setIsAudioEnabled] = useState(false);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [goLive, setGoLive] = useState(false);
+
+  const queryClient = useQueryClient();
 
   const navigate = useNavigate();
 
@@ -1299,7 +1302,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
           streamer_counts: streamerCount,
         });
 
-        const { data: event, error: eventError } = await supabase
+        const { error: eventError } = await supabase
           .from("events")
           .update({
             is_live: true,
@@ -1307,8 +1310,8 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
           .eq("id", eventId)
           .single();
 
-        if (eventError || !event) {
-          throw new Error("Failed to update event status");
+        if (eventError) {
+          console.error("Error updating event status live", eventError);
         }
 
         const { error: upsertErr } = await supabase
@@ -1333,6 +1336,9 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
           );
           throw upsertErr;
         }
+        queryClient.invalidateQueries({
+          queryKey: ["event", "stream", eventId],
+        });
 
         toast.success("Stream started successfully");
       } catch (error) {

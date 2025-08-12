@@ -69,10 +69,10 @@ const StagePage: React.FC = () => {
 
       const { data, error } = await streamQuery.single();
 
-      if (error) {
-        toast.error("Stream not found");
-        throw new Error(error.message);
-      }
+      // if (error) {
+      //   toast.error("Stream not found");
+      //   throw new Error(error.message);
+      // }
 
       return data;
     },
