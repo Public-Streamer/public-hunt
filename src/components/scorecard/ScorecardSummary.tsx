@@ -60,13 +60,18 @@ const keys: string[] = [
 ];
 
 const calcTotals = (entries: DogData["entries"]) => {
-  const total = entries.reduce((sum, e) => {
-    if (e.outcome === "+") return sum + e.points;
-    if (e.outcome === "-") return sum - e.points;
-    return sum;
-  }, 0);
-  const pending = entries.reduce((sum, e) => (e.outcome === "pending" ? sum + e.points : sum), 0);
-  return { total, pending };
+  let plus = 0;
+  let minus = 0;
+  let circle = 0;
+  let pending = 0;
+  for (const e of entries) {
+    if (e.outcome === "+") plus += e.points;
+    else if (e.outcome === "-") minus += e.points;
+    else if (e.outcome === "o") circle += e.points;
+    else if (e.outcome === "pending") pending += e.points;
+  }
+  const total = plus - minus; // circle and pending do not affect net total
+  return { total, pending, plus, minus, circle };
 };
 
 export const ScorecardSummary: React.FC<ScorecardSummaryProps> = ({ dogs, timerOverview, castTimers }) => {
@@ -105,7 +110,7 @@ export const ScorecardSummary: React.FC<ScorecardSummaryProps> = ({ dogs, timerO
                   .map((k) => ({ key: k, t: (snap as any)[k] as DogTimerSnapshotUI }))
                   .filter((x) => x.t && x.t.status === "running")
               : [];
-            const { total, pending } = calcTotals(d.entries);
+            const { total, pending, plus, minus, circle } = calcTotals(d.entries);
             return (
               <div key={d.id} className="rounded-md border p-3">
                 <div className="flex items-center justify-between gap-2">
@@ -118,9 +123,40 @@ export const ScorecardSummary: React.FC<ScorecardSummaryProps> = ({ dogs, timerO
                       Dog: {d.dogName || "—"} • Handler: {d.handler || "—"}
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 text-xs">
-                    <Badge variant="secondary">Total: {total}</Badge>
-                    <Badge variant="outline">Pending: {pending}</Badge>
+                  <div className="flex flex-wrap items-center gap-2 text-xs justify-end">
+                    {plus > 0 && (
+                      <Badge variant="outline" className="bg-primary/10 text-primary border-primary/40">
+                        <span className="tabular-nums">{plus}</span>
+                        <span className="ml-1">+</span>
+                      </Badge>
+                    )}
+                    {minus > 0 && (
+                      <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/40">
+                        <span className="tabular-nums">{minus}</span>
+                        <span className="ml-1">-</span>
+                      </Badge>
+                    )}
+                    {circle > 0 && (
+                      <Badge
+                        variant="outline"
+                        className="bg-accent/10 text-accent border-accent/40 rounded-full ring-1 ring-accent/40"
+                      >
+                        <span className="tabular-nums">{circle}</span>
+                        <span className="ml-1">◯</span>
+                      </Badge>
+                    )}
+                    {pending > 0 && (
+                      <Badge variant="outline" className="pulse">
+                        Pending: <span className="ml-1 tabular-nums">{pending}</span>
+                      </Badge>
+                    )}
+                    <Badge
+                      variant="secondary"
+                      className={`${total > 0 ? "text-primary bg-primary/10 border-primary/40" : total < 0 ? "text-destructive bg-destructive/10 border-destructive/40" : "text-muted-foreground"} border`}
+                    >
+                      Total: <span className="ml-1 tabular-nums">{Math.abs(total)}</span>
+                      {total !== 0 && <span className="ml-1">{total > 0 ? "+" : "-"}</span>}
+                    </Badge>
                   </div>
                 </div>
                 {running.length > 0 && (
