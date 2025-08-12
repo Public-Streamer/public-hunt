@@ -117,6 +117,8 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
     },
   });
   const babbleStartedRef = useRef(false);
+
+  const fetchTeams = async () => {
     try {
       const { data, error } = await supabase.functions.invoke('scoreboard-operations', {
         body: { action: 'fetch', eventId, scoreboardType: 'coon_hunt' }
@@ -128,8 +130,6 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
       console.error(e);
     }
   };
-
-  useEffect(() => { fetchTeams(); }, [eventId]);
 
   // Save handler that updates score and custom_fields
   const handleDogChange = async (dog: DogData, newTotal: number) => {
