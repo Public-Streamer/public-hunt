@@ -82,7 +82,7 @@ serve(async (req) => {
         .select("id")
         .eq("event_id", ev.id)
         .eq("is_active", true)
-        .limit(1);
+        .single();
 
       if (activeErr) {
         console.error(
@@ -92,13 +92,18 @@ serve(async (req) => {
         continue;
       }
 
-      const hasActive = !!activeStreams && activeStreams.length > 0;
+      const hasActive = !!activeStreams;
 
       if (!hasActive) {
         // 3a) Mark event not live
         const { error: updateEventErr } = await admin
           .from("events")
-          .update({ is_live: false })
+          .update({
+            is_live: false,
+            time: new Date().toISOString().slice(11, 19),
+            date: new Date().toISOString().slice(0, 10),
+            livekit_room_name: null,
+          })
           .eq("id", ev.id);
 
         if (updateEventErr) {
@@ -108,28 +113,7 @@ serve(async (req) => {
           );
           continue;
         }
-
-        // 3b) Close the LiveKit room through existing function
-        // try {
-        //   const manageUrl = `${supabaseUrl}/functions/v1/manage-livekit-room`;
-        //   const resp = await fetch(manageUrl, {
-        //     method: "POST",
-        //     headers: {
-        //       "Content-Type": "application/json",
-        //       Authorization: `Bearer ${serviceKey}`,
-        //     },
-        //     body: JSON.stringify({ action: "close", eventId: ev.id }),
-        //   });
-
-        //   if (!resp.ok) {
-        //     const t = await resp.text();
-        //     console.error(`manage-livekit-room failed for ${ev.id}:`, t);
-        //   } else {
-        //     console.log(`Room closed for event ${ev.id}`);
-        //   }
-        // } catch (fnErr) {
-        //   console.error(`Error invoking manage-livekit-room for ${ev.id}:`, fnErr);
-        // }
+        await admin.from("event_streams").delete().eq("event_id", ev.id);
 
         closed.push(ev.id);
       } else {
