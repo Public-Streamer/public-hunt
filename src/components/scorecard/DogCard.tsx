@@ -79,21 +79,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
       if (typeof navigator !== "undefined" && "vibrate" in navigator) {
         try { (navigator as any).vibrate?.(200); } catch {}
       }
-      // Auto-minus the most recent pending tree entry (if any), reset Tree timer, and blink alert
-      let updatedEntries = draft.entries;
-      const lastPendingTreeIndex = [...draft.entries]
-        .map((e, i) => ({ e, i }))
-        .filter(({ e }) => e.type === "tree" && e.outcome === "pending")
-        .pop()?.i;
-      if (lastPendingTreeIndex !== undefined) {
-        updatedEntries = draft.entries.map((e, i) => (i === lastPendingTreeIndex ? { ...e, outcome: "-" as const } : e));
-      }
-      const updated: DogData = { ...draft, entries: updatedEntries };
-      setDraft(updated);
-      onChange(updated, computeTotal(updated.entries));
       treeTimer.reset(3 * 60);
-      setTreeMinusBlink(true);
-      setTimeout(() => setTreeMinusBlink(false), 4000);
       onTimerAction?.(draft.id, snapshotTimers());
     },
   });
@@ -167,20 +153,8 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
   });
   const stationaryNonBarkTimer = useCountdown(2 * 60, {
     onComplete: () => {
-      toast({ title: "No Bark 2:00 expired", description: `${draft.name}: auto-minus pending tree and reset stationary` });
-      // Auto-minus the most recent pending tree entry (if any)
-      let updatedEntries = draft.entries;
-      const lastPendingTreeIndex = [...draft.entries]
-        .map((e, i) => ({ e, i }))
-        .filter(({ e }) => e.type === "tree" && e.outcome === "pending")
-        .pop()?.i;
-      if (lastPendingTreeIndex !== undefined) {
-        updatedEntries = draft.entries.map((e, i) => (i === lastPendingTreeIndex ? { ...e, outcome: "-" as const } : e));
-      }
-      const updated: DogData = { ...draft, entries: updatedEntries };
-      setDraft(updated);
-      onChange(updated, computeTotal(updated.entries));
-      // Reset Stationary timer as part of linked behavior
+      toast({ title: "No Bark 2:00 expired", description: `${draft.name}: judge decision required — Stationary reset` });
+      // Do not auto-minus on expiry; only reset linked Stationary timer
       stationaryTimer.reset(5 * 60);
       if (typeof navigator !== "undefined" && "vibrate" in navigator) {
         try { (navigator as any).vibrate?.(200); } catch {}
@@ -416,7 +390,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
             )}
             {/* Timers Row */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2">
-              <div title="Tree timers are linked: if Bark 2:00 expires, dog is minused and Tree resets.">
+              <div title="Tree timers are linked: if Bark 2:00 expires, Tree may reset; judge decides scoring.">
                 <div className="relative rounded-md border border-primary/40 bg-primary/5 p-2 space-y-2 pl-3 sm:pl-4">
                   <span aria-hidden className="absolute left-0 top-0 bottom-0 w-1 bg-primary/70 rounded-l-md" />
                   <div className="text-xs sm:text-sm font-semibold text-primary">Linked to Tree Bark</div>
