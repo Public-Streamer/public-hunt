@@ -1,5 +1,10 @@
 import React, { useState, useEffect, useRef, Suspense } from "react";
-import { useParams, Navigate, useSearchParams } from "react-router-dom";
+import {
+  useParams,
+  Navigate,
+  useSearchParams,
+  useNavigate,
+} from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { LiveKitRoomLazy, RoomAudioRendererLazy } from "@/lib/livekitLazy";
 import "@livekit/components-styles";
@@ -20,6 +25,7 @@ const StagePage: React.FC = () => {
   const [serverUrl, setServerUrl] = useState<string>("");
   const [tokenLoading, setTokenLoading] = useState(false);
   const tokenGenerated = useRef(false);
+  const navigate = useNavigate();
   // Store access token for optional best-effort unload pings
   const accessTokenRef = useRef<string | null>(null);
   const inviteToken = searchParams.get("token");
@@ -290,7 +296,7 @@ const StagePage: React.FC = () => {
       console.log("Generating token...");
       generateToken();
     }
-  }, [event?.id, userRole, user, inviteToken]);
+  }, [eventData?.id, userRole, user, inviteToken]);
 
   // Cleanup token generation flag on unmount
   useEffect(() => {
@@ -329,7 +335,7 @@ const StagePage: React.FC = () => {
     );
   }
 
-  if (!event || !userRole) {
+  if (!eventData || !userRole) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -367,6 +373,7 @@ const StagePage: React.FC = () => {
         }}
         onDisconnected={(reason) => {
           console.log("LiveKit room disconnected:", reason);
+          navigate(`/event/${eventId}`);
           toast.info("Disconnected from live stream");
         }}
         onError={(error) => {
