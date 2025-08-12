@@ -445,7 +445,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
 
   // Heartbeat: mark streamer as active periodically so server can detect ungraceful closes
   useEffect(() => {
-    if (!eventId || userId) return;
+    if (!eventId || !userId) return;
 
     let cancelled = false;
 
@@ -475,7 +475,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
       cancelled = true;
       clearInterval(interval);
     };
-  }, [event?.id, user?.id, totalTracksLength]);
+  }, [eventId, userId, totalTracksLength]);
 
   if (!localParticipant) {
     return (
@@ -879,7 +879,9 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                 <div className="space-y-2">
                   {!controls.isStreaming ? (
                     <Button
-                      onClick={controls.startStream}
+                      onClick={() => {
+                        controls.startStream(totalTracksLength);
+                      }}
                       className="w-full text-sm sm:text-base px-3 sm:px-4 py-3 sm:py-4 max-w-full"
                       size={screenSize === "mobile" ? "sm" : "lg"}
                       disabled={!controls.isConnected}
