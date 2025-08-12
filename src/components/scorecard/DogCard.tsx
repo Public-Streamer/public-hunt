@@ -131,7 +131,19 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
   });
   const goneHuntingTimer = useCountdown(5 * 60, {
     onComplete: () => {
-      // Scratch dog when Gone Hunt expires
+      if (notHuntingTimer.status === "running") {
+        // During Not Hunting: do NOT scratch; reset the 15-minute timer instead
+        toast({ title: "Gone Hunt expired during Not Hunting", description: `${draft.name}: Not Hunting reset to 15:00` });
+        notHuntingTimer.reset(15 * 60);
+        // Reset Gone Hunt as well so it can be cleanly restarted if needed
+        goneHuntingTimer.reset(5 * 60);
+        if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+          try { (navigator as any).vibrate?.(200); } catch {}
+        }
+        onTimerAction?.(draft.id, snapshotTimers());
+        return;
+      }
+      // Otherwise, scratch dog when Gone Hunt expires outside Not Hunting
       toast({ title: "Gone Hunt expired — Dog scratched", description: `${draft.name} is scratched from the hunt`, variant: "destructive" });
       const updated: DogData = { ...draft, disqualified: true };
       setDraft(updated);
