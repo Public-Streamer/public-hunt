@@ -37,6 +37,8 @@ import {
   X,
   Trash2,
   AlertTriangle,
+  Lock,
+  Unlock,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -46,6 +48,7 @@ import EventSharePanel from "@/components/EventSharePanel";
 import { useScreenSize } from "@/hooks/use-mobile";
 import { useMobileMediaPermissions } from "@/hooks/useMobileMediaPermissions";
 import LiveStreamLogo from "@/components/ui/live-stream-logo";
+import TooltipWrapper from "@/components/ui/tooltip-wrapper";
 import CameraSwitchButton from "@/components/CameraSwitchButton";
 import TorchButton from "@/components/TorchButton";
 import { CoonhoundScorecardV2 } from "@/components/scorecard/CoonhoundScorecardV2";
@@ -97,6 +100,8 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   const [isEditingStreamName, setIsEditingStreamName] = useState(false);
   const [streamNameValue, setStreamNameValue] = useState("");
   const [isSavingStreamName, setIsSavingStreamName] = useState(false);
+  // Prevent accidental stop: lock stop button
+  const [controlsLocked, setControlsLocked] = useState(false);
 
   // livekit stream name
   const track = useTracks();
@@ -736,9 +741,31 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
             {/* Stream Controls */}
             <Card>
               <CardHeader className="p-3 sm:p-3">
-                <CardTitle className="text-sm sm:text-base">
-                  Stream Controls
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm sm:text-base">
+                    Stream Controls
+                  </CardTitle>
+                  {controls.isStreaming && (
+                    <TooltipWrapper
+                      content={controlsLocked ? "Unlock to enable Stop Stream" : "Lock to prevent accidental stopping"}
+                    >
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => setControlsLocked(!controlsLocked)}
+                        aria-pressed={controlsLocked}
+                        className="ml-2"
+                      >
+                        {controlsLocked ? (
+                          <Lock className="h-4 w-4 mr-1" />
+                        ) : (
+                          <Unlock className="h-4 w-4 mr-1" />
+                        )}
+                        {controlsLocked ? "Locked" : "Unlock"}
+                      </Button>
+                    </TooltipWrapper>
+                  )}
+                </div>
               </CardHeader>
               <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-3">
                 {/* Go Live / Stop Stream */}
@@ -761,15 +788,20 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                     </Button>
                   ) : (
                     <div className="space-y-2">
-                      <Button
-                        onClick={controls.stopStream}
-                        variant="destructive"
-                        className="w-full text-xs sm:text-sm"
-                        size={screenSize === "mobile" ? "sm" : "lg"}
-                      >
-                        <Square className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                        Stop Stream (for you)
-                      </Button>
+                      <TooltipWrapper content={controlsLocked ? "Controls locked — unlock to stop your stream" : "Stop your personal stream"}>
+                        <span className="block w-full">
+                          <Button
+                            onClick={controls.stopStream}
+                            variant="destructive"
+                            className="w-full text-xs sm:text-sm"
+                            size={screenSize === "mobile" ? "sm" : "lg"}
+                            disabled={controlsLocked}
+                          >
+                            <Square className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                            Stop Stream (for you)
+                          </Button>
+                        </span>
+                      </TooltipWrapper>
                       {userRole === "host" && (
                         <Button
                           onClick={controls.stopEvent}
