@@ -8,6 +8,8 @@ import { useCountdown, TimerStatus } from "@/hooks/useCountdown";
 import { DogCard, DogData, ScoreEntry } from "./DogCard";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { ScorecardSummary } from "./ScorecardSummary";
+import { ScorecardDetails } from "./ScorecardDetails";
 
 interface Props { eventId: string; isHost: boolean }
 
@@ -25,6 +27,7 @@ function fromRow(row: any): DogData {
     cityState: cf.city_state || "",
     breed: cf.breed || "",
     age: typeof cf.age === 'number' ? cf.age : cf.age ? Number(cf.age) : undefined,
+    judgeNotes: cf.judge_notes || "",
   };
 }
 
@@ -39,6 +42,7 @@ function toPayload(d: DogData) {
       city_state: d.cityState,
       breed: d.breed,
       age: d.age,
+      judge_notes: d.judgeNotes,
       entries: d.entries,
     },
   } as const;
@@ -199,76 +203,17 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader className="py-3"><CardTitle className="text-base">Timers Overview</CardTitle></CardHeader>
-        <CardContent className="space-y-3">
-          <div className="text-xs text-muted-foreground">Cast-wide</div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            {[
-              { key: "hunt", label: `Main Hunt ${huntMinutes} minutes`, status: huntTimer.status, formatted: huntTimer.formatted },
-              { key: "track", label: "Track 6 minutes", status: trackTimer.status, formatted: trackTimer.formatted },
-              { key: "shine", label: "Global Shine 8 minutes", status: globalShineTimer.status, formatted: globalShineTimer.formatted },
-            ]
-              .filter((b) => b.status === "running")
-              .map((b) => (
-                <div key={b.key} className={`rounded-md p-2 border ${colorCls(b.status)}`}>
-                  <div className="flex items-center justify-between text-xs">
-                    <span>{b.label}</span>
-                    <span className="tabular-nums font-semibold">{b.formatted}</span>
-                  </div>
-                </div>
-              ))}
-            {huntTimer.status !== "running" && trackTimer.status !== "running" && globalShineTimer.status !== "running" && (
-              <div className="text-sm text-muted-foreground">No active cast timers</div>
-            )}
-          </div>
+      <ScorecardSummary
+        dogs={dogs}
+        timerOverview={timerOverview}
+        castTimers={[
+          { key: "hunt", label: `Main Hunt ${huntMinutes} minutes`, status: huntTimer.status, formatted: huntTimer.formatted },
+          { key: "track", label: "Track 6 minutes", status: trackTimer.status, formatted: trackTimer.formatted },
+          { key: "shine", label: "Global Shine 8 minutes", status: globalShineTimer.status, formatted: globalShineTimer.formatted },
+        ]}
+      />
 
-          <div className="space-y-3">
-            {dogs.map((d) => {
-              const snap = timerOverview[d.id];
-              if (!snap) return null;
-              const labelMap: Record<string, string> = { tree: "Tree", treeBark2: "Tree Bark", shine: "Shine", trackBark: "Track Bark", notHunting: "Not Hunt", stationary: "Stationary", noBark: "No Bark" };
-              const label = (k: string) => labelMap[k] ?? k.replace(/([A-Z])/g, " $1").trim();
-              const durationsMin: Record<string, number> = { tree: 3, treeBark2: 2, shine: 8, trackBark: 6, notHunting: 15, stationary: 5, noBark: 2 };
-              const keys: string[] = ["tree","treeBark2","shine","trackBark","notHunting","stationary","noBark"];
-              const running = keys
-                .map((k) => ({ key: k, t: snap[k] }))
-                .filter((x) => x.t && x.t.status === "running");
-              if (running.length === 0) return null; // hide dogs with no active timers in overview
-              return (
-                <div key={d.id}>
-                  <div className="text-xs font-medium flex items-center gap-2 mb-1">
-                    <span className="inline-block h-2 w-2 rounded-full" style={{ background: d.color }} />
-                    <span className="truncate">{d.name}</span>
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
-                    {running.map(({ key, t }) => (
-                      <div key={key} className={`rounded-md p-2 border ${colorCls(t.status)}`}>
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="capitalize">{`${label(key)} ${durationsMin[key]} minutes`}</span>
-                          <span className="tabular-nums font-semibold">{t.formatted}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Pending summary */}
-      <Card>
-        <CardHeader className="py-3"><CardTitle className="text-base">Pending Points Summary</CardTitle></CardHeader>
-        <CardContent>
-          {totalPending === 0 ? (
-            <div className="text-sm text-muted-foreground">No pending entries.</div>
-          ) : (
-            <div className="text-sm">{totalPending} pending entr{totalPending === 1 ? 'y' : 'ies'} across dogs.</div>
-          )}
-        </CardContent>
-      </Card>
+      <ScorecardDetails dogs={dogs} onSave={handleDogChange} canEdit={isHost} />
 
       {/* Dogs */}
       <div className="space-y-3">

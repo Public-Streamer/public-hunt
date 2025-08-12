@@ -29,6 +29,7 @@ export interface DogData {
   cityState?: string; // City, State
   breed?: string;
   age?: number;
+  judgeNotes?: string;
 }
 
 interface DogCardProps {
