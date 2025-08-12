@@ -598,8 +598,8 @@ const EventPage: React.FC = () => {
                       />
                     </div>
 
-                    {/* Scoreboard - Show only when there are teams */}
-                    {currentUser && showScoreboard && (
+                    {/* Scoreboard - Show only when there are teams (ticketed viewers or stage access) */}
+                    {currentUser && showScoreboard && (hasTicket || canEnterStage) && (
                       <div className="p-5">
                         {selectedGameType === "custom" ? (
                           <CustomScoreboard

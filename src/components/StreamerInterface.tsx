@@ -222,29 +222,13 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     if (!scoreboardType) return;
 
     try {
-      const response = await fetch(
-        "https://zmfugicftfwvuudensdo.supabase.co/functions/v1/scoreboard-operations",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization:
-              "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptZnVnaWNmdGZ3dnV1ZGVuc2RvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwNjU2ODUsImV4cCI6MjA2NzY0MTY4NX0.J8CA_K_oxhcd2wlQf0KvEarwi0ejq0nBgAVMEhQlXE8",
-          },
-          body: JSON.stringify({
-            action: "fetch",
-            eventId,
-            scoreboardType,
-          }),
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        setTeams(data || []);
-      }
+      const { data, error } = await supabase.functions.invoke('scoreboard-operations', {
+        body: { action: 'fetch', eventId, scoreboardType }
+      });
+      if (error) throw error;
+      setTeams(Array.isArray(data) ? data : (data as any)?.teams || []);
     } catch (error) {
-      console.error("Error fetching teams:", error);
+      console.error('Error fetching teams:', error);
     }
   };
 
@@ -307,37 +291,32 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     if (!selectedGameType) return;
 
     try {
-      const response = await fetch(
-        "https://zmfugicftfwvuudensdo.supabase.co/functions/v1/scoreboard-operations",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization:
-              "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptZnVnaWNmdGZ3dnV1ZGVuc2RvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwNjU2ODUsImV4cCI6MjA2NzY0MTY4NX0.J8CA_K_oxhcd2wlQf0KvEarwi0ejq0nBgAVMEhQlXE8",
-          },
-          body: JSON.stringify({
-            action: "deleteAll",
-            eventId,
-            scoreboardType: selectedGameType,
-          }),
-        }
-      );
+      const { error: fnError } = await supabase.functions.invoke('scoreboard-operations', {
+        body: { action: 'deleteAll', eventId, scoreboardType: selectedGameType }
+      });
+      if (fnError) throw fnError;
+      // Clear metadata
+      await supabase
+        .from("events")
+        .update({
+          metadata: {},
+        })
+        .eq("id", eventId);
 
-      if (response.ok) {
-        // Clear metadata
-        await supabase
-          .from("events")
-          .update({
-            metadata: {},
-          })
-          .eq("id", eventId);
-
-        setLocalSelectedGameType(null);
-        setTeams([]);
-        toast({
-          title: "Success",
-          description: "Scoreboard deleted successfully",
+      setLocalSelectedGameType(null);
+      setTeams([]);
+      toast({
+        title: "Success",
+        description: "Scoreboard deleted successfully",
+      });
+    } catch (error) {
+      console.error("Error deleting scoreboard:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete scoreboard",
+        variant: "destructive",
+      });
+    }
         });
       }
     } catch (error) {

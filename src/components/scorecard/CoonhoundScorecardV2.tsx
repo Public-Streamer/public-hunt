@@ -14,6 +14,7 @@ import { ScorecardSummary } from "./ScorecardSummary";
 import { ScorecardDetails } from "./ScorecardDetails";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ChevronDown } from "lucide-react";
+import { useEventControlLock } from "@/hooks/useEventControlLock";
 interface Props { eventId: string; isHost: boolean }
 
 // Utility to map from DB rows to DogData
@@ -62,6 +63,15 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
   const [loading, setLoading] = useState(false);
   const [huntMinutes, setHuntMinutes] = useState<60 | 90 | 120>(120);
   const [timerOverview, setTimerOverview] = useState<Record<string, any>>({});
+
+  // Server-authoritative control lock (auto-acquire, host override)
+  const { isOwner, lockedByName, acquire, release } = useEventControlLock({
+    eventId,
+    enabled: isHost,
+    autoAcquire: true,
+    overrideIfHost: true,
+    renewIntervalMs: 9000,
+  });
 
   // Collapsible sections: default collapsed for all at load
   const [openHunt, setOpenHunt] = useState<boolean>(false);
@@ -240,6 +250,7 @@ useEffect(() => {
 }, [eventId]);
 
 const syncCastTimers = useCallback(async () => {
+  if (!isHost || !isOwner) { toast({ title: 'Locked', description: lockedByName ? `Controls locked by ${lockedByName}` : 'Acquire lock to edit.', variant: 'destructive' }); return; }
   try {
     const timers = {
       mainHunt: { status: huntTimer.status, remaining: huntTimer.remaining },
@@ -260,6 +271,7 @@ const syncCastTimers = useCallback(async () => {
 // Save handler that updates score and custom_fields
 const handleDogChange = async (dog: DogData, newTotal: number) => {
   // compute previous for diff
+  if (!isHost || !isOwner) { toast({ title: 'Locked', description: lockedByName ? `Controls locked by ${lockedByName}` : 'Acquire lock to edit.', variant: 'destructive' }); return; }
   const prev = dogs.find((d) => d.id === dog.id);
   setDogs((prevList) => prevList.map((d) => (d.id === dog.id ? dog : d)));
   try {
@@ -290,6 +302,7 @@ const handleDogTimerAction = async (
   dogId: string,
   timers: Record<string, { status: TimerStatus; remaining: number }>
 ) => {
+  if (!isHost || !isOwner) { toast({ title: 'Locked', description: lockedByName ? `Controls locked by ${lockedByName}` : 'Acquire lock to edit.', variant: 'destructive' }); return; }
   try {
     await supabase.functions.invoke('scoreboard-operations', {
       body: { action: 'updateDogTimers', teamId: dogId, timers }
@@ -317,6 +330,7 @@ useEffect(() => {
 const [newDog, setNewDog] = useState("");
 const addDog = async () => {
   if (!newDog.trim()) return;
+  if (!isHost || !isOwner) { toast({ title: 'Locked', description: lockedByName ? `Controls locked by ${lockedByName}` : 'Acquire lock to edit.', variant: 'destructive' }); return; }
   setLoading(true);
   try {
     const colorPalette = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'];
@@ -345,6 +359,16 @@ const addDog = async () => {
           <Button variant="secondary" onClick={collapseAll} aria-label="Collapse all boxes">Collapse All</Button>
           <Button onClick={expandAll} aria-label="Expand all boxes">Expand All</Button>
           {expandAllMode && <Badge variant="outline" className="ml-2">Expand-All lock ON</Badge>}
+          <div className="ml-auto flex items-center gap-2">
+            {isHost && (isOwner ? (
+              <Button size="sm" variant="destructive" onClick={release} aria-label="Unlock controls">Unlock</Button>
+            ) : (
+              <>
+                <Button size="sm" onClick={() => acquire()} aria-label="Lock controls">Lock</Button>
+                {lockedByName && <Badge variant="outline">Locked by {lockedByName}</Badge>}
+              </>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -361,7 +385,7 @@ const addDog = async () => {
                   </Button>
                 </CollapsibleTrigger>
                 <Select value={String(huntMinutes)} onValueChange={(v) => { const m = Number(v) as 60 | 90 | 120; setHuntMinutes(m); huntTimer.reset(m * 60); syncCastTimers(); }}>
-                  <SelectTrigger disabled={!isHost} className="h-8 w-32"><SelectValue placeholder="Hunt" /></SelectTrigger>
+                  <SelectTrigger disabled={!isHost || !isOwner} className="h-8 w-32"><SelectValue placeholder="Hunt" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="60">60 min</SelectItem>
                     <SelectItem value="90">90 min</SelectItem>
@@ -379,16 +403,16 @@ const addDog = async () => {
             )}
             <CardContent className="grid grid-cols-1 sm:grid-cols-4 gap-2">
               <div title="Main Hunt Timer: Select duration then control the clock.">
-                <TimerControl disabled={!isHost} allowPause label="Main Hunt" formatted={huntTimer.formatted} status={huntTimer.status} onStart={() => { huntTimer.start(); babbleMainTimer.reset(); babbleMainTimer.start(); syncCastTimers(); }} onPause={() => { huntTimer.pause(); syncCastTimers(); }} onReset={() => { huntTimer.reset(huntMinutes * 60); syncCastTimers(); }} />
+                <TimerControl disabled={!isHost || !isOwner} allowPause label="Main Hunt" formatted={huntTimer.formatted} status={huntTimer.status} onStart={() => { huntTimer.start(); babbleMainTimer.reset(); babbleMainTimer.start(); syncCastTimers(); }} onPause={() => { huntTimer.pause(); syncCastTimers(); }} onReset={() => { huntTimer.reset(huntMinutes * 60); syncCastTimers(); }} />
               </div>
               <div title="Global Track Timer: 6 minutes for strike requirement.">
-                <TimerControl disabled={!isHost} label="Track 6:00" formatted={trackTimer.formatted} status={trackTimer.status} onStart={() => { trackTimer.start(); syncCastTimers(); }} onPause={() => { trackTimer.pause(); syncCastTimers(); }} onReset={() => { trackTimer.reset(); syncCastTimers(); }} />
+                <TimerControl disabled={!isHost || !isOwner} label="Track 6:00" formatted={trackTimer.formatted} status={trackTimer.status} onStart={() => { trackTimer.start(); syncCastTimers(); }} onPause={() => { trackTimer.pause(); syncCastTimers(); }} onReset={() => { trackTimer.reset(); syncCastTimers(); }} />
               </div>
               <div title="Global Shine Timer: 8 minutes when multiple dogs are involved.">
-                <TimerControl disabled={!isHost} label="Global Shine 8:00" formatted={globalShineTimer.formatted} status={globalShineTimer.status} onStart={() => { globalShineTimer.start(); syncCastTimers(); }} onPause={() => { globalShineTimer.pause(); syncCastTimers(); }} onReset={() => { globalShineTimer.reset(); syncCastTimers(); }} />
+                <TimerControl disabled={!isHost || !isOwner} label="Global Shine 8:00" formatted={globalShineTimer.formatted} status={globalShineTimer.status} onStart={() => { globalShineTimer.start(); syncCastTimers(); }} onPause={() => { globalShineTimer.pause(); syncCastTimers(); }} onReset={() => { globalShineTimer.reset(); syncCastTimers(); }} />
               </div>
               <div title="Babbling Stopwatch: auto-starts with Main Hunt start.">
-                <TimerControl disabled={!isHost} label="Babbling 1 Minute 1:00" formatted={babbleMainTimer.formatted} status={babbleMainTimer.status} onStart={() => { babbleMainTimer.start(); syncCastTimers(); }} onPause={() => { babbleMainTimer.pause(); syncCastTimers(); }} onReset={() => { babbleMainTimer.reset(); syncCastTimers(); }} />
+                <TimerControl disabled={!isHost || !isOwner} label="Babbling 1 Minute 1:00" formatted={babbleMainTimer.formatted} status={babbleMainTimer.status} onStart={() => { babbleMainTimer.start(); syncCastTimers(); }} onPause={() => { babbleMainTimer.pause(); syncCastTimers(); }} onReset={() => { babbleMainTimer.reset(); syncCastTimers(); }} />
               </div>
             </CardContent>
           </CollapsibleContent>
@@ -421,7 +445,7 @@ const addDog = async () => {
       <ScorecardDetails
         dogs={dogs}
         onSave={handleDogChange}
-        canEdit={isHost}
+        canEdit={isHost && isOwner}
         open={expandAllMode ? true : openDetails}
         onOpenChange={expandAllMode ? undefined : setOpenDetails}
         glowClassName={glow['details'] ? 'glow-active glow-info' : ''}
@@ -442,7 +466,7 @@ const addDog = async () => {
               onTimerSnapshot={(dogId, snap) => setTimerOverview((prev) => ({ ...prev, [dogId]: snap }))}
               onTimerAction={handleDogTimerAction}
               onDelete={() => fetchTeams()}
-              canEdit={isHost}
+              canEdit={isHost && isOwner}
               openExternal={expandAllMode ? true : (openDogIds[d.id] ?? false)}
               lockOpen={expandAllMode}
             />
@@ -454,7 +478,7 @@ const addDog = async () => {
       {isHost && (
         <div className="flex items-center gap-2">
           <Input placeholder="Add dog (team name)" value={newDog} onChange={(e) => setNewDog(e.target.value)} className="max-w-xs" />
-          <Button onClick={addDog} disabled={loading}>Add</Button>
+          <Button onClick={addDog} disabled={loading || !isOwner}>Add</Button>
         </div>
       )}
     </div>
