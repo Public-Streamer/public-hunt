@@ -84,17 +84,16 @@ serve(async (req) => {
         .lt("updated_at", cutoffIso)
         .single();
 
-      if (activeErr) {
-        console.error(
-          `Error checking active streams for event ${ev.id}:`,
-          activeErr
-        );
+      if (activeErr?.code !== "PGRST116") {
+        console.warn(`No active streams for event ${ev.id}:`);
         continue;
       }
 
       const hasActive = !!activeStreams;
+      console.log("hasActive", hasActive, activeStreams);
 
       if (!hasActive) {
+        console.log("closing event", ev.id);
         // 3a) Mark event not live
         const { error: updateEventErr } = await admin
           .from("events")
