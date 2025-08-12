@@ -302,16 +302,16 @@ serve(async (req) => {
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
     // Store/update participant information for tracking
-    await supabase.from("event_participants").upsert({
-      event_id: eventId,
-      user_id: user.id,
-      role: actualRole,
-      permissions: [],
-      livekit_token: token,
-      token_expires_at: expiresAt.toISOString(),
-      last_seen: new Date().toISOString(),
-      // is_live: true,
-    });
+    // await supabase.from("event_participants").upsert({
+    //   event_id: eventId,
+    //   user_id: user.id,
+    //   role: actualRole,
+    //   permissions: [],
+    //   livekit_token: token,
+    //   token_expires_at: expiresAt.toISOString(),
+    //   last_seen: new Date().toISOString(),
+    //   // is_live: true,
+    // });
 
     const response: CreateTokenResponse = {
       token,
