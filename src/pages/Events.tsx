@@ -132,7 +132,7 @@ const Events: React.FC = () => {
           .from("events")
           .select("*")
           .gte("date", today)
-          .gte("time", new Date().toISOString().slice(11, 19))
+          // .gte("time", new Date().toISOString().slice(11, 19))
           .order("date", { ascending: true });
 
       if (scheduledError) {

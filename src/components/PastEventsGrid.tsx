@@ -48,7 +48,7 @@ const PastEventsGrid: React.FC = () => {
         .select("*")
         .eq("is_live", false)
         .lt("date", today)
-        .lt("time", time)
+        // .lt("time", time)
         .order("created_at", { ascending: false });
 
       if (error) throw error;

@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Calendar, Clock, Star, Eye, DollarSign } from 'lucide-react';
-import TooltipWrapper from '@/components/ui/tooltip-wrapper';
-import TicketPurchaseModal from './TicketPurchaseModal';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Calendar, Clock, Star, Eye, DollarSign } from "lucide-react";
+import TooltipWrapper from "@/components/ui/tooltip-wrapper";
+import TicketPurchaseModal from "./TicketPurchaseModal";
 
 interface ScheduledEvent {
   id: string;
@@ -26,12 +26,17 @@ interface ScheduledEventCardProps {
   onPurchase?: (eventId: string) => void;
 }
 
-const ScheduledEventCard: React.FC<ScheduledEventCardProps> = ({ event, onPurchase }) => {
+const ScheduledEventCard: React.FC<ScheduledEventCardProps> = ({
+  event,
+  onPurchase,
+}) => {
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const navigate = useNavigate();
 
   const handleClick = () => {
-    const eventUrl = (event as any).slug ? `/event/${(event as any).slug}` : `/event/${event.id}`;
+    const eventUrl = (event as any).slug
+      ? `/event/${(event as any).slug}`
+      : `/event/${event.id}`;
     navigate(eventUrl);
   };
 
@@ -46,8 +51,13 @@ const ScheduledEventCard: React.FC<ScheduledEventCardProps> = ({ event, onPurcha
 
   return (
     <>
-      <TooltipWrapper content={`${event.title} - Starts ${event.timeUntilStart}`}>
-        <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={handleClick}>
+      <TooltipWrapper
+        content={`${event.title} - Starts ${event.timeUntilStart}`}
+      >
+        <Card
+          className="hover:shadow-lg transition-shadow cursor-pointer"
+          onClick={handleClick}
+        >
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg">{event.title}</CardTitle>
@@ -58,23 +68,22 @@ const ScheduledEventCard: React.FC<ScheduledEventCardProps> = ({ event, onPurcha
           </CardHeader>
           <CardContent>
             <p className="text-sm text-gray-600 mb-2">{event.channelName}</p>
-            
+
             <div className="flex items-center text-sm text-gray-500 mb-2">
               <Calendar className="h-4 w-4 mr-1" />
               <span>{event.startDate}</span>
               <Clock className="h-4 w-4 ml-3 mr-1" />
               <span>{event.startTime}</span>
             </div>
-            
+
             <div className="text-sm font-medium text-blue-600 mb-2">
               Starts {event.timeUntilStart}
             </div>
-            
+
             <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
               <TooltipWrapper content="Event price">
                 <span className="flex items-center">
-                  <DollarSign className="h-4 w-4 mr-1" />
-                  ${event.price}
+                  <DollarSign className="h-4 w-4 mr-1" />${event.price}
                 </span>
               </TooltipWrapper>
               <TooltipWrapper content="Event rating">
@@ -84,14 +93,14 @@ const ScheduledEventCard: React.FC<ScheduledEventCardProps> = ({ event, onPurcha
                 </span>
               </TooltipWrapper>
             </div>
-            
+
             <Button
-              onClick={handleBuyTicket}
+              onClick={handleClick}
               className="w-full mb-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
             >
-              Buy Ticket - ${event.price}
+              View Event
             </Button>
-            
+
             <div className="flex items-center justify-between text-xs text-gray-400">
               <TooltipWrapper content="Expected views">
                 <span className="flex items-center">
@@ -104,7 +113,7 @@ const ScheduledEventCard: React.FC<ScheduledEventCardProps> = ({ event, onPurcha
           </CardContent>
         </Card>
       </TooltipWrapper>
-      
+
       <TicketPurchaseModal
         isOpen={showPurchaseModal}
         onClose={() => setShowPurchaseModal(false)}
