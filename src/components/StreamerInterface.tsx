@@ -458,7 +458,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
           .update({
             is_active: true,
             updated_at: new Date().toISOString(),
-            streamerCounts: totalTracksLength,
+            streamer_counts: totalTracksLength,
           })
           .eq("event_id", eventId)
           .eq("streamer_id", userId);
