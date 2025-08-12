@@ -1302,7 +1302,10 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
           );
 
         if (upsertErr) {
-          console.error("❌ Error upserting event_streams aggregator:", upsertErr);
+          console.error(
+            "❌ Error upserting event_streams aggregator:",
+            upsertErr
+          );
           throw upsertErr;
         }
 
@@ -1331,24 +1334,25 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   const closeRoom = useCallback(
     async (session: any) => {
       try {
-        await supabase
-          .from("events")
-          .update({
-            time: new Date().toISOString().slice(11, 19),
-            date: new Date().toISOString().slice(0, 10),
-          })
-          .eq("id", eventId);
-
-        await supabase.functions.invoke("manage-livekit-room", {
-          body: {
-            action: "close",
-            eventId,
-          },
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-          },
-        });
-        console.log(`room closed for event: ${eventId}`);
+        await Promise.all([
+          supabase
+            .from("events")
+            .update({
+              time: new Date().toISOString().slice(11, 19),
+              date: new Date().toISOString().slice(0, 10),
+            })
+            .eq("id", eventId),
+          supabase.from("event_streams").delete().eq("event_id", eventId),
+          supabase.functions.invoke("manage-livekit-room", {
+            body: {
+              action: "close",
+              eventId,
+            },
+            headers: {
+              Authorization: `Bearer ${session.access_token}`,
+            },
+          }),
+        ]);
       } catch (error) {
         console.error("Error closing room:", error);
       }
@@ -1392,12 +1396,6 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       if (isAudioEnabled) {
         toggleAudioLiveButton(false);
       }
-
-      // Reset aggregator row to inactive with zero streamer_counts
-      await supabase
-        .from("event_streams")
-        .update({ is_active: false, streamer_counts: 0 })
-        .eq("event_id", eventId);
 
       setTimeout(async () => {
         const result = await checkAndUpdateLiveStatus();
@@ -1452,10 +1450,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
         .update({ is_live: false })
         .eq("event_id", eventId);
 
-      await supabase
-        .from("event_streams")
-        .update({ is_active: false })
-        .eq("event_id", eventId);
+      await supabase.from("event_streams").delete().eq("event_id", eventId);
 
       await closeRoom(session);
 
