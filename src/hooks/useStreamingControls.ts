@@ -1316,18 +1316,15 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
 
         const { error: upsertErr } = await supabase
           .from("event_streams")
-          .upsert(
-            {
-              event_id: eventId,
-              // Keep a consistent name to identify aggregator row; not user-specific
-              stream_name: "Main Stream",
-              // streamer_id intentionally omitted; aggregator is not tied to one user
-              is_active: true,
-              streamer_counts: streamerCount,
-              // updated_at will be auto-updated by trigger on UPDATE
-            },
-            { onConflict: "event_id" }
-          );
+          .upsert({
+            event_id: eventId,
+            // Keep a consistent name to identify aggregator row; not user-specific
+            stream_name: "Main Stream",
+            // streamer_id intentionally omitted; aggregator is not tied to one user
+            is_active: true,
+            streamer_counts: streamerCount,
+            // updated_at will be auto-updated by trigger on UPDATE
+          });
 
         if (upsertErr) {
           console.error(
