@@ -1420,7 +1420,6 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       console.error("Stop stream error:", error);
     }
   }, [
-    eventId,
     updateParticipantLiveStatus,
     checkAndUpdateLiveStatus,
     toggleVideoLiveButton,
