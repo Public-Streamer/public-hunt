@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   useLocalParticipant,
   useParticipants,
@@ -102,6 +102,17 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   const [isSavingStreamName, setIsSavingStreamName] = useState(false);
   // Prevent accidental stop: lock stop button
   const [controlsLocked, setControlsLocked] = useState(false);
+  // Auto-lock controls when stream goes live; unlock when it ends
+  const prevIsStreamingRef = useRef(controls.isStreaming);
+  useEffect(() => {
+    if (!prevIsStreamingRef.current && controls.isStreaming) {
+      setControlsLocked(true);
+    }
+    if (prevIsStreamingRef.current && !controls.isStreaming) {
+      setControlsLocked(false);
+    }
+    prevIsStreamingRef.current = controls.isStreaming;
+  }, [controls.isStreaming]);
 
   // livekit stream name
   const track = useTracks();
@@ -747,7 +758,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                   </CardTitle>
                   {controls.isStreaming && (
                     <TooltipWrapper
-                      content={controlsLocked ? "Unlock to enable Stop Stream" : "Lock to prevent accidental stopping"}
+                      content={controlsLocked ? "Unlock to modify stream controls" : "Lock to prevent changes"}
                     >
                       <Button
                         variant="secondary"
@@ -767,7 +778,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                   )}
                 </div>
               </CardHeader>
-              <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-3">
+              <CardContent className={`space-y-3 sm:space-y-4 p-3 sm:p-3 ${controlsLocked ? "pointer-events-none opacity-60" : ""}`}>
                 {/* Go Live / Stop Stream */}
                 <div className="space-y-2">
                   {!controls.isStreaming ? (
