@@ -150,13 +150,23 @@ export const ScorecardSummary: React.FC<ScorecardSummaryProps> = ({ dogs, timerO
                         Pending: <span className="ml-1 tabular-nums">{pending}</span>
                       </Badge>
                     )}
-                    <Badge
-                      variant="secondary"
-                      className={`${total > 0 ? "text-primary bg-primary/10 border-primary/40" : total < 0 ? "text-destructive bg-destructive/10 border-destructive/40" : "text-muted-foreground"} border`}
-                    >
-                      Total: <span className="ml-1 tabular-nums">{Math.abs(total)}</span>
-                      {total !== 0 && <span className="ml-1">{total > 0 ? "+" : "-"}</span>}
-                    </Badge>
+                    {total === 0 && circle > 0 ? (
+                      <Badge
+                        variant="outline"
+                        className="bg-accent/10 text-accent border-accent/40 rounded-full ring-1 ring-accent/40"
+                      >
+                        Total: <span className="ml-1 tabular-nums">{circle}</span>
+                        <span className="ml-1">◯</span>
+                      </Badge>
+                    ) : (
+                      <Badge
+                        variant="secondary"
+                        className={`${total > 0 ? "text-primary bg-primary/10 border-primary/40" : total < 0 ? "text-destructive bg-destructive/10 border-destructive/40" : "text-muted-foreground"} border`}
+                      >
+                        Total: <span className="ml-1 tabular-nums">{Math.abs(total)}</span>
+                        {total !== 0 && <span className="ml-1">{total > 0 ? "+" : "-"}</span>}
+                      </Badge>
+                    )}
                   </div>
                 </div>
                 {running.length > 0 && (
