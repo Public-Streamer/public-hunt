@@ -1323,7 +1323,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
               streamer_counts: streamerCount,
               // updated_at will be auto-updated by trigger on UPDATE
             },
-            { onConflict: "event_id" }
+            // { onConflict: "event_id" }
           );
 
         if (upsertErr) {

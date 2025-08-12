@@ -444,38 +444,38 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   }, [localCameraTracks, otherCameraTracks]);
 
   // Heartbeat: mark streamer as active periodically so server can detect ungraceful closes
-  useEffect(() => {
-    if (!eventId || !userId) return;
+  // useEffect(() => {
+  //   if (!eventId || !userId) return;
 
-    let cancelled = false;
+  //   let cancelled = false;
 
-    const sendHeartbeat = async () => {
-      try {
-        if (cancelled) return;
-        // Update existing stream row to mark it active and refresh updated_at
-        await supabase
-          .from("event_streams")
-          .update({
-            is_active: true,
-            updated_at: new Date().toISOString(),
-            streamer_counts: totalTracksLength,
-          })
-          .eq("event_id", eventId)
-          .eq("streamer_id", userId);
-      } catch (err) {
-        // Ignore transient errors
-      }
-    };
+  //   const sendHeartbeat = async () => {
+  //     try {
+  //       if (cancelled) return;
+  //       // Update existing stream row to mark it active and refresh updated_at
+  //       await supabase
+  //         .from("event_streams")
+  //         .update({
+  //           is_active: true,
+  //           updated_at: new Date().toISOString(),
+  //           streamer_counts: totalTracksLength,
+  //         })
+  //         .eq("event_id", eventId)
+  //         .eq("streamer_id", userId);
+  //     } catch (err) {
+  //       console.error("error in hearbeat ", err)
+  //     }
+  //   };
 
-    // Kickoff immediately and then at interval
-    sendHeartbeat();
-    const interval = setInterval(sendHeartbeat, 10000);
+  //   // Kickoff immediately and then at interval
+  //   sendHeartbeat();
+  //   const interval = setInterval(sendHeartbeat, 10000);
 
-    return () => {
-      cancelled = true;
-      clearInterval(interval);
-    };
-  }, [eventId, userId, totalTracksLength]);
+  //   return () => {
+  //     cancelled = true;
+  //     clearInterval(interval);
+  //   };
+  // }, [eventId, userId, totalTracksLength]);
 
   if (!localParticipant) {
     return (

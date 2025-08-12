@@ -12,6 +12,7 @@ const StagePage: React.FC = () => {
   const [searchParams] = useSearchParams();
 
   const [event, setEvent] = useState<any>(null);
+  const [streamId, setStreamId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState<"host" | "streamer" | null>(null);
   const [user, setUser] = useState<any>(null);
@@ -264,9 +265,6 @@ const StagePage: React.FC = () => {
       generateToken();
     }
   }, [event?.id, userRole, user, inviteToken]);
-
-
-
 
   // Cleanup token generation flag on unmount
   useEffect(() => {
