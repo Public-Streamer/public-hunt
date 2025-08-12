@@ -40,6 +40,7 @@ import { useScoreboardTeams } from "@/hooks/useScoreboardTeams";
 import { useEventScoreboardMeta } from "@/hooks/useEventScoreboardMeta";
 import { getShareableEventUrl } from "@/lib/shareUtils";
 import { Database } from "@/integrations/supabase/types";
+import { CoonhoundScoreboardViewer } from "@/components/scorecard/CoonhoundScoreboardViewer";
 
 type EventData = Database["public"]["Tables"]["events"]["Row"];
 
@@ -606,10 +607,7 @@ const EventPage: React.FC = () => {
                             isHost={false}
                           />
                         ) : selectedGameType === "coon_hunt" ? (
-                          <CustomScoreboard
-                            eventId={eventData.id}
-                            isHost={false}
-                          />
+                          <CoonhoundScoreboardViewer eventId={eventData.id} />
                         ) : null}
                       </div>
                     )}

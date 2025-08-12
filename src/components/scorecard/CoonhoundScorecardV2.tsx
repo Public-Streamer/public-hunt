@@ -118,6 +118,19 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
     }
   };
 
+  const handleDogTimerAction = async (
+    dogId: string,
+    timers: Record<string, { status: TimerStatus; remaining: number }>
+  ) => {
+    try {
+      await supabase.functions.invoke('scoreboard-operations', {
+        body: { action: 'updateDogTimers', teamId: dogId, timers }
+      });
+    } catch (e) {
+      console.warn('Failed to sync dog timers', e);
+    }
+  };
+
   const totalPending = useMemo(() => dogs.reduce((acc, d) => acc + d.entries.filter(e => e.outcome === 'pending').length, 0), [dogs]);
 
   // SEO: Ensure semantic, accessible structure is used in headings/sections (handled by page layout)
@@ -153,7 +166,7 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
           <CardTitle className="flex items-center justify-between text-base">
             <span>Hunt Timers</span>
             <div className="flex items-center gap-2">
-              <Select value={String(huntMinutes)} onValueChange={(v) => { const m = Number(v) as 60 | 90 | 120; setHuntMinutes(m); huntTimer.reset(m * 60); }}>
+              <Select value={String(huntMinutes)} onValueChange={(v) => { const m = Number(v) as 60 | 90 | 120; setHuntMinutes(m); huntTimer.reset(m * 60); syncCastTimers(); }}>
                 <SelectTrigger className="h-8 w-32"><SelectValue placeholder="Hunt" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="60">60 min</SelectItem>
@@ -166,13 +179,13 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
         </CardHeader>
         <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <div title="Main Hunt Timer: Select duration then control the clock.">
-            <TimerControl label="Main Hunt" formatted={huntTimer.formatted} status={huntTimer.status} onStart={huntTimer.start} onPause={huntTimer.pause} onReset={() => huntTimer.reset(huntMinutes * 60)} />
+            <TimerControl label="Main Hunt" formatted={huntTimer.formatted} status={huntTimer.status} onStart={() => { huntTimer.start(); syncCastTimers(); }} onPause={() => { huntTimer.pause(); syncCastTimers(); }} onReset={() => { huntTimer.reset(huntMinutes * 60); syncCastTimers(); }} />
           </div>
           <div title="Global Track Timer: 6 minutes for strike requirement.">
-            <TimerControl label="Track 6:00" formatted={trackTimer.formatted} status={trackTimer.status} onStart={trackTimer.start} onPause={trackTimer.pause} onReset={trackTimer.reset} />
+            <TimerControl label="Track 6:00" formatted={trackTimer.formatted} status={trackTimer.status} onStart={() => { trackTimer.start(); syncCastTimers(); }} onPause={() => { trackTimer.pause(); syncCastTimers(); }} onReset={() => { trackTimer.reset(); syncCastTimers(); }} />
           </div>
           <div title="Global Shine Timer: 8 minutes when multiple dogs are involved.">
-            <TimerControl label="Global Shine 8:00" formatted={globalShineTimer.formatted} status={globalShineTimer.status} onStart={globalShineTimer.start} onPause={globalShineTimer.pause} onReset={globalShineTimer.reset} />
+            <TimerControl label="Global Shine 8:00" formatted={globalShineTimer.formatted} status={globalShineTimer.status} onStart={() => { globalShineTimer.start(); syncCastTimers(); }} onPause={() => { globalShineTimer.pause(); syncCastTimers(); }} onReset={() => { globalShineTimer.reset(); syncCastTimers(); }} />
           </div>
         </CardContent>
       </Card>
@@ -250,7 +263,13 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
       {/* Dogs */}
       <div className="space-y-3">
         {dogs.map((d) => (
-          <DogCard key={d.id} dog={d} onChange={handleDogChange} />
+          <DogCard
+            key={d.id}
+            dog={d}
+            onChange={handleDogChange}
+            onTimerSnapshot={(dogId, snap) => setTimerOverview((prev) => ({ ...prev, [dogId]: snap }))}
+            onTimerAction={handleDogTimerAction}
+          />
         ))}
       </div>
 
