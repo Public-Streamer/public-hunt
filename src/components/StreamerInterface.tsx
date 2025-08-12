@@ -155,6 +155,26 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   const canManageScoreboard = userRole === "host" || isJudge;
   const canSeeScoreboard = canManageScoreboard;
 
+  // Real-time permission updates for judge role
+  useEffect(() => {
+    if (!eventId || !userId) return;
+    const ch = supabase
+      .channel(`judge-perms-${eventId}-${userId}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'event_streamers', filter: `event_id=eq.${eventId}` },
+        (payload) => {
+          const row: any = payload.new;
+          if (row.streamer_id === userId) {
+            const perms = (row.permissions || []) as string[];
+            setIsJudge(perms.includes('scorecard_judge'));
+          }
+        }
+      )
+      .subscribe();
+    return () => { ch.unsubscribe(); };
+  }, [eventId, userId]);
+
   // Load event metadata and selected game type
   const loadEventData = async () => {
     try {

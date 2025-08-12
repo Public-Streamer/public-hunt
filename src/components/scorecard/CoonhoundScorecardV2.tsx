@@ -248,6 +248,7 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
             onChange={handleDogChange}
             onTimerSnapshot={(dogId, snap) => setTimerOverview((prev) => ({ ...prev, [dogId]: snap }))}
             onTimerAction={handleDogTimerAction}
+            onDelete={() => fetchTeams()}
             canEdit={isHost}
           />
         ))}

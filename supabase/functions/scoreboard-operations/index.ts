@@ -19,6 +19,47 @@ serve(async (req) => {
 
   const { action, eventId, teamName, teamColor, teamId, score, custom_fields, pinnedMessage, pinnedMessages, messageId, newOrder, scoreboardType, timers } = await req.json()
 
+    // Auth client bound to requester to enforce permissions
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+    const authClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      anonKey,
+      { global: { headers: { Authorization: req.headers.get('Authorization') || '' } } }
+    )
+
+    const { data: userData } = await authClient.auth.getUser()
+    const user = userData?.user
+
+    const isHostForEvent = async (eId: string, uid: string) => {
+      const { data } = await authClient.from('events').select('created_by').eq('id', eId).maybeSingle()
+      return data?.created_by === uid
+    }
+
+    const isJudgeForEvent = async (eId: string, uid: string) => {
+      const { data } = await authClient
+        .from('event_streamers')
+        .select('permissions, streamer_id')
+        .eq('event_id', eId)
+        .eq('streamer_id', uid)
+        .maybeSingle()
+      const perms: string[] = (data?.permissions as any) || []
+      return Array.isArray(perms) && perms.includes('scorecard_judge')
+    }
+
+    const getEventIdByTeam = async (tId: string) => {
+      const { data, error } = await supabaseClient.from('event_scoreboard').select('event_id').eq('id', tId).single()
+      if (error) throw error
+      return data.event_id as string
+    }
+
+    const assertCanJudge = async (eId: string) => {
+      if (!user?.id) return false
+      if (await isHostForEvent(eId, user.id)) return true
+      if (await isJudgeForEvent(eId, user.id)) return true
+      return false
+    }
+
+
     switch (action) {
       case 'fetch':
         const requestedType = scoreboardType || 'coon_hunt'
@@ -35,73 +76,91 @@ serve(async (req) => {
         })
 
       case 'create':
-        const createType = scoreboardType || 'coon_hunt'
-        const { error: createError } = await supabaseClient
-          .from('event_scoreboard')
-          .insert({
-            event_id: eventId,
-            team_name: teamName,
-            score: 0,
-            team_color: teamColor,
-            custom_fields: custom_fields || {},
-            scoreboard_type: createType,
-          })
+        {
+          const createType = scoreboardType || 'coon_hunt'
+          if (!(await assertCanJudge(eventId))) return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: corsHeaders })
+          const { error: createError } = await supabaseClient
+            .from('event_scoreboard')
+            .insert({
+              event_id: eventId,
+              team_name: teamName,
+              score: 0,
+              team_color: teamColor,
+              custom_fields: custom_fields || {},
+              scoreboard_type: createType,
+            })
 
-        if (createError) throw createError
-        return new Response(JSON.stringify({ success: true }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        })
+          if (createError) throw createError
+          return new Response(JSON.stringify({ success: true }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          })
+        }
 
       case 'updateScore':
-        const { error: updateError } = await supabaseClient
-          .from('event_scoreboard')
-          .update({ score })
-          .eq('id', teamId)
+        {
+          const eId = await getEventIdByTeam(teamId)
+          if (!(await assertCanJudge(eId))) return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: corsHeaders })
+          const { error: updateError } = await supabaseClient
+            .from('event_scoreboard')
+            .update({ score })
+            .eq('id', teamId)
 
-        if (updateError) throw updateError
-        return new Response(JSON.stringify({ success: true }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        })
+          if (updateError) throw updateError
+          return new Response(JSON.stringify({ success: true }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          })
+        }
 
       case 'updateTeam':
-        const { error: updateTeamError } = await supabaseClient
-          .from('event_scoreboard')
-          .update({
-            team_name: teamName,
-            score: score,
-            team_color: teamColor,
-            custom_fields: custom_fields || {}
-          })
-          .eq('id', teamId)
+        {
+          const eId = await getEventIdByTeam(teamId)
+          if (!(await assertCanJudge(eId))) return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: corsHeaders })
+          const { error: updateTeamError } = await supabaseClient
+            .from('event_scoreboard')
+            .update({
+              team_name: teamName,
+              score: score,
+              team_color: teamColor,
+              custom_fields: custom_fields || {}
+            })
+            .eq('id', teamId)
 
-        if (updateTeamError) throw updateTeamError
-        return new Response(JSON.stringify({ success: true }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        })
+          if (updateTeamError) throw updateTeamError
+          return new Response(JSON.stringify({ success: true }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          })
+        }
 
       case 'delete':
-        const { error: deleteError } = await supabaseClient
-          .from('event_scoreboard')
-          .delete()
-          .eq('id', teamId)
+        {
+          const eId = await getEventIdByTeam(teamId)
+          if (!(await assertCanJudge(eId))) return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: corsHeaders })
+          const { error: deleteError } = await supabaseClient
+            .from('event_scoreboard')
+            .delete()
+            .eq('id', teamId)
 
-        if (deleteError) throw deleteError
-        return new Response(JSON.stringify({ success: true }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        })
+          if (deleteError) throw deleteError
+          return new Response(JSON.stringify({ success: true }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          })
+        }
 
       case 'deleteAll':
-        const deleteType = scoreboardType || 'coon_hunt'
-        const { error: deleteAllError } = await supabaseClient
-          .from('event_scoreboard')
-          .delete()
-          .eq('event_id', eventId)
-          .eq('scoreboard_type', deleteType)
+        {
+          const deleteType = scoreboardType || 'coon_hunt'
+          if (!(await assertCanJudge(eventId))) return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: corsHeaders })
+          const { error: deleteAllError } = await supabaseClient
+            .from('event_scoreboard')
+            .delete()
+            .eq('event_id', eventId)
+            .eq('scoreboard_type', deleteType)
 
-        if (deleteAllError) throw deleteAllError
-        return new Response(JSON.stringify({ success: true }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        })
+          if (deleteAllError) throw deleteAllError
+          return new Response(JSON.stringify({ success: true }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          })
+        }
 
       case 'fetchPinnedMessage':
         const { data: eventData, error: eventError } = await supabaseClient
@@ -279,6 +338,8 @@ serve(async (req) => {
         })
 
       case 'updateDogTimers': {
+        const eId = await getEventIdByTeam(teamId)
+        if (!(await assertCanJudge(eId))) return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: corsHeaders })
         const nowIso = new Date().toISOString()
         const { data: teamRow, error: teamFetchError } = await supabaseClient
           .from('event_scoreboard')
@@ -303,6 +364,7 @@ serve(async (req) => {
       }
 
       case 'updateCastTimers': {
+        if (!(await assertCanJudge(eventId))) return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: corsHeaders })
         const nowIso = new Date().toISOString()
         const { data: evRow, error: evFetchError } = await supabaseClient
           .from('events')

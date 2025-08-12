@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Clock, ChevronDown, Upload } from "lucide-react";
+import { Plus, Clock, ChevronDown, Upload, Edit3, Trash2 } from "lucide-react";
 import { TimerControl } from "./TimerControl";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { useCountdown, TimerStatus } from "@/hooks/useCountdown";
@@ -59,13 +59,14 @@ interface DogCardProps {
     dogId: string,
     timers: Record<string, { status: TimerStatus; remaining: number }>
   ) => void;
+  onDelete?: (dogId: string) => void;
   canEdit?: boolean;
 }
 
 const quickStrike = [100, 75, 50, 25];
 const quickTree = [125, 75, 50, 25];
 
-export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot, onTimerAction, canEdit = true }) => {
+export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot, onTimerAction, onDelete, canEdit = true }) => {
   const [draft, setDraft] = useState<DogData>(dog);
   const [customPoints, setCustomPoints] = useState<string>("");
   const [treeMinusBlink, setTreeMinusBlink] = useState(false);
@@ -226,6 +227,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
   const hasPending = draft.entries.some((e) => e.outcome === "pending");
 
   const addEntry = (type: EntryType, points: number) => {
+    if (!canEdit) return;
     const newEntry: ScoreEntry = { id: crypto.randomUUID(), type, points, outcome: "pending", at: new Date().toISOString() };
     const updated: DogData = { ...draft, entries: [...draft.entries, newEntry] };
     setDraft(updated);
@@ -233,6 +235,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
   };
 
   const setOutcome = (id: string, outcome: EntryOutcome) => {
+    if (!canEdit) return;
     const entry = draft.entries.find((e) => e.id === id);
     // 2-Minute No-Bark Rule Fix:
     // Allow MINUS on pending tree points as soon as the individual 2-minute tree no-bark timer expires,
@@ -254,12 +257,14 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
     onChange(updated, computeTotal(updated.entries));
   };
   const removeEntry = (id: string) => {
+    if (!canEdit) return;
     const updated: DogData = { ...draft, entries: draft.entries.filter((e) => e.id !== id) };
     setDraft(updated);
     onChange(updated, computeTotal(updated.entries));
   };
 
   const startNonBarkGuarded = () => {
+    if (!canEdit) return;
     if (stationaryTimer.status !== "running") {
       toast({ title: "Start Stationary first", description: "Begin the 5-minute stationary before starting the 2-minute no-bark", variant: "destructive" });
       return;
@@ -269,6 +274,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
   };
   
   const startGoneHuntingGuarded = () => {
+    if (!canEdit) return;
     if (notHuntingTimer.status !== "running") {
       toast({
         title: "Start Not Hunting first",
@@ -304,6 +310,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
 
   const [customTimers, setCustomTimers] = useState<{ id: string; label: string; seconds: number }[]>([]);
   const [open, setOpen] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
 
   const runningTimers = useMemo(
     () => [
@@ -420,6 +427,40 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
                   {totalIndicator && <span className="font-bold">{totalIndicator}</span>}
                 </>
               )}
+              {canEdit && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsEditing((v) => !v)}
+                    aria-label={isEditing ? "Finish editing" : "Edit dog"}
+                    title={isEditing ? "Finish editing" : "Edit dog"}
+                  >
+                    <Edit3 className="h-4 w-4 mr-1" /> {isEditing ? "Done" : "Edit"}
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={async () => {
+                      if (confirm(`Delete ${draft.name}? This cannot be undone.`)) {
+                        const { error } = await supabase.functions.invoke('scoreboard-operations', {
+                          body: { action: 'delete', teamId: draft.id }
+                        });
+                        if (error) {
+                          toast({ title: 'Error', description: 'Failed to delete team', variant: 'destructive' });
+                        } else {
+                          toast({ title: 'Deleted', description: `${draft.name} removed` });
+                          onDelete?.(draft.id);
+                        }
+                      }
+                    }}
+                    aria-label="Delete team"
+                    title="Delete team"
+                  >
+                    <Trash2 className="h-4 w-4 mr-1" /> Delete
+                  </Button>
+                </>
+              )}
               <CollapsibleTrigger asChild>
                 <Button
                   variant="ghost"
@@ -452,7 +493,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
         )}
 
         <CollapsibleContent asChild>
-          <CardContent className="space-y-3">
+          <CardContent className={`space-y-3 ${!canEdit ? 'pointer-events-none opacity-60 select-none' : ''}`}>
             {treeMinusBlink && (
               <div className="rounded-md border border-destructive bg-destructive/10 text-destructive font-semibold p-2 animate-pulse">
                 Dog minused on tree
@@ -464,27 +505,28 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
                 <div className="relative rounded-md border border-primary/40 bg-primary/5 p-2 space-y-2 pl-3 sm:pl-4">
                   <span aria-hidden className="absolute left-0 top-0 bottom-0 w-1 bg-primary/70 rounded-l-md" />
                   <div className="text-xs sm:text-sm font-semibold text-primary">Linked to Tree Bark</div>
-                  <TimerControl label="Tree 3:00" formatted={treeTimer.formatted} status={treeTimer.status} onStart={treeTimer.start} onPause={treeTimer.pause} onReset={treeTimer.reset} className="border-primary/40" />
-                  <TimerControl label="Tree Bark 2:00" formatted={treeBark2Timer.formatted} status={treeBark2Timer.status} onStart={treeBark2Timer.start} onPause={treeBark2Timer.pause} onReset={treeBark2Timer.reset} className="border-primary/40" />
+                  <TimerControl disabled={!canEdit} label="Tree 3:00" formatted={treeTimer.formatted} status={treeTimer.status} onStart={treeTimer.start} onPause={treeTimer.pause} onReset={treeTimer.reset} className="border-primary/40" />
+                  <TimerControl disabled={!canEdit} label="Tree Bark 2:00" formatted={treeBark2Timer.formatted} status={treeBark2Timer.status} onStart={treeBark2Timer.start} onPause={treeBark2Timer.pause} onReset={treeBark2Timer.reset} className="border-primary/40" />
                 </div>
               </div>
               <div title="Shine Timer: Time allowed to search the tree for coon.">
-                <TimerControl label="Shine 8:00" formatted={shineTimer.formatted} status={shineTimer.status} onStart={shineTimer.start} onPause={shineTimer.pause} onReset={shineTimer.reset} />
+                <TimerControl disabled={!canEdit} label="Shine 8:00" formatted={shineTimer.formatted} status={shineTimer.status} onStart={shineTimer.start} onPause={shineTimer.pause} onReset={shineTimer.reset} />
               </div>
               <div title="Track Bark Timer: 6 minutes for strike requirement.">
-                <TimerControl label="Track Bark 6:00" formatted={trackBarkTimer.formatted} status={trackBarkTimer.status} onStart={trackBarkTimer.start} onPause={trackBarkTimer.pause} onReset={trackBarkTimer.reset} />
+                <TimerControl disabled={!canEdit} label="Track Bark 6:00" formatted={trackBarkTimer.formatted} status={trackBarkTimer.status} onStart={trackBarkTimer.start} onPause={trackBarkTimer.pause} onReset={trackBarkTimer.reset} />
               </div>
               <div title="Babbling Stopwatch: 1-minute starting window.">
-                <TimerControl label="Babbling 1 Minute 1:00" formatted={babblingTimer.formatted} status={babblingTimer.status} onStart={() => { babblingTimer.start(); onTimerAction?.(draft.id, snapshotTimers()); }} onPause={() => { babblingTimer.pause(); onTimerAction?.(draft.id, snapshotTimers()); }} onReset={() => { babblingTimer.reset(); onTimerAction?.(draft.id, snapshotTimers()); }} />
+                <TimerControl disabled={!canEdit} label="Babbling 1 Minute 1:00" formatted={babblingTimer.formatted} status={babblingTimer.status} onStart={() => { babblingTimer.start(); onTimerAction?.(draft.id, snapshotTimers()); }} onPause={() => { babblingTimer.pause(); onTimerAction?.(draft.id, snapshotTimers()); }} onReset={() => { babblingTimer.reset(); onTimerAction?.(draft.id, snapshotTimers()); }} />
               </div>
               <div title="Walk Timer: 1 minute for walking between trees.">
-                <TimerControl label="Walk 1:00" formatted={walkTimer.formatted} status={walkTimer.status} onStart={walkTimer.start} onPause={walkTimer.pause} onReset={walkTimer.reset} />
+                <TimerControl disabled={!canEdit} label="Walk 1:00" formatted={walkTimer.formatted} status={walkTimer.status} onStart={walkTimer.start} onPause={walkTimer.pause} onReset={walkTimer.reset} />
               </div>
               <div title="Not Hunting Timer: 15 minutes for non-hunting dog.">
                 <div className="relative rounded-md border border-primary/40 bg-primary/5 p-2 space-y-2 pl-3 sm:pl-4">
                   <span aria-hidden className="absolute left-0 top-0 bottom-0 w-1 bg-primary/70 rounded-l-md" />
                   <div className="text-xs sm:text-sm font-semibold text-primary">Linked to Gone Hunt</div>
                   <TimerControl
+                    disabled={!canEdit}
                     label="Not Hunting 15:00"
                     formatted={notHuntingTimer.formatted}
                     status={notHuntingTimer.status}
@@ -494,6 +536,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
                     className="border-primary/40"
                   />
                   <TimerControl
+                    disabled={!canEdit}
                     label="Gone Hunt 5:00"
                     formatted={goneHuntingTimer.formatted}
                     status={goneHuntingTimer.status}
@@ -509,6 +552,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
                   <span aria-hidden className="absolute left-0 top-0 bottom-0 w-1 bg-secondary/70 rounded-l-md" />
                   <div className="text-xs sm:text-sm font-semibold text-secondary">Linked to No Bark</div>
                   <TimerControl
+                    disabled={!canEdit}
                     label="Stationary 5:00"
                     formatted={stationaryTimer.formatted}
                     status={stationaryTimer.status}
@@ -518,6 +562,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
                     className="border-secondary/40"
                   />
                   <TimerControl
+                    disabled={!canEdit}
                     label="No Bark 2:00"
                     formatted={stationaryNonBarkTimer.formatted}
                     status={stationaryNonBarkTimer.status}
@@ -534,12 +579,12 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
             <div className="flex items-center gap-2 overflow-x-auto">
               <span className="text-xs text-muted-foreground whitespace-nowrap">Quick Add:</span>
               {quickStrike.map((p) => (
-                <Button key={`s${p}`} size="sm" variant="secondary" onClick={() => addEntry("strike", p)}>
+                <Button key={`s${p}`} size="sm" variant="secondary" disabled={!canEdit} onClick={() => addEntry("strike", p)}>
                   Strike +{p}
                 </Button>
               ))}
               {quickTree.map((p) => (
-                <Button key={`t${p}`} size="sm" onClick={() => addEntry("tree", p)}>
+                <Button key={`t${p}`} size="sm" disabled={!canEdit} onClick={() => addEntry("tree", p)}>
                   Tree +{p}
                 </Button>
               ))}
@@ -561,10 +606,10 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
                     }
                   }}
                 />
-                <Button size="sm" variant="secondary" onClick={() => { const v = parseFloat(customPoints); if (!isNaN(v) && v > 0) { addEntry("strike", v); setCustomPoints(""); } }}>
+                <Button size="sm" variant="secondary" disabled={!canEdit} onClick={() => { const v = parseFloat(customPoints); if (!isNaN(v) && v > 0) { addEntry("strike", v); setCustomPoints(""); } }}>
                   Add Strike
                 </Button>
-                <Button size="sm" onClick={() => { const v = parseFloat(customPoints); if (!isNaN(v) && v > 0) { addEntry("tree", v); setCustomPoints(""); } }}>
+                <Button size="sm" disabled={!canEdit} onClick={() => { const v = parseFloat(customPoints); if (!isNaN(v) && v > 0) { addEntry("tree", v); setCustomPoints(""); } }}>
                   Add Tree
                 </Button>
               </div>
@@ -620,12 +665,12 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
                           {e.outcome === "pending" && <Badge variant="outline">pending</Badge>}
                         </div>
                         <div className="flex items-center gap-1 sm:gap-2 flex-wrap overflow-x-auto max-w-full">
-                          <Button size="sm" variant="outline" className="h-10 w-10 sm:h-12 sm:w-12 p-0 text-base sm:text-xl font-bold hover-scale shrink-0" onClick={() => setOutcome(e.id, "+")} title="Plus points" aria-label="Plus points">+</Button>
-                          <Button size="sm" variant="outline" className="h-10 w-10 sm:h-12 sm:w-12 p-0 text-base sm:text-xl font-bold hover-scale shrink-0" onClick={() => setOutcome(e.id, "-")} title="Minus points" aria-label="Minus points">–</Button>
-                          <Button size="sm" variant="outline" className="h-10 w-10 sm:h-12 sm:w-12 p-0 text-base sm:text-xl font-bold hover-scale shrink-0" onClick={() => setOutcome(e.id, "o")} title="Circle" aria-label="Circle">◯</Button>
-                          <Button size="sm" variant="outline" className="h-10 w-10 sm:h-12 sm:w-12 p-0 text-base sm:text-xl font-bold hover-scale shrink-0" onClick={() => setOutcome(e.id, "/")} title="Slash" aria-label="Slash">╱</Button>
-                          <Button size="sm" variant="outline" className="h-10 w-10 sm:h-12 sm:w-12 p-0 text-[10px] sm:text-xs font-semibold hover-scale shrink-0" onClick={() => setOutcome(e.id, "pending")} title="Set Pending" aria-label="Set pending">Pen</Button>
-                          <Button size="sm" variant="outline" className="h-10 w-10 sm:h-12 sm:w-12 p-0 text-[10px] sm:text-xs font-semibold hover-scale shrink-0" onClick={() => removeEntry(e.id)} title="Delete" aria-label="Delete">Del</Button>
+                          <Button size="sm" variant="outline" disabled={!canEdit} className="h-10 w-10 sm:h-12 sm:w-12 p-0 text-base sm:text-xl font-bold hover-scale shrink-0" onClick={() => setOutcome(e.id, "+")} title="Plus points" aria-label="Plus points">+</Button>
+                          <Button size="sm" variant="outline" disabled={!canEdit} className="h-10 w-10 sm:h-12 sm:w-12 p-0 text-base sm:text-xl font-bold hover-scale shrink-0" onClick={() => setOutcome(e.id, "-")} title="Minus points" aria-label="Minus points">–</Button>
+                          <Button size="sm" variant="outline" disabled={!canEdit} className="h-10 w-10 sm:h-12 sm:w-12 p-0 text-base sm:text-xl font-bold hover-scale shrink-0" onClick={() => setOutcome(e.id, "o")} title="Circle" aria-label="Circle">◯</Button>
+                          <Button size="sm" variant="outline" disabled={!canEdit} className="h-10 w-10 sm:h-12 sm:w-12 p-0 text-base sm:text-xl font-bold hover-scale shrink-0" onClick={() => setOutcome(e.id, "/")} title="Slash" aria-label="Slash">╱</Button>
+                          <Button size="sm" variant="outline" disabled={!canEdit} className="h-10 w-10 sm:h-12 sm:w-12 p-0 text-[10px] sm:text-xs font-semibold hover-scale shrink-0" onClick={() => setOutcome(e.id, "pending")} title="Set Pending" aria-label="Set pending">Pen</Button>
+                          <Button size="sm" variant="outline" disabled={!canEdit} className="h-10 w-10 sm:h-12 sm:w-12 p-0 text-[10px] sm:text-xs font-semibold hover-scale shrink-0" onClick={() => removeEntry(e.id)} title="Delete" aria-label="Delete">Del</Button>
                         </div>
                       </div>
                     </div>
@@ -675,30 +720,40 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
                 value={draft.name}
                 onChange={(e) => setDraft({ ...draft, name: e.target.value })}
                 onBlur={onBlurCommit}
+                readOnly={!canEdit || !isEditing}
+                disabled={!canEdit || !isEditing}
               />
               <Input
                 placeholder="Dog name"
                 value={draft.dogName || ""}
                 onChange={(e) => setDraft({ ...draft, dogName: e.target.value })}
                 onBlur={onBlurCommit}
+                readOnly={!canEdit || !isEditing}
+                disabled={!canEdit || !isEditing}
               />
               <Input
                 placeholder="Handler name"
                 value={draft.handler || ""}
                 onChange={(e) => setDraft({ ...draft, handler: e.target.value })}
                 onBlur={onBlurCommit}
+                readOnly={!canEdit || !isEditing}
+                disabled={!canEdit || !isEditing}
               />
               <Input
                 placeholder="City, State"
                 value={draft.cityState || ""}
                 onChange={(e) => setDraft({ ...draft, cityState: e.target.value })}
                 onBlur={onBlurCommit}
+                readOnly={!canEdit || !isEditing}
+                disabled={!canEdit || !isEditing}
               />
               <Input
                 placeholder="Breed"
                 value={draft.breed || ""}
                 onChange={(e) => setDraft({ ...draft, breed: e.target.value })}
                 onBlur={onBlurCommit}
+                readOnly={!canEdit || !isEditing}
+                disabled={!canEdit || !isEditing}
               />
               <Input
                 type="number"
@@ -708,6 +763,8 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
                 onBlur={onBlurCommit}
                 min={0}
                 step={1}
+                readOnly={!canEdit || !isEditing}
+                disabled={!canEdit || !isEditing}
               />
             </div>
           </CardContent>
