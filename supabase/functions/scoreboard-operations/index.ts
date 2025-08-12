@@ -17,7 +17,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-  const { action, eventId, teamName, teamColor, teamId, score, custom_fields, pinnedMessage, pinnedMessages, messageId, newOrder, scoreboardType, timers } = await req.json()
+  const { action, eventId, teamName, teamColor, teamId, score, custom_fields, pinnedMessage, pinnedMessages, messageId, newOrder, scoreboardType, timers, lockToken, override, forceOverride } = await req.json()
 
     // Auth client bound to requester to enforce permissions
     const anonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
@@ -59,6 +59,58 @@ serve(async (req) => {
       return false
     }
 
+    // Concurrency lock helpers (server-authoritative)
+    const LOCK_TTL_MS = 15000
+
+    const getLock = async (eId: string) => {
+      const { data, error } = await supabaseClient
+        .from('events')
+        .select('metadata')
+        .eq('id', eId)
+        .maybeSingle()
+      if (error) throw error
+      const meta = (data?.metadata as any) || {}
+      return { meta, lock: meta.control_lock as any | undefined }
+    }
+
+    const setLock = async (eId: string, lock: any) => {
+      const { error } = await supabaseClient
+        .from('events')
+        .update({ metadata: lock?.meta ?? lock })
+        .eq('id', eId)
+      if (error) throw error
+    }
+
+    const upsertLock = async (eId: string, lockObj: any) => {
+      const { meta } = await getLock(eId)
+      const nextMeta = { ...(meta || {}), control_lock: lockObj }
+      await setLock(eId, { meta: nextMeta })
+      return nextMeta
+    }
+
+    const clearLock = async (eId: string) => {
+      const { meta } = await getLock(eId)
+      if (!meta?.control_lock) return meta
+      const nextMeta = { ...meta }
+      delete nextMeta.control_lock
+      await setLock(eId, { meta: nextMeta })
+      return nextMeta
+    }
+
+    const isExpired = (lock: any) => {
+      if (!lock?.expires_at) return true
+      try { return Date.parse(lock.expires_at) <= Date.now() } catch { return true }
+    }
+
+    const checkLockOrThrow = async (eId: string, override = false) => {
+      // Hosts can override when explicitly requested
+      const host = user?.id ? await isHostForEvent(eId, user.id) : false
+      const { lock } = await getLock(eId)
+      if (!lock || isExpired(lock)) return { ok: true }
+      if (lock.owner === user?.id) return { ok: true }
+      if (override && host) return { ok: true }
+      return { ok: false, error: 'locked', owner: lock.owner, owner_name: lock.owner_name, expires_at: lock.expires_at }
+    }
 
     switch (action) {
       case 'fetch':
@@ -79,6 +131,8 @@ serve(async (req) => {
         {
           const createType = scoreboardType || 'coon_hunt'
           if (!(await assertCanJudge(eventId))) return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: corsHeaders })
+          const chk = await checkLockOrThrow(eventId, !!override)
+          if (!chk.ok) return new Response(JSON.stringify({ error: 'locked', ...chk }), { status: 423, headers: corsHeaders })
           const { error: createError } = await supabaseClient
             .from('event_scoreboard')
             .insert({
@@ -100,6 +154,8 @@ serve(async (req) => {
         {
           const eId = await getEventIdByTeam(teamId)
           if (!(await assertCanJudge(eId))) return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: corsHeaders })
+          const chk = await checkLockOrThrow(eId, !!override)
+          if (!chk.ok) return new Response(JSON.stringify({ error: 'locked', ...chk }), { status: 423, headers: corsHeaders })
           const { error: updateError } = await supabaseClient
             .from('event_scoreboard')
             .update({ score })
@@ -115,6 +171,8 @@ serve(async (req) => {
         {
           const eId = await getEventIdByTeam(teamId)
           if (!(await assertCanJudge(eId))) return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: corsHeaders })
+          const chk = await checkLockOrThrow(eId, !!override)
+          if (!chk.ok) return new Response(JSON.stringify({ error: 'locked', ...chk }), { status: 423, headers: corsHeaders })
           const { error: updateTeamError } = await supabaseClient
             .from('event_scoreboard')
             .update({
@@ -135,6 +193,8 @@ serve(async (req) => {
         {
           const eId = await getEventIdByTeam(teamId)
           if (!(await assertCanJudge(eId))) return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: corsHeaders })
+          const chk = await checkLockOrThrow(eId, !!override)
+          if (!chk.ok) return new Response(JSON.stringify({ error: 'locked', ...chk }), { status: 423, headers: corsHeaders })
           const { error: deleteError } = await supabaseClient
             .from('event_scoreboard')
             .delete()
@@ -150,6 +210,8 @@ serve(async (req) => {
         {
           const deleteType = scoreboardType || 'coon_hunt'
           if (!(await assertCanJudge(eventId))) return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: corsHeaders })
+          const chk = await checkLockOrThrow(eventId, !!override)
+          if (!chk.ok) return new Response(JSON.stringify({ error: 'locked', ...chk }), { status: 423, headers: corsHeaders })
           const { error: deleteAllError } = await supabaseClient
             .from('event_scoreboard')
             .delete()
@@ -340,6 +402,8 @@ serve(async (req) => {
       case 'updateDogTimers': {
         const eId = await getEventIdByTeam(teamId)
         if (!(await assertCanJudge(eId))) return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: corsHeaders })
+        const chk = await checkLockOrThrow(eId, !!override)
+        if (!chk.ok) return new Response(JSON.stringify({ error: 'locked', ...chk }), { status: 423, headers: corsHeaders })
         const nowIso = new Date().toISOString()
         const { data: teamRow, error: teamFetchError } = await supabaseClient
           .from('event_scoreboard')
@@ -365,6 +429,8 @@ serve(async (req) => {
 
       case 'updateCastTimers': {
         if (!(await assertCanJudge(eventId))) return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: corsHeaders })
+        const chk = await checkLockOrThrow(eventId, !!override)
+        if (!chk.ok) return new Response(JSON.stringify({ error: 'locked', ...chk }), { status: 423, headers: corsHeaders })
         const nowIso = new Date().toISOString()
         const { data: evRow, error: evFetchError } = await supabaseClient
           .from('events')
@@ -385,6 +451,63 @@ serve(async (req) => {
         return new Response(JSON.stringify({ success: true, serverUpdatedAt: nowIso }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })
+      }
+
+      case 'getCastTimers': {
+        const { data: evRow, error } = await supabaseClient
+          .from('events')
+          .select('metadata')
+          .eq('id', eventId)
+          .single()
+        if (error) throw error
+        const meta = (evRow?.metadata as any) || {}
+        const timers = meta?.scorecard_cast_timers || null
+        return new Response(JSON.stringify({ timers, serverNow: new Date().toISOString() }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+
+      case 'acquireLock': {
+        if (!(await assertCanJudge(eventId))) return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: corsHeaders })
+        const { meta, lock } = await getLock(eventId)
+        const host = user?.id ? await isHostForEvent(eventId, user.id) : false
+        const canSteal = !!override && host
+        if (lock && !isExpired(lock) && lock.owner !== user?.id && !canSteal) {
+          return new Response(JSON.stringify({ error: 'locked', owner: lock.owner, owner_name: lock.owner_name, expires_at: lock.expires_at }), { status: 423, headers: corsHeaders })
+        }
+        const owner_name = user?.email || (user?.user_metadata as any)?.display_name || (user?.user_metadata as any)?.full_name || (user?.user_metadata as any)?.username || 'unknown'
+        const expires_at = new Date(Date.now() + LOCK_TTL_MS).toISOString()
+        const nextMeta = { ...(meta || {}), control_lock: { owner: user?.id, owner_name, expires_at } }
+        await setLock(eventId, { meta: nextMeta })
+        return new Response(JSON.stringify({ success: true, lock: nextMeta.control_lock }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
+
+      case 'renewLock': {
+        if (!(await assertCanJudge(eventId))) return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: corsHeaders })
+        const { meta, lock } = await getLock(eventId)
+        const host = user?.id ? await isHostForEvent(eventId, user.id) : false
+        const canRenew = lock && (lock.owner === user?.id || (host && !!override))
+        if (!canRenew) return new Response(JSON.stringify({ error: 'not_owner' }), { status: 403, headers: corsHeaders })
+        const expires_at = new Date(Date.now() + LOCK_TTL_MS).toISOString()
+        const nextMeta = { ...(meta || {}), control_lock: { ...lock, expires_at } }
+        await setLock(eventId, { meta: nextMeta })
+        return new Response(JSON.stringify({ success: true, lock: nextMeta.control_lock }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
+
+      case 'releaseLock': {
+        if (!(await assertCanJudge(eventId))) return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: corsHeaders })
+        const { lock } = await getLock(eventId)
+        const host = user?.id ? await isHostForEvent(eventId, user.id) : false
+        if (lock && lock.owner !== user?.id && !host) {
+          return new Response(JSON.stringify({ error: 'not_owner' }), { status: 403, headers: corsHeaders })
+        }
+        const meta = await clearLock(eventId)
+        return new Response(JSON.stringify({ success: true, lock: null }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
+
+      case 'getLock': {
+        const { lock } = await getLock(eventId)
+        return new Response(JSON.stringify({ lock, serverNow: new Date().toISOString() }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
       }
     }
   } catch (error) {
