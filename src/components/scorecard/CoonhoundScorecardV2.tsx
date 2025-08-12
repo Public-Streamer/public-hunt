@@ -131,6 +131,11 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
     }
   };
 
+  // Ensure existing teams are loaded on entry so panels are visible immediately
+  useEffect(() => {
+    fetchTeams();
+  }, [eventId]);
+
   // Save handler that updates score and custom_fields
   const handleDogChange = async (dog: DogData, newTotal: number) => {
     setDogs((prev) => prev.map((d) => (d.id === dog.id ? dog : d)));
