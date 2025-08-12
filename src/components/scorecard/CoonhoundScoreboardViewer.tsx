@@ -10,6 +10,8 @@ type CastTimers = {
   mainHunt?: { status: TimerStatus; remaining: number };
   track?: { status: TimerStatus; remaining: number };
   globalShine?: { status: TimerStatus; remaining: number };
+  babbling?: { status: TimerStatus; remaining: number };
+  mainHuntMinutes?: number;
   server_updated_at?: string;
 };
 
@@ -128,6 +130,7 @@ export const CoonhoundScoreboardViewer: React.FC<Props> = ({ eventId }) => {
       treeBark2: "Tree Bark",
       shine: "Shine",
       trackBark: "Track Bark",
+      babbling: "Babbling 1 Minute",
       notHunting: "Not Hunt",
       goneHunting: "Gone Hunt",
       stationary: "Stationary",
@@ -138,6 +141,7 @@ export const CoonhoundScoreboardViewer: React.FC<Props> = ({ eventId }) => {
       treeBark2: 2,
       shine: 8,
       trackBark: 6,
+      babbling: 1,
       notHunting: 15,
       goneHunting: 5,
       stationary: 5,
@@ -158,6 +162,7 @@ export const CoonhoundScoreboardViewer: React.FC<Props> = ({ eventId }) => {
     { key: "mainHunt", label: "Main Hunt" },
     { key: "track", label: "Track 6 minutes" },
     { key: "globalShine", label: "Global Shine 8 minutes" },
+    { key: "babbling", label: "Babbling 1 Minute 1:00" },
   ] as const;
 
   const visibleCastBlocks = castBlocks.filter((b) => {

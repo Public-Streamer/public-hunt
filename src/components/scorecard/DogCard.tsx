@@ -52,6 +52,7 @@ interface DogCardProps {
       stationary: { formatted: string; status: TimerStatus };
       noBark: { formatted: string; status: TimerStatus };
       walk: { formatted: string; status: TimerStatus };
+      babbling: { formatted: string; status: TimerStatus };
     }
   ) => void;
   onTimerAction?: (
@@ -108,6 +109,14 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
   const walkTimer = useCountdown(1 * 60, {
     onComplete: () => {
       toast({ title: "Walk time finished", description: `${draft.name}: 1-minute walk ended` });
+      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+        try { (navigator as any).vibrate?.(200); } catch {}
+      }
+    },
+  });
+  const babblingTimer = useCountdown(1 * 60, {
+    onComplete: () => {
+      toast({ title: "Babbling 1 Minute finished", description: `${draft.name}: 1-minute babbling window ended` });
       if (typeof navigator !== "undefined" && "vibrate" in navigator) {
         try { (navigator as any).vibrate?.(200); } catch {}
       }
@@ -175,6 +184,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
       shine: { formatted: shineTimer.formatted, status: shineTimer.status },
       trackBark: { formatted: trackBarkTimer.formatted, status: trackBarkTimer.status },
       walk: { formatted: walkTimer.formatted, status: walkTimer.status },
+      babbling: { formatted: babblingTimer.formatted, status: babblingTimer.status },
       notHunting: { formatted: notHuntingTimer.formatted, status: notHuntingTimer.status },
       goneHunting: { formatted: goneHuntingTimer.formatted, status: goneHuntingTimer.status },
       stationary: { formatted: stationaryTimer.formatted, status: stationaryTimer.status },
@@ -302,6 +312,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
       { key: "shine", label: "Shine", t: shineTimer },
       { key: "trackBark", label: "Track Bark", t: trackBarkTimer },
       { key: "walk", label: "Walk", t: walkTimer },
+      { key: "babbling", label: "Babbling 1 Minute", t: babblingTimer },
       { key: "notHunting", label: "Not Hunt", t: notHuntingTimer },
       { key: "goneHunting", label: "Gone Hunt", t: goneHuntingTimer },
       { key: "stationary", label: "Stationary", t: stationaryTimer },
@@ -326,6 +337,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
     shine: { status: shineTimer.status, remaining: shineTimer.remaining },
     trackBark: { status: trackBarkTimer.status, remaining: trackBarkTimer.remaining },
     walk: { status: walkTimer.status, remaining: walkTimer.remaining },
+    babbling: { status: babblingTimer.status, remaining: babblingTimer.remaining },
     notHunting: { status: notHuntingTimer.status, remaining: notHuntingTimer.remaining },
     goneHunting: { status: goneHuntingTimer.status, remaining: goneHuntingTimer.remaining },
     stationary: { status: stationaryTimer.status, remaining: stationaryTimer.remaining },
@@ -336,6 +348,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
     shineTimer.status, shineTimer.remaining,
     trackBarkTimer.status, trackBarkTimer.remaining,
     walkTimer.status, walkTimer.remaining,
+    babblingTimer.status, babblingTimer.remaining,
     notHuntingTimer.status, notHuntingTimer.remaining,
     goneHuntingTimer.status, goneHuntingTimer.remaining,
     stationaryTimer.status, stationaryTimer.remaining,
@@ -460,6 +473,9 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
               </div>
               <div title="Track Bark Timer: 6 minutes for strike requirement.">
                 <TimerControl label="Track Bark 6:00" formatted={trackBarkTimer.formatted} status={trackBarkTimer.status} onStart={trackBarkTimer.start} onPause={trackBarkTimer.pause} onReset={trackBarkTimer.reset} />
+              </div>
+              <div title="Babbling Stopwatch: 1-minute starting window.">
+                <TimerControl label="Babbling 1 Minute 1:00" formatted={babblingTimer.formatted} status={babblingTimer.status} onStart={() => { babblingTimer.start(); onTimerAction?.(draft.id, snapshotTimers()); }} onPause={() => { babblingTimer.pause(); onTimerAction?.(draft.id, snapshotTimers()); }} onReset={() => { babblingTimer.reset(); onTimerAction?.(draft.id, snapshotTimers()); }} />
               </div>
               <div title="Walk Timer: 1 minute for walking between trees.">
                 <TimerControl label="Walk 1:00" formatted={walkTimer.formatted} status={walkTimer.status} onStart={walkTimer.start} onPause={walkTimer.pause} onReset={walkTimer.reset} />

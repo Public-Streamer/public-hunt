@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useCallback } from "react";
+import React, { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -73,6 +73,7 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
         mainHunt: { status: huntTimer.status, remaining: huntTimer.remaining },
         track: { status: trackTimer.status, remaining: trackTimer.remaining },
         globalShine: { status: globalShineTimer.status, remaining: globalShineTimer.remaining },
+        babbling: { status: babbleMainTimer.status, remaining: babbleMainTimer.remaining },
         mainHuntMinutes: huntMinutes,
       };
       await supabase.functions.invoke('scoreboard-operations', {
@@ -107,7 +108,15 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
       }
     },
   });
-  const fetchTeams = async () => {
+  const babbleMainTimer = useCountdown(1 * 60, {
+    onComplete: () => {
+      toast({ title: "Babbling timer finished", description: "Main babbling 1-minute window ended" });
+      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+        try { (navigator as any).vibrate?.(200); } catch {}
+      }
+    },
+  });
+  const babbleStartedRef = useRef(false);
     try {
       const { data, error } = await supabase.functions.invoke('scoreboard-operations', {
         body: { action: 'fetch', eventId, scoreboardType: 'coon_hunt' }
@@ -196,15 +205,18 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
             </div>
           </CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <CardContent className="grid grid-cols-1 sm:grid-cols-4 gap-2">
           <div title="Main Hunt Timer: Select duration then control the clock.">
-            <TimerControl label="Main Hunt" formatted={huntTimer.formatted} status={huntTimer.status} onStart={() => { huntTimer.start(); syncCastTimers(); }} onPause={() => { huntTimer.pause(); syncCastTimers(); }} onReset={() => { huntTimer.reset(huntMinutes * 60); syncCastTimers(); }} />
+            <TimerControl label="Main Hunt" formatted={huntTimer.formatted} status={huntTimer.status} onStart={() => { huntTimer.start(); if (!babbleStartedRef.current) { babbleMainTimer.start(); babbleStartedRef.current = true; } syncCastTimers(); }} onPause={() => { huntTimer.pause(); syncCastTimers(); }} onReset={() => { huntTimer.reset(huntMinutes * 60); syncCastTimers(); }} />
           </div>
           <div title="Global Track Timer: 6 minutes for strike requirement.">
             <TimerControl label="Track 6:00" formatted={trackTimer.formatted} status={trackTimer.status} onStart={() => { trackTimer.start(); syncCastTimers(); }} onPause={() => { trackTimer.pause(); syncCastTimers(); }} onReset={() => { trackTimer.reset(); syncCastTimers(); }} />
           </div>
           <div title="Global Shine Timer: 8 minutes when multiple dogs are involved.">
             <TimerControl label="Global Shine 8:00" formatted={globalShineTimer.formatted} status={globalShineTimer.status} onStart={() => { globalShineTimer.start(); syncCastTimers(); }} onPause={() => { globalShineTimer.pause(); syncCastTimers(); }} onReset={() => { globalShineTimer.reset(); syncCastTimers(); }} />
+          </div>
+          <div title="Babbling Stopwatch: auto-starts once when Main Hunt starts.">
+            <TimerControl label="Babbling 1 Minute 1:00" formatted={babbleMainTimer.formatted} status={babbleMainTimer.status} onStart={() => { babbleMainTimer.start(); syncCastTimers(); }} onPause={() => { babbleMainTimer.pause(); syncCastTimers(); }} onReset={() => { babbleMainTimer.reset(); syncCastTimers(); }} />
           </div>
         </CardContent>
       </Card>
@@ -216,6 +228,7 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
           { key: "hunt", label: `Main Hunt ${huntMinutes} minutes`, status: huntTimer.status, formatted: huntTimer.formatted },
           { key: "track", label: "Track 6 minutes", status: trackTimer.status, formatted: trackTimer.formatted },
           { key: "shine", label: "Global Shine 8 minutes", status: globalShineTimer.status, formatted: globalShineTimer.formatted },
+          { key: "babbling", label: "Babbling 1 Minute 1:00", status: babbleMainTimer.status, formatted: babbleMainTimer.formatted },
         ]}
       />
 
