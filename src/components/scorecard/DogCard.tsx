@@ -409,15 +409,25 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
             </div>
             <div className="flex items-center gap-2 text-sm">
               <Clock className="h-4 w-4" />
+              {/* Total with colored sign */}
               {showCircleAsTotal ? (
                 <>
                   <span className="tabular-nums">Total: {circleTotal}</span>
-                  <span className="font-bold">◯</span>
+                  <span
+                    className={`font-bold ${hasPending ? 'text-foreground' : 'text-warning'}`}
+                    title={hasPending ? 'Pending total' : 'Circle total'}
+                    aria-label={hasPending ? 'Pending total' : 'Circle total'}
+                  >{hasPending ? '?' : '◯'}</span>
                 </>
               ) : (
                 <>
                   <span className="tabular-nums">Total: {totalAbs}</span>
-                  {totalIndicator && <span className="font-bold">{totalIndicator}</span>}
+                  {/* Sign for + / – / pending */}
+                  <span
+                    className={`font-bold ${hasPending ? 'text-foreground' : total > 0 ? 'text-success' : total < 0 ? 'text-destructive' : 'text-muted-foreground'}`}
+                    title={hasPending ? 'Pending total' : total > 0 ? 'Positive total' : total < 0 ? 'Negative total' : 'Even total'}
+                    aria-label={hasPending ? 'Pending total' : total > 0 ? 'Positive total' : total < 0 ? 'Negative total' : 'Even total'}
+                  >{hasPending ? '?' : total > 0 ? '+' : total < 0 ? '–' : ''}</span>
                 </>
               )}
               <CollapsibleTrigger asChild>
