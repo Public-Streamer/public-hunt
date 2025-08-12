@@ -29,6 +29,8 @@ function fromRow(row: any): DogData {
     age: typeof cf.age === 'number' ? cf.age : cf.age ? Number(cf.age) : undefined,
     judgeNotes: cf.judge_notes || "",
     disqualified: !!cf.disqualified,
+    dogPhotoUrl: cf.dog_photo_url || "",
+    pedigreeImageUrl: cf.pedigree_url || "",
   };
 }
 
@@ -46,6 +48,8 @@ function toPayload(d: DogData) {
       judge_notes: d.judgeNotes,
       entries: d.entries,
       disqualified: d.disqualified,
+      dog_photo_url: d.dogPhotoUrl,
+      pedigree_url: d.pedigreeImageUrl,
     },
   } as const;
 }

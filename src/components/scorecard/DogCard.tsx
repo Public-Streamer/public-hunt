@@ -3,11 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Clock, ChevronDown } from "lucide-react";
+import { Plus, Clock, ChevronDown, Upload } from "lucide-react";
 import { TimerControl } from "./TimerControl";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { useCountdown, TimerStatus } from "@/hooks/useCountdown";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 export type EntryOutcome = "pending" | "+" | "-" | "o" | "/"; // plus / minus / circle / slash
 export type EntryType = "strike" | "tree";
 
@@ -31,6 +32,9 @@ export interface DogData {
   age?: number;
   judgeNotes?: string;
   disqualified?: boolean; // scratched/disqualified status
+  // Media
+  dogPhotoUrl?: string; // public URL to dog's photo
+  pedigreeImageUrl?: string; // public URL to pedigree image
 }
 
 interface DogCardProps {
@@ -326,6 +330,39 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
     stationaryNonBarkTimer.status, stationaryNonBarkTimer.remaining,
   ]);
 
+  // Upload helpers for pedigree and dog photo
+  const handleUpload = async (file: File, kind: 'pedigree' | 'photo') => {
+    try {
+      const ext = file.name.split('.').pop() || 'jpg';
+      const filePath = `scorecards/dogs/${draft.id}/${kind}-${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage.from('media').upload(filePath, file);
+      if (uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage.from('media').getPublicUrl(filePath);
+      const url = urlData.publicUrl;
+      const updated: DogData = {
+        ...draft,
+        dogPhotoUrl: kind === 'photo' ? url : draft.dogPhotoUrl,
+        pedigreeImageUrl: kind === 'pedigree' ? url : draft.pedigreeImageUrl,
+      };
+      setDraft(updated);
+      onChange(updated, computeTotal(updated.entries));
+      toast({ title: 'Upload complete', description: `${kind === 'photo' ? 'Dog photo' : 'Pedigree'} uploaded for ${draft.name}` });
+    } catch (e: any) {
+      console.error('Upload failed', e);
+      toast({ title: 'Upload failed', description: e?.message || 'Could not upload file', variant: 'destructive' });
+    }
+  };
+
+  const onFileChangePedigree = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (f) handleUpload(f, 'pedigree');
+    if (e.target) e.target.value = '';
+  };
+  const onFileChangePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (f) handleUpload(f, 'photo');
+    if (e.target) e.target.value = '';
+  };
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
@@ -333,6 +370,14 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
         <CardHeader className="py-3">
           <CardTitle className="flex items-center justify-between text-base">
             <div className="flex items-center gap-2 min-w-0">
+              {draft.dogPhotoUrl && (
+                <img
+                  src={draft.dogPhotoUrl}
+                  alt={`${draft.dogName || draft.name} dog photo`}
+                  className="h-6 w-6 rounded object-cover border border-border"
+                  loading="lazy"
+                />
+              )}
               <span className="inline-block h-3 w-3 rounded-full" style={{ background: draft.color }} />
               <span className="truncate">{draft.name}</span>
               {hasPending && <Badge variant="outline" className="ml-2">Pending</Badge>}
@@ -558,6 +603,39 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
                   );
                 })
               )}
+            </div>
+
+            {/* Dog Media Uploads */}
+            <div className="flex items-center gap-4 flex-wrap">
+              <div className="flex items-center gap-2">
+                <input id={`pedigree-${draft.id}`} type="file" accept="image/*" className="hidden" onChange={onFileChangePedigree} />
+                <label htmlFor={`pedigree-${draft.id}`}>
+                  <Button size="sm" variant="outline" asChild={false}>
+                    <span className="inline-flex items-center"><Upload className="h-4 w-4 mr-1" /> Pedigree</span>
+                  </Button>
+                </label>
+                {draft.pedigreeImageUrl && (
+                  <a href={draft.pedigreeImageUrl} target="_blank" rel="noopener noreferrer" className="text-xs underline">
+                    View
+                  </a>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <input id={`dogphoto-${draft.id}`} type="file" accept="image/*" className="hidden" onChange={onFileChangePhoto} />
+                <label htmlFor={`dogphoto-${draft.id}`}>
+                  <Button size="sm" variant="secondary" asChild={false}>
+                    <span className="inline-flex items-center"><Upload className="h-4 w-4 mr-1" /> Dog Photo</span>
+                  </Button>
+                </label>
+                {draft.dogPhotoUrl && (
+                  <img
+                    src={draft.dogPhotoUrl}
+                    alt={`Dog photo for ${draft.dogName || draft.name}`}
+                    className="h-8 w-8 rounded object-cover border border-border"
+                    loading="lazy"
+                  />
+                )}
+              </div>
             </div>
 
             {/* Dog/Team Details */}
