@@ -1299,6 +1299,18 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
           streamer_counts: streamerCount,
         });
 
+        const { data: event, error: eventError } = await supabase
+          .from("events")
+          .update({
+            is_live: true,
+          })
+          .eq("id", eventId)
+          .single();
+
+        if (eventError || !event) {
+          throw new Error("Failed to update event status");
+        }
+
         const { error: upsertErr } = await supabase
           .from("event_streams")
           .upsert(
@@ -1390,7 +1402,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
         throw new Error("Please log in to access this stream");
       }
 
-      await updateParticipantLiveStatus(false);
+      // await updateParticipantLiveStatus(false);
       if (isVideoEnabled) {
         toggleVideoLiveButton(false);
       }
@@ -1418,7 +1430,6 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       console.error("Stop stream error:", error);
     }
   }, [
-    updateParticipantLiveStatus,
     checkStreamerCounts,
     toggleVideoLiveButton,
     toggleAudioLiveButton,
