@@ -1190,7 +1190,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   ]);
 
   const startStream = useCallback(
-    async (streamerCount: number) => {
+    async (streamerCount: number, streamId?: string) => {
       try {
         // Use a more direct approach - request permissions using native getUserMedia
         // This bypasses any potential issues with the custom permission hook
@@ -1314,10 +1314,10 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
           console.error("Error updating event status live", eventError);
         }
 
-        const { error: upsertErr } = await supabase
-          .from("event_streams")
-          .upsert(
-            {
+        if (!streamId) {
+          const { error: insertErr } = await supabase
+            .from("event_streams")
+            .insert({
               event_id: eventId,
               // Keep a consistent name to identify aggregator row; not user-specific
               stream_name: "Main Stream",
@@ -1325,17 +1325,15 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
               is_active: true,
               streamer_counts: streamerCount,
               // updated_at will be auto-updated by trigger on UPDATE
-            },
-            { onConflict: "event_id" }
-          );
-
-        if (upsertErr) {
-          console.error(
-            "❌ Error upserting event_streams aggregator:",
-            upsertErr
-          );
-          throw upsertErr;
+            });
+          if (insertErr) {
+            console.error(
+              "❌ Error inserting event_streams aggregator:",
+              insertErr
+            );
+          }
         }
+
         queryClient.invalidateQueries({
           queryKey: ["event", "stream", eventId],
         });

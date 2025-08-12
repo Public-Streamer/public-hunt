@@ -879,7 +879,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                   {!controls.isStreaming ? (
                     <Button
                       onClick={() => {
-                        controls.startStream(totalTracksLength);
+                        controls.startStream(totalTracksLength, streamId);
                       }}
                       className="w-full text-sm sm:text-base px-3 sm:px-4 py-3 sm:py-4 max-w-full"
                       size={screenSize === "mobile" ? "sm" : "lg"}
