@@ -11,6 +11,7 @@ interface TimerControlProps {
   onStart: () => void;
   onPause: () => void;
   onReset: () => void;
+  allowPause?: boolean; // show Pause button only when true
   className?: string;
 }
 
@@ -21,6 +22,7 @@ export const TimerControl: React.FC<TimerControlProps> = ({
   onStart,
   onPause,
   onReset,
+  allowPause = false,
   className,
 }) => {
   const colorCls = status === "running"
@@ -37,9 +39,11 @@ export const TimerControl: React.FC<TimerControlProps> = ({
         <div className="text-xs font-medium">{label}</div>
         <div className="text-lg tabular-nums font-semibold">{formatted}</div>
       </div>
-      <div className="mt-3 grid grid-cols-3 gap-2">
+      <div className={cn("mt-3 grid gap-2", allowPause ? "grid-cols-3" : "grid-cols-2") }>
           <Button size="sm" className="h-9 sm:h-10 md:h-11 px-2 sm:px-3 whitespace-nowrap text-[11px] sm:text-xs md:text-sm min-w-[64px]" onClick={onStart} disabled={status === "running"} aria-label="Start timer">Start</Button>
-          <Button size="sm" variant="outline" className="h-9 sm:h-10 md:h-11 px-2 sm:px-3 whitespace-nowrap text-[11px] sm:text-xs md:text-sm min-w-[64px]" onClick={onPause} disabled={status !== "running"} aria-label="Pause timer">Pause</Button>
+          {allowPause && (
+            <Button size="sm" variant="outline" className="h-9 sm:h-10 md:h-11 px-2 sm:px-3 whitespace-nowrap text-[11px] sm:text-xs md:text-sm min-w-[64px]" onClick={onPause} disabled={status !== "running"} aria-label="Pause timer">Pause</Button>
+          )}
           <Button size="sm" variant="secondary" className="h-9 sm:h-10 md:h-11 px-2 sm:px-3 whitespace-nowrap text-[11px] sm:text-xs md:text-sm min-w-[64px]" onClick={onReset} aria-label="Reset timer">Reset</Button>
       </div>
     </div>

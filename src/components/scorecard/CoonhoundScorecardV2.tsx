@@ -212,7 +212,7 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
         </CardHeader>
         <CardContent className="grid grid-cols-1 sm:grid-cols-4 gap-2">
           <div title="Main Hunt Timer: Select duration then control the clock.">
-            <TimerControl label="Main Hunt" formatted={huntTimer.formatted} status={huntTimer.status} onStart={() => { huntTimer.start(); if (!babbleStartedRef.current) { babbleMainTimer.start(); babbleStartedRef.current = true; } syncCastTimers(); }} onPause={() => { huntTimer.pause(); syncCastTimers(); }} onReset={() => { huntTimer.reset(huntMinutes * 60); syncCastTimers(); }} />
+            <TimerControl allowPause label="Main Hunt" formatted={huntTimer.formatted} status={huntTimer.status} onStart={() => { huntTimer.start(); if (!babbleStartedRef.current) { babbleMainTimer.start(); babbleStartedRef.current = true; } syncCastTimers(); }} onPause={() => { huntTimer.pause(); syncCastTimers(); }} onReset={() => { huntTimer.reset(huntMinutes * 60); syncCastTimers(); }} />
           </div>
           <div title="Global Track Timer: 6 minutes for strike requirement.">
             <TimerControl label="Track 6:00" formatted={trackTimer.formatted} status={trackTimer.status} onStart={() => { trackTimer.start(); syncCastTimers(); }} onPause={() => { trackTimer.pause(); syncCastTimers(); }} onReset={() => { trackTimer.reset(); syncCastTimers(); }} />
