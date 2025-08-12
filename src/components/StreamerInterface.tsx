@@ -317,16 +317,6 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
         variant: "destructive",
       });
     }
-        });
-      }
-    } catch (error) {
-      console.error("Error deleting scoreboard:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete scoreboard",
-        variant: "destructive",
-      });
-    }
   };
 
   // Edit handlers
