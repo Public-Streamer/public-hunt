@@ -309,9 +309,9 @@ const EventPage: React.FC = () => {
             eventId: eventData.id,
             userRole: "viewer",
             permissions: {
-              canPublish: true,
+              canPublish: false,
               canSubscribe: true,
-              canPublishData: true,
+              canPublishData: false,
             },
           },
         }

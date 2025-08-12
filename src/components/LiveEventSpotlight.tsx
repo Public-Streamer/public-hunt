@@ -45,7 +45,9 @@ const StreamContentLazy = lazy(() =>
     }> = ({ eventName, fallbackImage, event }) => {
       const [isMuted, setIsMuted] = useState(false);
       const TrackSource = useLiveKitTrackSource();
-      const sources = TrackSource ? [TrackSource.Camera, TrackSource.ScreenShare] : [];
+      const sources = TrackSource
+        ? [TrackSource.Camera, TrackSource.ScreenShare]
+        : [];
 
       const videoTracks = useTracks(sources, {
         updateOnlyOn: [],
@@ -145,7 +147,7 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({
 
   return (
     <div className="relative w-full h-full">
-      <Suspense fallback={<div className="w-full h-full" />}> 
+      <Suspense fallback={<div className="w-full h-full" />}>
         <LiveKitRoomLazy
           token={token}
           serverUrl={serverUrl}
@@ -166,7 +168,6 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({
     </div>
   );
 };
-
 
 const LiveEventSpotlight: React.FC = () => {
   // Move this function above useQuery so it can be used inside queryFn
