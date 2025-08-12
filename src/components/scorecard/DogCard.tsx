@@ -237,7 +237,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
     // 2-Minute No-Bark Rule Fix:
     // Allow MINUS on pending tree points as soon as the individual 2-minute tree no-bark timer expires,
     // regardless of remaining 3-minute tree time. Otherwise, block tree scoring until 3:00 expires.
-    if (entry?.type === "tree" && treeTimer.status !== "finished") {
+    if (entry?.type === "tree" && treeTimer.status !== "finished" && outcome !== "pending") {
       const isMinus = outcome === "-";
       const twoMinExpired = treeBark2Timer.status === "finished";
       if (!(isMinus && twoMinExpired)) {
@@ -624,6 +624,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
                           <Button size="sm" variant="outline" className="h-10 w-10 sm:h-12 sm:w-12 p-0 text-base sm:text-xl font-bold hover-scale shrink-0" onClick={() => setOutcome(e.id, "-")} title="Minus points" aria-label="Minus points">–</Button>
                           <Button size="sm" variant="outline" className="h-10 w-10 sm:h-12 sm:w-12 p-0 text-base sm:text-xl font-bold hover-scale shrink-0" onClick={() => setOutcome(e.id, "o")} title="Circle" aria-label="Circle">◯</Button>
                           <Button size="sm" variant="outline" className="h-10 w-10 sm:h-12 sm:w-12 p-0 text-base sm:text-xl font-bold hover-scale shrink-0" onClick={() => setOutcome(e.id, "/")} title="Slash" aria-label="Slash">╱</Button>
+                          <Button size="sm" variant="outline" className="h-10 w-10 sm:h-12 sm:w-12 p-0 text-[10px] sm:text-xs font-semibold hover-scale shrink-0" onClick={() => setOutcome(e.id, "pending")} title="Set Pending" aria-label="Set pending">Pen</Button>
                           <Button size="sm" variant="outline" className="h-10 w-10 sm:h-12 sm:w-12 p-0 text-[10px] sm:text-xs font-semibold hover-scale shrink-0" onClick={() => removeEntry(e.id)} title="Delete" aria-label="Delete">Del</Button>
                         </div>
                       </div>
