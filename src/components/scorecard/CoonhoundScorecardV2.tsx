@@ -10,6 +10,8 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ScorecardSummary } from "./ScorecardSummary";
 import { ScorecardDetails } from "./ScorecardDetails";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
+import { ChevronDown } from "lucide-react";
 
 interface Props { eventId: string; isHost: boolean }
 
@@ -59,6 +61,7 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
   const [loading, setLoading] = useState(false);
   const [huntMinutes, setHuntMinutes] = useState<60 | 90 | 120>(120);
   const [timerOverview, setTimerOverview] = useState<Record<string, any>>({});
+  const [scoreOpen, setScoreOpen] = useState(true);
   const colorCls = (s: TimerStatus) => s === "running"
     ? "bg-primary/10 text-primary"
     : s === "paused"
@@ -209,39 +212,56 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
         </CardContent>
       </Card>
 
-      <ScorecardSummary
-        dogs={dogs}
-        timerOverview={timerOverview}
-        castTimers={[
-          { key: "hunt", label: `Main Hunt ${huntMinutes} minutes`, status: huntTimer.status, formatted: huntTimer.formatted },
-          { key: "track", label: "Track 6 minutes", status: trackTimer.status, formatted: trackTimer.formatted },
-          { key: "shine", label: "Global Shine 8 minutes", status: globalShineTimer.status, formatted: globalShineTimer.formatted },
-        ]}
-      />
+      {/* Collapsible Scorecard */}
+      <Collapsible open={scoreOpen} onOpenChange={setScoreOpen}>
+        <Card>
+          <CardHeader className="py-3">
+            <CardTitle className="flex items-center justify-between text-base">
+              <span>Scorecard</span>
+              <CollapsibleTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 rounded-full"
+                  aria-label={scoreOpen ? "Collapse" : "Expand"}
+                  title={scoreOpen ? "Collapse" : "Expand"}
+                >
+                  <ChevronDown className={`h-4 w-4 transition-transform ${scoreOpen ? "rotate-180" : "rotate-0"}`} />
+                </Button>
+              </CollapsibleTrigger>
+            </CardTitle>
+          </CardHeader>
 
-      <ScorecardDetails dogs={dogs} onSave={handleDogChange} canEdit={isHost} />
+          <CollapsibleContent asChild>
+            <CardContent className="space-y-4">
+              <ScorecardDetails dogs={dogs} onSave={handleDogChange} canEdit={isHost} />
 
-      {/* Dogs */}
-      <div className="space-y-3">
-        {dogs.map((d) => (
-          <DogCard
-            key={d.id}
-            dog={d}
-            onChange={handleDogChange}
-            onTimerSnapshot={(dogId, snap) => setTimerOverview((prev) => ({ ...prev, [dogId]: snap }))}
-            onTimerAction={handleDogTimerAction}
-            canEdit={isHost}
-          />
-        ))}
-      </div>
+              {/* Dogs */}
+              <div className="space-y-3">
+                {dogs.map((d) => (
+                  <DogCard
+                    key={d.id}
+                    dog={d}
+                    onChange={handleDogChange}
+                    onTimerSnapshot={(dogId, snap) => setTimerOverview((prev) => ({ ...prev, [dogId]: snap }))}
+                    onTimerAction={handleDogTimerAction}
+                    canEdit={isHost}
+                  />
+                ))}
+              </div>
 
-      {/* Add dog */}
-      {isHost && (
-        <div className="flex items-center gap-2">
-          <Input placeholder="Add dog (team name)" value={newDog} onChange={(e) => setNewDog(e.target.value)} className="max-w-xs" />
-          <Button onClick={addDog} disabled={loading}>Add</Button>
-        </div>
-      )}
+              {/* Add dog */}
+              {isHost && (
+                <div className="flex items-center gap-2">
+                  <Input placeholder="Add dog (team name)" value={newDog} onChange={(e) => setNewDog(e.target.value)} className="max-w-xs" />
+                  <Button onClick={addDog} disabled={loading}>Add</Button>
+                </div>
+              )}
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
+
     </div>
   );
 };
