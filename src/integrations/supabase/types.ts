@@ -1017,7 +1017,8 @@ export type Database = {
           quality_settings: Json | null
           stream_name: string
           stream_type: string | null
-          streamer_id: string
+          streamer_counts: number
+          streamer_id: string | null
           updated_at: string | null
           viewer_count: number | null
         }
@@ -1030,7 +1031,8 @@ export type Database = {
           quality_settings?: Json | null
           stream_name: string
           stream_type?: string | null
-          streamer_id: string
+          streamer_counts?: number
+          streamer_id?: string | null
           updated_at?: string | null
           viewer_count?: number | null
         }
@@ -1043,7 +1045,8 @@ export type Database = {
           quality_settings?: Json | null
           stream_name?: string
           stream_type?: string | null
-          streamer_id?: string
+          streamer_counts?: number
+          streamer_id?: string | null
           updated_at?: string | null
           viewer_count?: number | null
         }
@@ -1051,7 +1054,7 @@ export type Database = {
           {
             foreignKeyName: "event_streams_event_id_fkey"
             columns: ["event_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "events"
             referencedColumns: ["id"]
           },

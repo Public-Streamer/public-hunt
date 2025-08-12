@@ -23,7 +23,8 @@ export interface StreamingControls {
   toggleVideo: () => Promise<void>;
   toggleAudio: () => Promise<void>;
   toggleScreenShare: () => Promise<void>;
-  startStream: () => Promise<void>;
+  // Updated to accept streamerCount (aggregate tracks)
+  startStream: (streamerCount: number) => Promise<void>;
   stopStream: () => Promise<void>;
   stopEvent: () => Promise<void>;
   participantCount: number;
@@ -1197,14 +1198,12 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
             },
           };
 
-          // Add torch constraint for back camera if enabled
           if (currentFacingMode === "environment" && isTorchEnabled) {
             (constraints.video as any).torch = true;
           }
 
           const stream = await navigator.mediaDevices.getUserMedia(constraints);
 
-          // Check what we got
           const videoTracks = stream.getVideoTracks();
           const audioTracks = stream.getAudioTracks();
 
@@ -1218,7 +1217,6 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
             audioTracks: audioTracks.length,
           });
 
-          // Stop the test stream immediately
           stream.getTracks().forEach((track) => track.stop());
         } catch (directError) {
           console.log(
@@ -1226,13 +1224,11 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
             directError
           );
 
-          // Fallback: try individual permission requests
           const permissions = await requestBothPermissions(currentFacingMode);
           cameraGranted = permissions.camera;
           microphoneGranted = permissions.microphone;
         }
 
-        // Step 2: Check if at least one permission was granted
         if (!cameraGranted && !microphoneGranted) {
           console.log(
             "📱 MOBILE DEBUG - No permissions granted, aborting stream start"
@@ -1247,7 +1243,6 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
           "📱 MOBILE DEBUG - Step 2: Permissions granted, proceeding with stream setup"
         );
 
-        // Step 3: Check authentication
         const {
           data: { session },
           error: sessionError,
@@ -1256,14 +1251,12 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
           throw new Error("Please log in to access this stream");
         }
 
-        // Step 4: Set streaming state after successful permission check
         console.log("📱 MOBILE DEBUG - Step 4: Setting streaming state");
         setIsStreaming(true);
         setGoLive(true);
 
         await updateParticipantLiveStatus(true);
 
-        // Step 5: Enable the granted permissions
         if (cameraGranted && !isVideoEnabled) {
           console.log("📱 MOBILE DEBUG - Enabling camera");
           toggleVideoLiveButton(true);
@@ -1273,7 +1266,6 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
           toggleAudioLiveButton(true);
         }
 
-        // Step 6: Provide feedback about permissions
         if (!cameraGranted) {
           toast.warning("Camera access denied - streaming with audio only");
         } else if (!microphoneGranted) {
@@ -1286,14 +1278,33 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
           await checkAndUpdateLiveStatus();
         }, 10);
 
-        // TODO: we need to check if there is already a event stream with the same eventId , if yes, just update , or if no the instert
-        await supabase.from("event_streams").insert({
+        // Single-row aggregator per event:
+        // Upsert by event_id with streamer_counts and is_active=true.
+        // Concurrency-safe due to UNIQUE(event_id).
+        console.log("🔁 Upserting event_streams aggregator row", {
           event_id: eventId,
-          streamer_id: session.user.id,
-          stream_name: "Main Stream",
-          is_active: true,
           streamer_counts: streamerCount,
         });
+
+        const { error: upsertErr } = await supabase
+          .from("event_streams")
+          .upsert(
+            {
+              event_id: eventId,
+              // Keep a consistent name to identify aggregator row; not user-specific
+              stream_name: "Main Stream",
+              // streamer_id intentionally omitted; aggregator is not tied to one user
+              is_active: true,
+              streamer_counts: streamerCount,
+              // updated_at will be auto-updated by trigger on UPDATE
+            },
+            { onConflict: "event_id" }
+          );
+
+        if (upsertErr) {
+          console.error("❌ Error upserting event_streams aggregator:", upsertErr);
+          throw upsertErr;
+        }
 
         toast.success("Stream started successfully");
       } catch (error) {
@@ -1316,6 +1327,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       isTorchEnabled,
     ]
   );
+
   const closeRoom = useCallback(
     async (session: any) => {
       try {
@@ -1373,7 +1385,6 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
         throw new Error("Please log in to access this stream");
       }
 
-      // Set participant as not live
       await updateParticipantLiveStatus(false);
       if (isVideoEnabled) {
         toggleVideoLiveButton(false);
@@ -1381,9 +1392,11 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       if (isAudioEnabled) {
         toggleAudioLiveButton(false);
       }
+
+      // Reset aggregator row to inactive with zero streamer_counts
       await supabase
         .from("event_streams")
-        .update({ is_active: false })
+        .update({ is_active: false, streamer_counts: 0 })
         .eq("event_id", eventId);
 
       setTimeout(async () => {
@@ -1391,8 +1404,13 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
 
         console.log({ result });
 
-        if (result.should_close_room) {
-          await closeRoom(session);
+        if (result && result.should_close_room) {
+          const {
+            data: { session: latestSession },
+          } = await supabase.auth.getSession();
+          if (latestSession) {
+            await closeRoom(latestSession);
+          }
         }
 
         await navigateToEvent();
