@@ -75,7 +75,7 @@ const StagePage: React.FC = () => {
 
       return data;
     },
-    enabled: !!eventData.id,
+    enabled: !!eventData?.id,
   });
 
   // Update local state when event data changes
