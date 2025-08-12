@@ -195,24 +195,23 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
         <CardContent className="space-y-3">
           <div className="text-xs text-muted-foreground">Cast-wide</div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            <div className={`rounded-md p-2 border ${colorCls(huntTimer.status)}`}>
-              <div className="flex items-center justify-between text-xs">
-                <span>Main Hunt</span>
-                <span className="tabular-nums font-semibold">{huntTimer.formatted}</span>
-              </div>
-            </div>
-            <div className={`rounded-md p-2 border ${colorCls(trackTimer.status)}`}>
-              <div className="flex items-center justify-between text-xs">
-                <span>Track 6:00</span>
-                <span className="tabular-nums font-semibold">{trackTimer.formatted}</span>
-              </div>
-            </div>
-            <div className={`rounded-md p-2 border ${colorCls(globalShineTimer.status)}`}>
-              <div className="flex items-center justify-between text-xs">
-                <span>Global Shine 8:00</span>
-                <span className="tabular-nums font-semibold">{globalShineTimer.formatted}</span>
-              </div>
-            </div>
+            {[
+              { key: "hunt", label: "Main Hunt", status: huntTimer.status, formatted: huntTimer.formatted },
+              { key: "track", label: "Track 6:00", status: trackTimer.status, formatted: trackTimer.formatted },
+              { key: "shine", label: "Global Shine 8:00", status: globalShineTimer.status, formatted: globalShineTimer.formatted },
+            ]
+              .filter((b) => b.status === "running")
+              .map((b) => (
+                <div key={b.key} className={`rounded-md p-2 border ${colorCls(b.status)}`}>
+                  <div className="flex items-center justify-between text-xs">
+                    <span>{b.label}</span>
+                    <span className="tabular-nums font-semibold">{b.formatted}</span>
+                  </div>
+                </div>
+              ))}
+            {huntTimer.status !== "running" && trackTimer.status !== "running" && globalShineTimer.status !== "running" && (
+              <div className="text-sm text-muted-foreground">No active cast timers</div>
+            )}
           </div>
 
           <div className="space-y-3">
@@ -221,6 +220,10 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
               if (!snap) return null;
               const label = (k: string) => k.replace(/([A-Z])/g, " $1").trim();
               const keys: string[] = ["tree","treeBark2","shine","trackBark","notHunting","stationary","noBark"];
+              const running = keys
+                .map((k) => ({ key: k, t: snap[k] }))
+                .filter((x) => x.t && x.t.status === "running");
+              if (running.length === 0) return null; // hide dogs with no active timers in overview
               return (
                 <div key={d.id}>
                   <div className="text-xs font-medium flex items-center gap-2 mb-1">
@@ -228,18 +231,14 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
                     <span className="truncate">{d.name}</span>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
-                    {keys.map((k) => {
-                      const t = snap[k];
-                      if (!t) return null;
-                      return (
-                        <div key={k} className={`rounded-md p-2 border ${colorCls(t.status)}`}>
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="capitalize">{label(k)}</span>
-                            <span className="tabular-nums font-semibold">{t.formatted}</span>
-                          </div>
+                    {running.map(({ key, t }) => (
+                      <div key={key} className={`rounded-md p-2 border ${colorCls(t.status)}`}>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="capitalize">{label(key)}</span>
+                          <span className="tabular-nums font-semibold">{t.formatted}</span>
                         </div>
-                      );
-                    })}
+                      </div>
+                    ))}
                   </div>
                 </div>
               );
