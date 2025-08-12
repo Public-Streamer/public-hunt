@@ -35,10 +35,6 @@ export const ScorecardDetails: React.FC<ScorecardDetailsProps> = ({ dogs, onSave
         ) : (
           dogs.map((d) => {
             const { total, strikes, trees } = calcTotals(d.entries);
-            const circleTotal = d.entries.reduce((s, e) => (e.outcome === "o" ? s + e.points : s), 0);
-            const hasPending = d.entries.some((e) => e.outcome === "pending");
-            const sign = hasPending ? "?" : total === 0 && circleTotal > 0 ? "◯" : total > 0 ? "+" : total < 0 ? "–" : "";
-            const signClass = hasPending ? "text-foreground" : sign === "◯" ? "text-warning" : sign === "+" ? "text-success" : sign === "–" ? "text-destructive" : "text-muted-foreground";
             return (
               <div key={d.id} className="rounded-md border p-3">
                 <div className="flex items-center justify-between">
@@ -58,9 +54,6 @@ export const ScorecardDetails: React.FC<ScorecardDetailsProps> = ({ dogs, onSave
                     <Badge variant="secondary">Strikes: {strikes}</Badge>
                     <Badge variant="secondary">Trees: {trees}</Badge>
                     <Badge variant="outline">Total: {total}</Badge>
-                    {sign && (
-                      <span className={`ml-1 font-extrabold ${signClass}`} aria-label="total sign" title="Total sign">{sign}</span>
-                    )}
                   </div>
                 </div>
 
