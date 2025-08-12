@@ -138,8 +138,8 @@ export const ScorecardSummary: React.FC<ScorecardSummaryProps> = ({ dogs, timerO
                     )}
                     {circle > 0 && (
                       <Badge
-                        variant="outline"
-                        className="bg-accent/10 text-accent border-accent/40 rounded-full ring-1 ring-accent/40"
+                        variant="warning"
+                        className="rounded-full ring-1 ring-yellow-500/40"
                       >
                         <span className="tabular-nums">{circle}</span>
                         <span className="ml-1">◯</span>
@@ -152,8 +152,8 @@ export const ScorecardSummary: React.FC<ScorecardSummaryProps> = ({ dogs, timerO
                     )}
                     {total === 0 && circle > 0 ? (
                       <Badge
-                        variant="outline"
-                        className="bg-accent/10 text-accent border-accent/40 rounded-full ring-1 ring-accent/40"
+                        variant="warning"
+                        className="rounded-full ring-1 ring-yellow-500/40"
                       >
                         Total: <span className="ml-1 tabular-nums">{circle}</span>
                         <span className="ml-1">◯</span>
