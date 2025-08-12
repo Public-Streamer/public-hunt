@@ -45,6 +45,7 @@ interface DogCardProps {
       notHunting: { formatted: string; status: TimerStatus };
       stationary: { formatted: string; status: TimerStatus };
       noBark: { formatted: string; status: TimerStatus };
+      walk: { formatted: string; status: TimerStatus };
     }
   ) => void;
   onTimerAction?: (
@@ -93,6 +94,14 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
       }
     },
   });
+  const walkTimer = useCountdown(1 * 60, {
+    onComplete: () => {
+      toast({ title: "Walk time finished", description: `${draft.name}: 1-minute walk ended` });
+      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+        try { (navigator as any).vibrate?.(200); } catch {}
+      }
+    },
+  });
   const notHuntingTimer = useCountdown(15 * 60, {
     onComplete: () => {
       toast({ title: "Not hunting time finished", description: `${draft.name}: 15-minute timer ended` });
@@ -133,6 +142,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
       treeBark2: { formatted: treeBark2Timer.formatted, status: treeBark2Timer.status },
       shine: { formatted: shineTimer.formatted, status: shineTimer.status },
       trackBark: { formatted: trackBarkTimer.formatted, status: trackBarkTimer.status },
+      walk: { formatted: walkTimer.formatted, status: walkTimer.status },
       notHunting: { formatted: notHuntingTimer.formatted, status: notHuntingTimer.status },
       stationary: { formatted: stationaryTimer.formatted, status: stationaryTimer.status },
       noBark: { formatted: stationaryNonBarkTimer.formatted, status: stationaryNonBarkTimer.status },
@@ -143,6 +153,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
     treeBark2Timer.formatted, treeBark2Timer.status,
     shineTimer.formatted, shineTimer.status,
     trackBarkTimer.formatted, trackBarkTimer.status,
+    walkTimer.formatted, walkTimer.status,
     notHuntingTimer.formatted, notHuntingTimer.status,
     stationaryTimer.formatted, stationaryTimer.status,
     stationaryNonBarkTimer.formatted, stationaryNonBarkTimer.status,
@@ -246,6 +257,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
       { key: "treeBark2", label: "Tree Bark", t: treeBark2Timer },
       { key: "shine", label: "Shine", t: shineTimer },
       { key: "trackBark", label: "Track Bark", t: trackBarkTimer },
+      { key: "walk", label: "Walk", t: walkTimer },
       { key: "notHunting", label: "Not Hunt", t: notHuntingTimer },
       { key: "goneHunting", label: "Gone Hunt", t: goneHuntingTimer },
       { key: "stationary", label: "Stationary", t: stationaryTimer },
@@ -256,6 +268,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
       treeBark2Timer.status,
       shineTimer.status,
       trackBarkTimer.status,
+      walkTimer.status,
       notHuntingTimer.status,
       goneHuntingTimer.status,
       stationaryTimer.status,
@@ -268,6 +281,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
     treeBark2: { status: treeBark2Timer.status, remaining: treeBark2Timer.remaining },
     shine: { status: shineTimer.status, remaining: shineTimer.remaining },
     trackBark: { status: trackBarkTimer.status, remaining: trackBarkTimer.remaining },
+    walk: { status: walkTimer.status, remaining: walkTimer.remaining },
     notHunting: { status: notHuntingTimer.status, remaining: notHuntingTimer.remaining },
     goneHunting: { status: goneHuntingTimer.status, remaining: goneHuntingTimer.remaining },
     stationary: { status: stationaryTimer.status, remaining: stationaryTimer.remaining },
@@ -277,6 +291,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
     treeBark2Timer.status, treeBark2Timer.remaining,
     shineTimer.status, shineTimer.remaining,
     trackBarkTimer.status, trackBarkTimer.remaining,
+    walkTimer.status, walkTimer.remaining,
     notHuntingTimer.status, notHuntingTimer.remaining,
     goneHuntingTimer.status, goneHuntingTimer.remaining,
     stationaryTimer.status, stationaryTimer.remaining,
@@ -353,6 +368,9 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
               </div>
               <div title="Track Bark Timer: 6 minutes for strike requirement.">
                 <TimerControl label="Track Bark 6:00" formatted={trackBarkTimer.formatted} status={trackBarkTimer.status} onStart={trackBarkTimer.start} onPause={trackBarkTimer.pause} onReset={trackBarkTimer.reset} />
+              </div>
+              <div title="Walk Timer: 1 minute for walking between trees.">
+                <TimerControl label="Walk 1:00" formatted={walkTimer.formatted} status={walkTimer.status} onStart={walkTimer.start} onPause={walkTimer.pause} onReset={walkTimer.reset} />
               </div>
               <div title="Not Hunting Timer: 15 minutes for non-hunting dog.">
                 <div className="relative rounded-md border border-primary/40 bg-primary/5 p-2 space-y-2 pl-3 sm:pl-4">
