@@ -153,7 +153,8 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   }, [eventId, userId]);
 
   const canManageScoreboard = userRole === "host" || isJudge;
-  const canSeeScoreboard = canManageScoreboard;
+  // Show scoreboard to everyone when a game type is selected (view-only for non-managers)
+  const canSeeScoreboard = canManageScoreboard || !!selectedGameType;
 
   // Real-time permission updates for judge role
   useEffect(() => {
