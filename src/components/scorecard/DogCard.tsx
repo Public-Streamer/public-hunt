@@ -30,6 +30,7 @@ export interface DogData {
   breed?: string;
   age?: number;
   judgeNotes?: string;
+  disqualified?: boolean; // scratched/disqualified status
 }
 
 interface DogCardProps {
@@ -129,11 +130,18 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
   });
   const goneHuntingTimer = useCountdown(5 * 60, {
     onComplete: () => {
-      toast({ title: "Gone hunting 5:00 finished", description: `${draft.name}: resetting Not Hunting 15:00` });
+      // Scratch dog when Gone Hunt expires
+      toast({ title: "Gone Hunt expired — Dog scratched", description: `${draft.name} is scratched from the hunt`, variant: "destructive" });
+      const updated: DogData = { ...draft, disqualified: true };
+      setDraft(updated);
+      onChange(updated, computeTotal(updated.entries));
+      // Reset related timers for clarity
+      goneHuntingTimer.reset(5 * 60);
       notHuntingTimer.reset(15 * 60);
       if (typeof navigator !== "undefined" && "vibrate" in navigator) {
         try { (navigator as any).vibrate?.(200); } catch {}
       }
+      onTimerAction?.(draft.id, snapshotTimers());
     },
   });
   const stationaryTimer = useCountdown(5 * 60, {
@@ -146,11 +154,25 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
   });
   const stationaryNonBarkTimer = useCountdown(2 * 60, {
     onComplete: () => {
-      toast({ title: "No bark 2:00 expired", description: `${draft.name}: resetting stationary` });
+      toast({ title: "No Bark 2:00 expired", description: `${draft.name}: auto-minus pending tree and reset stationary` });
+      // Auto-minus the most recent pending tree entry (if any)
+      let updatedEntries = draft.entries;
+      const lastPendingTreeIndex = [...draft.entries]
+        .map((e, i) => ({ e, i }))
+        .filter(({ e }) => e.type === "tree" && e.outcome === "pending")
+        .pop()?.i;
+      if (lastPendingTreeIndex !== undefined) {
+        updatedEntries = draft.entries.map((e, i) => (i === lastPendingTreeIndex ? { ...e, outcome: "-" as const } : e));
+      }
+      const updated: DogData = { ...draft, entries: updatedEntries };
+      setDraft(updated);
+      onChange(updated, computeTotal(updated.entries));
+      // Reset Stationary timer as part of linked behavior
       stationaryTimer.reset(5 * 60);
       if (typeof navigator !== "undefined" && "vibrate" in navigator) {
         try { (navigator as any).vibrate?.(200); } catch {}
       }
+      onTimerAction?.(draft.id, snapshotTimers());
     },
   });
   useEffect(() => {
@@ -415,7 +437,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
                     status={goneHuntingTimer.status}
                     onStart={startGoneHuntingGuarded}
                     onPause={goneHuntingTimer.pause}
-                    onReset={goneHuntingTimer.reset}
+                    onReset={() => { goneHuntingTimer.reset(); }}
                     className="border-primary/40"
                   />
                 </div>
@@ -439,7 +461,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
                     status={stationaryNonBarkTimer.status}
                     onStart={startNonBarkGuarded}
                     onPause={stationaryNonBarkTimer.pause}
-                    onReset={stationaryNonBarkTimer.reset}
+                    onReset={() => { stationaryNonBarkTimer.reset(); }}
                     className="border-secondary/40"
                   />
                 </div>
