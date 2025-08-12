@@ -39,14 +39,14 @@ export const ScorecardDetails: React.FC<ScorecardDetailsProps> = ({ dogs, onSave
               <div key={d.id} className="rounded-md border p-3">
                 <div className="flex items-center justify-between">
                   <div className="min-w-0">
-                    <div className="text-sm font-medium flex items-center gap-2">
+                    <div className="text-base sm:text-lg font-extrabold flex items-center gap-2 text-foreground">
                       <span className="inline-block h-2 w-2 rounded-full" style={{ background: d.color }} />
                       <span className="truncate">{d.name}</span>
                     </div>
-                    <div className="text-xs text-muted-foreground truncate">
+                    <div className="text-sm sm:text-base font-semibold text-foreground truncate">
                       Dog: {d.dogName || "—"} • Handler: {d.handler || "—"}
                     </div>
-                    <div className="text-xs text-muted-foreground truncate">
+                    <div className="text-sm text-foreground truncate">
                       {d.cityState || "—"} • {d.breed || "—"} • {d.age != null ? `${d.age} yr` : "—"}
                     </div>
                   </div>

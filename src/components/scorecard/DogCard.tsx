@@ -380,7 +380,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
     <Collapsible open={open} onOpenChange={setOpen}>
       <Card className="border-2">
         <CardHeader className="py-3">
-          <CardTitle className="flex items-center justify-between text-base">
+          <CardTitle className="flex items-center justify-between text-lg sm:text-xl font-extrabold text-foreground">
             <div className="flex items-center gap-2 min-w-0">
               {draft.dogPhotoUrl && (
                 <img
@@ -391,7 +391,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
                 />
               )}
               <span className="inline-block h-3 w-3 rounded-full" style={{ background: draft.color }} />
-              <span className="truncate">{draft.name}</span>
+              <span className="truncate font-bold tracking-tight">{draft.name}</span>
               {hasPending && <Badge variant="outline" className="ml-2">Pending</Badge>}
             </div>
             <div className="flex items-center gap-2 text-sm">
