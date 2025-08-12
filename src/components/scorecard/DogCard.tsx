@@ -61,12 +61,13 @@ interface DogCardProps {
   ) => void;
   onDelete?: (dogId: string) => void;
   canEdit?: boolean;
+  openExternal?: boolean; // allow parent to force open/close (for auto-expand)
 }
 
 const quickStrike = [100, 75, 50, 25];
 const quickTree = [125, 75, 50, 25];
 
-export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot, onTimerAction, onDelete, canEdit = true }) => {
+export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot, onTimerAction, onDelete, canEdit = true, openExternal }) => {
   const [draft, setDraft] = useState<DogData>(dog);
   const [customPoints, setCustomPoints] = useState<string>("");
   const [treeMinusBlink, setTreeMinusBlink] = useState(false);
@@ -308,9 +309,16 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot
     );
   };
 
-  const [customTimers, setCustomTimers] = useState<{ id: string; label: string; seconds: number }[]>([]);
-  const [open, setOpen] = useState(true);
-  const [isEditing, setIsEditing] = useState(false);
+const [customTimers, setCustomTimers] = useState<{ id: string; label: string; seconds: number }[]>([]);
+const [open, setOpen] = useState<boolean>(!!canEdit);
+const [isEditing, setIsEditing] = useState(false);
+
+// Sync external open control from parent (auto-expand on updates)
+useEffect(() => {
+  if (typeof openExternal === 'boolean') {
+    setOpen(openExternal);
+  }
+}, [openExternal]);
 
   const runningTimers = useMemo(
     () => [

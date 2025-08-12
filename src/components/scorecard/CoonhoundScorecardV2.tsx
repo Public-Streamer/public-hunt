@@ -67,53 +67,65 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
   const [openDetails, setOpenDetails] = useState<boolean>(!!isHost);
   const [openDogIds, setOpenDogIds] = useState<Record<string, boolean>>({});
 
-  // Glow highlight state map: keys like `hunt`, `dog:{id}`, `summary`, `details`
-  const [glow, setGlow] = useState<Record<string, { colorVar: string; until: number }>>({});
-  const triggerGlow = useCallback((key: string, colorVar: string, ms = 5000) => {
-    setGlow((prev) => ({ ...prev, [key]: { colorVar, until: Date.now() + ms } }));
-  }, []);
-  useEffect(() => {
-    const id = setInterval(() => {
-      const now = Date.now();
-      setGlow((prev) => {
-        const next: typeof prev = {} as any;
-        let changed = false;
-        for (const k in prev) {
-          if (prev[k].until > now) next[k] = prev[k]; else changed = true;
-        }
-        return changed ? next : prev;
-      });
-    }, 1000);
-    return () => clearInterval(id);
-  }, []);
+// Glow highlight state map: keys like `hunt`, `dog:{id}`, `summary`, `details`
+const [glow, setGlow] = useState<Record<string, { variant: 'success' | 'danger' | 'warning' | 'info' | 'pending'; until: number }>>({});
+const triggerGlow = useCallback((key: string, variant: 'success' | 'danger' | 'warning' | 'info' | 'pending', ms = 5000) => {
+  setGlow((prev) => ({ ...prev, [key]: { variant, until: Date.now() + ms } }));
+}, []);
+useEffect(() => {
+  const id = setInterval(() => {
+    const now = Date.now();
+    setGlow((prev) => {
+      const next: typeof prev = {} as any;
+      let changed = false;
+      for (const k in prev) {
+        if (prev[k].until > now) next[k] = prev[k]; else changed = true;
+      }
+      return changed ? next : prev;
+    });
+  }, 1000);
+  return () => clearInterval(id);
+}, []);
 
-  // Realtime channel for scoreboard/timer sync
-  const rtChannelRef = React.useRef<ReturnType<typeof supabase.channel> | null>(null);
+// Realtime channel for scoreboard/timer sync
+const getClientId = () => {
+  try {
+    const key = 'ps-client-id';
+    let id = localStorage.getItem(key);
+    if (!id) { id = crypto.randomUUID(); localStorage.setItem(key, id); }
+    return id;
+  } catch { return crypto.randomUUID(); }
+};
+const clientIdRef = React.useRef<string>(getClientId());
 
-  const colorCls = (s: TimerStatus) => s === "running"
-    ? "bg-primary/10 text-primary"
-    : s === "paused"
-    ? "bg-accent/10 text-accent-foreground"
-    : s === "finished"
-    ? "bg-destructive/10 text-destructive"
-    : "bg-muted text-muted-foreground";
 
-  const syncCastTimers = useCallback(async () => {
-    try {
-      const timers = {
-        mainHunt: { status: huntTimer.status, remaining: huntTimer.remaining },
-        track: { status: trackTimer.status, remaining: trackTimer.remaining },
-        globalShine: { status: globalShineTimer.status, remaining: globalShineTimer.remaining },
-        babbling: { status: babbleMainTimer.status, remaining: babbleMainTimer.remaining },
-        mainHuntMinutes: huntMinutes,
-      };
-      await supabase.functions.invoke('scoreboard-operations', {
-        body: { action: 'updateCastTimers', eventId, timers }
-      });
-    } catch (e) {
-      console.warn('Failed to sync cast timers', e);
-    }
-  }, [eventId, huntMinutes]);
+const colorCls = (s: TimerStatus) => s === "running"
+  ? "bg-primary/10 text-primary"
+  : s === "paused"
+  ? "bg-accent/10 text-accent-foreground"
+  : s === "finished"
+  ? "bg-destructive/10 text-destructive"
+  : "bg-muted text-muted-foreground";
+
+// Setup realtime channel (moved below timers)
+
+const syncCastTimers = useCallback(async () => {
+  try {
+    const timers = {
+      mainHunt: { status: huntTimer.status, remaining: huntTimer.remaining },
+      track: { status: trackTimer.status, remaining: trackTimer.remaining },
+      globalShine: { status: globalShineTimer.status, remaining: globalShineTimer.remaining },
+      babbling: { status: babbleMainTimer.status, remaining: babbleMainTimer.remaining },
+      mainHuntMinutes: huntMinutes,
+    };
+    await supabase.functions.invoke('scoreboard-operations', {
+      body: { action: 'updateCastTimers', eventId, timers }
+    });
+    rtChannelRef.current?.send({ type: 'broadcast', event: 'cast_timer_update', payload: { eventId, timers } });
+  } catch (e) {
+    console.warn('Failed to sync cast timers', e);
+  }
+}, [eventId, huntMinutes, huntTimer.remaining, huntTimer.status, trackTimer.remaining, trackTimer.status, globalShineTimer.remaining, globalShineTimer.status, babbleMainTimer.remaining, babbleMainTimer.status]);
 
   const huntTimer = useCountdown(huntMinutes * 60, {
     onComplete: () => {
@@ -148,119 +160,202 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
     },
   });
   // Babbling one-minute timer should start each time Main Hunt starts
+useEffect(() => {
+  const channel = supabase.channel(`event:${eventId}:scorecard`, {
+    config: { broadcast: { self: false }, presence: { key: clientIdRef.current } },
+  });
 
-  const fetchTeams = async () => {
-    try {
-      const { data, error } = await supabase.functions.invoke('scoreboard-operations', {
-        body: { action: 'fetch', eventId, scoreboardType: 'coon_hunt' }
-      });
-      if (error) throw error;
-      const arr = Array.isArray(data) ? data : data?.teams || [];
-      setDogs(arr.map(fromRow));
-    } catch (e) {
-      console.error(e);
-    }
-  };
+  channel
+    .on('broadcast', { event: 'score_update' }, (p: any) => {
+      setOpenSummary(true);
+      setOpenDetails(true);
+      if (p?.teamId) setOpenDogIds((prev) => ({ ...prev, [p.teamId]: true }));
+      const variant = p?.updateKind === '+' ? 'success' : p?.updateKind === '-' ? 'danger' : p?.updateKind === 'o' ? 'warning' : p?.updateKind === 'pending' ? 'info' : 'pending';
+      if (p?.teamId) triggerGlow(`dog:${p.teamId}`, variant);
+      triggerGlow('summary', variant);
+      triggerGlow('details', variant);
+      fetchTeams();
+    })
+    .on('broadcast', { event: 'dog_timer_update' }, (p: any) => {
+      if (p?.teamId) setOpenDogIds((prev) => ({ ...prev, [p.teamId]: true }));
+      if (p?.teamId) triggerGlow(`dog:${p.teamId}`, 'warning');
+    })
+    .on('broadcast', { event: 'cast_timer_update' }, (p: any) => {
+      setOpenHunt(true);
+      triggerGlow('hunt', 'warning');
+      const t = p?.timers;
+      if (t) {
+        huntTimer.syncTo(t.mainHunt?.remaining ?? huntTimer.remaining, t.mainHunt?.status ?? huntTimer.status);
+        trackTimer.syncTo(t.track?.remaining ?? trackTimer.remaining, t.track?.status ?? trackTimer.status);
+        globalShineTimer.syncTo(t.globalShine?.remaining ?? globalShineTimer.remaining, t.globalShine?.status ?? globalShineTimer.status);
+        babbleMainTimer.syncTo(t.babbling?.remaining ?? babbleMainTimer.remaining, t.babbling?.status ?? babbleMainTimer.status);
+      }
+    })
+    .on('broadcast', { event: 'dog_created' }, () => {
+      setOpenDetails(true);
+      triggerGlow('details', 'info');
+      fetchTeams();
+    });
+
+  channel.subscribe(() => {});
+  rtChannelRef.current = channel;
+  return () => { if (rtChannelRef.current) supabase.removeChannel(rtChannelRef.current); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [eventId, huntTimer.status, huntTimer.remaining, trackTimer.status, trackTimer.remaining, globalShineTimer.status, globalShineTimer.remaining, babbleMainTimer.status, babbleMainTimer.remaining]);
+
+const fetchTeams = async () => {
+  try {
+    const { data, error } = await supabase.functions.invoke('scoreboard-operations', {
+      body: { action: 'fetch', eventId, scoreboardType: 'coon_hunt' }
+    });
+    if (error) throw error;
+    const arr = Array.isArray(data) ? data : data?.teams || [];
+    const mapped = arr.map(fromRow);
+    setDogs(mapped);
+  } catch (e) {
+    console.error(e);
+  }
+};
 
   // Ensure existing teams are loaded on entry so panels are visible immediately
-  useEffect(() => {
+useEffect(() => {
+  fetchTeams();
+  // Try to hydrate timers if server provides state
+  (async () => {
+    try {
+      const { data } = await supabase.functions.invoke('scoreboard-operations', { body: { action: 'getCastTimers', eventId } });
+      const t = (data as any)?.timers;
+      if (t) {
+        huntTimer.syncTo(t.mainHunt?.remaining ?? huntTimer.remaining, t.mainHunt?.status ?? huntTimer.status);
+        trackTimer.syncTo(t.track?.remaining ?? trackTimer.remaining, t.track?.status ?? trackTimer.status);
+        globalShineTimer.syncTo(t.globalShine?.remaining ?? globalShineTimer.remaining, t.globalShine?.status ?? globalShineTimer.status);
+        babbleMainTimer.syncTo(t.babbling?.remaining ?? babbleMainTimer.remaining, t.babbling?.status ?? babbleMainTimer.status);
+      }
+    } catch {}
+  })();
+}, [eventId]);
+
+// Save handler that updates score and custom_fields
+const handleDogChange = async (dog: DogData, newTotal: number) => {
+  // compute previous for diff
+  const prev = dogs.find((d) => d.id === dog.id);
+  setDogs((prevList) => prevList.map((d) => (d.id === dog.id ? dog : d)));
+  try {
+    const payload = toPayload(dog);
+    const { error } = await supabase.functions.invoke('scoreboard-operations', {
+      body: { action: 'updateTeam', ...payload, score: newTotal }
+    });
+    if (error) throw error;
+
+    // Broadcast update for viewers (for auto-expand + glow)
+    const detectKind = () => {
+      if (!prev) return 'pending';
+      const before = new Map(prev.entries.map(e => [e.id, e]));
+      for (const e of dog.entries) {
+        const old = before.get(e.id);
+        if (old && old.outcome !== e.outcome) return e.outcome;
+      }
+      return 'pending';
+    };
+    rtChannelRef.current?.send({ type: 'broadcast', event: 'score_update', payload: { eventId, teamId: dog.id, updateKind: detectKind() } });
+  } catch (e) {
+    console.error(e);
+    toast({ title: 'Error', description: 'Failed to save score', variant: 'destructive' });
+  }
+};
+
+const handleDogTimerAction = async (
+  dogId: string,
+  timers: Record<string, { status: TimerStatus; remaining: number }>
+) => {
+  try {
+    await supabase.functions.invoke('scoreboard-operations', {
+      body: { action: 'updateDogTimers', teamId: dogId, timers }
+    });
+    rtChannelRef.current?.send({ type: 'broadcast', event: 'dog_timer_update', payload: { eventId, teamId: dogId, timers } });
+  } catch (e) {
+    console.warn('Failed to sync dog timers', e);
+  }
+};
+
+const totalPending = useMemo(() => dogs.reduce((acc, d) => acc + d.entries.filter(e => e.outcome === 'pending').length, 0), [dogs]);
+
+// Helper to set initial collapsed state of dogs
+useEffect(() => {
+  if (!dogs.length) return;
+  setOpenDogIds((prev) => {
+    if (Object.keys(prev).length) return prev; // keep user's choices
+    const next: Record<string, boolean> = {};
+    for (const d of dogs) next[d.id] = !!isHost; // collapsed by default for viewers
+    return next;
+  });
+}, [dogs, isHost]);
+
+// Add dog
+const [newDog, setNewDog] = useState("");
+const addDog = async () => {
+  if (!newDog.trim()) return;
+  setLoading(true);
+  try {
+    const colorPalette = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'];
+    const teamColor = colorPalette[dogs.length % colorPalette.length];
+    const { error } = await supabase.functions.invoke('scoreboard-operations', {
+      body: {
+        action: 'create', eventId, teamName: newDog.trim(), teamColor,
+        customFields: { handler_name: '', entries: [] }, scoreboardType: 'coon_hunt'
+      }
+    });
+    if (error) throw error;
+    setNewDog("");
+    rtChannelRef.current?.send({ type: 'broadcast', event: 'dog_created', payload: { eventId } });
     fetchTeams();
-  }, [eventId]);
-
-  // Save handler that updates score and custom_fields
-  const handleDogChange = async (dog: DogData, newTotal: number) => {
-    setDogs((prev) => prev.map((d) => (d.id === dog.id ? dog : d)));
-    try {
-      const payload = toPayload(dog);
-      const { error } = await supabase.functions.invoke('scoreboard-operations', {
-        body: { action: 'updateTeam', ...payload, score: newTotal }
-      });
-      if (error) throw error;
-    } catch (e) {
-      console.error(e);
-      toast({ title: 'Error', description: 'Failed to save score', variant: 'destructive' });
-    }
-  };
-
-  const handleDogTimerAction = async (
-    dogId: string,
-    timers: Record<string, { status: TimerStatus; remaining: number }>
-  ) => {
-    try {
-      await supabase.functions.invoke('scoreboard-operations', {
-        body: { action: 'updateDogTimers', teamId: dogId, timers }
-      });
-    } catch (e) {
-      console.warn('Failed to sync dog timers', e);
-    }
-  };
-
-  const totalPending = useMemo(() => dogs.reduce((acc, d) => acc + d.entries.filter(e => e.outcome === 'pending').length, 0), [dogs]);
-
-  // SEO: Ensure semantic, accessible structure is used in headings/sections (handled by page layout)
-
-  // Add dog
-  const [newDog, setNewDog] = useState("");
-  const addDog = async () => {
-    if (!newDog.trim()) return;
-    setLoading(true);
-    try {
-      const colorPalette = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'];
-      const teamColor = colorPalette[dogs.length % colorPalette.length];
-      const { error } = await supabase.functions.invoke('scoreboard-operations', {
-        body: {
-          action: 'create', eventId, teamName: newDog.trim(), teamColor,
-          customFields: { handler_name: '', entries: [] }, scoreboardType: 'coon_hunt'
-        }
-      });
-      if (error) throw error;
-      setNewDog("");
-      fetchTeams();
-    } catch (e) {
-      console.error(e);
-      toast({ title: 'Error', description: 'Failed to add dog', variant: 'destructive' });
-    } finally { setLoading(false); }
-  };
+  } catch (e) {
+    console.error(e);
+    toast({ title: 'Error', description: 'Failed to add dog', variant: 'destructive' });
+  } finally { setLoading(false); }
+};
 
   return (
     <div className="space-y-4">
-      {/* Cast-wide timers */}
-      <Card className="relative overflow-hidden">
-        <CardHeader className="py-3">
-          <CardTitle className="flex items-center justify-between text-base">
-            <span>Hunt Timers</span>
-            <div className="flex items-center gap-2">
-              <Select value={String(huntMinutes)} onValueChange={(v) => { const m = Number(v) as 60 | 90 | 120; setHuntMinutes(m); huntTimer.reset(m * 60); syncCastTimers(); }}>
-                <SelectTrigger disabled={!isHost} className="h-8 w-32"><SelectValue placeholder="Hunt" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="60">60 min</SelectItem>
-                  <SelectItem value="90">90 min</SelectItem>
-                  <SelectItem value="120">120 min</SelectItem>
-                </SelectContent>
-              </Select>
+      {/* Hunt Timers (Collapsible with glow) */}
+      <Collapsible open={openHunt} onOpenChange={setOpenHunt}>
+        <Card className={`relative overflow-hidden glow-surface ${glow['hunt'] ? 'glow-active glow-warning' : ''}`}>
+          <CardHeader className="py-3">
+            <CardTitle className="flex items-center justify-between text-base">
+              <span>Hunt Timers</span>
+              <div className="flex items-center gap-2">
+                <Select value={String(huntMinutes)} onValueChange={(v) => { const m = Number(v) as 60 | 90 | 120; setHuntMinutes(m); huntTimer.reset(m * 60); syncCastTimers(); }}>
+                  <SelectTrigger disabled={!isHost} className="h-8 w-32"><SelectValue placeholder="Hunt" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="60">60 min</SelectItem>
+                    <SelectItem value="90">90 min</SelectItem>
+                    <SelectItem value="120">120 min</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardTitle>
+          </CardHeader>
+          {!isHost && (
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+              <span className="text-4xl sm:text-5xl font-extrabold uppercase tracking-widest text-foreground/15 -rotate-12 select-none">VIEW ONLY</span>
             </div>
-          </CardTitle>
-        </CardHeader>
-        {!isHost && (
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            <span className="text-4xl sm:text-5xl font-extrabold uppercase tracking-widest text-foreground/15 -rotate-12 select-none">VIEW ONLY</span>
-          </div>
-        )}
-        <CardContent className="grid grid-cols-1 sm:grid-cols-4 gap-2">
-          <div title="Main Hunt Timer: Select duration then control the clock.">
-            <TimerControl disabled={!isHost} allowPause label="Main Hunt" formatted={huntTimer.formatted} status={huntTimer.status} onStart={() => { huntTimer.start(); babbleMainTimer.reset(); babbleMainTimer.start(); syncCastTimers(); }} onPause={() => { huntTimer.pause(); syncCastTimers(); }} onReset={() => { huntTimer.reset(huntMinutes * 60); syncCastTimers(); }} />
-          </div>
-          <div title="Global Track Timer: 6 minutes for strike requirement.">
-            <TimerControl disabled={!isHost} label="Track 6:00" formatted={trackTimer.formatted} status={trackTimer.status} onStart={() => { trackTimer.start(); syncCastTimers(); }} onPause={() => { trackTimer.pause(); syncCastTimers(); }} onReset={() => { trackTimer.reset(); syncCastTimers(); }} />
-          </div>
-          <div title="Global Shine Timer: 8 minutes when multiple dogs are involved.">
-            <TimerControl disabled={!isHost} label="Global Shine 8:00" formatted={globalShineTimer.formatted} status={globalShineTimer.status} onStart={() => { globalShineTimer.start(); syncCastTimers(); }} onPause={() => { globalShineTimer.pause(); syncCastTimers(); }} onReset={() => { globalShineTimer.reset(); syncCastTimers(); }} />
-          </div>
-          <div title="Babbling Stopwatch: auto-starts with Main Hunt start.">
-            <TimerControl disabled={!isHost} label="Babbling 1 Minute 1:00" formatted={babbleMainTimer.formatted} status={babbleMainTimer.status} onStart={() => { babbleMainTimer.start(); syncCastTimers(); }} onPause={() => { babbleMainTimer.pause(); syncCastTimers(); }} onReset={() => { babbleMainTimer.reset(); syncCastTimers(); }} />
-          </div>
-        </CardContent>
-      </Card>
+          )}
+          <CardContent className="grid grid-cols-1 sm:grid-cols-4 gap-2">
+            <div title="Main Hunt Timer: Select duration then control the clock.">
+              <TimerControl disabled={!isHost} allowPause label="Main Hunt" formatted={huntTimer.formatted} status={huntTimer.status} onStart={() => { huntTimer.start(); babbleMainTimer.reset(); babbleMainTimer.start(); syncCastTimers(); }} onPause={() => { huntTimer.pause(); syncCastTimers(); }} onReset={() => { huntTimer.reset(huntMinutes * 60); syncCastTimers(); }} />
+            </div>
+            <div title="Global Track Timer: 6 minutes for strike requirement.">
+              <TimerControl disabled={!isHost} label="Track 6:00" formatted={trackTimer.formatted} status={trackTimer.status} onStart={() => { trackTimer.start(); syncCastTimers(); }} onPause={() => { trackTimer.pause(); syncCastTimers(); }} onReset={() => { trackTimer.reset(); syncCastTimers(); }} />
+            </div>
+            <div title="Global Shine Timer: 8 minutes when multiple dogs are involved.">
+              <TimerControl disabled={!isHost} label="Global Shine 8:00" formatted={globalShineTimer.formatted} status={globalShineTimer.status} onStart={() => { globalShineTimer.start(); syncCastTimers(); }} onPause={() => { globalShineTimer.pause(); syncCastTimers(); }} onReset={() => { globalShineTimer.reset(); syncCastTimers(); }} />
+            </div>
+            <div title="Babbling Stopwatch: auto-starts with Main Hunt start.">
+              <TimerControl disabled={!isHost} label="Babbling 1 Minute 1:00" formatted={babbleMainTimer.formatted} status={babbleMainTimer.status} onStart={() => { babbleMainTimer.start(); syncCastTimers(); }} onPause={() => { babbleMainTimer.pause(); syncCastTimers(); }} onReset={() => { babbleMainTimer.reset(); syncCastTimers(); }} />
+            </div>
+          </CardContent>
+        </Card>
+      </Collapsible>
 
       {!isHost && (
         <Alert variant="info">
@@ -287,15 +382,22 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
       {/* Dogs */}
       <div className="space-y-3">
         {dogs.map((d) => (
-          <DogCard
-            key={d.id}
-            dog={d}
-            onChange={handleDogChange}
-            onTimerSnapshot={(dogId, snap) => setTimerOverview((prev) => ({ ...prev, [dogId]: snap }))}
-            onTimerAction={handleDogTimerAction}
-            onDelete={() => fetchTeams()}
-            canEdit={isHost}
-          />
+          <div key={d.id} className={`glow-surface ${glow[`dog:${d.id}`] ? `glow-active ${
+            glow[`dog:${d.id}`]!.variant === 'success' ? 'glow-success' :
+            glow[`dog:${d.id}`]!.variant === 'danger' ? 'glow-danger' :
+            glow[`dog:${d.id}`]!.variant === 'warning' ? 'glow-warning' :
+            glow[`dog:${d.id}`]!.variant === 'info' ? 'glow-info' : 'glow-pending'
+          }` : ''}`}>
+            <DogCard
+              dog={d}
+              onChange={handleDogChange}
+              onTimerSnapshot={(dogId, snap) => setTimerOverview((prev) => ({ ...prev, [dogId]: snap }))}
+              onTimerAction={handleDogTimerAction}
+              onDelete={() => fetchTeams()}
+              canEdit={isHost}
+              openExternal={openDogIds[d.id] ?? !!isHost}
+            />
+          </div>
         ))}
       </div>
 

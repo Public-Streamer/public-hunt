@@ -566,3 +566,41 @@
     scrollbar-color: hsl(var(--muted-foreground)) hsl(var(--muted));
   }
 }
+
+/* === Update Glow Utilities (semantic, token-based) === */
+:root {
+  /* Semantic feedback colors */
+  --success: 142 71% 45%;      /* green */
+  --warning: 38 92% 50%;       /* amber/orange */
+  --info: 200 98% 39%;         /* blue */
+  --pending-color: var(--ring); /* fallback to ring color */
+}
+.dark {
+  --success: 142 70% 35%;
+  --warning: 38 92% 45%;
+  --info: 200 98% 55%;
+}
+
+@keyframes glow-pulse {
+  0% { box-shadow: 0 0 0 0 hsl(var(--glow-color) / 0.50), 0 0 0 0 hsl(var(--glow-color) / 0.20); }
+  50% { box-shadow: 0 0 0 3px hsl(var(--glow-color) / 0.50), 0 0 24px 6px hsl(var(--glow-color) / 0.25); }
+  100% { box-shadow: 0 0 0 0 hsl(var(--glow-color) / 0.00), 0 0 0 0 hsl(var(--glow-color) / 0.00); }
+}
+
+.glow-surface { position: relative; }
+.glow-active::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  pointer-events: none;
+  animation: glow-pulse 1.2s ease-in-out infinite;
+  box-shadow: 0 0 0 3px hsl(var(--glow-color) / 0.35), 0 0 24px 6px hsl(var(--glow-color) / 0.20);
+}
+
+/* Semantic variants: set the --glow-color token */
+.glow-success { --glow-color: var(--success); }
+.glow-danger  { --glow-color: var(--destructive); }
+.glow-warning { --glow-color: var(--warning); }
+.glow-info    { --glow-color: var(--info); }
+.glow-pending { --glow-color: var(--pending-color); }
