@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useCallback, useRef } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -116,7 +116,7 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
       }
     },
   });
-  const babbleStartedRef = useRef(false);
+  // Babbling one-minute timer should start each time Main Hunt starts
 
   const fetchTeams = async () => {
     try {
@@ -212,7 +212,7 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
         </CardHeader>
         <CardContent className="grid grid-cols-1 sm:grid-cols-4 gap-2">
           <div title="Main Hunt Timer: Select duration then control the clock.">
-            <TimerControl allowPause label="Main Hunt" formatted={huntTimer.formatted} status={huntTimer.status} onStart={() => { huntTimer.start(); if (!babbleStartedRef.current) { babbleMainTimer.start(); babbleStartedRef.current = true; } syncCastTimers(); }} onPause={() => { huntTimer.pause(); syncCastTimers(); }} onReset={() => { huntTimer.reset(huntMinutes * 60); syncCastTimers(); }} />
+            <TimerControl allowPause label="Main Hunt" formatted={huntTimer.formatted} status={huntTimer.status} onStart={() => { huntTimer.start(); babbleMainTimer.reset(); babbleMainTimer.start(); syncCastTimers(); }} onPause={() => { huntTimer.pause(); syncCastTimers(); }} onReset={() => { huntTimer.reset(huntMinutes * 60); syncCastTimers(); }} />
           </div>
           <div title="Global Track Timer: 6 minutes for strike requirement.">
             <TimerControl label="Track 6:00" formatted={trackTimer.formatted} status={trackTimer.status} onStart={() => { trackTimer.start(); syncCastTimers(); }} onPause={() => { trackTimer.pause(); syncCastTimers(); }} onReset={() => { trackTimer.reset(); syncCastTimers(); }} />
@@ -220,7 +220,7 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
           <div title="Global Shine Timer: 8 minutes when multiple dogs are involved.">
             <TimerControl label="Global Shine 8:00" formatted={globalShineTimer.formatted} status={globalShineTimer.status} onStart={() => { globalShineTimer.start(); syncCastTimers(); }} onPause={() => { globalShineTimer.pause(); syncCastTimers(); }} onReset={() => { globalShineTimer.reset(); syncCastTimers(); }} />
           </div>
-          <div title="Babbling Stopwatch: auto-starts once when Main Hunt starts.">
+          <div title="Babbling Stopwatch: auto-starts with Main Hunt start.">
             <TimerControl label="Babbling 1 Minute 1:00" formatted={babbleMainTimer.formatted} status={babbleMainTimer.status} onStart={() => { babbleMainTimer.start(); syncCastTimers(); }} onPause={() => { babbleMainTimer.pause(); syncCastTimers(); }} onReset={() => { babbleMainTimer.reset(); syncCastTimers(); }} />
           </div>
         </CardContent>
