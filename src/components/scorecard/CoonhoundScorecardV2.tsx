@@ -97,6 +97,7 @@ const getClientId = () => {
   } catch { return crypto.randomUUID(); }
 };
 const clientIdRef = React.useRef<string>(getClientId());
+const rtChannelRef = React.useRef<ReturnType<typeof supabase.channel> | null>(null);
 
 
 const colorCls = (s: TimerStatus) => s === "running"
@@ -107,25 +108,7 @@ const colorCls = (s: TimerStatus) => s === "running"
   ? "bg-destructive/10 text-destructive"
   : "bg-muted text-muted-foreground";
 
-// Setup realtime channel (moved below timers)
-
-const syncCastTimers = useCallback(async () => {
-  try {
-    const timers = {
-      mainHunt: { status: huntTimer.status, remaining: huntTimer.remaining },
-      track: { status: trackTimer.status, remaining: trackTimer.remaining },
-      globalShine: { status: globalShineTimer.status, remaining: globalShineTimer.remaining },
-      babbling: { status: babbleMainTimer.status, remaining: babbleMainTimer.remaining },
-      mainHuntMinutes: huntMinutes,
-    };
-    await supabase.functions.invoke('scoreboard-operations', {
-      body: { action: 'updateCastTimers', eventId, timers }
-    });
-    rtChannelRef.current?.send({ type: 'broadcast', event: 'cast_timer_update', payload: { eventId, timers } });
-  } catch (e) {
-    console.warn('Failed to sync cast timers', e);
-  }
-}, [eventId, huntMinutes, huntTimer.remaining, huntTimer.status, trackTimer.remaining, trackTimer.status, globalShineTimer.remaining, globalShineTimer.status, babbleMainTimer.remaining, babbleMainTimer.status]);
+// Setup realtime channel defined below; syncCastTimers moved after timers
 
   const huntTimer = useCountdown(huntMinutes * 60, {
     onComplete: () => {
@@ -234,6 +217,24 @@ useEffect(() => {
     } catch {}
   })();
 }, [eventId]);
+
+const syncCastTimers = useCallback(async () => {
+  try {
+    const timers = {
+      mainHunt: { status: huntTimer.status, remaining: huntTimer.remaining },
+      track: { status: trackTimer.status, remaining: trackTimer.remaining },
+      globalShine: { status: globalShineTimer.status, remaining: globalShineTimer.remaining },
+      babbling: { status: babbleMainTimer.status, remaining: babbleMainTimer.remaining },
+      mainHuntMinutes: huntMinutes,
+    };
+    await supabase.functions.invoke('scoreboard-operations', {
+      body: { action: 'updateCastTimers', eventId, timers }
+    });
+    rtChannelRef.current?.send({ type: 'broadcast', event: 'cast_timer_update', payload: { eventId, timers } });
+  } catch (e) {
+    console.warn('Failed to sync cast timers', e);
+  }
+}, [eventId, huntMinutes, huntTimer.remaining, huntTimer.status, trackTimer.remaining, trackTimer.status, globalShineTimer.remaining, globalShineTimer.status, babbleMainTimer.remaining, babbleMainTimer.status]);
 
 // Save handler that updates score and custom_fields
 const handleDogChange = async (dog: DogData, newTotal: number) => {
