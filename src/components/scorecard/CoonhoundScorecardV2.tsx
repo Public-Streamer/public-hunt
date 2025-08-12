@@ -107,6 +107,13 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
       }
     },
   });
+  const babbleMainTimer = useCountdown(1 * 60, {
+    onComplete: () => {
+      toast({ title: "Babbling timer finished", description: "Main babbling stopwatch ended" });
+      try { (navigator as any).vibrate?.(150); } catch {}
+    },
+  });
+  const babbleStartedRef = useRef(false);
   const fetchTeams = async () => {
     try {
       const { data, error } = await supabase.functions.invoke('scoreboard-operations', {
@@ -196,15 +203,18 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
             </div>
           </CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <CardContent className="grid grid-cols-1 sm:grid-cols-4 gap-2">
           <div title="Main Hunt Timer: Select duration then control the clock.">
-            <TimerControl label="Main Hunt" formatted={huntTimer.formatted} status={huntTimer.status} onStart={() => { huntTimer.start(); syncCastTimers(); }} onPause={() => { huntTimer.pause(); syncCastTimers(); }} onReset={() => { huntTimer.reset(huntMinutes * 60); syncCastTimers(); }} />
+            <TimerControl label="Main Hunt" formatted={huntTimer.formatted} status={huntTimer.status} onStart={() => { huntTimer.start(); if (!babbleStartedRef.current) { babbleStartedRef.current = true; babbleMainTimer.start(); } syncCastTimers(); }} onPause={() => { huntTimer.pause(); syncCastTimers(); }} onReset={() => { huntTimer.reset(huntMinutes * 60); babbleStartedRef.current = false; babbleMainTimer.reset(60); syncCastTimers(); }} />
           </div>
           <div title="Global Track Timer: 6 minutes for strike requirement.">
-            <TimerControl label="Track 6:00" formatted={trackTimer.formatted} status={trackTimer.status} onStart={() => { trackTimer.start(); syncCastTimers(); }} onPause={() => { trackTimer.pause(); syncCastTimers(); }} onReset={() => { trackTimer.reset(); syncCastTimers(); }} />
+            <TimerControl hidePause label="Track 6:00" formatted={trackTimer.formatted} status={trackTimer.status} onStart={() => { trackTimer.start(); syncCastTimers(); }} onReset={() => { trackTimer.reset(); syncCastTimers(); }} />
           </div>
           <div title="Global Shine Timer: 8 minutes when multiple dogs are involved.">
-            <TimerControl label="Global Shine 8:00" formatted={globalShineTimer.formatted} status={globalShineTimer.status} onStart={() => { globalShineTimer.start(); syncCastTimers(); }} onPause={() => { globalShineTimer.pause(); syncCastTimers(); }} onReset={() => { globalShineTimer.reset(); syncCastTimers(); }} />
+            <TimerControl hidePause label="Global Shine 8:00" formatted={globalShineTimer.formatted} status={globalShineTimer.status} onStart={() => { globalShineTimer.start(); syncCastTimers(); }} onReset={() => { globalShineTimer.reset(); syncCastTimers(); }} />
+          </div>
+          <div title="Babbling 1 Minute stopwatch: auto-starts once with Main Hunt.">
+            <TimerControl hidePause label="Babbling 1 Minute 1:00" formatted={babbleMainTimer.formatted} status={babbleMainTimer.status} onStart={() => { babbleMainTimer.start(); }} onReset={() => { babbleMainTimer.reset(60); }} />
           </div>
         </CardContent>
       </Card>
