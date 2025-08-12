@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -338,13 +339,27 @@ const addDog = async () => {
 
   return (
     <div className="space-y-4">
+      {/* Master controls */}
+      <div className="sticky top-0 z-30 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2">
+        <div className="flex items-center gap-2">
+          <Button variant="secondary" onClick={collapseAll} aria-label="Collapse all boxes">Collapse All</Button>
+          <Button onClick={expandAll} aria-label="Expand all boxes">Expand All</Button>
+          {expandAllMode && <Badge variant="outline" className="ml-2">Expand-All lock ON</Badge>}
+        </div>
+      </div>
+
       {/* Hunt Timers (Collapsible with glow) */}
-      <Collapsible open={openHunt} onOpenChange={setOpenHunt}>
+      <Collapsible open={expandAllMode ? true : openHunt} onOpenChange={expandAllMode ? undefined : setOpenHunt}>
         <Card className={`relative overflow-hidden glow-surface ${glow['hunt'] ? 'glow-active glow-warning' : ''}`}>
           <CardHeader className="py-3">
             <CardTitle className="flex items-center justify-between text-base">
               <span>Hunt Timers</span>
               <div className="flex items-center gap-2">
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" size="icon" aria-label="Toggle Hunt Timers">
+                    <ChevronDown className={`h-4 w-4 transition-transform ${(expandAllMode ? true : openHunt) ? 'rotate-180' : ''}`} />
+                  </Button>
+                </CollapsibleTrigger>
                 <Select value={String(huntMinutes)} onValueChange={(v) => { const m = Number(v) as 60 | 90 | 120; setHuntMinutes(m); huntTimer.reset(m * 60); syncCastTimers(); }}>
                   <SelectTrigger disabled={!isHost} className="h-8 w-32"><SelectValue placeholder="Hunt" /></SelectTrigger>
                   <SelectContent>
@@ -356,25 +371,27 @@ const addDog = async () => {
               </div>
             </CardTitle>
           </CardHeader>
-          {!isHost && (
-            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-              <span className="text-4xl sm:text-5xl font-extrabold uppercase tracking-widest text-foreground/15 -rotate-12 select-none">VIEW ONLY</span>
-            </div>
-          )}
-          <CardContent className="grid grid-cols-1 sm:grid-cols-4 gap-2">
-            <div title="Main Hunt Timer: Select duration then control the clock.">
-              <TimerControl disabled={!isHost} allowPause label="Main Hunt" formatted={huntTimer.formatted} status={huntTimer.status} onStart={() => { huntTimer.start(); babbleMainTimer.reset(); babbleMainTimer.start(); syncCastTimers(); }} onPause={() => { huntTimer.pause(); syncCastTimers(); }} onReset={() => { huntTimer.reset(huntMinutes * 60); syncCastTimers(); }} />
-            </div>
-            <div title="Global Track Timer: 6 minutes for strike requirement.">
-              <TimerControl disabled={!isHost} label="Track 6:00" formatted={trackTimer.formatted} status={trackTimer.status} onStart={() => { trackTimer.start(); syncCastTimers(); }} onPause={() => { trackTimer.pause(); syncCastTimers(); }} onReset={() => { trackTimer.reset(); syncCastTimers(); }} />
-            </div>
-            <div title="Global Shine Timer: 8 minutes when multiple dogs are involved.">
-              <TimerControl disabled={!isHost} label="Global Shine 8:00" formatted={globalShineTimer.formatted} status={globalShineTimer.status} onStart={() => { globalShineTimer.start(); syncCastTimers(); }} onPause={() => { globalShineTimer.pause(); syncCastTimers(); }} onReset={() => { globalShineTimer.reset(); syncCastTimers(); }} />
-            </div>
-            <div title="Babbling Stopwatch: auto-starts with Main Hunt start.">
-              <TimerControl disabled={!isHost} label="Babbling 1 Minute 1:00" formatted={babbleMainTimer.formatted} status={babbleMainTimer.status} onStart={() => { babbleMainTimer.start(); syncCastTimers(); }} onPause={() => { babbleMainTimer.pause(); syncCastTimers(); }} onReset={() => { babbleMainTimer.reset(); syncCastTimers(); }} />
-            </div>
-          </CardContent>
+          <CollapsibleContent>
+            {!isHost && (
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                <span className="text-4xl sm:text-5xl font-extrabold uppercase tracking-widest text-foreground/15 -rotate-12 select-none">VIEW ONLY</span>
+              </div>
+            )}
+            <CardContent className="grid grid-cols-1 sm:grid-cols-4 gap-2">
+              <div title="Main Hunt Timer: Select duration then control the clock.">
+                <TimerControl disabled={!isHost} allowPause label="Main Hunt" formatted={huntTimer.formatted} status={huntTimer.status} onStart={() => { huntTimer.start(); babbleMainTimer.reset(); babbleMainTimer.start(); syncCastTimers(); }} onPause={() => { huntTimer.pause(); syncCastTimers(); }} onReset={() => { huntTimer.reset(huntMinutes * 60); syncCastTimers(); }} />
+              </div>
+              <div title="Global Track Timer: 6 minutes for strike requirement.">
+                <TimerControl disabled={!isHost} label="Track 6:00" formatted={trackTimer.formatted} status={trackTimer.status} onStart={() => { trackTimer.start(); syncCastTimers(); }} onPause={() => { trackTimer.pause(); syncCastTimers(); }} onReset={() => { trackTimer.reset(); syncCastTimers(); }} />
+              </div>
+              <div title="Global Shine Timer: 8 minutes when multiple dogs are involved.">
+                <TimerControl disabled={!isHost} label="Global Shine 8:00" formatted={globalShineTimer.formatted} status={globalShineTimer.status} onStart={() => { globalShineTimer.start(); syncCastTimers(); }} onPause={() => { globalShineTimer.pause(); syncCastTimers(); }} onReset={() => { globalShineTimer.reset(); syncCastTimers(); }} />
+              </div>
+              <div title="Babbling Stopwatch: auto-starts with Main Hunt start.">
+                <TimerControl disabled={!isHost} label="Babbling 1 Minute 1:00" formatted={babbleMainTimer.formatted} status={babbleMainTimer.status} onStart={() => { babbleMainTimer.start(); syncCastTimers(); }} onPause={() => { babbleMainTimer.pause(); syncCastTimers(); }} onReset={() => { babbleMainTimer.reset(); syncCastTimers(); }} />
+              </div>
+            </CardContent>
+          </CollapsibleContent>
         </Card>
       </Collapsible>
 
@@ -396,9 +413,19 @@ const addDog = async () => {
           { key: "shine", label: "Global Shine 8 minutes", status: globalShineTimer.status, formatted: globalShineTimer.formatted },
           { key: "babbling", label: "Babbling 1 Minute 1:00", status: babbleMainTimer.status, formatted: babbleMainTimer.formatted },
         ]}
+        open={expandAllMode ? true : openSummary}
+        onOpenChange={expandAllMode ? undefined : setOpenSummary}
+        glowClassName={glow['summary'] ? 'glow-active glow-info' : ''}
       />
 
-      <ScorecardDetails dogs={dogs} onSave={handleDogChange} canEdit={isHost} />
+      <ScorecardDetails
+        dogs={dogs}
+        onSave={handleDogChange}
+        canEdit={isHost}
+        open={expandAllMode ? true : openDetails}
+        onOpenChange={expandAllMode ? undefined : setOpenDetails}
+        glowClassName={glow['details'] ? 'glow-active glow-info' : ''}
+      />
 
       {/* Dogs */}
       <div className="space-y-3">
@@ -416,7 +443,8 @@ const addDog = async () => {
               onTimerAction={handleDogTimerAction}
               onDelete={() => fetchTeams()}
               canEdit={isHost}
-              openExternal={openDogIds[d.id] ?? !!isHost}
+              openExternal={expandAllMode ? true : (openDogIds[d.id] ?? false)}
+              lockOpen={expandAllMode}
             />
           </div>
         ))}

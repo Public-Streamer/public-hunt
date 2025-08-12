@@ -62,12 +62,13 @@ interface DogCardProps {
   onDelete?: (dogId: string) => void;
   canEdit?: boolean;
   openExternal?: boolean; // allow parent to force open/close (for auto-expand)
+  lockOpen?: boolean; // when true, keep panel expanded and disable collapse
 }
 
 const quickStrike = [100, 75, 50, 25];
 const quickTree = [125, 75, 50, 25];
 
-export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot, onTimerAction, onDelete, canEdit = true, openExternal }) => {
+export const DogCard: React.FC<DogCardProps> = ({ dog, onChange, onTimerSnapshot, onTimerAction, onDelete, canEdit = true, openExternal, lockOpen }) => {
   const [draft, setDraft] = useState<DogData>(dog);
   const [customPoints, setCustomPoints] = useState<string>("");
   const [treeMinusBlink, setTreeMinusBlink] = useState(false);
@@ -405,7 +406,7 @@ useEffect(() => {
   };
 
   return (
-    <Collapsible open={open} onOpenChange={setOpen}>
+    <Collapsible open={lockOpen ? true : open} onOpenChange={lockOpen ? undefined : setOpen}>
       <Card className="border-2 relative overflow-hidden">
         <CardHeader className="py-3">
           <CardTitle className="flex items-center justify-between text-lg sm:text-xl font-extrabold text-foreground">
@@ -474,10 +475,11 @@ useEffect(() => {
                   variant="ghost"
                   size="sm"
                   className="ml-2 h-8 w-8 p-0 rounded-full"
-                  aria-label={open ? "Collapse" : "Expand"}
-                  title={open ? "Collapse" : "Expand"}
+                  aria-label={(lockOpen ? true : open) ? "Collapse" : "Expand"}
+                  title={(lockOpen ? true : open) ? "Collapse" : "Expand"}
+                  disabled={!!lockOpen}
                 >
-                  <ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : "rotate-0"}`} />
+                  <ChevronDown className={`h-4 w-4 transition-transform ${(lockOpen ? true : open) ? "rotate-180" : "rotate-0"}`} />
                 </Button>
               </CollapsibleTrigger>
             </div>
