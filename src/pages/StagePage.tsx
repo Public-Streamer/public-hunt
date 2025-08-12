@@ -373,8 +373,7 @@ const StagePage: React.FC = () => {
         }}
         onDisconnected={(reason) => {
           console.log("LiveKit room disconnected:", reason);
-          navigate(`/event/${eventId}`);
-          toast.info("Disconnected from live stream");
+          toast.info("Disconnected from live stream. You can reconnect when ready.");
         }}
         onError={(error) => {
           console.error("LiveKit room error:", error);
