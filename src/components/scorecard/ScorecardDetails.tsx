@@ -62,16 +62,23 @@ export const ScorecardDetails: React.FC<ScorecardDetailsProps> = ({ dogs, onSave
                 return (
                   <div key={d.id} className="rounded-md border p-3">
                     <div className="flex items-center justify-between">
-                      <div className="min-w-0">
-                        <div className="text-base sm:text-lg font-extrabold flex items-center gap-2 text-foreground">
-                          <span className="inline-block h-2 w-2 rounded-full" style={{ background: d.color }} />
-                          <span className="truncate">{d.name}</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm sm:text-base md:text-lg font-extrabold flex items-center gap-2 text-foreground flex-wrap">
+                          <span className="inline-block h-2 w-2 rounded-full shrink-0" style={{ background: d.color }} />
+                          <span className="break-words">{d.name}</span>
                         </div>
-                        <div className="text-sm sm:text-base font-semibold text-foreground truncate">
-                          Dog: {d.dogName || "—"} • Handler: {d.handler || "—"}
+                        <div className="text-xs sm:text-sm md:text-base font-semibold text-foreground">
+                          <div className="flex flex-col sm:flex-row sm:gap-2">
+                            <span className="break-words">Dog: {d.dogName || "—"}</span>
+                            <span className="break-words">Handler: {d.handler || "—"}</span>
+                          </div>
                         </div>
-                        <div className="text-sm text-foreground truncate">
-                          {d.cityState || "—"} • {d.breed || "—"} • {d.age != null ? `${d.age} yr` : "—"}
+                        <div className="text-xs sm:text-sm text-foreground">
+                          <div className="flex flex-col sm:flex-row sm:gap-2">
+                            <span className="break-words">{d.cityState || "—"}</span>
+                            <span className="break-words">{d.breed || "—"}</span>
+                            <span className="break-words">{d.age != null ? `${d.age} yr` : "—"}</span>
+                          </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 text-xs">
