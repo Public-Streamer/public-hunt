@@ -347,6 +347,33 @@ useEffect(() => {
     ]
   );
 
+  // Show both running and finished timers in collapsed view
+  const collapsedTimers = useMemo(
+    () => [
+      { key: "tree", label: "Tree", t: treeTimer },
+      { key: "treeBark2", label: "Tree Bark", t: treeBark2Timer },
+      { key: "shine", label: "Shine", t: shineTimer },
+      { key: "trackBark", label: "Track Bark", t: trackBarkTimer },
+      { key: "walk", label: "Walk", t: walkTimer },
+      { key: "babbling", label: "Babbling 1 Minute", t: babblingTimer },
+      { key: "notHunting", label: "Not Hunt", t: notHuntingTimer },
+      { key: "goneHunting", label: "Gone Hunt", t: goneHuntingTimer },
+      { key: "stationary", label: "Stationary", t: stationaryTimer },
+      { key: "noBark", label: "No Bark", t: stationaryNonBarkTimer },
+    ].filter(({ t }) => t.status === "running" || t.status === "finished"),
+    [
+      treeTimer.status, treeTimer.formatted,
+      treeBark2Timer.status, treeBark2Timer.formatted,
+      shineTimer.status, shineTimer.formatted,
+      trackBarkTimer.status, trackBarkTimer.formatted,
+      walkTimer.status, walkTimer.formatted,
+      notHuntingTimer.status, notHuntingTimer.formatted,
+      goneHuntingTimer.status, goneHuntingTimer.formatted,
+      stationaryTimer.status, stationaryTimer.formatted,
+      stationaryNonBarkTimer.status, stationaryNonBarkTimer.formatted,
+    ]
+  );
+
   const snapshotTimers = useCallback(() => ({
     tree: { status: treeTimer.status, remaining: treeTimer.remaining },
     treeBark2: { status: treeBark2Timer.status, remaining: treeBark2Timer.remaining },
@@ -506,13 +533,21 @@ useEffect(() => {
 
         {!open && (
           <CardContent className="pt-0">
-            {runningTimers.length > 0 ? (
+            {collapsedTimers.length > 0 ? (
               <div className="flex flex-wrap items-center gap-2">
-                {runningTimers.map((rt) => (
-                  <Badge key={rt.key} variant="secondary" className="text-xs">
-                    {rt.label}: {rt.t.formatted}
-                  </Badge>
-                ))}
+                {collapsedTimers.map((ct) => {
+                  const isFinished = ct.t.status === "finished";
+                  return (
+                    <Badge 
+                      key={ct.key} 
+                      variant={isFinished ? "destructive" : "secondary"} 
+                      className={`text-xs font-medium ${isFinished ? "bg-red-100 text-red-800 border-red-300 dark:bg-red-950/50 dark:text-red-200 dark:border-red-800 animate-pulse" : ""}`}
+                    >
+                      {ct.label}: {ct.t.formatted}
+                      {isFinished && " ⚠️"}
+                    </Badge>
+                  );
+                })}
               </div>
             ) : (
               <div className="text-xs text-muted-foreground">No active timers</div>
