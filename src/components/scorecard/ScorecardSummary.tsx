@@ -147,12 +147,12 @@ export const ScorecardSummary: React.FC<ScorecardSummaryProps> = ({ dogs, timerO
                       <div className="min-w-0 flex-1">
                         <div className="text-sm sm:text-base md:text-lg font-extrabold flex items-center gap-2 text-foreground flex-wrap">
                           <span className="inline-block h-2 w-2 rounded-full shrink-0" style={{ background: d.color }} />
-                          <span className="break-words">{d.name}</span>
+                          <span className="whitespace-nowrap overflow-hidden text-ellipsis">{d.name}</span>
                         </div>
                         <div className="text-xs sm:text-sm md:text-base font-semibold text-foreground">
                           <div className="flex flex-col sm:flex-row sm:gap-2">
-                            <span className="break-words">Dog: {d.dogName || "—"}</span>
-                            <span className="break-words">Handler: {d.handler || "—"}</span>
+                            <span className="whitespace-nowrap overflow-hidden text-ellipsis">Dog: {d.dogName || "—"}</span>
+                            <span className="whitespace-nowrap overflow-hidden text-ellipsis">Handler: {d.handler || "—"}</span>
                           </div>
                         </div>
                       </div>
