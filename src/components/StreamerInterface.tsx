@@ -142,22 +142,38 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   const [teams, setTeams] = useState<any[]>([]);
   const [loadingScoreboard, setLoadingScoreboard] = useState(true);
 
-  // Judge permission (scorecard access)
+  // Judge permission (scorecard access) - Check both event_participants and event_streamers
   const [isJudge, setIsJudge] = useState(false);
   useEffect(() => {
     const checkJudge = async () => {
       try {
         if (!userId) return;
-        const { data, error } = await supabase
+        
+        // Check event_participants table first (newer approach)
+        const { data: participantData, error: participantError } = await supabase
+          .from("event_participants")
+          .select("permissions")
+          .eq("event_id", eventId)
+          .eq("user_id", userId)
+          .maybeSingle();
+
+        if (!participantError && participantData?.permissions) {
+          const hasJudgePermission = (participantData.permissions as string[]).includes("scorecard_judge");
+          setIsJudge(hasJudgePermission);
+          return;
+        }
+
+        // Fallback to event_streamers table (legacy approach)
+        const { data: streamerData, error: streamerError } = await supabase
           .from("event_streamers")
           .select("permissions")
           .eq("event_id", eventId)
           .eq("streamer_id", userId)
           .maybeSingle();
-        if (!error && data?.permissions) {
-          setIsJudge(
-            (data.permissions as string[]).includes("scorecard_judge")
-          );
+
+        if (!streamerError && streamerData?.permissions) {
+          const hasJudgePermission = (streamerData.permissions as string[]).includes("scorecard_judge");
+          setIsJudge(hasJudgePermission);
         } else {
           setIsJudge(false);
         }
@@ -168,15 +184,36 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     checkJudge();
   }, [eventId, userId]);
 
-  const canManageScoreboard = userRole === "host" || isJudge;
-  // Show scoreboard to everyone when a game type is selected (view-only for non-managers)
+  // Permission logic: Event creators and streamers with judge permissions can edit
+  const isEventCreator = userRole === "host";
+  const isStreamerWithJudgePermissions = userRole === "streamer" && isJudge;
+  const canEdit = isEventCreator || isStreamerWithJudgePermissions;
+  const canManageScoreboard = canEdit;
+  
+  // Show scoreboard to everyone when a game type is selected (view-only for non-judges)
   const canSeeScoreboard = canManageScoreboard || !!selectedGameType;
 
-  // Real-time permission updates for judge role
+  // Real-time permission updates for judge role - Monitor both tables
   useEffect(() => {
     if (!eventId || !userId) return;
-    const ch = supabase
-      .channel(`judge-perms-${eventId}-${userId}`)
+    
+    const participantsChannel = supabase
+      .channel(`judge-perms-participants-${eventId}-${userId}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'event_participants', filter: `event_id=eq.${eventId}` },
+        (payload) => {
+          const row: any = payload.new;
+          if (row.user_id === userId) {
+            const perms = (row.permissions || []) as string[];
+            setIsJudge(perms.includes('scorecard_judge'));
+          }
+        }
+      )
+      .subscribe();
+
+    const streamersChannel = supabase
+      .channel(`judge-perms-streamers-${eventId}-${userId}`)
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'event_streamers', filter: `event_id=eq.${eventId}` },
@@ -189,7 +226,11 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
         }
       )
       .subscribe();
-    return () => { ch.unsubscribe(); };
+
+    return () => {
+      participantsChannel.unsubscribe();
+      streamersChannel.unsubscribe();
+    };
   }, [eventId, userId]);
 
   // Load event metadata and selected game type
@@ -592,6 +633,22 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
             </div>
           </CardHeader>
         </Card>
+
+        {/* Judge Editing Enabled Badge - Show when user can edit team boxes */}
+        {canEdit && selectedGameType && (
+          <div className="flex justify-center sm:justify-end">
+            <TooltipWrapper
+              content="You have full editing rights for all team boxes in this event."
+            >
+              <Badge 
+                variant="default" 
+                className="bg-green-600 hover:bg-green-700 text-white font-bold px-3 py-1 text-sm shadow-lg border-green-500"
+              >
+                Judge Editing Enabled
+              </Badge>
+            </TooltipWrapper>
+          </div>
+        )}
 
         <div
           className={`grid gap-3 sm:gap-6 ${
