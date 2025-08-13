@@ -145,7 +145,17 @@ export const ScorecardSummary: React.FC<ScorecardSummaryProps> = ({ dogs, timerO
                 return (
                   <div key={d.id} className="rounded-md border p-3">
                     <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-3 min-w-0">
+                      <div className="min-w-0">
+                        <div className="text-base sm:text-lg font-extrabold flex items-center gap-2 text-foreground">
+                          <span className="inline-block h-2 w-2 rounded-full" style={{ background: d.color }} />
+                          <span className="truncate">{d.name}</span>
+                        </div>
+                        <div className="text-sm sm:text-base font-semibold text-foreground truncate">
+                          Dog: {d.dogName || "—"} • Handler: {d.handler || "—"}
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
                         <div className="flex gap-2">
                           {d.dogPhotoUrl && (
                             <Dialog>
@@ -204,60 +214,52 @@ export const ScorecardSummary: React.FC<ScorecardSummaryProps> = ({ dogs, timerO
                             </Dialog>
                           )}
                         </div>
-                        <div className="min-w-0">
-                          <div className="text-base sm:text-lg font-extrabold flex items-center gap-2 text-foreground">
-                            <span className="inline-block h-2 w-2 rounded-full" style={{ background: d.color }} />
-                            <span className="truncate">{d.name}</span>
-                          </div>
-                          <div className="text-sm sm:text-base font-semibold text-foreground truncate">
-                            Dog: {d.dogName || "—"} • Handler: {d.handler || "—"}
-                          </div>
+                        
+                        <div className="flex flex-wrap items-center gap-2 text-xs justify-end">
+                          {plus > 0 && (
+                            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/40">
+                              <span className="tabular-nums">{plus}</span>
+                              <span className="ml-1">+</span>
+                            </Badge>
+                          )}
+                          {minus > 0 && (
+                            <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/40">
+                              <span className="tabular-nums">{minus}</span>
+                              <span className="ml-1">-</span>
+                            </Badge>
+                          )}
+                          {circle > 0 && (
+                            <Badge
+                              variant="warning"
+                              className="rounded-full ring-1 ring-yellow-500/40"
+                            >
+                              <span className="tabular-nums">{circle}</span>
+                              <span className="ml-1">◯</span>
+                            </Badge>
+                          )}
+                          {pending > 0 && (
+                            <Badge variant="outline" className="pulse">
+                              Pending: <span className="ml-1 tabular-nums">{pending}</span>
+                            </Badge>
+                          )}
+                          {total === 0 && circle > 0 ? (
+                            <Badge
+                              variant="warning"
+                              className="rounded-full ring-1 ring-yellow-500/40"
+                            >
+                              Total: <span className="ml-1 tabular-nums">{circle}</span>
+                              <span className="ml-1">◯</span>
+                            </Badge>
+                          ) : (
+                            <Badge
+                              variant="secondary"
+                              className={`${total > 0 ? "text-primary bg-primary/10 border-primary/40" : total < 0 ? "text-destructive bg-destructive/10 border-destructive/40" : "text-muted-foreground"} border`}
+                            >
+                              Total: <span className="ml-1 tabular-nums">{Math.abs(total)}</span>
+                              {total !== 0 && <span className="ml-1">{total > 0 ? "+" : "-"}</span>}
+                            </Badge>
+                          )}
                         </div>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2 text-xs justify-end">
-                        {plus > 0 && (
-                          <Badge variant="outline" className="bg-primary/10 text-primary border-primary/40">
-                            <span className="tabular-nums">{plus}</span>
-                            <span className="ml-1">+</span>
-                          </Badge>
-                        )}
-                        {minus > 0 && (
-                          <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/40">
-                            <span className="tabular-nums">{minus}</span>
-                            <span className="ml-1">-</span>
-                          </Badge>
-                        )}
-                        {circle > 0 && (
-                          <Badge
-                            variant="warning"
-                            className="rounded-full ring-1 ring-yellow-500/40"
-                          >
-                            <span className="tabular-nums">{circle}</span>
-                            <span className="ml-1">◯</span>
-                          </Badge>
-                        )}
-                        {pending > 0 && (
-                          <Badge variant="outline" className="pulse">
-                            Pending: <span className="ml-1 tabular-nums">{pending}</span>
-                          </Badge>
-                        )}
-                        {total === 0 && circle > 0 ? (
-                          <Badge
-                            variant="warning"
-                            className="rounded-full ring-1 ring-yellow-500/40"
-                          >
-                            Total: <span className="ml-1 tabular-nums">{circle}</span>
-                            <span className="ml-1">◯</span>
-                          </Badge>
-                        ) : (
-                          <Badge
-                            variant="secondary"
-                            className={`${total > 0 ? "text-primary bg-primary/10 border-primary/40" : total < 0 ? "text-destructive bg-destructive/10 border-destructive/40" : "text-muted-foreground"} border`}
-                          >
-                            Total: <span className="ml-1 tabular-nums">{Math.abs(total)}</span>
-                            {total !== 0 && <span className="ml-1">{total > 0 ? "+" : "-"}</span>}
-                          </Badge>
-                        )}
                       </div>
                     </div>
                     {running.length > 0 && (
