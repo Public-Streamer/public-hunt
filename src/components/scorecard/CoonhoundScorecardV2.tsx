@@ -398,13 +398,15 @@ const addDog = async () => {
   return (
     <div className="space-y-4">
       {/* Master controls */}
-      <div className="sticky top-0 z-30 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2">
-        <div className="flex items-center gap-2">
-          <Button variant="secondary" onClick={collapseAll} aria-label="Collapse all boxes">Collapse All</Button>
-          <Button onClick={expandAll} aria-label="Expand all boxes">Expand All</Button>
-          {expandAllMode && <Badge variant="outline" className="ml-2">Expand-All lock ON</Badge>}
+      {canEditScoreboard && (
+        <div className="sticky top-0 z-30 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2">
+          <div className="flex items-center gap-2">
+            <Button variant="secondary" onClick={collapseAll} aria-label="Collapse all boxes">Collapse All</Button>
+            <Button onClick={expandAll} aria-label="Expand all boxes">Expand All</Button>
+            {expandAllMode && <Badge variant="outline" className="ml-2">Expand-All lock ON</Badge>}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Hunt Timers (Collapsible with glow) */}
       <Collapsible open={expandAllMode ? true : openHunt} onOpenChange={expandAllMode ? undefined : setOpenHunt}>
