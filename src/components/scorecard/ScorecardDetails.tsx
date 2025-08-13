@@ -4,7 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
-import { ChevronDown } from "lucide-react";
+import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ChevronDown, Image, FileText } from "lucide-react";
 import type { DogData } from "./DogCard";
 
 interface ScorecardDetailsProps {
@@ -74,6 +75,64 @@ export const ScorecardDetails: React.FC<ScorecardDetailsProps> = ({ dogs, onSave
                         </div>
                       </div>
                       <div className="flex items-center gap-2 text-xs">
+                        <div className="flex gap-2">
+                          {d.dogPhotoUrl && (
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0 hover:bg-accent"
+                                  title="View dog photo"
+                                >
+                                  <img
+                                    src={d.dogPhotoUrl}
+                                    alt={`${d.dogName || d.name} photo`}
+                                    className="h-6 w-6 rounded object-cover"
+                                  />
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-2xl max-h-[90vh] overflow-auto">
+                                <DialogHeader>
+                                  <DialogTitle>{d.dogName || d.name} - Photo</DialogTitle>
+                                </DialogHeader>
+                                <div className="mt-4">
+                                  <img
+                                    src={d.dogPhotoUrl}
+                                    alt={`${d.dogName || d.name} photo`}
+                                    className="w-full h-auto max-h-[70vh] object-contain rounded"
+                                  />
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+                          )}
+                          {d.pedigreeImageUrl && (
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0 hover:bg-accent"
+                                  title="View pedigree"
+                                >
+                                  <FileText className="h-4 w-4" />
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+                                <DialogHeader>
+                                  <DialogTitle>{d.dogName || d.name} - Pedigree</DialogTitle>
+                                </DialogHeader>
+                                <div className="mt-4">
+                                  <img
+                                    src={d.pedigreeImageUrl}
+                                    alt={`${d.dogName || d.name} pedigree`}
+                                    className="w-full h-auto max-h-[70vh] object-contain rounded"
+                                  />
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+                          )}
+                        </div>
                         <Badge variant="secondary">Strikes: {strikes}</Badge>
                         <Badge variant="secondary">Trees: {trees}</Badge>
                         <div className="flex items-center gap-1 bg-background/50 rounded px-2 py-1 border">
