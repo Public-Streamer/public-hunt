@@ -1037,46 +1037,8 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
             {/* Scoreboard Section - Show for hosts (when creating or managing) and streamers (when teams exist) */}
             {canSeeScoreboard && (
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle>
-                    {canManageScoreboard ? " Leaderboard" : " Leaderboard"}
-                  </CardTitle>
-                  {canManageScoreboard && selectedGameType && (
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size={
-                            screenSize === "mobile" || screenSize === "tablet"
-                              ? "xs"
-                              : "sm"
-                          }
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          Delete
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Delete Scoreboard</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Are you sure you want to delete this scoreboard?
-                            This will permanently remove all teams and scores.
-                            This action cannot be undone.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={handleDeleteScoreboard}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          >
-                            Delete Scoreboard
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  )}
+                <CardHeader>
+                  <CardTitle>Leaderboard</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {loadingScoreboard ? (
