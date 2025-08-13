@@ -83,7 +83,6 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
   const [openSummary, setOpenSummary] = useState<boolean>(false);
   const [openDetails, setOpenDetails] = useState<boolean>(false);
   const [openDogIds, setOpenDogIds] = useState<Record<string, boolean>>({});
-  const [expandAllMode, setExpandAllMode] = useState(false);
   const expandAll = useCallback(() => {
     setOpenHunt(true); setOpenSummary(true); setOpenDetails(true);
     setOpenDogIds((prev) => {
@@ -91,7 +90,6 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
       for (const d of dogs) next[d.id] = true;
       return next;
     });
-    setExpandAllMode(true);
   }, [dogs]);
   const collapseAll = useCallback(() => {
     setOpenHunt(false); setOpenSummary(false); setOpenDetails(false);
@@ -100,7 +98,6 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
       for (const d of dogs) next[d.id] = false;
       return next;
     });
-    setExpandAllMode(false);
   }, [dogs]);
 
 // Glow highlight state map: keys like `hunt`, `dog:{id}`, `summary`, `details`
@@ -402,12 +399,11 @@ const addDog = async () => {
         <div className="flex items-center gap-2">
           <Button variant="secondary" onClick={collapseAll} aria-label="Collapse all boxes">Collapse All</Button>
           <Button onClick={expandAll} aria-label="Expand all boxes">Expand All</Button>
-          {expandAllMode && <Badge variant="outline" className="ml-2">Expand-All lock ON</Badge>}
         </div>
       </div>
 
       {/* Hunt Timers (Collapsible with glow) */}
-      <Collapsible open={expandAllMode ? true : openHunt} onOpenChange={expandAllMode ? undefined : setOpenHunt}>
+      <Collapsible open={openHunt} onOpenChange={setOpenHunt}>
         <Card className={`relative overflow-hidden glow-surface ${glow['hunt'] ? 'glow-active glow-warning' : ''}`}>
           <CardHeader className="py-3">
             <CardTitle className="flex items-center justify-between text-base">
@@ -415,7 +411,7 @@ const addDog = async () => {
               <div className="flex items-center gap-2">
                 <CollapsibleTrigger asChild>
                   <Button variant="ghost" size="icon" aria-label="Toggle Hunt Timers">
-                    <ChevronDown className={`h-4 w-4 transition-transform ${(expandAllMode ? true : openHunt) ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`h-4 w-4 transition-transform ${openHunt ? 'rotate-180' : ''}`} />
                   </Button>
                 </CollapsibleTrigger>
                 {!showCustomInput ? (
@@ -538,8 +534,8 @@ const addDog = async () => {
           { key: "shine", label: "Global Shine 8 minutes", status: globalShineTimer.status, formatted: globalShineTimer.formatted },
           { key: "babbling", label: "Babbling 1 Minute 1:00", status: babbleMainTimer.status, formatted: babbleMainTimer.formatted },
         ]}
-        open={expandAllMode ? true : openSummary}
-        onOpenChange={expandAllMode ? undefined : setOpenSummary}
+        open={openSummary}
+        onOpenChange={setOpenSummary}
         glowClassName={glow['summary'] ? 'glow-active glow-info' : ''}
       />
 
@@ -547,8 +543,8 @@ const addDog = async () => {
         dogs={dogs}
         onSave={handleDogChange}
         canEdit={canEditScoreboard}
-        open={expandAllMode ? true : openDetails}
-        onOpenChange={expandAllMode ? undefined : setOpenDetails}
+        open={openDetails}
+        onOpenChange={setOpenDetails}
         glowClassName={glow['details'] ? 'glow-active glow-info' : ''}
       />
 
@@ -568,8 +564,8 @@ const addDog = async () => {
               onTimerAction={handleDogTimerAction}
               onDelete={() => fetchTeams()}
               canEdit={canEditScoreboard}
-              openExternal={expandAllMode ? true : (openDogIds[d.id] ?? false)}
-              lockOpen={expandAllMode}
+              openExternal={openDogIds[d.id] ?? false}
+              lockOpen={false}
             />
           </div>
         ))}
