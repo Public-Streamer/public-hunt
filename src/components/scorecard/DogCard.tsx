@@ -431,8 +431,8 @@ useEffect(() => {
                 <Clock className="h-4 w-4 flex-shrink-0" />
                 {showCircleAsTotal ? (
                   <>
-                    <span className="tabular-nums font-bold">Total: {circleTotal}</span>
-                    <span className="font-bold text-xl text-yellow-600">◯</span>
+                    <span className="tabular-nums font-bold">Total: </span>
+                    <span className="font-bold rounded-full ring-2 ring-yellow-500 px-2 py-0.5 text-yellow-700 dark:text-yellow-300 bg-yellow-50 dark:bg-yellow-950/30">{circleTotal}</span>
                   </>
                 ) : (
                   <>
@@ -666,7 +666,7 @@ useEffect(() => {
                   const renderPoints = () => {
                     if (e.outcome === "o") {
                       return (
-                        <span className="font-medium rounded-full ring-2 ring-yellow-500 px-2 py-0.5 text-yellow-700 dark:text-yellow-300">
+                        <span className="font-medium rounded-full ring-2 ring-yellow-500 px-2 py-0.5 text-yellow-700 dark:text-yellow-300 bg-yellow-50 dark:bg-yellow-950/30">
                           {e.points}
                         </span>
                       );
@@ -690,14 +690,13 @@ useEffect(() => {
                         <div className="flex items-center gap-2 text-sm">
                           <Badge variant="secondary" className={`capitalize ${typeColor}`}>{e.type}</Badge>
                           {renderPoints()}
-                          {e.outcome !== "pending" && (
+                          {e.outcome !== "pending" && e.outcome !== "o" && (
                             <span className={`ml-1 font-bold text-lg ${
                               e.outcome === "+" ? "text-green-600" : 
                               e.outcome === "-" ? "text-red-600" : 
-                              e.outcome === "o" ? "text-yellow-600" : 
                               "text-muted-foreground"
                             }`}>
-                              {e.outcome === "+" ? "+" : e.outcome === "-" ? "–" : e.outcome === "o" ? "◯" : "╱"}
+                              {e.outcome === "+" ? "+" : e.outcome === "-" ? "–" : "╱"}
                             </span>
                           )}
                           {e.outcome === "pending" && <Badge variant="outline">pending</Badge>}

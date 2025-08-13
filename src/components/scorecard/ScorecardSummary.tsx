@@ -228,15 +228,14 @@ export const ScorecardSummary: React.FC<ScorecardSummaryProps> = ({ dogs, timerO
                               <span className="ml-1">-</span>
                             </Badge>
                           )}
-                          {circle > 0 && (
-                            <Badge
-                              variant="warning"
-                              className="rounded-full ring-1 ring-yellow-500/40"
-                            >
-                              <span className="tabular-nums">{circle}</span>
-                              <span className="ml-1">◯</span>
-                            </Badge>
-                          )}
+                        {circle > 0 && (
+                          <Badge
+                            variant="warning"
+                            className="rounded-full ring-1 ring-yellow-500/40"
+                          >
+                            <span className="tabular-nums rounded-full ring-2 ring-yellow-500 px-2 py-0.5 text-yellow-700 dark:text-yellow-300 bg-yellow-50 dark:bg-yellow-950/30">{circle}</span>
+                          </Badge>
+                        )}
                           {pending > 0 && (
                             <Badge variant="outline" className="pulse">
                               Pending: <span className="ml-1 tabular-nums">{pending}</span>
@@ -247,8 +246,7 @@ export const ScorecardSummary: React.FC<ScorecardSummaryProps> = ({ dogs, timerO
                               variant="warning"
                               className="rounded-full ring-1 ring-yellow-500/40"
                             >
-                              Total: <span className="ml-1 tabular-nums">{circle}</span>
-                              <span className="ml-1">◯</span>
+                              Total: <span className="ml-1 tabular-nums rounded-full ring-2 ring-yellow-500 px-2 py-0.5 text-yellow-700 dark:text-yellow-300 bg-yellow-50 dark:bg-yellow-950/30">{circle}</span>
                             </Badge>
                           ) : (
                             <Badge
