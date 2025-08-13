@@ -361,10 +361,10 @@ const addDog = async () => {
           {expandAllMode && <Badge variant="outline" className="ml-2">Expand-All lock ON</Badge>}
           <div className="ml-auto flex items-center gap-2">
             {isHost && (isOwner ? (
-              <Button size="sm" variant="destructive" onClick={release} aria-label="Unlock controls">Unlock</Button>
+              <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white" onClick={release} aria-label="Lock controls">Lock</Button>
             ) : (
               <>
-                <Button size="sm" onClick={() => acquire()} aria-label="Lock controls">Lock</Button>
+                <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white" onClick={() => acquire()} aria-label="Unlock controls">Unlock</Button>
                 {lockedByName && <Badge variant="outline">Locked by {lockedByName}</Badge>}
               </>
             ))}
