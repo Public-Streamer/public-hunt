@@ -25,7 +25,7 @@ export interface StreamingControls {
   toggleAudio: () => Promise<void>;
   toggleScreenShare: () => Promise<void>;
   // Updated to accept streamerCount (aggregate tracks)
-  startStream: (streamerCount: number) => Promise<void>;
+  startStream: (streamerCount: number, streamId?: string) => Promise<void>;
   stopStream: () => Promise<void>;
   stopEvent: () => Promise<void>;
   participantCount: number;

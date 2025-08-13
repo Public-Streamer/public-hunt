@@ -513,9 +513,9 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
       }
     };
 
-    // Kickoff immediately and then at interval
+    // Kickoff immediately and then at interval (20s)
     sendHeartbeat();
-    const interval = setInterval(sendHeartbeat, 10000);
+    const interval = setInterval(sendHeartbeat, 20000);
 
     return () => {
       cancelled = true;
