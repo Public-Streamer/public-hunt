@@ -57,10 +57,10 @@ export const CoonhoundScoreboardViewer: React.FC<Props> = ({ eventId }) => {
   const [castTimers, setCastTimers] = useState<CastTimers>({});
   const [teams, setTeams] = useState<TeamRow[]>([]);
 
-  // Collapsible open states (collapsed by default for viewers)
-  const [openHunt, setOpenHunt] = useState(false);
-  const [openSummary, setOpenSummary] = useState(false);
-  const [openDetails, setOpenDetails] = useState(false);
+  // Collapsible open states (open by default for viewers to see content)
+  const [openHunt, setOpenHunt] = useState(true);
+  const [openSummary, setOpenSummary] = useState(true);
+  const [openDetails, setOpenDetails] = useState(true);
 
   // Glow highlights
   const [glow, setGlow] = useState<Record<string, { variant: 'success' | 'danger' | 'warning' | 'info' | 'pending'; until: number }>>({});
@@ -236,113 +236,140 @@ export const CoonhoundScoreboardViewer: React.FC<Props> = ({ eventId }) => {
   return (
     <div className="space-y-4">
       {/* Hunt Timers */}
-      <Card className={`glow-surface ${glow['hunt'] ? 'glow-active glow-warning' : ''}`}>
-        <CardHeader className="py-3">
-          <CardTitle className="text-base">Hunt Timers</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            {visibleCastBlocks.length > 0 ? (
-              visibleCastBlocks.map((b) => {
-                const snap = (castTimers as any)[b.key] as { status: TimerStatus; remaining: number } | undefined;
-                const rem = liveRemaining(snap?.remaining, castTimers.server_updated_at, snap?.status || "idle");
-                const formatted = formatMMSS(rem);
+      <Collapsible open={openHunt} onOpenChange={setOpenHunt}>
+        <Card className={`glow-surface ${glow['hunt'] ? 'glow-active glow-warning' : ''}`}>
+          <CardHeader className="py-3">
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" className="w-full justify-between p-0 h-auto">
+                <CardTitle className="text-base">Hunt Timers</CardTitle>
+                <ChevronDown className={`h-4 w-4 transition-transform ${openHunt ? "rotate-180" : ""}`} />
+              </Button>
+            </CollapsibleTrigger>
+          </CardHeader>
+          <CollapsibleContent>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                {visibleCastBlocks.length > 0 ? (
+                  visibleCastBlocks.map((b) => {
+                    const snap = (castTimers as any)[b.key] as { status: TimerStatus; remaining: number } | undefined;
+                    const rem = liveRemaining(snap?.remaining, castTimers.server_updated_at, snap?.status || "idle");
+                    const formatted = formatMMSS(rem);
+                    return (
+                      <div key={b.key} className={`rounded-md p-2 border ${statusCls(snap?.status || "idle")}`}>
+                        <div className="flex items-center justify-between text-xs">
+                          <span>{b.key === "mainHunt" && (castTimers as any).mainHuntMinutes ? `Main Hunt ${(castTimers as any).mainHuntMinutes} minutes` : b.label}</span>
+                          <span className="tabular-nums font-semibold">{formatted}</span>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="text-sm text-muted-foreground">No active cast timers</div>
+                )}
+              </div>
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
+
+      {/* Scorecard Summary */}
+      <Collapsible open={openSummary} onOpenChange={setOpenSummary}>
+        <Card className={`glow-surface ${glow['summary'] ? 'glow-active glow-info' : ''}`}>
+          <CardHeader className="py-3">
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" className="w-full justify-between p-0 h-auto">
+                <CardTitle className="text-base">Scorecard Summary</CardTitle>
+                <ChevronDown className={`h-4 w-4 transition-transform ${openSummary ? "rotate-180" : ""}`} />
+              </Button>
+            </CollapsibleTrigger>
+          </CardHeader>
+          <CollapsibleContent>
+            <CardContent className="space-y-3">
+              {teams.map((t) => {
+                const cf = (t.custom_fields as any) || {};
+                const entries = Array.isArray(cf.entries) ? cf.entries : [];
+                const { plus, minus, circle, pending, total } = calcTotals(entries);
                 return (
-                  <div key={b.key} className={`rounded-md p-2 border ${statusCls(snap?.status || "idle")}`}>
-                    <div className="flex items-center justify-between text-xs">
-                      <span>{b.key === "mainHunt" && (castTimers as any).mainHuntMinutes ? `Main Hunt ${(castTimers as any).mainHuntMinutes} minutes` : b.label}</span>
-                      <span className="tabular-nums font-semibold">{formatted}</span>
+                  <div key={t.id} className="rounded-md border p-3 glow-surface">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="text-base sm:text-lg font-extrabold flex items-center gap-2 text-foreground">
+                          <span className="inline-block h-2 w-2 rounded-full" style={{ background: t.team_color || 'hsl(var(--primary))' }} />
+                          <span className="truncate">{t.team_name}</span>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2 text-xs justify-end">
+                        {plus > 0 && (<Badge variant="outline" className="bg-primary/10 text-primary border-primary/40"><span className="tabular-nums">{plus}</span><span className="ml-1">+</span></Badge>)}
+                        {minus > 0 && (<Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/40"><span className="tabular-nums">{minus}</span><span className="ml-1">-</span></Badge>)}
+                        {circle > 0 && (<Badge variant="warning" className="rounded-full ring-1 ring-yellow-500/40"><span className="tabular-nums">{circle}</span><span className="ml-1">◯</span></Badge>)}
+                        {pending > 0 && (<Badge variant="outline" className="pulse">Pending: <span className="ml-1 tabular-nums">{pending}</span></Badge>)}
+                        {total === 0 && circle > 0 ? (
+                          <Badge variant="warning" className="rounded-full ring-1 ring-yellow-500/40">Total: <span className="ml-1 tabular-nums">{circle}</span><span className="ml-1">◯</span></Badge>
+                        ) : (
+                          <Badge variant="secondary" className={`${total > 0 ? "text-primary bg-primary/10 border-primary/40" : total < 0 ? "text-destructive bg-destructive/10 border-destructive/40" : "text-muted-foreground"} border`}>Total: <span className="ml-1 tabular-nums">{Math.abs(total)}</span>{total !== 0 && <span className="ml-1">{total > 0 ? "+" : "-"}</span>}</Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
-              })
-            ) : (
-              <div className="text-sm text-muted-foreground">No active cast timers</div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Scorecard Summary */}
-      <Card className={`glow-surface ${glow['summary'] ? 'glow-active glow-info' : ''}`}>
-        <CardHeader className="py-3">
-          <CardTitle className="text-base">Scorecard Summary</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {teams.map((t) => {
-            const cf = (t.custom_fields as any) || {};
-            const entries = Array.isArray(cf.entries) ? cf.entries : [];
-            const { plus, minus, circle, pending, total } = calcTotals(entries);
-            return (
-              <div key={t.id} className="rounded-md border p-3 glow-surface">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="min-w-0">
-                    <div className="text-base sm:text-lg font-extrabold flex items-center gap-2 text-foreground">
-                      <span className="inline-block h-2 w-2 rounded-full" style={{ background: t.team_color || 'hsl(var(--primary))' }} />
-                      <span className="truncate">{t.team_name}</span>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2 text-xs justify-end">
-                    {plus > 0 && (<Badge variant="outline" className="bg-primary/10 text-primary border-primary/40"><span className="tabular-nums">{plus}</span><span className="ml-1">+</span></Badge>)}
-                    {minus > 0 && (<Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/40"><span className="tabular-nums">{minus}</span><span className="ml-1">-</span></Badge>)}
-                    {circle > 0 && (<Badge variant="warning" className="rounded-full ring-1 ring-yellow-500/40"><span className="tabular-nums">{circle}</span><span className="ml-1">◯</span></Badge>)}
-                    {pending > 0 && (<Badge variant="outline" className="pulse">Pending: <span className="ml-1 tabular-nums">{pending}</span></Badge>)}
-                    {total === 0 && circle > 0 ? (
-                      <Badge variant="warning" className="rounded-full ring-1 ring-yellow-500/40">Total: <span className="ml-1 tabular-nums">{circle}</span><span className="ml-1">◯</span></Badge>
-                    ) : (
-                      <Badge variant="secondary" className={`${total > 0 ? "text-primary bg-primary/10 border-primary/40" : total < 0 ? "text-destructive bg-destructive/10 border-destructive/40" : "text-muted-foreground"} border`}>Total: <span className="ml-1 tabular-nums">{Math.abs(total)}</span>{total !== 0 && <span className="ml-1">{total > 0 ? "+" : "-"}</span>}</Badge>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </CardContent>
-      </Card>
+              })}
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
 
       {/* Full Scorecard */}
-      <Card className={`glow-surface ${glow['details'] ? 'glow-active glow-info' : ''}`}>
-        <CardHeader className="py-3">
-          <CardTitle className="text-base">Full Scorecard</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {teams.length === 0 ? (
-            <div className="text-sm text-muted-foreground">No dogs on the card.</div>
-          ) : (
-            teams.map((t) => {
-              const cf = (t.custom_fields as any) || {};
-              const entries = Array.isArray(cf.entries) ? cf.entries : [];
-              return (
-                <div key={t.id} className={`border rounded-md p-2 ${glow[`dog:${t.id}`] ? `glow-active ${
-                  glow[`dog:${t.id}`]!.variant === 'success' ? 'glow-success' :
-                  glow[`dog:${t.id}`]!.variant === 'danger' ? 'glow-danger' :
-                  glow[`dog:${t.id}`]!.variant === 'warning' ? 'glow-warning' :
-                  glow[`dog:${t.id}`]!.variant === 'info' ? 'glow-info' : 'glow-pending' }` : ''}`}>
-                  <div className="text-xs font-medium flex items-center gap-2 mb-2">
-                    <span className="inline-block h-2 w-2 rounded-full" style={{ background: t.team_color || 'hsl(var(--primary))' }} />
-                    <span className="truncate">{t.team_name}</span>
-                  </div>
-                  {entries.length > 0 ? (
-                    <div className="space-y-1">
-                      {entries.map((e: any) => (
-                        <div key={e.id} className="flex items-center justify-between text-xs border rounded p-1">
-                          <div className="flex items-center gap-2">
-                            <Badge variant="secondary" className="capitalize">{e.type}</Badge>
-                            <span className="tabular-nums">{e.points}</span>
-                          </div>
-                          <div className="font-bold">{e.outcome === '+' ? '+' : e.outcome === '-' ? '–' : e.outcome === 'o' ? '◯' : e.outcome === '/' ? '╱' : '…'}</div>
+      <Collapsible open={openDetails} onOpenChange={setOpenDetails}>
+        <Card className={`glow-surface ${glow['details'] ? 'glow-active glow-info' : ''}`}>
+          <CardHeader className="py-3">
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" className="w-full justify-between p-0 h-auto">
+                <CardTitle className="text-base">Full Scorecard</CardTitle>
+                <ChevronDown className={`h-4 w-4 transition-transform ${openDetails ? "rotate-180" : ""}`} />
+              </Button>
+            </CollapsibleTrigger>
+          </CardHeader>
+          <CollapsibleContent>
+            <CardContent className="space-y-3">
+              {teams.length === 0 ? (
+                <div className="text-sm text-muted-foreground">No dogs on the card.</div>
+              ) : (
+                teams.map((t) => {
+                  const cf = (t.custom_fields as any) || {};
+                  const entries = Array.isArray(cf.entries) ? cf.entries : [];
+                  return (
+                    <div key={t.id} className={`border rounded-md p-2 ${glow[`dog:${t.id}`] ? `glow-active ${
+                      glow[`dog:${t.id}`]!.variant === 'success' ? 'glow-success' :
+                      glow[`dog:${t.id}`]!.variant === 'danger' ? 'glow-danger' :
+                      glow[`dog:${t.id}`]!.variant === 'warning' ? 'glow-warning' :
+                      glow[`dog:${t.id}`]!.variant === 'info' ? 'glow-info' : 'glow-pending' }` : ''}`}>
+                      <div className="text-xs font-medium flex items-center gap-2 mb-2">
+                        <span className="inline-block h-2 w-2 rounded-full" style={{ background: t.team_color || 'hsl(var(--primary))' }} />
+                        <span className="truncate">{t.team_name}</span>
+                      </div>
+                      {entries.length > 0 ? (
+                        <div className="space-y-1">
+                          {entries.map((e: any) => (
+                            <div key={e.id} className="flex items-center justify-between text-xs border rounded p-1">
+                              <div className="flex items-center gap-2">
+                                <Badge variant="secondary" className="capitalize">{e.type}</Badge>
+                                <span className="tabular-nums">{e.points}</span>
+                              </div>
+                              <div className="font-bold">{e.outcome === '+' ? '+' : e.outcome === '-' ? '–' : e.outcome === 'o' ? '◯' : e.outcome === '/' ? '╱' : '…'}</div>
+                            </div>
+                          ))}
                         </div>
-                      ))}
+                      ) : (
+                        <div className="text-xs text-muted-foreground">No strikes or trees recorded.</div>
+                      )}
                     </div>
-                  ) : (
-                    <div className="text-xs text-muted-foreground">No strikes or trees recorded.</div>
-                  )}
-                </div>
-              );
-            })
-          )}
-        </CardContent>
-      </Card>
+                  );
+                })
+              )}
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
     </div>
   );
 };
