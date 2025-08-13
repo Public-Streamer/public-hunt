@@ -782,7 +782,7 @@ useEffect(() => {
                   <>
                     <a href={draft.pedigreeImageUrl} target="_blank" rel="noopener noreferrer" className="text-xs underline">View</a>
                     <a href={draft.pedigreeImageUrl} download className="text-xs underline">Download</a>
-                    {canEdit && (
+                    {canEdit && isEditing && (
                       <Button
                         size="sm"
                         variant="destructive"
@@ -832,7 +832,7 @@ useEffect(() => {
                     />
                     <a href={draft.dogPhotoUrl} target="_blank" rel="noopener noreferrer" className="text-xs underline">View</a>
                     <a href={draft.dogPhotoUrl} download className="text-xs underline">Download</a>
-                    {canEdit && (
+                    {canEdit && isEditing && (
                       <Button
                         size="sm"
                         variant="destructive"
