@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
-import { ChevronDown } from "lucide-react";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { ChevronDown, Image, FileText } from "lucide-react";
 import type { DogData } from "./DogCard";
 import type { TimerStatus } from "@/hooks/useCountdown";
 
@@ -144,13 +145,63 @@ export const ScorecardSummary: React.FC<ScorecardSummaryProps> = ({ dogs, timerO
                 return (
                   <div key={d.id} className="rounded-md border p-3">
                     <div className="flex items-center justify-between gap-2">
-                      <div className="min-w-0">
-                        <div className="text-base sm:text-lg font-extrabold flex items-center gap-2 text-foreground">
-                          <span className="inline-block h-2 w-2 rounded-full" style={{ background: d.color }} />
-                          <span className="truncate">{d.name}</span>
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="flex gap-2">
+                          {d.dogPhotoUrl && (
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0 hover:bg-accent"
+                                  title="View dog photo"
+                                >
+                                  <img
+                                    src={d.dogPhotoUrl}
+                                    alt={`${d.dogName || d.name} photo`}
+                                    className="h-6 w-6 rounded object-cover"
+                                  />
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-2xl">
+                                <img
+                                  src={d.dogPhotoUrl}
+                                  alt={`${d.dogName || d.name} photo`}
+                                  className="w-full h-auto rounded"
+                                />
+                              </DialogContent>
+                            </Dialog>
+                          )}
+                          {d.pedigreeImageUrl && (
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0 hover:bg-accent"
+                                  title="View pedigree"
+                                >
+                                  <FileText className="h-4 w-4" />
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-4xl">
+                                <img
+                                  src={d.pedigreeImageUrl}
+                                  alt={`${d.dogName || d.name} pedigree`}
+                                  className="w-full h-auto rounded"
+                                />
+                              </DialogContent>
+                            </Dialog>
+                          )}
                         </div>
-                        <div className="text-sm sm:text-base font-semibold text-foreground truncate">
-                          Dog: {d.dogName || "—"} • Handler: {d.handler || "—"}
+                        <div className="min-w-0">
+                          <div className="text-base sm:text-lg font-extrabold flex items-center gap-2 text-foreground">
+                            <span className="inline-block h-2 w-2 rounded-full" style={{ background: d.color }} />
+                            <span className="truncate">{d.name}</span>
+                          </div>
+                          <div className="text-sm sm:text-base font-semibold text-foreground truncate">
+                            Dog: {d.dogName || "—"} • Handler: {d.handler || "—"}
+                          </div>
                         </div>
                       </div>
                       <div className="flex flex-wrap items-center gap-2 text-xs justify-end">
