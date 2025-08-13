@@ -718,7 +718,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
               </CardContent>
             </Card>
 
-            {/* Stream Controls */}
+            {/* Stream Controls - Available for all streamers */}
             <Card>
               <CardHeader className="p-3 sm:p-3">
                 <div className="flex items-center justify-between">
