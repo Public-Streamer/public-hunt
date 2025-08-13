@@ -409,79 +409,90 @@ useEffect(() => {
     <Collapsible open={lockOpen ? true : open} onOpenChange={lockOpen ? undefined : setOpen}>
       <Card className="border-2 relative overflow-hidden">
         <CardHeader className="py-3">
-          <CardTitle className="flex items-center justify-between text-lg sm:text-xl font-extrabold text-foreground">
-            <div className="flex items-center gap-2 min-w-0">
+          <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-lg sm:text-xl font-extrabold text-foreground">
+            {/* Team name section - always visible */}
+            <div className="flex items-center gap-2 min-w-0 flex-1">
               {draft.dogPhotoUrl && (
                 <img
                   src={draft.dogPhotoUrl}
                   alt={`${draft.dogName || draft.name} dog photo`}
-                  className="h-6 w-6 rounded object-cover border border-border"
+                  className="h-6 w-6 rounded object-cover border border-border flex-shrink-0"
                   loading="lazy"
                 />
               )}
-              <span className="inline-block h-3 w-3 rounded-full" style={{ background: draft.color }} />
-              <span className="truncate font-bold tracking-tight">{draft.name}</span>
-              {hasPending && <Badge variant="outline" className="ml-2">Pending</Badge>}
+              <span className="inline-block h-3 w-3 rounded-full flex-shrink-0" style={{ background: draft.color }} />
+              <span className="font-bold tracking-tight text-base sm:text-xl min-w-0 break-words">{draft.name}</span>
+              {hasPending && <Badge variant="outline" className="ml-2 flex-shrink-0 text-xs">Pending</Badge>}
             </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Clock className="h-4 w-4" />
-              {showCircleAsTotal ? (
-                <>
-                  <span className="tabular-nums">Total: {circleTotal}</span>
-                  <span className="font-bold">◯</span>
-                </>
-              ) : (
-                <>
-                  <span className="tabular-nums">Total: {totalAbs}</span>
-                  {totalIndicator && <span className="font-bold">{totalIndicator}</span>}
-                </>
-              )}
-              {canEdit && (
-                <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsEditing((v) => !v)}
-                    aria-label={isEditing ? "Finish editing" : "Edit dog"}
-                    title={isEditing ? "Finish editing" : "Edit dog"}
-                  >
-                    <Edit3 className="h-4 w-4 mr-1" /> {isEditing ? "Done" : "Edit"}
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={async () => {
-                      if (confirm(`Delete ${draft.name}? This cannot be undone.`)) {
-                        const { error } = await supabase.functions.invoke('scoreboard-operations', {
-                          body: { action: 'delete', teamId: draft.id }
-                        });
-                        if (error) {
-                          toast({ title: 'Error', description: 'Failed to delete team', variant: 'destructive' });
-                        } else {
-                          toast({ title: 'Deleted', description: `${draft.name} removed` });
-                          onDelete?.(draft.id);
+            
+            {/* Score section - repositioned for better visibility */}
+            <div className="flex items-center justify-between sm:justify-end gap-2 flex-wrap">
+              <div className="flex items-center gap-1 text-sm bg-background/50 rounded px-2 py-1 border">
+                <Clock className="h-4 w-4 flex-shrink-0" />
+                {showCircleAsTotal ? (
+                  <>
+                    <span className="tabular-nums font-bold">Total: {circleTotal}</span>
+                    <span className="font-bold text-yellow-600">◯</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="tabular-nums font-bold">Total: {totalAbs}</span>
+                    {totalIndicator && <span className="font-bold text-lg">{totalIndicator}</span>}
+                  </>
+                )}
+              </div>
+              
+              {/* Controls section */}
+              <div className="flex items-center gap-1">
+                {canEdit && (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsEditing((v) => !v)}
+                      aria-label={isEditing ? "Finish editing" : "Edit dog"}
+                      title={isEditing ? "Finish editing" : "Edit dog"}
+                      className="text-xs px-2 py-1 h-7"
+                    >
+                      <Edit3 className="h-3 w-3 mr-1" /> {isEditing ? "Done" : "Edit"}
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={async () => {
+                        if (confirm(`Delete ${draft.name}? This cannot be undone.`)) {
+                          const { error } = await supabase.functions.invoke('scoreboard-operations', {
+                            body: { action: 'delete', teamId: draft.id }
+                          });
+                          if (error) {
+                            toast({ title: 'Error', description: 'Failed to delete team', variant: 'destructive' });
+                          } else {
+                            toast({ title: 'Deleted', description: `${draft.name} removed` });
+                            onDelete?.(draft.id);
+                          }
                         }
-                      }
-                    }}
-                    aria-label="Delete team"
-                    title="Delete team"
+                      }}
+                      aria-label="Delete team"
+                      title="Delete team"
+                      className="text-xs px-2 py-1 h-7"
+                    >
+                      <Trash2 className="h-3 w-3 mr-1" /> Delete
+                    </Button>
+                  </>
+                )}
+                <CollapsibleTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 w-7 p-0 rounded-full flex-shrink-0"
+                    aria-label={(lockOpen ? true : open) ? "Collapse" : "Expand"}
+                    title={(lockOpen ? true : open) ? "Collapse" : "Expand"}
+                    disabled={!!lockOpen}
                   >
-                    <Trash2 className="h-4 w-4 mr-1" /> Delete
+                    <ChevronDown className={`h-4 w-4 transition-transform ${(lockOpen ? true : open) ? "rotate-180" : "rotate-0"}`} />
                   </Button>
-                </>
-              )}
-              <CollapsibleTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="ml-2 h-8 w-8 p-0 rounded-full"
-                  aria-label={(lockOpen ? true : open) ? "Collapse" : "Expand"}
-                  title={(lockOpen ? true : open) ? "Collapse" : "Expand"}
-                  disabled={!!lockOpen}
-                >
-                  <ChevronDown className={`h-4 w-4 transition-transform ${(lockOpen ? true : open) ? "rotate-180" : "rotate-0"}`} />
-                </Button>
-              </CollapsibleTrigger>
+                </CollapsibleTrigger>
+              </div>
             </div>
           </CardTitle>
         </CardHeader>
