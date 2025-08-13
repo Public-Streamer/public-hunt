@@ -56,7 +56,13 @@ export const ScorecardDetails: React.FC<ScorecardDetailsProps> = ({ dogs, onSave
             {dogs.length === 0 ? (
               <div className="text-sm text-muted-foreground">No teams yet.</div>
             ) : (
-              dogs.map((d) => {
+              dogs
+                .sort((a, b) => {
+                  const totalA = calcTotals(a.entries).total;
+                  const totalB = calcTotals(b.entries).total;
+                  return totalB - totalA; // Sort by highest to lowest points
+                })
+                .map((d) => {
                 const { total, circleTotal, strikes, trees } = calcTotals(d.entries);
                 const showCircleAsTotal = total === 0 && circleTotal > 0;
                 return (

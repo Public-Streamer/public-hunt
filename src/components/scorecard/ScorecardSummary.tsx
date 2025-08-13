@@ -133,7 +133,13 @@ export const ScorecardSummary: React.FC<ScorecardSummaryProps> = ({ dogs, timerO
 
             {/* Per-dog timers + totals */}
             <div className="space-y-3">
-              {dogs.map((d) => {
+              {dogs
+                .sort((a, b) => {
+                  const totalA = calcTotals(a.entries).total;
+                  const totalB = calcTotals(b.entries).total;
+                  return totalB - totalA; // Sort by highest to lowest points
+                })
+                .map((d) => {
                 const snap = timerOverview[d.id];
                 const running = snap
                   ? keys
