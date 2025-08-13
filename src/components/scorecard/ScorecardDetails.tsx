@@ -105,14 +105,18 @@ export const ScorecardDetails: React.FC<ScorecardDetailsProps> = ({ dogs, onSave
                             ? "bg-red-50 border-red-200 dark:bg-red-950/20 dark:border-red-800/40"
                             : e.outcome === "o"
                             ? "bg-yellow-50 border-yellow-200 dark:bg-yellow-950/20 dark:border-yellow-800/40"
+                            : e.outcome === "pending"
+                            ? "bg-orange-50 border-orange-200 dark:bg-orange-950/20 dark:border-orange-800/40"
                             : "bg-muted/20 border-muted/40";
                           
                           const typeColor = e.type === "strike" 
                             ? "bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-200" 
                             : "bg-purple-100 text-purple-800 dark:bg-purple-950/50 dark:text-purple-200";
                           
+                          const isPending = e.outcome === "pending";
+                          
                           return (
-                            <div key={e.id} className={`flex items-center justify-between text-xs border rounded p-1 ${color}`}>
+                            <div key={e.id} className={`flex items-center justify-between text-xs border rounded p-1 ${color} ${isPending ? "animate-pulse" : ""}`}>
                               <div className="flex items-center gap-2">
                                 <Badge variant="secondary" className={`capitalize ${typeColor}`}>{e.type}</Badge>
                                 {e.outcome === "o" ? (
@@ -120,8 +124,13 @@ export const ScorecardDetails: React.FC<ScorecardDetailsProps> = ({ dogs, onSave
                                 ) : (
                                   <span className="tabular-nums">{e.points}</span>
                                 )}
+                                {isPending && (
+                                  <Badge variant="outline" className="text-xs bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-950/50 dark:text-orange-200 dark:border-orange-800">
+                                    Pending
+                                  </Badge>
+                                )}
                               </div>
-                              {e.outcome !== "o" && (
+                              {e.outcome !== "o" && !isPending && (
                                 <div className={`font-bold ${
                                   e.outcome === "+" ? "text-green-600 text-lg" : 
                                   e.outcome === "-" ? "text-red-600 text-base" : 
