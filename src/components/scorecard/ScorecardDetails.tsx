@@ -22,9 +22,10 @@ const calcTotals = (entries: DogData["entries"]) => {
     if (e.outcome === "-") return sum - e.points;
     return sum;
   }, 0);
+  const circleTotal = entries.reduce((sum, e) => e.outcome === "o" ? sum + e.points : sum, 0);
   const strikes = entries.filter((e) => e.type === "strike").length;
   const trees = entries.filter((e) => e.type === "tree").length;
-  return { total, strikes, trees };
+  return { total, circleTotal, strikes, trees };
 };
 
 const outcomeSymbol = (o: string) => (o === "+" ? "+" : o === "-" ? "–" : o === "o" ? "◯" : o === "/" ? "╱" : "…");
@@ -55,7 +56,8 @@ export const ScorecardDetails: React.FC<ScorecardDetailsProps> = ({ dogs, onSave
               <div className="text-sm text-muted-foreground">No teams yet.</div>
             ) : (
               dogs.map((d) => {
-                const { total, strikes, trees } = calcTotals(d.entries);
+                const { total, circleTotal, strikes, trees } = calcTotals(d.entries);
+                const showCircleAsTotal = total === 0 && circleTotal > 0;
                 return (
                   <div key={d.id} className="rounded-md border p-3">
                     <div className="flex items-center justify-between">
@@ -74,7 +76,20 @@ export const ScorecardDetails: React.FC<ScorecardDetailsProps> = ({ dogs, onSave
                       <div className="flex items-center gap-2 text-xs">
                         <Badge variant="secondary">Strikes: {strikes}</Badge>
                         <Badge variant="secondary">Trees: {trees}</Badge>
-                        <Badge variant="outline">Total: {total}</Badge>
+                        <div className="flex items-center gap-1 bg-background/50 rounded px-2 py-1 border">
+                          {showCircleAsTotal ? (
+                            <>
+                              <span className="font-bold">Total: </span>
+                              <span className="font-bold rounded-full ring-2 ring-yellow-500 px-2 py-0.5 text-yellow-700 dark:text-yellow-300 bg-yellow-50 dark:bg-yellow-950/30">{circleTotal}</span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="font-bold">Total: {Math.abs(total)}</span>
+                              {total > 0 && <span className="font-bold text-lg text-green-600">+</span>}
+                              {total < 0 && <span className="font-bold text-lg text-red-600">–</span>}
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
 
@@ -83,15 +98,41 @@ export const ScorecardDetails: React.FC<ScorecardDetailsProps> = ({ dogs, onSave
                       {d.entries.length === 0 ? (
                         <div className="text-xs text-muted-foreground">No strikes or trees recorded.</div>
                       ) : (
-                        d.entries.map((e) => (
-                          <div key={e.id} className="flex items-center justify-between text-xs border rounded p-1">
-                            <div className="flex items-center gap-2">
-                              <Badge variant="secondary" className="capitalize">{e.type}</Badge>
-                              <span className="tabular-nums">{e.points}</span>
+                        d.entries.map((e) => {
+                          const color = e.outcome === "+"
+                            ? "bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-800/40"
+                            : e.outcome === "-"
+                            ? "bg-red-50 border-red-200 dark:bg-red-950/20 dark:border-red-800/40"
+                            : e.outcome === "o"
+                            ? "bg-yellow-50 border-yellow-200 dark:bg-yellow-950/20 dark:border-yellow-800/40"
+                            : "bg-muted/20 border-muted/40";
+                          
+                          const typeColor = e.type === "strike" 
+                            ? "bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-200" 
+                            : "bg-purple-100 text-purple-800 dark:bg-purple-950/50 dark:text-purple-200";
+                          
+                          return (
+                            <div key={e.id} className={`flex items-center justify-between text-xs border rounded p-1 ${color}`}>
+                              <div className="flex items-center gap-2">
+                                <Badge variant="secondary" className={`capitalize ${typeColor}`}>{e.type}</Badge>
+                                {e.outcome === "o" ? (
+                                  <span className="tabular-nums rounded-full ring-2 ring-yellow-500 px-2 py-0.5 text-yellow-700 dark:text-yellow-300 bg-yellow-50 dark:bg-yellow-950/30">{e.points}</span>
+                                ) : (
+                                  <span className="tabular-nums">{e.points}</span>
+                                )}
+                              </div>
+                              {e.outcome !== "o" && (
+                                <div className={`font-bold ${
+                                  e.outcome === "+" ? "text-green-600 text-lg" : 
+                                  e.outcome === "-" ? "text-red-600 text-base" : 
+                                  "text-muted-foreground"
+                                }`}>
+                                  {outcomeSymbol(e.outcome)}
+                                </div>
+                              )}
                             </div>
-                            <div className="font-bold">{outcomeSymbol(e.outcome)}</div>
-                          </div>
-                        ))
+                          );
+                        })
                       )}
                     </div>
 

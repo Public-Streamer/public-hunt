@@ -337,27 +337,79 @@ export const CoonhoundScoreboardViewer: React.FC<Props> = ({ eventId }) => {
                 teams.map((t) => {
                   const cf = (t.custom_fields as any) || {};
                   const entries = Array.isArray(cf.entries) ? cf.entries : [];
+                  
+                  // Calculate totals for color coding
+                  const total = entries.reduce((sum: number, e: any) => {
+                    if (e.outcome === "+") return sum + e.points;
+                    if (e.outcome === "-") return sum - e.points;
+                    return sum;
+                  }, 0);
+                  const circleTotal = entries.reduce((sum: number, e: any) => e.outcome === "o" ? sum + e.points : sum, 0);
+                  const showCircleAsTotal = total === 0 && circleTotal > 0;
+                  
                   return (
                     <div key={t.id} className={`border rounded-md p-2 ${glow[`dog:${t.id}`] ? `glow-active ${
                       glow[`dog:${t.id}`]!.variant === 'success' ? 'glow-success' :
                       glow[`dog:${t.id}`]!.variant === 'danger' ? 'glow-danger' :
                       glow[`dog:${t.id}`]!.variant === 'warning' ? 'glow-warning' :
                       glow[`dog:${t.id}`]!.variant === 'info' ? 'glow-info' : 'glow-pending' }` : ''}`}>
-                      <div className="text-xs font-medium flex items-center gap-2 mb-2">
-                        <span className="inline-block h-2 w-2 rounded-full" style={{ background: t.team_color || 'hsl(var(--primary))' }} />
-                        <span className="truncate">{t.team_name}</span>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="text-xs font-medium flex items-center gap-2">
+                          <span className="inline-block h-2 w-2 rounded-full" style={{ background: t.team_color || 'hsl(var(--primary))' }} />
+                          <span className="truncate">{t.team_name}</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-xs bg-background/50 rounded px-2 py-1 border">
+                          {showCircleAsTotal ? (
+                            <>
+                              <span className="font-bold">Total: </span>
+                              <span className="font-bold rounded-full ring-2 ring-yellow-500 px-2 py-0.5 text-yellow-700 dark:text-yellow-300 bg-yellow-50 dark:bg-yellow-950/30">{circleTotal}</span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="font-bold">Total: {Math.abs(total)}</span>
+                              {total > 0 && <span className="font-bold text-lg text-green-600">+</span>}
+                              {total < 0 && <span className="font-bold text-lg text-red-600">–</span>}
+                            </>
+                          )}
+                        </div>
                       </div>
                       {entries.length > 0 ? (
                         <div className="space-y-1">
-                          {entries.map((e: any) => (
-                            <div key={e.id} className="flex items-center justify-between text-xs border rounded p-1">
-                              <div className="flex items-center gap-2">
-                                <Badge variant="secondary" className="capitalize">{e.type}</Badge>
-                                <span className="tabular-nums">{e.points}</span>
+                          {entries.map((e: any) => {
+                            const color = e.outcome === "+"
+                              ? "bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-800/40"
+                              : e.outcome === "-"
+                              ? "bg-red-50 border-red-200 dark:bg-red-950/20 dark:border-red-800/40"
+                              : e.outcome === "o"
+                              ? "bg-yellow-50 border-yellow-200 dark:bg-yellow-950/20 dark:border-yellow-800/40"
+                              : "bg-muted/20 border-muted/40";
+                            
+                            const typeColor = e.type === "strike" 
+                              ? "bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-200" 
+                              : "bg-purple-100 text-purple-800 dark:bg-purple-950/50 dark:text-purple-200";
+                            
+                            return (
+                              <div key={e.id} className={`flex items-center justify-between text-xs border rounded p-1 ${color}`}>
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="secondary" className={`capitalize ${typeColor}`}>{e.type}</Badge>
+                                  {e.outcome === "o" ? (
+                                    <span className="tabular-nums rounded-full ring-2 ring-yellow-500 px-2 py-0.5 text-yellow-700 dark:text-yellow-300 bg-yellow-50 dark:bg-yellow-950/30">{e.points}</span>
+                                  ) : (
+                                    <span className="tabular-nums">{e.points}</span>
+                                  )}
+                                </div>
+                                {e.outcome !== "o" && (
+                                  <div className={`font-bold ${
+                                    e.outcome === "+" ? "text-green-600 text-lg" : 
+                                    e.outcome === "-" ? "text-red-600 text-base" : 
+                                    "text-muted-foreground"
+                                  }`}>
+                                    {e.outcome === '+' ? '+' : e.outcome === '-' ? '–' : e.outcome === '/' ? '╱' : '…'}
+                                  </div>
+                                )}
                               </div>
-                              <div className="font-bold">{e.outcome === '+' ? '+' : e.outcome === '-' ? '–' : e.outcome === 'o' ? '◯' : e.outcome === '/' ? '╱' : '…'}</div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       ) : (
                         <div className="text-xs text-muted-foreground">No strikes or trees recorded.</div>
