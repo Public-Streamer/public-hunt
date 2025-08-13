@@ -5,7 +5,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export function getShareableEventUrl(eventId: string, slug?: string): string {
-  const functionsOrigin = "https://share.publicstreamer.com";
+  const functionsOrigin = "https://zmfugicftfwvuudensdo.supabase.co/functions/v1";
   const eventIdentifier = slug || eventId;
   // Return Edge Function URL for crawlers (serves meta tags) and redirects humans
   return `${functionsOrigin}/event/${eventIdentifier}`;
