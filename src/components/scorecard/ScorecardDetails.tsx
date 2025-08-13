@@ -107,10 +107,10 @@ export const ScorecardDetails: React.FC<ScorecardDetailsProps> = ({ dogs, onSave
                               </Button>
                             </DialogTrigger>
                             <DialogContent className="max-w-2xl max-h-[90vh] overflow-auto">
-                              <DialogHeader>
+                              <DialogHeader className="sticky top-0 bg-background z-10 border-b border-border/20 pb-2 mb-4">
                                 <DialogTitle>{d.dogName || d.name} - Photo</DialogTitle>
                               </DialogHeader>
-                              <div className="mt-4">
+                              <div className="relative">
                                 <img
                                   src={d.dogPhotoUrl}
                                   alt={`${d.dogName || d.name} photo`}
@@ -133,10 +133,10 @@ export const ScorecardDetails: React.FC<ScorecardDetailsProps> = ({ dogs, onSave
                               </Button>
                             </DialogTrigger>
                             <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
-                              <DialogHeader>
+                              <DialogHeader className="sticky top-0 bg-background z-10 border-b border-border/20 pb-2 mb-4">
                                 <DialogTitle>{d.dogName || d.name} - Pedigree</DialogTitle>
                               </DialogHeader>
-                              <div className="mt-4">
+                              <div className="relative">
                                 <img
                                   src={d.pedigreeImageUrl}
                                   alt={`${d.dogName || d.name} pedigree`}
