@@ -432,12 +432,13 @@ useEffect(() => {
                 {showCircleAsTotal ? (
                   <>
                     <span className="tabular-nums font-bold">Total: {circleTotal}</span>
-                    <span className="font-bold text-yellow-600">◯</span>
+                    <span className="font-bold text-xl text-yellow-600">◯</span>
                   </>
                 ) : (
                   <>
                     <span className="tabular-nums font-bold">Total: {totalAbs}</span>
-                    {totalIndicator && <span className="font-bold text-lg">{totalIndicator}</span>}
+                    {total > 0 && <span className="font-bold text-xl text-green-600">+</span>}
+                    {total < 0 && <span className="font-bold text-xl text-red-600">–</span>}
                   </>
                 )}
               </div>
@@ -651,16 +652,21 @@ useEffect(() => {
                   const color = e.outcome === "pending"
                     ? "bg-accent/10 border-accent/30"
                     : e.outcome === "+"
-                    ? "bg-primary/20 border-primary/40 transition-colors"
+                    ? "bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-800/40"
                     : e.outcome === "-"
-                    ? "bg-destructive/20 border-destructive/40 transition-colors"
+                    ? "bg-red-50 border-red-200 dark:bg-red-950/20 dark:border-red-800/40"
                     : e.outcome === "o"
-                    ? "bg-secondary/20 border-secondary/40 transition-colors" // circle
+                    ? "bg-yellow-50 border-yellow-200 dark:bg-yellow-950/20 dark:border-yellow-800/40"
                     : "bg-muted/20 border-muted/40 transition-colors"; // slash
+                  
+                  const typeColor = e.type === "strike" 
+                    ? "bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-200" 
+                    : "bg-purple-100 text-purple-800 dark:bg-purple-950/50 dark:text-purple-200";
+                  
                   const renderPoints = () => {
                     if (e.outcome === "o") {
                       return (
-                        <span className="font-medium rounded-full ring-2 ring-accent px-2 py-0.5">
+                        <span className="font-medium rounded-full ring-2 ring-yellow-500 px-2 py-0.5 text-yellow-700 dark:text-yellow-300">
                           {e.points}
                         </span>
                       );
@@ -682,10 +688,15 @@ useEffect(() => {
                     <div key={e.id} className={`rounded-md border p-2 ${color}`}>
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2 text-sm">
-                          <Badge variant="secondary" className="capitalize">{e.type}</Badge>
+                          <Badge variant="secondary" className={`capitalize ${typeColor}`}>{e.type}</Badge>
                           {renderPoints()}
                           {e.outcome !== "pending" && (
-                            <span className="ml-1 font-bold">
+                            <span className={`ml-1 font-bold text-lg ${
+                              e.outcome === "+" ? "text-green-600" : 
+                              e.outcome === "-" ? "text-red-600" : 
+                              e.outcome === "o" ? "text-yellow-600" : 
+                              "text-muted-foreground"
+                            }`}>
                               {e.outcome === "+" ? "+" : e.outcome === "-" ? "–" : e.outcome === "o" ? "◯" : "╱"}
                             </span>
                           )}
