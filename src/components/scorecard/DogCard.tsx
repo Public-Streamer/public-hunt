@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Clock, ChevronDown, Upload, Edit3, Trash2 } from "lucide-react";
 import { TimerControl } from "./TimerControl";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useCountdown, TimerStatus } from "@/hooks/useCountdown";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -485,28 +486,46 @@ useEffect(() => {
                     >
                       <Edit3 className="h-3 w-3 mr-1" /> {isEditing ? "Done" : "Edit"}
                     </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={async () => {
-                        if (confirm(`Delete ${draft.name}? This cannot be undone.`)) {
-                          const { error } = await supabase.functions.invoke('scoreboard-operations', {
-                            body: { action: 'delete', teamId: draft.id }
-                          });
-                          if (error) {
-                            toast({ title: 'Error', description: 'Failed to delete team', variant: 'destructive' });
-                          } else {
-                            toast({ title: 'Deleted', description: `${draft.name} removed` });
-                            onDelete?.(draft.id);
-                          }
-                        }
-                      }}
-                      aria-label="Delete team"
-                      title="Delete team"
-                      className="text-xs px-2 py-1 h-7"
-                    >
-                      <Trash2 className="h-3 w-3 mr-1" /> Delete
-                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          aria-label="Delete team"
+                          title="Delete team"
+                          className="text-xs px-2 py-1 h-7"
+                        >
+                          <Trash2 className="h-3 w-3 mr-1" /> Delete
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you sure you want to delete this team box?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Once it's deleted, it can't be undone. Team "{draft.name}" and all its data will be permanently removed.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction 
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            onClick={async () => {
+                              const { error } = await supabase.functions.invoke('scoreboard-operations', {
+                                body: { action: 'delete', teamId: draft.id }
+                              });
+                              if (error) {
+                                toast({ title: 'Error', description: 'Failed to delete team', variant: 'destructive' });
+                              } else {
+                                toast({ title: 'Deleted', description: `${draft.name} removed` });
+                                onDelete?.(draft.id);
+                              }
+                            }}
+                          >
+                            Delete Team
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </>
                 )}
                 <CollapsibleTrigger asChild>
