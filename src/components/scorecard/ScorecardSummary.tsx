@@ -119,10 +119,10 @@ export const ScorecardSummary: React.FC<ScorecardSummaryProps> = ({ dogs, timerO
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 {activeCast.length > 0 ? (
                   activeCast.map((b) => (
-                    <div key={b.key} className={`rounded-md p-2 border ${statusCls(b.status)}`}>
-                      <div className="flex items-center justify-between text-xs">
-                        <span>{b.label}</span>
-                        <span className="tabular-nums font-semibold">{b.formatted}</span>
+                    <div key={b.key} className={`rounded-md p-3 border-2 ${statusCls(b.status)} shadow-md`}>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="font-bold">{b.label}</span>
+                        <span className="tabular-nums font-extrabold text-lg">{b.formatted}</span>
                       </div>
                     </div>
                   ))
