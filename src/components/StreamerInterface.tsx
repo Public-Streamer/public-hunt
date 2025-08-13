@@ -148,17 +148,20 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     const checkJudge = async () => {
       try {
         if (!userId) return;
-        
+
         // Check event_participants table first (newer approach)
-        const { data: participantData, error: participantError } = await supabase
-          .from("event_participants")
-          .select("permissions")
-          .eq("event_id", eventId)
-          .eq("user_id", userId)
-          .maybeSingle();
+        const { data: participantData, error: participantError } =
+          await supabase
+            .from("event_participants")
+            .select("permissions")
+            .eq("event_id", eventId)
+            .eq("user_id", userId)
+            .maybeSingle();
 
         if (!participantError && participantData?.permissions) {
-          const hasJudgePermission = (participantData.permissions as string[]).includes("scorecard_judge");
+          const hasJudgePermission = (
+            participantData.permissions as string[]
+          ).includes("scorecard_judge");
           setIsJudge(hasJudgePermission);
           return;
         }
@@ -172,7 +175,9 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
           .maybeSingle();
 
         if (!streamerError && streamerData?.permissions) {
-          const hasJudgePermission = (streamerData.permissions as string[]).includes("scorecard_judge");
+          const hasJudgePermission = (
+            streamerData.permissions as string[]
+          ).includes("scorecard_judge");
           setIsJudge(hasJudgePermission);
         } else {
           setIsJudge(false);
@@ -189,24 +194,29 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   const isStreamerWithJudgePermissions = userRole === "streamer" && isJudge;
   const canEdit = isEventCreator || isStreamerWithJudgePermissions;
   const canManageScoreboard = canEdit;
-  
+
   // Show scoreboard to everyone when a game type is selected (view-only for non-judges)
   const canSeeScoreboard = canManageScoreboard || !!selectedGameType;
 
   // Real-time permission updates for judge role - Monitor both tables
   useEffect(() => {
     if (!eventId || !userId) return;
-    
+
     const participantsChannel = supabase
       .channel(`judge-perms-participants-${eventId}-${userId}`)
       .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'event_participants', filter: `event_id=eq.${eventId}` },
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "event_participants",
+          filter: `event_id=eq.${eventId}`,
+        },
         (payload) => {
           const row: any = payload.new;
           if (row.user_id === userId) {
             const perms = (row.permissions || []) as string[];
-            setIsJudge(perms.includes('scorecard_judge'));
+            setIsJudge(perms.includes("scorecard_judge"));
           }
         }
       )
@@ -215,13 +225,18 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     const streamersChannel = supabase
       .channel(`judge-perms-streamers-${eventId}-${userId}`)
       .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'event_streamers', filter: `event_id=eq.${eventId}` },
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "event_streamers",
+          filter: `event_id=eq.${eventId}`,
+        },
         (payload) => {
           const row: any = payload.new;
           if (row.streamer_id === userId) {
             const perms = (row.permissions || []) as string[];
-            setIsJudge(perms.includes('scorecard_judge'));
+            setIsJudge(perms.includes("scorecard_judge"));
           }
         }
       )
@@ -263,13 +278,16 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     if (!scoreboardType) return;
 
     try {
-      const { data, error } = await supabase.functions.invoke('scoreboard-operations', {
-        body: { action: 'fetch', eventId, scoreboardType }
-      });
+      const { data, error } = await supabase.functions.invoke(
+        "scoreboard-operations",
+        {
+          body: { action: "fetch", eventId, scoreboardType },
+        }
+      );
       if (error) throw error;
       setTeams(Array.isArray(data) ? data : (data as any)?.teams || []);
     } catch (error) {
-      console.error('Error fetching teams:', error);
+      console.error("Error fetching teams:", error);
     }
   };
 
@@ -332,9 +350,16 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     if (!selectedGameType) return;
 
     try {
-      const { error: fnError } = await supabase.functions.invoke('scoreboard-operations', {
-        body: { action: 'deleteAll', eventId, scoreboardType: selectedGameType }
-      });
+      const { error: fnError } = await supabase.functions.invoke(
+        "scoreboard-operations",
+        {
+          body: {
+            action: "deleteAll",
+            eventId,
+            scoreboardType: selectedGameType,
+          },
+        }
+      );
       if (fnError) throw fnError;
       // Clear metadata
       await supabase
@@ -637,11 +662,9 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
         {/* Judge Editing Enabled Badge - Show when user can edit team boxes */}
         {canEdit && selectedGameType && (
           <div className="flex justify-center sm:justify-end">
-            <TooltipWrapper
-              content="You have full editing rights for all team boxes in this event."
-            >
-              <Badge 
-                variant="default" 
+            <TooltipWrapper content="You have full editing rights for all team boxes in this event.">
+              <Badge
+                variant="default"
                 className="bg-green-600 hover:bg-green-700 text-white font-bold px-3 py-1 text-sm shadow-lg border-green-500"
               >
                 Judge Editing Enabled
@@ -784,7 +807,11 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                   </CardTitle>
                   {controls.isStreaming && (
                     <TooltipWrapper
-                      content={controlsLocked ? "Unlock to modify stream controls" : "Lock to prevent changes"}
+                      content={
+                        controlsLocked
+                          ? "Unlock to modify stream controls"
+                          : "Lock to prevent changes"
+                      }
                     >
                       <Button
                         variant="secondary"
@@ -804,7 +831,11 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                   )}
                 </div>
               </CardHeader>
-              <CardContent className={`space-y-3 sm:space-y-4 p-3 sm:p-3 ${controlsLocked ? "pointer-events-none opacity-60" : ""}`}>
+              <CardContent
+                className={`space-y-3 sm:space-y-4 p-3 sm:p-3 ${
+                  controlsLocked ? "pointer-events-none opacity-60" : ""
+                }`}
+              >
                 {/* Go Live / Stop Stream */}
                 <div className="space-y-2">
                   {!controls.isStreaming ? (
@@ -825,7 +856,13 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                     </Button>
                   ) : (
                     <div className="space-y-2">
-                      <TooltipWrapper content={controlsLocked ? "Controls locked — unlock to stop your stream" : "Stop your personal stream"}>
+                      <TooltipWrapper
+                        content={
+                          controlsLocked
+                            ? "Controls locked — unlock to stop your stream"
+                            : "Stop your personal stream"
+                        }
+                      >
                         <span className="block w-full">
                           <Button
                             onClick={controls.stopStream}
@@ -1093,7 +1130,6 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
 
           {/* Controls Panel */}
           <div className="space-y-3 sm:space-y-4">
-
             {/* Stream Info */}
             <Card>
               <CardHeader className="p-3 sm:p-3">

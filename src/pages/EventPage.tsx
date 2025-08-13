@@ -599,18 +599,20 @@ const EventPage: React.FC = () => {
                     </div>
 
                     {/* Scoreboard - Show only when there are teams (ticketed viewers or stage access) */}
-                    {currentUser && showScoreboard && (hasTicket || canEnterStage) && (
-                      <div className="p-5">
-                        {selectedGameType === "custom" ? (
-                          <CustomScoreboard
-                            eventId={eventData.id}
-                            isHost={false}
-                          />
-                        ) : selectedGameType === "coon_hunt" ? (
-                          <CoonhoundScoreboardViewer eventId={eventData.id} />
-                        ) : null}
-                      </div>
-                    )}
+                    {currentUser &&
+                      showScoreboard &&
+                      (hasTicket || canEnterStage) && (
+                        <div className="p-5">
+                          {selectedGameType === "custom" ? (
+                            <CustomScoreboard
+                              eventId={eventData.id}
+                              isHost={false}
+                            />
+                          ) : selectedGameType === "coon_hunt" ? (
+                            <CoonhoundScoreboardViewer eventId={eventData.id} />
+                          ) : null}
+                        </div>
+                      )}
 
                     {eventData.is_live &&
                       livekitToken &&
