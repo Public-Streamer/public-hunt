@@ -3,8 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { ChevronDown, Image, FileText } from "lucide-react";
+import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ChevronDown, Image, FileText, X } from "lucide-react";
 import type { DogData } from "./DogCard";
 import type { TimerStatus } from "@/hooks/useCountdown";
 
@@ -163,12 +163,17 @@ export const ScorecardSummary: React.FC<ScorecardSummaryProps> = ({ dogs, timerO
                                   />
                                 </Button>
                               </DialogTrigger>
-                              <DialogContent className="max-w-2xl">
-                                <img
-                                  src={d.dogPhotoUrl}
-                                  alt={`${d.dogName || d.name} photo`}
-                                  className="w-full h-auto rounded"
-                                />
+                              <DialogContent className="max-w-2xl max-h-[90vh] overflow-auto">
+                                <DialogHeader>
+                                  <DialogTitle>{d.dogName || d.name} - Photo</DialogTitle>
+                                </DialogHeader>
+                                <div className="mt-4">
+                                  <img
+                                    src={d.dogPhotoUrl}
+                                    alt={`${d.dogName || d.name} photo`}
+                                    className="w-full h-auto max-h-[70vh] object-contain rounded"
+                                  />
+                                </div>
                               </DialogContent>
                             </Dialog>
                           )}
@@ -184,12 +189,17 @@ export const ScorecardSummary: React.FC<ScorecardSummaryProps> = ({ dogs, timerO
                                   <FileText className="h-4 w-4" />
                                 </Button>
                               </DialogTrigger>
-                              <DialogContent className="max-w-4xl">
-                                <img
-                                  src={d.pedigreeImageUrl}
-                                  alt={`${d.dogName || d.name} pedigree`}
-                                  className="w-full h-auto rounded"
-                                />
+                              <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+                                <DialogHeader>
+                                  <DialogTitle>{d.dogName || d.name} - Pedigree</DialogTitle>
+                                </DialogHeader>
+                                <div className="mt-4">
+                                  <img
+                                    src={d.pedigreeImageUrl}
+                                    alt={`${d.dogName || d.name} pedigree`}
+                                    className="w-full h-auto max-h-[70vh] object-contain rounded"
+                                  />
+                                </div>
                               </DialogContent>
                             </Dialog>
                           )}
