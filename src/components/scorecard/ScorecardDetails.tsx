@@ -61,85 +61,94 @@ export const ScorecardDetails: React.FC<ScorecardDetailsProps> = ({ dogs, onSave
                 const showCircleAsTotal = total === 0 && circleTotal > 0;
                 return (
                   <div key={d.id} className="rounded-md border p-3">
-                    <div className="flex items-center justify-between">
-                      <div className="min-w-0 flex-1">
-                        <div className="text-sm sm:text-base md:text-lg font-extrabold flex items-center gap-2 text-foreground flex-wrap">
-                          <span className="inline-block h-2 w-2 rounded-full shrink-0" style={{ background: d.color }} />
-                          <span className="whitespace-nowrap overflow-hidden text-ellipsis">{d.name}</span>
+                    {/* Names section - horizontal layout */}
+                    <div className="mb-3">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="inline-block h-2 w-2 rounded-full shrink-0" style={{ background: d.color }} />
+                        <span className="text-sm sm:text-base md:text-lg font-extrabold text-foreground min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">
+                          {d.name}
+                        </span>
+                      </div>
+                      <div className="text-xs sm:text-sm font-semibold text-foreground space-y-1">
+                        <div className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">
+                          Dog: {d.dogName || "—"}
                         </div>
-                        <div className="text-xs sm:text-sm md:text-base font-semibold text-foreground">
-                          <div className="flex flex-col sm:flex-row sm:gap-2">
-                            <span className="whitespace-nowrap overflow-hidden text-ellipsis">Dog: {d.dogName || "—"}</span>
-                            <span className="whitespace-nowrap overflow-hidden text-ellipsis">Handler: {d.handler || "—"}</span>
-                          </div>
-                        </div>
-                        <div className="text-xs sm:text-sm text-foreground">
-                          <div className="flex flex-col sm:flex-row sm:gap-2">
-                            <span className="whitespace-nowrap overflow-hidden text-ellipsis">{d.cityState || "—"}</span>
-                            <span className="whitespace-nowrap overflow-hidden text-ellipsis">{d.breed || "—"}</span>
-                            <span className="whitespace-nowrap overflow-hidden text-ellipsis">{d.age != null ? `${d.age} yr` : "—"}</span>
-                          </div>
+                        <div className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">
+                          Handler: {d.handler || "—"}
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 text-xs">
-                        <div className="flex gap-2">
-                          {d.dogPhotoUrl && (
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 w-8 p-0 hover:bg-accent"
-                                  title="View dog photo"
-                                >
-                                  <img
-                                    src={d.dogPhotoUrl}
-                                    alt={`${d.dogName || d.name} photo`}
-                                    className="h-6 w-6 rounded object-cover"
-                                  />
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent className="max-w-2xl max-h-[90vh] overflow-auto">
-                                <DialogHeader>
-                                  <DialogTitle>{d.dogName || d.name} - Photo</DialogTitle>
-                                </DialogHeader>
-                                <div className="mt-4">
-                                  <img
-                                    src={d.dogPhotoUrl}
-                                    alt={`${d.dogName || d.name} photo`}
-                                    className="w-full h-auto max-h-[70vh] object-contain rounded"
-                                  />
-                                </div>
-                              </DialogContent>
-                            </Dialog>
-                          )}
-                          {d.pedigreeImageUrl && (
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 w-8 p-0 hover:bg-accent"
-                                  title="View pedigree"
-                                >
-                                  <FileText className="h-4 w-4" />
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
-                                <DialogHeader>
-                                  <DialogTitle>{d.dogName || d.name} - Pedigree</DialogTitle>
-                                </DialogHeader>
-                                <div className="mt-4">
-                                  <img
-                                    src={d.pedigreeImageUrl}
-                                    alt={`${d.dogName || d.name} pedigree`}
-                                    className="w-full h-auto max-h-[70vh] object-contain rounded"
-                                  />
-                                </div>
-                              </DialogContent>
-                            </Dialog>
-                          )}
+                      <div className="text-xs sm:text-sm text-foreground mt-1 space-y-1">
+                        <div className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">
+                          {d.cityState || "—"}
                         </div>
+                        <div className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">
+                          {d.breed || "—"} • {d.age != null ? `${d.age} yr` : "—"}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Photos and badges section */}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex gap-2">
+                        {d.dogPhotoUrl && (
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0 hover:bg-accent"
+                                title="View dog photo"
+                              >
+                                <img
+                                  src={d.dogPhotoUrl}
+                                  alt={`${d.dogName || d.name} photo`}
+                                  className="h-6 w-6 rounded object-cover"
+                                />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-2xl max-h-[90vh] overflow-auto">
+                              <DialogHeader>
+                                <DialogTitle>{d.dogName || d.name} - Photo</DialogTitle>
+                              </DialogHeader>
+                              <div className="mt-4">
+                                <img
+                                  src={d.dogPhotoUrl}
+                                  alt={`${d.dogName || d.name} photo`}
+                                  className="w-full h-auto max-h-[70vh] object-contain rounded"
+                                />
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        )}
+                        {d.pedigreeImageUrl && (
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0 hover:bg-accent"
+                                title="View pedigree"
+                              >
+                                <FileText className="h-4 w-4" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+                              <DialogHeader>
+                                <DialogTitle>{d.dogName || d.name} - Pedigree</DialogTitle>
+                              </DialogHeader>
+                              <div className="mt-4">
+                                <img
+                                  src={d.pedigreeImageUrl}
+                                  alt={`${d.dogName || d.name} pedigree`}
+                                  className="w-full h-auto max-h-[70vh] object-contain rounded"
+                                />
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        )}
+                      </div>
+                      
+                      <div className="flex flex-wrap items-center gap-2 text-xs">
                         <Badge variant="secondary">Strikes: {strikes}</Badge>
                         <Badge variant="secondary">Trees: {trees}</Badge>
                         <div className="flex items-center gap-1 bg-background/50 rounded px-2 py-1 border">
