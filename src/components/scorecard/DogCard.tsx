@@ -782,6 +782,38 @@ useEffect(() => {
                   <>
                     <a href={draft.pedigreeImageUrl} target="_blank" rel="noopener noreferrer" className="text-xs underline">View</a>
                     <a href={draft.pedigreeImageUrl} download className="text-xs underline">Download</a>
+                    {canEdit && (
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={async () => {
+                          try {
+                            // Extract file path from URL for deletion
+                            const url = new URL(draft.pedigreeImageUrl!);
+                            const pathParts = url.pathname.split('/');
+                            const fileName = pathParts[pathParts.length - 1];
+                            const filePath = `pedigrees/${fileName}`;
+                            
+                            const { error } = await supabase.storage.from('media').remove([filePath]);
+                            if (error) {
+                              console.error('Error deleting pedigree:', error);
+                              toast({ title: 'Error', description: 'Failed to delete pedigree', variant: 'destructive' });
+                            } else {
+                              const updated = { ...draft, pedigreeImageUrl: undefined };
+                              setDraft(updated);
+                              onChange(updated, total);
+                              toast({ title: 'Deleted', description: 'Pedigree removed' });
+                            }
+                          } catch (error) {
+                            console.error('Error deleting pedigree:', error);
+                            toast({ title: 'Error', description: 'Failed to delete pedigree', variant: 'destructive' });
+                          }
+                        }}
+                        className="h-6 px-2 text-xs"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    )}
                   </>
                 )}
               </div>
@@ -800,6 +832,38 @@ useEffect(() => {
                     />
                     <a href={draft.dogPhotoUrl} target="_blank" rel="noopener noreferrer" className="text-xs underline">View</a>
                     <a href={draft.dogPhotoUrl} download className="text-xs underline">Download</a>
+                    {canEdit && (
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={async () => {
+                          try {
+                            // Extract file path from URL for deletion
+                            const url = new URL(draft.dogPhotoUrl!);
+                            const pathParts = url.pathname.split('/');
+                            const fileName = pathParts[pathParts.length - 1];
+                            const filePath = `photos/${fileName}`;
+                            
+                            const { error } = await supabase.storage.from('media').remove([filePath]);
+                            if (error) {
+                              console.error('Error deleting dog photo:', error);
+                              toast({ title: 'Error', description: 'Failed to delete dog photo', variant: 'destructive' });
+                            } else {
+                              const updated = { ...draft, dogPhotoUrl: undefined };
+                              setDraft(updated);
+                              onChange(updated, total);
+                              toast({ title: 'Deleted', description: 'Dog photo removed' });
+                            }
+                          } catch (error) {
+                            console.error('Error deleting dog photo:', error);
+                            toast({ title: 'Error', description: 'Failed to delete dog photo', variant: 'destructive' });
+                          }
+                        }}
+                        className="h-6 px-2 text-xs"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    )}
                   </>
                 )}
               </div>
