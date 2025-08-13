@@ -130,6 +130,41 @@ const getClientId = () => {
 const clientIdRef = React.useRef<string>(getClientId());
 const rtChannelRef = React.useRef<ReturnType<typeof supabase.channel> | null>(null);
 
+// Fetch timer overview from database for all viewers
+const fetchTimerOverview = async () => {
+  try {
+    const { data, error } = await supabase.functions.invoke('scoreboard-operations', {
+      body: { action: 'fetch', eventId, scoreboardType: 'coon_hunt' }
+    });
+    if (error) throw error;
+    const arr = Array.isArray(data) ? data : data?.teams || [];
+    const overview: Record<string, Record<string, any>> = {};
+    
+    for (const team of arr) {
+      const timers = team.custom_fields?.timers;
+      if (timers) {
+        // Convert timer data from database format to UI format
+        const uiTimers: Record<string, any> = {};
+        for (const [key, timer] of Object.entries(timers)) {
+          if (timer && typeof timer === 'object' && 'status' in timer && 'remaining' in timer) {
+            const remaining = Math.max(0, (timer as any).remaining || 0);
+            const minutes = Math.floor(remaining / 60);
+            const seconds = remaining % 60;
+            uiTimers[key] = {
+              formatted: `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`,
+              status: (timer as any).status || 'idle'
+            };
+          }
+        }
+        overview[team.id] = uiTimers;
+      }
+    }
+    setTimerOverview(overview);
+  } catch (e) {
+    console.error('Failed to fetch timer overview:', e);
+  }
+};
+
 
 const colorCls = (s: TimerStatus) => s === "running"
   ? "bg-primary/10 text-primary"
@@ -193,6 +228,8 @@ useEffect(() => {
     .on('broadcast', { event: 'dog_timer_update' }, (p: any) => {
       if (p?.teamId) setOpenDogIds((prev) => ({ ...prev, [p.teamId]: true }));
       if (p?.teamId) triggerGlow(`dog:${p.teamId}`, 'warning');
+      // Refresh timer overview to sync across all viewers
+      fetchTimerOverview();
     })
     .on('broadcast', { event: 'cast_timer_update' }, (p: any) => {
       setOpenHunt(true);
@@ -234,6 +271,8 @@ const fetchTeams = async () => {
   // Ensure existing teams are loaded on entry so panels are visible immediately
 useEffect(() => {
   fetchTeams();
+  // Fetch timer overview for all viewers
+  fetchTimerOverview();
   // Try to hydrate timers if server provides state
   (async () => {
     try {
