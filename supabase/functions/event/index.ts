@@ -286,7 +286,7 @@ serve(async (req) => {
       });
     }
   } catch (error) {
-    console.error("Error in event-meta-tags function:", error);
+    console.error("Error in event function:", error);
     return new Response("Internal Server Error", {
       status: 500,
       headers: corsHeaders,
