@@ -61,7 +61,9 @@ function toPayload(d: DogData) {
 export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
   const [dogs, setDogs] = useState<DogData[]>([]);
   const [loading, setLoading] = useState(false);
-  const [huntMinutes, setHuntMinutes] = useState<60 | 90 | 120>(120);
+  const [huntMinutes, setHuntMinutes] = useState<number>(120);
+  const [customMinutes, setCustomMinutes] = useState<string>("");
+  const [showCustomInput, setShowCustomInput] = useState<boolean>(false);
   const [timerOverview, setTimerOverview] = useState<Record<string, any>>({});
 
   // Server-authoritative control lock (auto-acquire, host override)
@@ -416,14 +418,81 @@ const addDog = async () => {
                     <ChevronDown className={`h-4 w-4 transition-transform ${(expandAllMode ? true : openHunt) ? 'rotate-180' : ''}`} />
                   </Button>
                 </CollapsibleTrigger>
-                <Select value={String(huntMinutes)} onValueChange={(v) => { const m = Number(v) as 60 | 90 | 120; setHuntMinutes(m); huntTimer.reset(m * 60); syncCastTimers(); }}>
-                  <SelectTrigger disabled={!canEditScoreboard} className="h-8 w-32"><SelectValue placeholder="Hunt" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="60">60 min</SelectItem>
-                    <SelectItem value="90">90 min</SelectItem>
-                    <SelectItem value="120">120 min</SelectItem>
-                  </SelectContent>
-                </Select>
+                {!showCustomInput ? (
+                  <Select 
+                    value={[60, 90, 120].includes(huntMinutes) ? String(huntMinutes) : "custom"} 
+                    onValueChange={(v) => {
+                      if (v === "custom") {
+                        setShowCustomInput(true);
+                        setCustomMinutes(String(huntMinutes));
+                      } else {
+                        const m = Number(v);
+                        setHuntMinutes(m);
+                        huntTimer.reset(m * 60);
+                        syncCastTimers();
+                      }
+                    }}
+                  >
+                    <SelectTrigger disabled={!canEditScoreboard} className="h-8 w-32">
+                      <SelectValue placeholder="Hunt" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="60">60 min</SelectItem>
+                      <SelectItem value="90">90 min</SelectItem>
+                      <SelectItem value="120">120 min</SelectItem>
+                      <SelectItem value="custom">Custom</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <div className="flex items-center gap-1">
+                    <Input
+                      type="number"
+                      value={customMinutes}
+                      onChange={(e) => setCustomMinutes(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          const minutes = Number(customMinutes);
+                          if (minutes > 0) {
+                            setHuntMinutes(minutes);
+                            huntTimer.reset(minutes * 60);
+                            syncCastTimers();
+                            setShowCustomInput(false);
+                          }
+                        } else if (e.key === 'Escape') {
+                          setShowCustomInput(false);
+                        }
+                      }}
+                      className="h-8 w-20 text-sm"
+                      placeholder="Min"
+                      min="1"
+                      disabled={!canEditScoreboard}
+                    />
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        const minutes = Number(customMinutes);
+                        if (minutes > 0) {
+                          setHuntMinutes(minutes);
+                          huntTimer.reset(minutes * 60);
+                          syncCastTimers();
+                          setShowCustomInput(false);
+                        }
+                      }}
+                      disabled={!canEditScoreboard || !customMinutes || Number(customMinutes) <= 0}
+                      className="h-8 px-2"
+                    >
+                      ✓
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setShowCustomInput(false)}
+                      className="h-8 px-2"
+                    >
+                      ✕
+                    </Button>
+                  </div>
+                )}
               </div>
             </CardTitle>
           </CardHeader>
