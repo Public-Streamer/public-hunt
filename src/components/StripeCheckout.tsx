@@ -23,7 +23,7 @@ interface StripeCheckoutProps {
 
 // Read Stripe publishable key from environment (Vite convention)
 const stripePromise = loadStripe(
-  import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || ""
+  "pk_live_51KOPkUE32NQ2lR8eywxU7YPxpdGQa6CxJtc718SMEWyjwBJfC4RZNsf3tbdJuXxEKBq9NljScc3RNUt2MPJ7fH1h00akWpbExQ"
 );
 
 const CheckoutForm: React.FC<StripeCheckoutProps> = ({
