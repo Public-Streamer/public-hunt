@@ -35,6 +35,7 @@ import Post from "./pages/Post";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import ReportDMCA from "./pages/ReportDMCA";
+import { SpinnerIcon } from "@livekit/components-react";
 
 const queryClient = new QueryClient();
 
@@ -47,7 +48,17 @@ const App = () => {
             <Toaster />
             <Sonner />
             <BrowserRouter>
-              <Suspense fallback={<div className="p-6">Loading…</div>}>
+              <Suspense
+                fallback={
+                  <div className="flex items-center justify-center h-screen">
+                    <img
+                      src="/logo.png"
+                      className="w-24 h-24 animate-pulse"
+                      alt="Logo"
+                    />
+                  </div>
+                }
+              >
                 <Layout>
                   <Routes>
                     <Route path="/" element={<Index />} />

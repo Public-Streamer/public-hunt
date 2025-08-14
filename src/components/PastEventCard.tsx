@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Play, Eye, Clock, DollarSign, Calendar } from "lucide-react";
 import TooltipWrapper from "@/components/ui/tooltip-wrapper";
 import TicketPurchaseModal from "./TicketPurchaseModal";
+import MediaBackground from "./MediaBackground";
 
 interface PastEvent {
   id: string;
@@ -16,7 +17,6 @@ interface PastEvent {
   duration: number;
   recorded_at: string;
   visibility: "public" | "private" | "selected";
-  price: number;
   view_count: number;
   tags: string[];
   category: string;
@@ -30,6 +30,7 @@ interface PastEvent {
   ticket_price?: number;
   is_live?: boolean;
   viewer_count?: number;
+  media_urls?: string[];
 }
 
 interface PastEventCardProps {
@@ -69,7 +70,7 @@ const PastEventCard: React.FC<PastEventCardProps> = ({
 
   const handlePlayClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (event.price > 0) {
+    if (event.ticket_price > 0) {
       setShowPurchaseModal(true);
     } else {
       onPlay(event);
@@ -80,6 +81,8 @@ const PastEventCard: React.FC<PastEventCardProps> = ({
     onPurchase?.(event.id);
     onPlay(event);
   };
+
+  const bgUrl = event?.media_urls[0];
 
   return (
     <>
@@ -93,9 +96,24 @@ const PastEventCard: React.FC<PastEventCardProps> = ({
         }`}
       >
         <Card
-          className="hover:shadow-lg transition-shadow cursor-pointer space-y-2"
+          className="hover:shadow-lg transition-shadow cursor-pointer space-y-2 flex flex-col justify-between h-full"
           onClick={handleCardClick}
         >
+          <MediaBackground
+            src={bgUrl}
+            className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100"
+          >
+            <div className="absolute inset-0 flex items-center justify-center">
+              {/* <Video className="h-16 w-16 text-base-300" /> */}
+            </div>
+            {/* <Badge
+              variant="outline"
+              className="absolute top-2 right-2 text-white px-2 py-1 rounded text-sm"
+            >
+              <Eye className="h-4 w-4 mr-1" />
+              {event.streamerCount}
+            </Badge> */}
+          </MediaBackground>
           <CardHeader>
             <div className="flex items-start justify-between gap-2">
               <CardTitle className="text-lg">
@@ -116,6 +134,7 @@ const PastEventCard: React.FC<PastEventCardProps> = ({
               </div>
             </div>
           </CardHeader>
+
           <CardContent>
             <p className="text-sm text-gray-600 mb-2 line-clamp-2">
               {event.description}
@@ -152,10 +171,10 @@ const PastEventCard: React.FC<PastEventCardProps> = ({
                   {event.view_count}
                 </span>
               </TooltipWrapper> */}
-              {event.price > 0 && (
+              {event.ticket_price > 0 && (
                 <TooltipWrapper content="Event price">
-                  <span className="flex items-center">
-                    <DollarSign className="h-4 w-4 mr-1" />${event.price}
+                  <span className="flex items-center text-green-600">
+                    <DollarSign className="h-4 w-4 mr-1" />${event.ticket_price}
                   </span>
                 </TooltipWrapper>
               )}
@@ -166,7 +185,7 @@ const PastEventCard: React.FC<PastEventCardProps> = ({
               className="w-full mb-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
             >
               <Eye className="h-4 w-4 mr-2" />
-              {event.price > 0 ? `Details - $${event.price}` : "Details"}
+              {event.ticket_price > 0 ? "Details" : "Details"}
             </Button>
 
             <div className="flex items-center justify-between text-xs text-gray-400">
@@ -182,7 +201,7 @@ const PastEventCard: React.FC<PastEventCardProps> = ({
         onClose={() => setShowPurchaseModal(false)}
         eventId={event.id}
         eventTitle={(event.title || event.name) as string}
-        price={event.price}
+        price={event.ticket_price}
         onPurchaseSuccess={handlePurchaseSuccess}
       />
     </>

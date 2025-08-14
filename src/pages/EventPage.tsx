@@ -179,7 +179,7 @@ const EventPage: React.FC = () => {
         },
         (payload) => {
           // console.log("[EventPage] Real-time event update received:", payload);
-          const src = payload.new as Partial<EventData>;
+          const src = payload.new as EventData;
           // console.log("[EventPage] Real-time event update received:", src);
           patchEvent({
             is_live: src.is_live,

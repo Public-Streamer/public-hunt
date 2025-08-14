@@ -12,6 +12,7 @@ import { Search, Filter, SortAsc } from "lucide-react";
 import PastEventCard from "./PastEventCard";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
+import EventCard from "./EventCard";
 
 interface PastEvent {
   id: string;
@@ -43,13 +44,26 @@ const PastEventsGrid: React.FC = () => {
   // Fetch past events from Supabase
   const fetchPastEvents = async () => {
     try {
+      const pad = (n: number) => String(n).padStart(2, "0");
+
+      const now = new Date();
+      const todayLocal = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(
+        now.getDate()
+      )}`;
+      const currentTimeLocal = `${pad(now.getHours())}:${pad(
+        now.getMinutes()
+      )}:${pad(now.getSeconds())}`;
+
       const { data, error } = await supabase
         .from("events")
         .select("*")
         .eq("is_live", false)
-        .lt("date", today)
-        // .lt("time", time)
-        .order("created_at", { ascending: false });
+        // date < today OR (date = today AND time < now)
+        .or(
+          `date.lt.${todayLocal},and(date.eq.${todayLocal},time.lt.${currentTimeLocal})`
+        )
+        .order("date", { ascending: false })
+        .order("time", { ascending: false });
 
       if (error) throw error;
       setEvents((data ?? []) as PastEvent[]);

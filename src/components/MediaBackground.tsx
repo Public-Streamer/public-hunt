@@ -1,5 +1,5 @@
-import React from 'react';
-import { getMediaType } from '@/lib/mediaUtils';
+import React from "react";
+import { getMediaType } from "@/lib/mediaUtils";
 
 interface MediaBackgroundProps {
   src?: string;
@@ -11,15 +11,15 @@ interface MediaBackgroundProps {
 
 const MediaBackground: React.FC<MediaBackgroundProps> = ({
   src,
-  fallback = "/placeholder.gif",
+  fallback = "/placeholder.svg",
   children,
   className = "",
-  alt = "Media background"
+  alt = "Media background",
 }) => {
   const mediaUrl = src || fallback;
   const mediaType = getMediaType(mediaUrl);
 
-  if (mediaType === 'video') {
+  if (mediaType === "video") {
     return (
       <div className={`relative overflow-hidden ${className}`}>
         <video
@@ -31,21 +31,19 @@ const MediaBackground: React.FC<MediaBackgroundProps> = ({
           className="absolute inset-0 w-full h-full object-cover"
           poster={fallback}
         />
-        <div className="relative z-10 w-full h-full">
-          {children}
-        </div>
+        <div className="relative z-10 w-full h-full">{children}</div>
       </div>
     );
   }
 
   // Default to image background (covers images and unknown types)
   return (
-    <div 
+    <div
       style={{
-        backgroundImage: `url(${mediaUrl})`, 
-        backgroundSize: "cover", 
-        backgroundPosition: "center"
-      }} 
+        backgroundImage: `url(${mediaUrl})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
       className={`relative ${className}`}
     >
       {children}

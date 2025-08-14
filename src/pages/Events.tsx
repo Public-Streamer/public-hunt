@@ -125,15 +125,27 @@ const Events: React.FC = () => {
       }
 
       // Fetch scheduled events (not live, including events with null created_by)
-      const today = new Date().toISOString().split("T")[0];
+      const pad = (n: number) => String(n).padStart(2, "0");
+
+      // Use *local* date/time (toISOString() is UTC and can be off for Asia/Dhaka)
+      const now = new Date();
+      const todayLocal = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(
+        now.getDate()
+      )}`; // YYYY-MM-DD
+      const currentTimeLocal = `${pad(now.getHours())}:${pad(
+        now.getMinutes()
+      )}:${pad(now.getSeconds())}`; // HH:MM:SS
 
       const { data: scheduledEventsData, error: scheduledError } =
         await supabase
           .from("events")
           .select("*")
-          .gte("date", today)
-          // .gte("time", new Date().toISOString().slice(11, 19))
-          .order("date", { ascending: true });
+          // date > today  OR  (date = today AND time >= now)
+          .or(
+            `date.gt.${todayLocal},and(date.eq.${todayLocal},time.gte.${currentTimeLocal})`
+          )
+          .order("date", { ascending: true })
+          .order("time", { ascending: true, nullsFirst: false });
 
       if (scheduledError) {
         console.error("Error fetching scheduled events:", scheduledError);
