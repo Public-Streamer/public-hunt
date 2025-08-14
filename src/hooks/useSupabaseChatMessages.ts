@@ -129,22 +129,23 @@ export const useSupabaseChatMessages = (eventId: string,  camName?: string) => {
     [messages, isAuthenticated]
   );
 
-  // Set up real-time subscription
+  // Set up real-time subscription with optimized message handling
   useEffect(() => {
     if (!eventId) return;
 
     console.log(
-      `🚀 [Chat-${eventId}] Setting up real-time subscription for event:`,
+      `🚀 [Chat-${eventId}] Setting up optimized real-time subscription for event:`,
       eventId
     );
     setConnectionStatus("connecting");
 
     fetchMessages();
 
-    // Create unique channel name per hook instance to avoid conflicts
-    const channelName = `event-chat-messages-${eventId}-${Date.now()}-${Math.random()}`;
+    // Create unique channel name with timestamp to prevent conflicts
+    const channelName = `event-chat-messages-${eventId}-${Date.now()}`;
     console.log(`📡 [Chat-${eventId}] Creating channel:`, channelName);
 
+    let messageDebounceTimer: NodeJS.Timeout;
     const channel = supabase
       .channel(channelName)
       .on(
@@ -158,10 +159,17 @@ export const useSupabaseChatMessages = (eventId: string,  camName?: string) => {
         (payload) => {
           const newMessage = payload.new as ChatMessage;
 
-          setMessages((prev) => {
-            const updated = [...prev, newMessage];
-            return updated;
-          });
+          // Debounce rapid message inserts to prevent UI lag
+          clearTimeout(messageDebounceTimer);
+          messageDebounceTimer = setTimeout(() => {
+            setMessages((prev) => {
+              // Check for duplicate messages to prevent double-adds
+              const exists = prev.some(msg => msg.id === newMessage.id);
+              if (exists) return prev;
+              
+              return [...prev, newMessage];
+            });
+          }, 50); // 50ms debounce for messages
         }
       )
       .on(
@@ -170,7 +178,7 @@ export const useSupabaseChatMessages = (eventId: string,  camName?: string) => {
           event: "DELETE",
           schema: "public",
           table: "event_chat_messages",
-          // filter: `event_id=eq.${eventId}`,
+          filter: `event_id=eq.${eventId}`, // Add filter for better performance
         },
         (payload) => {
           const deletedMessageId = payload.old.id;
@@ -193,6 +201,7 @@ export const useSupabaseChatMessages = (eventId: string,  camName?: string) => {
       });
 
     return () => {
+      clearTimeout(messageDebounceTimer);
       supabase.removeChannel(channel);
       setConnectionStatus("disconnected");
     };

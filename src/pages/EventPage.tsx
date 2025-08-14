@@ -5,6 +5,8 @@ import React, {
   useMemo,
   Suspense,
   startTransition,
+  memo,
+  useRef,
 } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,14 +23,14 @@ import {
 } from "lucide-react";
 import { LiveKitRoomLazy, RoomAudioRendererLazy } from "@/lib/livekitLazy";
 import "@livekit/components-styles";
-import LiveDiscussionSection from "@/components/LiveDiscussionSection";
+import LiveDiscussionSectionMemo from "@/components/LiveDiscussionSectionMemo";
 import { PreStreamChatArchive } from "@/components/PreStreamChatArchive";
 import SocialShareMenu from "@/components/SocialShareMenu";
 import TicketPurchaseModal from "@/components/TicketPurchaseModal";
-import StreamPreviewContainer from "@/components/StreamPreviewContainer";
+import StreamPreviewContainerMemo from "@/components/StreamPreviewContainerMemo";
 import { ReportEventModal } from "@/components/ReportEventModal";
 import { useReportEvent } from "@/hooks/useReportEvent";
-import { CustomScoreboard } from "@/components/CustomScoreboard";
+import CustomScoreboardMemo from "@/components/CustomScoreboardMemo";
 import { PinnedMessageSection } from "@/components/PinnedMessageSection";
 import EventStreamPreview from "@/components/EventStreamPreview";
 import MediaBackground from "@/components/MediaBackground";
@@ -40,11 +42,11 @@ import { useScoreboardTeams } from "@/hooks/useScoreboardTeams";
 import { useEventScoreboardMeta } from "@/hooks/useEventScoreboardMeta";
 import { getShareableEventUrl } from "@/lib/shareUtils";
 import { Database } from "@/integrations/supabase/types";
-import { CoonhoundScoreboardViewer } from "@/components/scorecard/CoonhoundScoreboardViewer";
+import CoonhoundScoreboardViewerMemo from "@/components/CoonhoundScoreboardViewerMemo";
 
 type EventData = Database["public"]["Tables"]["events"]["Row"];
 
-const EventPage: React.FC = () => {
+const EventPageComponent: React.FC = () => {
   console.log("[EventPage] Component render started");
 
   const { eventId } = useParams<{ eventId: string }>();
@@ -101,11 +103,22 @@ const EventPage: React.FC = () => {
     }
   }, [currentUser, eventData]);
 
-  // Optimized real-time subscription for essential event updates only
-  useEffect(() => {
-    if (!eventData?.id) return;
+  // Optimized real-time subscription using useRef to prevent cascade re-renders
+  const subscriptionRef = useRef<any>(null);
+  const eventIdRef = useRef<string | null>(null);
 
-    const subscription = supabase
+  useEffect(() => {
+    if (!eventData?.id || eventIdRef.current === eventData.id) return;
+    
+    // Clean up previous subscription
+    if (subscriptionRef.current) {
+      subscriptionRef.current.unsubscribe();
+    }
+
+    eventIdRef.current = eventData.id;
+    console.log("[EventPage] Setting up stabilized subscription for:", eventData.id);
+
+    subscriptionRef.current = supabase
       .channel(`event-page-${eventData.id}`)
       .on(
         "postgres_changes",
@@ -116,22 +129,41 @@ const EventPage: React.FC = () => {
           filter: `id=eq.${eventData.id}`,
         },
         (payload) => {
-          // console.log("[EventPage] Real-time event update received:", payload);
-
           if (payload.new) {
-            console.log("[EventPage] Updating event data:", payload.new);
-            setEventData(payload.new as EventData);
-            setIsLive(payload.new.is_live);
+            const newData = payload.new as EventData;
+            
+            // Use functional updates to prevent dependency cascade
+            setEventData(prevData => {
+              // Only update if data actually changed
+              if (JSON.stringify(prevData) === JSON.stringify(newData)) {
+                return prevData;
+              }
+              return newData;
+            });
+            
+            // Separate update for live status to prevent unnecessary re-renders
+            setIsLive(prevLive => {
+              if (prevLive === newData.is_live) return prevLive;
+              return newData.is_live;
+            });
+            
+            setViewerCount(prevCount => {
+              if (prevCount === newData.viewer_count) return prevCount;
+              return newData.viewer_count || 0;
+            });
           }
         }
       )
       .subscribe();
 
     return () => {
-      console.log("[EventPage] Cleaning up real-time subscription");
-      subscription.unsubscribe();
+      if (subscriptionRef.current) {
+        console.log("[EventPage] Cleaning up stabilized subscription");
+        subscriptionRef.current.unsubscribe();
+        subscriptionRef.current = null;
+      }
     };
-  }, [eventData?.id]); // Remove isLive and viewerCount from deps to prevent re-subscription
+  }, [eventData?.id]); // Only depend on the ID, not the full object
 
   // Memoized derived variables to prevent unnecessary re-calculations
   const isEventHost = useMemo(
@@ -352,6 +384,27 @@ const EventPage: React.FC = () => {
     return getShareableEventUrl(eventData.id, eventData.slug);
   }, [eventData?.id, eventData?.slug]);
 
+  // Stabilized LiveKit options to prevent unnecessary re-renders
+  const livekitOptions = useMemo(() => ({
+    adaptiveStream: true,
+    dynacast: true,
+  }), []);
+
+  // Stabilized user profile object to prevent LiveDiscussionSection re-renders
+  const stableUserProfile = useMemo(() => {
+    if (!currentUserProfile) return undefined;
+    return {
+      id: currentUserProfile.id,
+      username: currentUserProfile.display_name || "User",
+      display_name: currentUserProfile.display_name || "User",
+      profile_picture_url: currentUserProfile.profile_picture_url || "",
+    };
+  }, [
+    currentUserProfile?.id,
+    currentUserProfile?.display_name,
+    currentUserProfile?.profile_picture_url,
+  ]);
+
   const handlePayment = useCallback(() => {
     if (!currentUser) {
       toast({
@@ -515,14 +568,17 @@ const EventPage: React.FC = () => {
     );
   }
 
-  const mediaData =
+  // Memoized media data to prevent recalculation on every render
+  const mediaData = useMemo(() => 
     eventData.media_urls?.map((url, index) => ({
       id: index.toString(),
       type: url.endsWith(".mp4") ? ("video" as const) : ("image" as const),
       url,
       title: `Media ${index + 1}`,
       thumbnail: url.endsWith(".mp4") ? "/placeholder.gif" : url,
-    })) || [];
+    })) || [],
+    [eventData.media_urls]
+  );
 
   console.log("[EventPage] Render state:", {
     isLive,
@@ -574,13 +630,10 @@ const EventPage: React.FC = () => {
                   <LiveKitRoomLazy
                     token={livekitToken}
                     serverUrl={serverUrl}
-                    options={{
-                      adaptiveStream: true,
-                      dynacast: true,
-                    }}
+                    options={livekitOptions}
                     connect={true}
                   >
-                    <StreamPreviewContainer
+                    <StreamPreviewContainerMemo
                       mediaUrls={eventData.media_urls || ["/placeholder.gif"]}
                       eventName={eventData.name}
                       isLive={eventData.is_live}
@@ -604,12 +657,12 @@ const EventPage: React.FC = () => {
                       (hasTicket || canEnterStage) && (
                         <div className="p-5">
                           {selectedGameType === "custom" ? (
-                            <CustomScoreboard
+                            <CustomScoreboardMemo
                               eventId={eventData.id}
                               isHost={false}
                             />
                           ) : selectedGameType === "coon_hunt" ? (
-                            <CoonhoundScoreboardViewer eventId={eventData.id} />
+                            <CoonhoundScoreboardViewerMemo eventId={eventData.id} />
                           ) : null}
                         </div>
                       )}
@@ -617,22 +670,9 @@ const EventPage: React.FC = () => {
                     {eventData.is_live &&
                       livekitToken &&
                       (hasTicket || canEnterStage) && (
-                        <LiveDiscussionSection
+                        <LiveDiscussionSectionMemo
                           eventId={eventData.id}
-                          currentUserProfile={
-                            currentUserProfile
-                              ? {
-                                  id: currentUserProfile.id,
-                                  username:
-                                    currentUserProfile.display_name || "User",
-                                  display_name:
-                                    currentUserProfile.display_name || "User",
-                                  profile_picture_url:
-                                    currentUserProfile.profile_picture_url ||
-                                    "",
-                                }
-                              : undefined
-                          }
+                          currentUserProfile={stableUserProfile}
                         />
                       )}
                   </LiveKitRoomLazy>
@@ -853,5 +893,9 @@ const EventPage: React.FC = () => {
     </div>
   );
 };
+
+// Memoized EventPage to prevent unnecessary re-renders from parent components
+const EventPage = memo(EventPageComponent);
+EventPage.displayName = "EventPage";
 
 export default EventPage;

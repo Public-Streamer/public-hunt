@@ -21,7 +21,7 @@ export const useEventScoreboardMeta = (eventId: string): UseEventScoreboardMetaR
       return;
     }
 
-    console.log('[useEventScoreboardMeta] Setting up subscription for eventId:', eventId);
+    console.log('[useEventScoreboardMeta] Setting up optimized subscription for eventId:', eventId);
 
     const fetchEventMeta = async () => {
       console.log('[useEventScoreboardMeta] Fetching initial event metadata');
@@ -51,9 +51,10 @@ export const useEventScoreboardMeta = (eventId: string): UseEventScoreboardMetaR
 
     fetchEventMeta();
 
-    // Set up real-time subscription for scoreboard metadata changes only
+    // Set up real-time subscription with debouncing for scoreboard metadata changes only
+    let debounceTimer: NodeJS.Timeout;
     const channel = supabase
-      .channel(`scoreboard-meta-${eventId}`) // Unique channel name
+      .channel(`scoreboard-meta-${eventId}-${Date.now()}`) // Unique channel name with timestamp
       .on(
         'postgres_changes',
         {
@@ -65,33 +66,38 @@ export const useEventScoreboardMeta = (eventId: string): UseEventScoreboardMetaR
         (payload) => {
           console.log('[useEventScoreboardMeta] Real-time metadata update received:', payload);
           
-          if (payload.new && payload.old) {
-            const oldMetadata = payload.old.metadata as Record<string, any> || {};
-            const newMetadata = payload.new.metadata as Record<string, any> || {};
-            
-            // Check if ONLY scoreboard-related metadata changed
-            const oldGameType = oldMetadata.selectedGameType;
-            const newGameType = newMetadata.selectedGameType;
-            const oldScoreboardName = oldMetadata.scoreboardName;
-            const newScoreboardName = newMetadata.scoreboardName;
-            
-            // Only update if scoreboard metadata actually changed
-            if (oldGameType !== newGameType) {
-              console.log('[useEventScoreboardMeta] Game type changed:', oldGameType, '->', newGameType);
-              setSelectedGameType(newGameType || null);
+          // Debounce rapid updates to prevent unnecessary re-renders
+          clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(() => {
+            if (payload.new && payload.old) {
+              const oldMetadata = payload.old.metadata as Record<string, any> || {};
+              const newMetadata = payload.new.metadata as Record<string, any> || {};
+              
+              // Check if ONLY scoreboard-related metadata changed
+              const oldGameType = oldMetadata.selectedGameType;
+              const newGameType = newMetadata.selectedGameType;
+              const oldScoreboardName = oldMetadata.scoreboardName;
+              const newScoreboardName = newMetadata.scoreboardName;
+              
+              // Only update if scoreboard metadata actually changed
+              if (oldGameType !== newGameType) {
+                console.log('[useEventScoreboardMeta] Game type changed:', oldGameType, '->', newGameType);
+                setSelectedGameType(prevType => prevType === newGameType ? prevType : (newGameType || null));
+              }
+              
+              if (oldScoreboardName !== newScoreboardName) {
+                console.log('[useEventScoreboardMeta] Scoreboard name changed:', oldScoreboardName, '->', newScoreboardName);
+                setScoreboardName(prevName => prevName === newScoreboardName ? prevName : (newScoreboardName || null));
+              }
             }
-            
-            if (oldScoreboardName !== newScoreboardName) {
-              console.log('[useEventScoreboardMeta] Scoreboard name changed:', oldScoreboardName, '->', newScoreboardName);
-              setScoreboardName(newScoreboardName || null);
-            }
-          }
+          }, 100); // 100ms debounce
         }
       )
       .subscribe();
 
     return () => {
       console.log('[useEventScoreboardMeta] Cleaning up subscription for eventId:', eventId);
+      clearTimeout(debounceTimer);
       supabase.removeChannel(channel);
     };
   }, [eventId]);
