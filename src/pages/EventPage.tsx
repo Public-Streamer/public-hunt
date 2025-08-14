@@ -194,7 +194,7 @@ const EventPage: React.FC = () => {
       console.log("[EventPage] Cleaning up real-time subscription");
       subscription.unsubscribe();
     };
-  }, []);
+  }, [eventData?.id]);
 
   // Memoized derived variables to prevent unnecessary re-calculations
   const isEventHost = useMemo(
