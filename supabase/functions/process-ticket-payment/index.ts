@@ -79,7 +79,7 @@ serve(async (req) => {
     });
 
     // Calculate platform fee (10%)
-    const platformFee = Math.round(amount * 0.1);
+    const platformFee = Math.round(amount * 0.2);
 
     // Create Payment Intent with destination charges for revenue splitting
     const paymentIntent = await stripe.paymentIntents.create({
