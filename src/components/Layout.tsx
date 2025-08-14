@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import Header from './Header';
-import Footer from './Footer';
-import LoginForm from './LoginForm';
-import { useAppContext } from '@/contexts/AppContext';
-import { useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import Header from "./Header";
+import Footer from "./Footer";
+import LoginForm from "./LoginForm";
+import { useAppContext } from "@/contexts/AppContext";
+import { useLocation } from "react-router-dom";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -11,7 +11,9 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [showLoginForm, setShowLoginForm] = useState(false);
-  const [redirectAfterLogin, setRedirectAfterLogin] = useState<string | null>(null);
+  const [redirectAfterLogin, setRedirectAfterLogin] = useState<string | null>(
+    null
+  );
   const { user } = useAppContext();
   const location = useLocation();
 
@@ -35,13 +37,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   }, [user, showLoginForm]);
 
   return (
-    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
+    <div className="min-h-screen flex flex-col bg-gray-50 overflow-x-hidden">
       <Header onLoginClick={handleLoginClick} />
-      <main className="flex-1">
-        {children}
-      </main>
-      <Footer />
-      {showLoginForm && <LoginForm onClose={handleCloseLogin} redirectUrl={redirectAfterLogin} />}
+      <main className="flex-1">{children}</main>
+      <div className="mt-auto">
+        <Footer />
+      </div>
+      {showLoginForm && (
+        <LoginForm
+          onClose={handleCloseLogin}
+          redirectUrl={redirectAfterLogin}
+        />
+      )}
     </div>
   );
 };

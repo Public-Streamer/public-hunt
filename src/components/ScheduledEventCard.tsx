@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar, Clock, Star, Eye, DollarSign } from "lucide-react";
 import TooltipWrapper from "@/components/ui/tooltip-wrapper";
 import TicketPurchaseModal from "./TicketPurchaseModal";
+import MediaBackground from "./MediaBackground";
 
 interface ScheduledEvent {
   id: string;
@@ -19,6 +20,7 @@ interface ScheduledEvent {
   ticketRevenue: number;
   timeUntilStart: string;
   description?: string;
+  media_urls?: string[];
 }
 
 interface ScheduledEventCardProps {
@@ -49,15 +51,20 @@ const ScheduledEventCard: React.FC<ScheduledEventCardProps> = ({
     onPurchase?.(event.id.toString());
   };
 
+  console.log(event);
+
+  const bgUrl = event?.media_urls[0];
+
   return (
     <>
       <TooltipWrapper
         content={`${event.title} - Starts ${event.timeUntilStart}`}
       >
         <Card
-          className="hover:shadow-lg transition-shadow cursor-pointer"
+          className="hover:shadow-lg transition-shadow cursor-pointer h-full flex flex-col justify-between"
           onClick={handleClick}
         >
+          <MediaBackground src={bgUrl} className="aspect-video" />
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg">{event.title}</CardTitle>
@@ -66,7 +73,7 @@ const ScheduledEventCard: React.FC<ScheduledEventCardProps> = ({
               </Badge>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="">
             <p className="text-sm text-gray-600 mb-2">{event.channelName}</p>
 
             <div className="flex items-center text-sm text-gray-500 mb-2">
@@ -82,8 +89,9 @@ const ScheduledEventCard: React.FC<ScheduledEventCardProps> = ({
 
             <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
               <TooltipWrapper content="Event price">
-                <span className="flex items-center">
-                  <DollarSign className="h-4 w-4 mr-1" />${event.price}
+                <span className="flex items-center text-green-600 font-bold">
+                  <DollarSign className="h-4 w-4 " />
+                  {event.price}
                 </span>
               </TooltipWrapper>
               <TooltipWrapper content="Event rating">
@@ -100,16 +108,6 @@ const ScheduledEventCard: React.FC<ScheduledEventCardProps> = ({
             >
               View Event
             </Button>
-
-            <div className="flex items-center justify-between text-xs text-gray-400">
-              <TooltipWrapper content="Expected views">
-                <span className="flex items-center">
-                  <Eye className="h-3 w-3 mr-1" />
-                  {event.views.toLocaleString()} expected
-                </span>
-              </TooltipWrapper>
-              <span>${event.ticketRevenue.toLocaleString()} revenue</span>
-            </div>
           </CardContent>
         </Card>
       </TooltipWrapper>

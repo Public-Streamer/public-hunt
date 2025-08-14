@@ -27,6 +27,8 @@ import {
   User,
   Edit2,
   Trash2,
+  Loader,
+  Play,
 } from "lucide-react";
 import {
   Collapsible,
@@ -44,6 +46,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAppContext } from "@/contexts/AppContext";
 import EditEventModal from "@/components/EditEventModal";
 import { useToast } from "@/hooks/use-toast";
+import MediaBackground from "@/components/MediaBackground";
+import { SpinnerIcon } from "@livekit/components-react";
 
 interface Event {
   id: string;
@@ -60,6 +64,7 @@ interface Event {
   created_at: string;
   updated_at: string;
   slug?: string;
+  media_urls?: string[];
 }
 
 const Events: React.FC = () => {
@@ -516,7 +521,9 @@ const Events: React.FC = () => {
 
             {loading ? (
               <div className="text-center py-8">
-                <div className="text-lg">Loading events...</div>
+                <div className=" flex items-center justify-center">
+                  <Loader className="h-8 w-8 animate-spin" />
+                </div>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -533,13 +540,17 @@ const Events: React.FC = () => {
                       }`}
                       onClick={() => handleEventClick(event)}
                     >
+                      <MediaBackground
+                        src={event?.media_urls[0]}
+                        className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100"
+                      ></MediaBackground>
                       <div className="absolute top-2 left-2 bg-purple-500 text-white text-xs px-2 py-1 rounded-full font-bold">
                         #{index + 1}
                       </div>
                       <CardHeader className="pt-8">
                         <div className="flex items-center justify-between">
                           <CardTitle className="text-lg">
-                            {event.name}
+                            {event?.name}
                           </CardTitle>
                           <TooltipWrapper content="This event is currently live">
                             <Badge className="bg-red-500">LIVE</Badge>
@@ -547,32 +558,44 @@ const Events: React.FC = () => {
                         </div>
                       </CardHeader>
                       <CardContent>
+                        <div className="text-xs text-gray-600 mt-2 line-clamp-2">
+                          {event.description}
+                        </div>
                         <p className="text-sm text-gray-600 mb-2">
-                          {event.category}
+                          {event?.category}
                         </p>
                         <div className="flex items-center justify-between text-sm text-gray-500 mb-2">
                           <TooltipWrapper content="Event price">
-                            <span className="font-semibold">
-                              ${event.ticket_price}
+                            <span className="font-semibold text-green-600">
+                              ${event?.ticket_price}
                             </span>
                           </TooltipWrapper>
                           <TooltipWrapper content="Event location">
-                            <span className="text-xs">{event.location}</span>
+                            <span className="text-xs">{event?.location}</span>
                           </TooltipWrapper>
                         </div>
                         <div className="flex items-center justify-between text-xs text-gray-400 mb-1">
                           <TooltipWrapper content="Current viewers">
                             <span className="flex items-center">
                               <Eye className="h-3 w-3 mr-1" />
-                              {event.viewer_count || 0} viewers
+                              {event?.viewer_count || 0} viewers
                             </span>
                           </TooltipWrapper>
                           <span>
-                            {new Date(event.created_at).toLocaleDateString()}
+                            {new Date(event?.created_at).toLocaleDateString()}
                           </span>
                         </div>
-                        <div className="text-xs text-gray-600 mt-2 line-clamp-2">
-                          {event.description}
+
+                        <div className="py-2">
+                          <Button
+                            onClick={() => handleEventClick(event)}
+                            className="w-full mb-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                          >
+                            <Play className="h-4 w-4 ml-2" /> Watch Now{" "}
+                            {event?.ticket_price > 0
+                              ? "- $" + event.ticket_price
+                              : ""}
+                          </Button>
                         </div>
                       </CardContent>
                     </Card>
@@ -605,7 +628,9 @@ const Events: React.FC = () => {
 
             {loading ? (
               <div className="text-center py-8">
-                <div className="text-lg">Loading scheduled events...</div>
+                <div className=" flex items-center justify-center">
+                  <Loader className="h-8 w-8 animate-spin" />
+                </div>
               </div>
             ) : (
               <ScheduledEventsGrid
@@ -629,6 +654,7 @@ const Events: React.FC = () => {
                   description: event.description || "",
                   subscribers: 0,
                   slug: event.slug,
+                  media_urls: event?.media_urls,
                 }))}
                 searchTerm={searchTerm}
                 memberSearch={memberSearch}
@@ -663,7 +689,9 @@ const Events: React.FC = () => {
 
               {loading ? (
                 <div className="text-center py-8">
-                  <div className="text-lg">Loading your events...</div>
+                  <div className=" flex items-center justify-center">
+                    <Loader className="h-8 w-8 animate-spin" />
+                  </div>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

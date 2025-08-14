@@ -102,20 +102,9 @@ const PastEventCard: React.FC<PastEventCardProps> = ({
           <MediaBackground
             src={bgUrl}
             className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100"
-          >
-            <div className="absolute inset-0 flex items-center justify-center">
-              {/* <Video className="h-16 w-16 text-base-300" /> */}
-            </div>
-            {/* <Badge
-              variant="outline"
-              className="absolute top-2 right-2 text-white px-2 py-1 rounded text-sm"
-            >
-              <Eye className="h-4 w-4 mr-1" />
-              {event.streamerCount}
-            </Badge> */}
-          </MediaBackground>
+          ></MediaBackground>
           <CardHeader>
-            <div className="flex items-start justify-between gap-2">
+            <div className="flex justify-between gap-2">
               <CardTitle className="text-lg">
                 {event.name || event.title}
               </CardTitle>
@@ -140,21 +129,36 @@ const PastEventCard: React.FC<PastEventCardProps> = ({
               {event.description}
             </p>
 
-            <div className="flex items-center text-sm text-gray-500 mb-2">
-              {event.time && (
-                <>
-                  <Clock className="h-4 w-4 mr-1" />
-                  <span>{event.time}</span>
-                </>
-              )}
-              {(event.recorded_at || event.date) && (
-                <>
-                  <Calendar className="h-4 w-4 ml-3 mr-1" />
-                  <span>
-                    {formatDate((event.recorded_at || event.date) as string)}
-                  </span>
-                </>
-              )}
+            <div className="flex items-center gap-2 justify-between text-sm text-gray-500 mb-2">
+              <div className="flex items-center justify-center gap-1">
+                <div className="flex items-center">
+                  {event.time && (
+                    <>
+                      <Clock className="h-4 w-4 mr-1" />
+                      <span>{event.time}</span>
+                    </>
+                  )}
+                </div>
+                <div className="flex items-center">
+                  {event.date && (
+                    <>
+                      <Calendar className="h-4 w-4 ml-3 mr-1" />
+                      <span>{formatDate(event.date as string)}</span>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center">
+                {event.ticket_price > 0 && (
+                  <TooltipWrapper content="Event price">
+                    <span className="flex items-center text-green-600">
+                      <DollarSign className="h-4 w-4 mr-1" />$
+                      {event.ticket_price}
+                    </span>
+                  </TooltipWrapper>
+                )}
+              </div>
             </div>
 
             {event.tags && event.tags.length > 0 && (
@@ -164,33 +168,16 @@ const PastEventCard: React.FC<PastEventCardProps> = ({
               </div>
             )}
 
-            <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
-              {/* <TooltipWrapper content="Total views">
-                <span className="flex items-center">
-                  <Eye className="h-4 w-4 mr-1" />
-                  {event.view_count}
-                </span>
-              </TooltipWrapper> */}
-              {event.ticket_price > 0 && (
-                <TooltipWrapper content="Event price">
-                  <span className="flex items-center text-green-600">
-                    <DollarSign className="h-4 w-4 mr-1" />${event.ticket_price}
-                  </span>
-                </TooltipWrapper>
-              )}
-            </div>
-
             <Button
               onClick={handleCardClick}
               className="w-full mb-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
             >
               <Eye className="h-4 w-4 mr-2" />
-              {event.ticket_price > 0 ? "Details" : "Details"}
+              Details
             </Button>
 
             <div className="flex items-center justify-between text-xs text-gray-400">
-              {/* <span>{event.view_count} total views</span> */}
-              {/* <span>Recorded {formatDate(event?.date)}</span> */}
+              <span>Streamed on {formatDate(event?.date)}</span>
             </div>
           </CardContent>
         </Card>

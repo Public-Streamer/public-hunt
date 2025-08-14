@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, Filter, SortAsc } from "lucide-react";
+import { Search, Filter, SortAsc, Loader } from "lucide-react";
 import PastEventCard from "./PastEventCard";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
@@ -44,6 +44,7 @@ const PastEventsGrid: React.FC = () => {
   // Fetch past events from Supabase
   const fetchPastEvents = async () => {
     try {
+      setLoading(true);
       const pad = (n: number) => String(n).padStart(2, "0");
 
       const now = new Date();
@@ -150,14 +151,16 @@ const PastEventsGrid: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+      <div className="text-center py-8">
+        <div className=" flex items-center justify-center">
+          <Loader className="h-8 w-8 animate-spin" />
+        </div>
       </div>
     );
   }
 
-  console.log("Filtered Events", filteredEvents);
-  console.log("Events", events);
+  // console.log("Filtered Events", filteredEvents);
+  // console.log("Events", events);
   return (
     <div className="space-y-6">
       {/* Search and Filters */}
