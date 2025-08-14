@@ -41,7 +41,6 @@ const CheckoutForm: React.FC<StripeCheckoutProps> = ({
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check if user already has a ticket before initializing payment
     const checkTicketAndInitializePayment = async () => {
       if (!hostStripeAccountId) return;
 
