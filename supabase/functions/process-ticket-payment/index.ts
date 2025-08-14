@@ -85,22 +85,20 @@ serve(async (req) => {
     const applicationFee = Math.round(amountInCents * platformFeePct);
 
     // Create Payment Intent with destination charges for revenue splitting
-    const paymentIntent = await stripe.paymentIntents.create(
-      {
-        amount: amountInCents,
-        currency: "usd",
-        payment_method_types: ["card"],
-        application_fee_amount: applicationFee,
-        metadata: {
-          eventId,
-          userId: user.id,
-          platformFee: String(applicationFee),
-        },
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: amountInCents,
+      currency: "usd",
+      payment_method_types: ["card"],
+      transfer_data: {
+        destination: connectedAccountId,
       },
-      {
-        stripeAccount: connectedAccountId,
-      }
-    );
+      application_fee_amount: applicationFee,
+      metadata: {
+        eventId,
+        userId: user.id,
+        platformFee: String(applicationFee),
+      },
+    });
 
     console.log("Payment Intent created:", paymentIntent.id);
 
