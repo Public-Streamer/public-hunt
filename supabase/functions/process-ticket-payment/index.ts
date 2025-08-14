@@ -83,12 +83,12 @@ serve(async (req) => {
 
     // Create Payment Intent with destination charges for revenue splitting
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: amount * 100, // Convert to cents
+      amount: Math.round(amount * 100), // Convert to cents
       currency: "usd",
       payment_method_types: ["card"],
       transfer_data: {
         destination: connectedAccountId,
-        amount: amount * 100 - platformFee * 100, // Host gets 90%
+        amount: Math.round(amount * 100) - platformFee * 100, // Host gets 90%
       },
       metadata: {
         eventId,
