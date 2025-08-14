@@ -72,17 +72,17 @@ const EventPageComponent: React.FC = () => {
 
   // Hook to track scoreboard metadata changes (creation/deletion of scoreboards)
   const { selectedGameType, scoreboardName } = useEventScoreboardMeta(
-    eventData?.id || ""
+    eventId || ""
   );
 
   // Hook to track scoreboard teams for conditional rendering
   // Always call hooks with stable parameters to prevent render errors
   const { hasTeams: hasCustomTeams } = useScoreboardTeams(
-    eventData?.id || "",
+    eventId || "",
     "custom"
   );
   const { hasTeams: hasCoonHuntTeams } = useScoreboardTeams(
-    eventData?.id || "",
+    eventId || "",
     "coon_hunt"
   );
 
