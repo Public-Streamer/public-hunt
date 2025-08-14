@@ -79,23 +79,28 @@ serve(async (req) => {
     });
 
     // Calculate platform fee (10%)
-    const platformFee = Math.round(amount * 0.2);
+    const platformFeePct = 0.2;
+
+    const amountInCents = Math.round(amount * 100);
+    const applicationFee = Math.round(amountInCents * platformFeePct);
 
     // Create Payment Intent with destination charges for revenue splitting
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount * 100), // Convert to cents
-      currency: "usd",
-      payment_method_types: ["card"],
-      transfer_data: {
-        destination: connectedAccountId,
-        amount: Math.round(amount * 100) - platformFee * 100, // Host gets 90%
+    const paymentIntent = await stripe.paymentIntents.create(
+      {
+        amount: amountInCents,
+        currency: "usd",
+        payment_method_types: ["card"],
+        application_fee_amount: applicationFee,
+        metadata: {
+          eventId,
+          userId: user.id,
+          platformFee: String(applicationFee),
+        },
       },
-      metadata: {
-        eventId,
-        userId: user.id,
-        platformFee: platformFee.toString(),
-      },
-    });
+      {
+        stripeAccount: connectedAccountId,
+      }
+    );
 
     console.log("Payment Intent created:", paymentIntent.id);
 
