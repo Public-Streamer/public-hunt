@@ -452,15 +452,15 @@ const EventPage: React.FC = () => {
     }
 
     // For users with tickets to paid events, show access confirmation
-    if (hasTicket && eventData?.ticket_price && eventData?.ticket_price > 0) {
-      return (
-        <div className="w-full text-center">
-          <Badge className="bg-green-600 text-white text-sm px-4 py-2">
-            ✓ You have paid ${eventData?.ticket_price} for this event
-          </Badge>
-        </div>
-      );
-    }
+    // if (hasTicket && eventData?.ticket_price && eventData?.ticket_price > 0) {
+    //   return (
+    //     <div className="w-full text-center">
+    //       <Badge className="bg-green-600 text-white text-sm px-4 py-2">
+    //         ✓ You have paid ${eventData?.ticket_price} for this event
+    //       </Badge>
+    //     </div>
+    //   );
+    // }
 
     // For non-logged users, show "Watch Now" button
     if (!currentUser?.id) {
@@ -735,7 +735,7 @@ const EventPage: React.FC = () => {
                   eventData?.ticket_price &&
                   eventData?.ticket_price > 0 ? (
                     <Badge className="bg-green-600 text-white text-xs">
-                      ✓ Paid ${eventData?.ticket_price}
+                      ✓ Paid
                     </Badge>
                   ) : null}
                 </div>
