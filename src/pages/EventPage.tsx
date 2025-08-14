@@ -76,13 +76,14 @@ const EventPageComponent: React.FC = () => {
   );
 
   // Hook to track scoreboard teams for conditional rendering
+  // Always call hooks with stable parameters to prevent render errors
   const { hasTeams: hasCustomTeams } = useScoreboardTeams(
     eventData?.id || "",
-    selectedGameType === "custom" ? "custom" : undefined
+    "custom"
   );
   const { hasTeams: hasCoonHuntTeams } = useScoreboardTeams(
     eventData?.id || "",
-    selectedGameType === "coon_hunt" ? "coon_hunt" : undefined
+    "coon_hunt"
   );
 
   // Determine if scoreboard should be visible
