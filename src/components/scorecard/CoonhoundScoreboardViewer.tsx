@@ -6,6 +6,8 @@ import type { TimerStatus } from "@/hooks/useCountdown";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { ChevronDown } from "lucide-react";
+import { ScorecardSummary } from "./ScorecardSummary";
+import type { DogData } from "./DogCard";
 
 interface Props { eventId: string }
 
@@ -27,6 +29,27 @@ interface TeamRow {
   team_name: string;
   team_color?: string;
   custom_fields?: any;
+}
+
+// Utility to convert team rows to DogData format for ScorecardSummary
+function fromTeamRow(row: TeamRow): DogData {
+  const cf = row.custom_fields || {};
+  const entries = Array.isArray(cf.entries) ? cf.entries : [];
+  return {
+    id: row.id,
+    name: row.team_name,
+    color: row.team_color || '#3b82f6',
+    entries,
+    handler: cf.handler_name || "",
+    dogName: cf.dog_name || "",
+    cityState: cf.city_state || "",
+    breed: cf.breed || "",
+    age: typeof cf.age === 'number' ? cf.age : cf.age ? Number(cf.age) : undefined,
+    judgeNotes: cf.judge_notes || "",
+    disqualified: !!cf.disqualified,
+    dogPhotoUrl: cf.dog_photo_url || "",
+    pedigreeImageUrl: cf.pedigree_url || "",
+  };
 }
 
 function formatMMSS(secs: number) {
@@ -56,6 +79,7 @@ const statusCls = (s: TimerStatus) =>
 export const CoonhoundScoreboardViewer: React.FC<Props> = ({ eventId }) => {
   const [castTimers, setCastTimers] = useState<CastTimers>({});
   const [teams, setTeams] = useState<TeamRow[]>([]);
+  const [timerOverview, setTimerOverview] = useState<Record<string, any>>({});
 
   // Collapsible open states (open by default for viewers to see content)
   const [openHunt, setOpenHunt] = useState(true);
@@ -87,6 +111,40 @@ export const CoonhoundScoreboardViewer: React.FC<Props> = ({ eventId }) => {
   }, []);
   const [tick, setTick] = useState(0);
 
+  // Fetch timer overview for ScorecardSummary component
+  const fetchTimerOverview = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('scoreboard-operations', {
+        body: { action: 'fetch', eventId, scoreboardType: 'coon_hunt' }
+      });
+      if (error) throw error;
+      const arr = Array.isArray(data) ? data : data?.teams || [];
+      const overview: Record<string, Record<string, any>> = {};
+      
+      for (const team of arr) {
+        const timers = team.custom_fields?.timers;
+        if (timers) {
+          const uiTimers: Record<string, any> = {};
+          for (const [key, timer] of Object.entries(timers)) {
+            if (timer && typeof timer === 'object' && 'status' in timer && 'remaining' in timer) {
+              const remaining = Math.max(0, (timer as any).remaining || 0);
+              const minutes = Math.floor(remaining / 60);
+              const seconds = remaining % 60;
+              uiTimers[key] = {
+                formatted: `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`,
+                status: (timer as any).status || 'idle'
+              };
+            }
+          }
+          overview[team.id] = uiTimers;
+        }
+      }
+      setTimerOverview(overview);
+    } catch (e) {
+      console.error('Failed to fetch timer overview:', e);
+    }
+  };
+
   // Initial fetch
   useEffect(() => {
     (async () => {
@@ -106,6 +164,9 @@ export const CoonhoundScoreboardViewer: React.FC<Props> = ({ eventId }) => {
         .order("created_at", { ascending: true });
       setTeams(rows || []);
     })();
+    
+    // Fetch timer overview for viewers
+    fetchTimerOverview();
   }, [eventId]);
 
   // Realtime subscriptions
@@ -158,6 +219,8 @@ export const CoonhoundScoreboardViewer: React.FC<Props> = ({ eventId }) => {
           setOpenSummary(true); setOpenDetails(true);
           triggerGlow('summary', variant); triggerGlow('details', variant);
           triggerGlow(`dog:${(payload.new as any).id}`, variant);
+          // Refresh timer overview when team updates
+          fetchTimerOverview();
         }
       )
       .on(
@@ -233,6 +296,57 @@ export const CoonhoundScoreboardViewer: React.FC<Props> = ({ eventId }) => {
     return { plus, minus, circle, pending, total };
   };
 
+  // Convert teams to DogData format for ScorecardSummary
+  const dogsData = useMemo(() => teams.map(fromTeamRow), [teams]);
+
+  // Convert cast timers to format expected by ScorecardSummary
+  const castTimersForSummary = useMemo(() => {
+    const results = [];
+    
+    if (castTimers.mainHunt?.status === "running") {
+      const remaining = liveRemaining(castTimers.mainHunt.remaining, castTimers.server_updated_at, castTimers.mainHunt.status);
+      const huntMinutes = castTimers.mainHuntMinutes || 120;
+      results.push({
+        key: "hunt",
+        label: `Main Hunt ${huntMinutes} minutes`,
+        status: castTimers.mainHunt.status,
+        formatted: formatMMSS(remaining)
+      });
+    }
+    
+    if (castTimers.track?.status === "running") {
+      const remaining = liveRemaining(castTimers.track.remaining, castTimers.server_updated_at, castTimers.track.status);
+      results.push({
+        key: "track",
+        label: "Track 6 minutes",
+        status: castTimers.track.status,
+        formatted: formatMMSS(remaining)
+      });
+    }
+    
+    if (castTimers.globalShine?.status === "running") {
+      const remaining = liveRemaining(castTimers.globalShine.remaining, castTimers.server_updated_at, castTimers.globalShine.status);
+      results.push({
+        key: "globalShine",
+        label: "Global Shine 8 minutes",
+        status: castTimers.globalShine.status,
+        formatted: formatMMSS(remaining)
+      });
+    }
+    
+    if (castTimers.babbling?.status === "running") {
+      const remaining = liveRemaining(castTimers.babbling.remaining, castTimers.server_updated_at, castTimers.babbling.status);
+      results.push({
+        key: "babbling",
+        label: "Babbling 1 Minute",
+        status: castTimers.babbling.status,
+        formatted: formatMMSS(remaining)
+      });
+    }
+    
+    return results;
+  }, [castTimers, tick]);
+
   return (
     <div className="space-y-4">
       {/* Hunt Timers */}
@@ -272,51 +386,15 @@ export const CoonhoundScoreboardViewer: React.FC<Props> = ({ eventId }) => {
         </Card>
       </Collapsible>
 
-      {/* Scorecard Summary */}
-      <Collapsible open={openSummary} onOpenChange={setOpenSummary}>
-        <Card className={`glow-surface ${glow['summary'] ? 'glow-active glow-info' : ''}`}>
-          <CardHeader className="py-3">
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" className="w-full justify-between p-0 h-auto">
-                <CardTitle className="text-base">Scorecard Summary</CardTitle>
-                <ChevronDown className={`h-4 w-4 transition-transform ${openSummary ? "rotate-180" : ""}`} />
-              </Button>
-            </CollapsibleTrigger>
-          </CardHeader>
-          <CollapsibleContent>
-            <CardContent className="space-y-3">
-              {teams.map((t) => {
-                const cf = (t.custom_fields as any) || {};
-                const entries = Array.isArray(cf.entries) ? cf.entries : [];
-                const { plus, minus, circle, pending, total } = calcTotals(entries);
-                return (
-                  <div key={t.id} className="rounded-md border p-3 glow-surface">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="min-w-0">
-                        <div className="text-base sm:text-lg font-extrabold flex items-center gap-2 text-foreground">
-                          <span className="inline-block h-2 w-2 rounded-full" style={{ background: t.team_color || 'hsl(var(--primary))' }} />
-                          <span className="truncate">{t.team_name}</span>
-                        </div>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2 text-xs justify-end">
-                        {plus > 0 && (<Badge variant="outline" className="bg-primary/10 text-primary border-primary/40"><span className="tabular-nums">{plus}</span><span className="ml-1">+</span></Badge>)}
-                        {minus > 0 && (<Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/40"><span className="tabular-nums">{minus}</span><span className="ml-1">-</span></Badge>)}
-                        {circle > 0 && (<Badge variant="warning" className="rounded-full ring-1 ring-yellow-500/40"><span className="tabular-nums">{circle}</span><span className="ml-1">◯</span></Badge>)}
-                        {pending > 0 && (<Badge variant="outline" className="pulse">Pending: <span className="ml-1 tabular-nums">{pending}</span></Badge>)}
-                        {total === 0 && circle > 0 ? (
-                          <Badge variant="warning" className="rounded-full ring-1 ring-yellow-500/40">Total: <span className="ml-1 tabular-nums">{circle}</span><span className="ml-1">◯</span></Badge>
-                        ) : (
-                          <Badge variant="secondary" className={`${total > 0 ? "text-primary bg-primary/10 border-primary/40" : total < 0 ? "text-destructive bg-destructive/10 border-destructive/40" : "text-muted-foreground"} border`}>Total: <span className="ml-1 tabular-nums">{Math.abs(total)}</span>{total !== 0 && <span className="ml-1">{total > 0 ? "+" : "-"}</span>}</Badge>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </CardContent>
-          </CollapsibleContent>
-        </Card>
-      </Collapsible>
+      {/* Scorecard Summary - Now uses the same component as judges */}
+      <ScorecardSummary
+        dogs={dogsData}
+        timerOverview={timerOverview}
+        castTimers={castTimersForSummary}
+        open={openSummary}
+        onOpenChange={setOpenSummary}
+        glowClassName={glow['summary'] ? 'glow-active glow-info' : ''}
+      />
 
       {/* Full Scorecard */}
       <Collapsible open={openDetails} onOpenChange={setOpenDetails}>
