@@ -21,7 +21,7 @@ export const useScoreboardTeams = (eventId: string, scoreboardType?: string): Us
       return;
     }
 
-    console.log('[useScoreboardTeams] Setting up optimized subscription for eventId:', eventId, 'scoreboardType:', scoreboardType);
+    console.log('[useScoreboardTeams] Setting up subscription for eventId:', eventId, 'scoreboardType:', scoreboardType);
 
     const fetchTeamCount = async () => {
       console.log('[useScoreboardTeams] Fetching initial team count');
@@ -56,9 +56,8 @@ export const useScoreboardTeams = (eventId: string, scoreboardType?: string): Us
 
     fetchTeamCount();
 
-    // Set up real-time subscription with unique channel name and debouncing
-    let debounceTimer: NodeJS.Timeout;
-    const channelName = `teams-${eventId}-${scoreboardType || 'all'}-${Date.now()}`;
+    // Set up real-time subscription with unique channel name
+    const channelName = `teams-${eventId}-${scoreboardType || 'all'}`;
     const channel = supabase
       .channel(channelName)
       .on(
@@ -72,56 +71,51 @@ export const useScoreboardTeams = (eventId: string, scoreboardType?: string): Us
         (payload) => {
           console.log('[useScoreboardTeams] Real-time teams update received:', payload);
           
-          // Debounce rapid updates
-          clearTimeout(debounceTimer);
-          debounceTimer = setTimeout(() => {
-            if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE' || payload.eventType === 'DELETE') {
-              const newRecord = payload.new as any;
-              
-              // For INSERT and UPDATE, check if the scoreboard type matches our filter
-              if (scoreboardType) {
-                if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
-                  if (newRecord?.scoreboard_type !== scoreboardType) {
-                    console.log('[useScoreboardTeams] Ignoring event for different scoreboard type:', newRecord?.scoreboard_type, 'vs', scoreboardType);
-                    return; // Ignore changes for different scoreboard types
-                  }
+          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE' || payload.eventType === 'DELETE') {
+            const newRecord = payload.new as any;
+            
+            // For INSERT and UPDATE, check if the scoreboard type matches our filter
+            if (scoreboardType) {
+              if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+                if (newRecord?.scoreboard_type !== scoreboardType) {
+                  console.log('[useScoreboardTeams] Ignoring event for different scoreboard type:', newRecord?.scoreboard_type, 'vs', scoreboardType);
+                  return; // Ignore changes for different scoreboard types
                 }
-                
-                if (payload.eventType === 'DELETE') {
-                  // For DELETE events, check if the deleted record matches our scoreboard type
-                  const oldRecord = payload.old as any;
-                  if (oldRecord?.scoreboard_type !== scoreboardType) {
-                    console.log('[useScoreboardTeams] Ignoring DELETE for different scoreboard type:', oldRecord?.scoreboard_type, 'vs', scoreboardType);
-                    return;
-                  }
+              }
+              
+              if (payload.eventType === 'DELETE') {
+                // For DELETE events, check if the deleted record matches our scoreboard type
+                const oldRecord = payload.old as any;
+                if (oldRecord?.scoreboard_type !== scoreboardType) {
+                  console.log('[useScoreboardTeams] Ignoring DELETE for different scoreboard type:', oldRecord?.scoreboard_type, 'vs', scoreboardType);
+                  return;
                 }
               }
             }
-            
-            if (payload.eventType === 'INSERT') {
-              console.log('[useScoreboardTeams] Team inserted, updating count');
-              setTeamCount(prev => {
-                const newCount = prev + 1;
-                setHasTeams(newCount > 0);
-                return newCount;
-              });
-            } else if (payload.eventType === 'DELETE') {
-              console.log('[useScoreboardTeams] Team deleted, updating count');
-              setTeamCount(prev => {
-                const newCount = Math.max(0, prev - 1);
-                setHasTeams(newCount > 0);
-                return newCount;
-              });
-            }
-            // For UPDATE events, team count doesn't change, only team data
-          }, 100); // 100ms debounce
+          }
+          
+          if (payload.eventType === 'INSERT') {
+            console.log('[useScoreboardTeams] Team inserted, updating count');
+            setTeamCount(prev => {
+              const newCount = prev + 1;
+              setHasTeams(newCount > 0);
+              return newCount;
+            });
+          } else if (payload.eventType === 'DELETE') {
+            console.log('[useScoreboardTeams] Team deleted, updating count');
+            setTeamCount(prev => {
+              const newCount = Math.max(0, prev - 1);
+              setHasTeams(newCount > 0);
+              return newCount;
+            });
+          }
+          // For UPDATE events, team count doesn't change, only team data
         }
       )
       .subscribe();
 
     return () => {
       console.log('[useScoreboardTeams] Cleaning up subscription for eventId:', eventId, 'scoreboardType:', scoreboardType);
-      clearTimeout(debounceTimer);
       supabase.removeChannel(channel);
     };
   }, [eventId, scoreboardType]);
