@@ -35,12 +35,13 @@ import MediaBackground from "@/components/MediaBackground";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { useAppContext } from "@/contexts/AppContext";
-import { updateEventMetaTags, resetDefaultMetaTags } from "@/lib/metaTags";
 import { useScoreboardTeams } from "@/hooks/useScoreboardTeams";
-import { useEventScoreboardMeta } from "@/hooks/useEventScoreboardMeta";
 import { getShareableEventUrl } from "@/lib/shareUtils";
 import { Database } from "@/integrations/supabase/types";
 import { CoonhoundScoreboardViewer } from "@/components/scorecard/CoonhoundScoreboardViewer";
+import { patchEvent } from "@/lib/eventStore";
+import { useEventSelector } from "@/hooks/useEventData";
+import { useQuery } from "@tanstack/react-query";
 
 type EventData = Database["public"]["Tables"]["events"]["Row"];
 
@@ -52,9 +53,7 @@ const EventPage: React.FC = () => {
   const { toast } = useToast();
   const { user: currentUser, currentUserProfile: currentUserProfile } =
     useAppContext();
-
-  const [eventData, setEventData] = useState<EventData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [hasTicket, setHasTicket] = useState(false);
   const [checkingTicket, setCheckingTicket] = useState(false);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
@@ -65,13 +64,81 @@ const EventPage: React.FC = () => {
   const [showReportModal, setShowReportModal] = useState(false);
 
   // Separate state for frequently changing data to prevent full re-renders
-  const [viewerCount, setViewerCount] = useState(0);
-  const [isLive, setIsLive] = useState(false);
+
+  const isLive = useEventSelector((e) => e?.is_live ?? false);
+
+  // const eventData = useEventSelector((e) => e);
+  // console.log("eventData", eventData);
+
+  const {
+    data: eventData,
+    isLoading: isLoadingEvent,
+    isFetching: isFetchingEvent,
+    error: eventError,
+  } = useQuery<EventData>({
+    queryKey: ["event-data", eventId],
+    queryFn: () => fetchEventData(),
+    enabled: !!eventId,
+  });
+  const checkTicketStatus = useCallback(async () => {
+    if (!currentUser || !eventData?.id) return;
+
+    // For free events, automatically grant access
+    if (!eventData?.ticket_price || eventData?.ticket_price <= 0) {
+      setHasTicket(true);
+      return;
+    }
+
+    try {
+      setCheckingTicket(true);
+      const { data, error } = await supabase
+        .from("tickets")
+        .select("*")
+        .eq("event_id", eventData?.id)
+        .eq("user_id", currentUser.id)
+        .eq("status", "active")
+        .single();
+
+      setHasTicket(!!data && !error);
+    } catch (error) {
+      console.error("Error checking ticket status:", error);
+      setHasTicket(false);
+    } finally {
+      setCheckingTicket(false);
+    }
+  }, [currentUser, eventData]);
+
+  const checkStreamerStatus = useCallback(async () => {
+    if (!currentUser || !eventData?.id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("event_streamers")
+        .select("*")
+        .eq("event_id", eventData?.id)
+        .eq("streamer_id", currentUser.id)
+        .single();
+
+      setIsStreamer(!!data && !error);
+    } catch (error) {
+      console.error("Error checking streamer status:", error);
+      setIsStreamer(false);
+    }
+  }, [currentUser, eventData?.id]);
+
+  // console.log("eventData", eventData);
+
+  // console.log("isLive", isLive);
 
   // Hook to track scoreboard metadata changes (creation/deletion of scoreboards)
-  const { selectedGameType, scoreboardName } = useEventScoreboardMeta(
-    eventData?.id || ""
-  );
+  // const { selectedGameType, scoreboardName } = useEventScoreboardMeta(
+  //   eventData?.id || ""
+  // );
+
+  const metadata = useEventSelector((e) => e?.metadata);
+  const selectedGameType = useMemo(() => {
+    return metadata?.selectedGameType;
+  }, [metadata]);
 
   // Hook to track scoreboard teams for conditional rendering
   const { hasTeams: hasCustomTeams } = useScoreboardTeams(
@@ -90,39 +157,35 @@ const EventPage: React.FC = () => {
       (selectedGameType === "coon_hunt" && hasCoonHuntTeams));
 
   useEffect(() => {
-    if (!eventId) return;
-    fetchEventData();
-  }, [eventId]);
-
-  useEffect(() => {
-    if (currentUser && eventData) {
+    if (currentUser?.id && eventData?.id) {
       checkStreamerStatus();
       checkTicketStatus();
     }
-  }, [currentUser, eventData]);
+  }, [currentUser?.id, eventData?.id, checkStreamerStatus, checkTicketStatus]);
 
   // Optimized real-time subscription for essential event updates only
   useEffect(() => {
     if (!eventData?.id) return;
 
     const subscription = supabase
-      .channel(`event-page-${eventData.id}`)
+      .channel(`event-page-${eventData?.id}`)
       .on(
         "postgres_changes",
         {
           event: "UPDATE",
           schema: "public",
           table: "events",
-          filter: `id=eq.${eventData.id}`,
+          filter: `id=eq.${eventData?.id}`,
         },
         (payload) => {
           // console.log("[EventPage] Real-time event update received:", payload);
-
-          if (payload.new) {
-            console.log("[EventPage] Updating event data:", payload.new);
-            setEventData(payload.new as EventData);
-            setIsLive(payload.new.is_live);
-          }
+          const src = payload.new as Partial<EventData>;
+          // console.log("[EventPage] Real-time event update received:", src);
+          patchEvent({
+            is_live: src.is_live,
+            metadata: src.metadata,
+            // viewer_count: src.viewer_count,
+          });
         }
       )
       .subscribe();
@@ -131,12 +194,15 @@ const EventPage: React.FC = () => {
       console.log("[EventPage] Cleaning up real-time subscription");
       subscription.unsubscribe();
     };
-  }, [eventData?.id]); // Remove isLive and viewerCount from deps to prevent re-subscription
+  }, []);
 
   // Memoized derived variables to prevent unnecessary re-calculations
   const isEventHost = useMemo(
-    () => currentUser && eventData && currentUser.id === eventData.created_by,
-    [currentUser, eventData?.created_by]
+    () =>
+      currentUser?.id &&
+      eventData?.id &&
+      currentUser.id === eventData?.created_by,
+    [currentUser?.id, eventData?.id, eventData?.created_by]
   );
 
   const canEnterStage = useMemo(
@@ -145,8 +211,8 @@ const EventPage: React.FC = () => {
   );
 
   const isViewer = useMemo(
-    () => !!currentUser && !isEventHost && !isStreamer,
-    [currentUser, isEventHost, isStreamer]
+    () => !!currentUser?.id && !isEventHost && !isStreamer,
+    [currentUser?.id, isEventHost, isStreamer]
   );
 
   const {
@@ -158,147 +224,8 @@ const EventPage: React.FC = () => {
     enabled: !!(eventData?.id && isViewer),
   });
 
-  // Generate LiveKit token for viewers when they have access
-  useEffect(() => {
-    if (
-      currentUser &&
-      eventData &&
-      eventData.is_live &&
-      (canEnterStage || hasTicket)
-    ) {
-      generateViewerToken();
-    }
-  }, [currentUser, eventData, hasTicket, canEnterStage]);
-
-  const fetchEventData = async () => {
-    try {
-      setLoading(true);
-
-      // Import utility functions
-      const { parseEventIdentifier } = await import("@/lib/eventUtils");
-      const { isUuid, identifier } = parseEventIdentifier(eventId!);
-
-      // Fetch event data by UUID or slug
-      const eventQuery = isUuid
-        ? supabase.from("events").select("*, metadata").eq("id", identifier)
-        : supabase.from("events").select("*, metadata").eq("slug", identifier);
-
-      const { data: eventData, error: eventError } = await eventQuery.single();
-
-      if (eventError) {
-        console.error("Error fetching event:", eventError);
-        toast({
-          title: "Error",
-          description: "Failed to load event details",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Then fetch the host's Stripe account if event exists
-      let hostStripeAccountId = null;
-      if (eventData?.created_by) {
-        const { data: stripeAccount } = await supabase
-          .from("host_stripe_accounts")
-          .select("stripe_account_id")
-          .eq("user_id", eventData.created_by)
-          .single();
-
-        hostStripeAccountId = stripeAccount?.stripe_account_id || null;
-      }
-
-      // Combine the data
-      const eventWithStripeAccount = {
-        ...eventData,
-        host_stripe_account_id: hostStripeAccountId,
-      };
-
-      setEventData(eventWithStripeAccount);
-      // Set initial state for separated values
-      setViewerCount(eventWithStripeAccount.viewer_count || 0);
-      setIsLive(eventWithStripeAccount.is_live || false);
-
-      // Update meta tags for social media sharing
-      const eventMetaData = {
-        title: eventWithStripeAccount.name,
-        description:
-          eventWithStripeAccount.description ||
-          `Join ${eventWithStripeAccount.name} - Live streaming event`,
-        image:
-          eventWithStripeAccount.media_urls?.[0] ||
-          `${window.location.origin}/placeholder.svg`,
-        url: eventWithStripeAccount.slug
-          ? `${window.location.origin}/event/${eventWithStripeAccount.slug}`
-          : `${window.location.origin}/event/${eventWithStripeAccount.id}`,
-        date: eventWithStripeAccount.date
-          ? `${eventWithStripeAccount.date}T${
-              eventWithStripeAccount.time || "00:00:00"
-            }`
-          : undefined,
-        location: eventWithStripeAccount.location,
-        price: eventWithStripeAccount.ticket_price,
-      };
-      updateEventMetaTags(eventMetaData);
-    } catch (error) {
-      console.error("Error fetching event data:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load event details",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const checkTicketStatus = useCallback(async () => {
-    if (!currentUser || !eventData) return;
-
-    // For free events, automatically grant access
-    if (!eventData.ticket_price || eventData.ticket_price <= 0) {
-      setHasTicket(true);
-      return;
-    }
-
-    try {
-      setCheckingTicket(true);
-      const { data, error } = await supabase
-        .from("tickets")
-        .select("*")
-        .eq("event_id", eventData.id)
-        .eq("user_id", currentUser.id)
-        .eq("status", "active")
-        .single();
-
-      setHasTicket(!!data && !error);
-    } catch (error) {
-      console.error("Error checking ticket status:", error);
-      setHasTicket(false);
-    } finally {
-      setCheckingTicket(false);
-    }
-  }, [currentUser, eventData]);
-
-  const checkStreamerStatus = async () => {
-    if (!currentUser || !eventData) return;
-
-    try {
-      const { data, error } = await supabase
-        .from("event_streamers")
-        .select("*")
-        .eq("event_id", eventData.id)
-        .eq("streamer_id", currentUser.id)
-        .single();
-
-      setIsStreamer(!!data && !error);
-    } catch (error) {
-      console.error("Error checking streamer status:", error);
-      setIsStreamer(false);
-    }
-  };
-
-  const generateViewerToken = async () => {
-    if (!currentUser || !eventData) return;
+  const generateViewerToken = useCallback(async () => {
+    if (!currentUser?.id || !eventData?.id) return;
 
     try {
       setLoading(true);
@@ -306,7 +233,7 @@ const EventPage: React.FC = () => {
         "create-livekit-token",
         {
           body: {
-            eventId: eventData.id,
+            eventId: eventData?.id,
             userRole: "viewer",
             permissions: {
               canPublish: false,
@@ -335,25 +262,91 @@ const EventPage: React.FC = () => {
       setLoading(false);
       console.error("Error generating viewer token:", error);
     }
+  }, [currentUser?.id, eventData?.id]);
+
+  // Generate LiveKit token for viewers when they have access
+  useEffect(() => {
+    if (
+      currentUser?.id &&
+      eventData?.id &&
+      isLive &&
+      (canEnterStage || hasTicket)
+    ) {
+      generateViewerToken();
+    }
+  }, [
+    currentUser?.id,
+    eventData?.id,
+    isLive,
+    hasTicket,
+    canEnterStage,
+    generateViewerToken,
+  ]);
+
+  const fetchEventData = async () => {
+    try {
+      // Import utility functions
+      const { parseEventIdentifier } = await import("@/lib/eventUtils");
+      const { isUuid, identifier } = parseEventIdentifier(eventId!);
+
+      // Fetch event data by UUID or slug
+      const eventQuery = isUuid
+        ? supabase.from("events").select("*, metadata").eq("id", identifier)
+        : supabase.from("events").select("*, metadata").eq("slug", identifier);
+
+      const { data: eventData, error: eventError } = await eventQuery.single();
+
+      if (eventError) {
+        console.error("Error fetching event:", eventError);
+        toast({
+          title: "Error",
+          description: "Failed to load event details",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Then fetch the host's Stripe account if event exists
+      let hostStripeAccountId = null;
+      if (eventData?.created_by) {
+        const { data: stripeAccount } = await supabase
+          .from("host_stripe_accounts")
+          .select("stripe_account_id")
+          .eq("user_id", eventData?.created_by)
+          .single();
+
+        hostStripeAccountId = stripeAccount?.stripe_account_id || null;
+      }
+
+      // Combine the data
+      const eventWithStripeAccount = {
+        ...eventData,
+        host_stripe_account_id: hostStripeAccountId,
+      };
+      return eventWithStripeAccount;
+    } catch (error) {
+      console.error("Error fetching event data:", error);
+      throw error;
+    }
   };
 
   // Memoized event URL to prevent recalculation
   const eventUrl = useMemo(
     () =>
       eventData?.slug
-        ? `${window.location.origin}/event/${eventData.slug}`
+        ? `${window.location.origin}/event/${eventData?.slug}`
         : `${window.location.origin}/event/${eventId}`,
     [eventData?.slug, eventId]
   );
 
   // Share URL for crawlers and social platforms (Edge Function)
   const shareUrl = useMemo(() => {
-    if (!eventData) return `${window.location.origin}`;
-    return getShareableEventUrl(eventData.id, eventData.slug);
+    if (!eventData?.id) return `${window.location.origin}`;
+    return getShareableEventUrl(eventData?.id, eventData?.slug);
   }, [eventData?.id, eventData?.slug]);
 
   const handlePayment = useCallback(() => {
-    if (!currentUser) {
+    if (!currentUser?.id) {
       toast({
         title: "Sign In Required",
         description: "Please sign in to purchase tickets",
@@ -365,10 +358,10 @@ const EventPage: React.FC = () => {
       return;
     }
     startTransition(() => setShowPurchaseModal(true));
-  }, [currentUser, navigate, toast]);
+  }, [currentUser?.id, navigate, toast]);
 
   const handleWatchNow = useCallback(() => {
-    if (!currentUser) {
+    if (!currentUser?.id) {
       startTransition(() =>
         navigate(
           `/login?redirect=${encodeURIComponent(window.location.pathname)}`
@@ -377,11 +370,11 @@ const EventPage: React.FC = () => {
       return;
     }
     // User is logged in but may need to purchase ticket
-    if (!hasTicket && eventData?.ticket_price && eventData.ticket_price > 0) {
+    if (!hasTicket && eventData?.ticket_price && eventData?.ticket_price > 0) {
       handlePayment();
     }
   }, [
-    currentUser,
+    currentUser?.id,
     navigate,
     hasTicket,
     eventData?.ticket_price,
@@ -389,7 +382,7 @@ const EventPage: React.FC = () => {
   ]);
 
   const handleReportClick = useCallback(() => {
-    if (!currentUser) {
+    if (!currentUser?.id) {
       toast({
         title: "Sign In Required",
         description: "Please sign in to report this event",
@@ -401,7 +394,7 @@ const EventPage: React.FC = () => {
       return;
     }
     setShowReportModal(true);
-  }, [currentUser, navigate, toast]);
+  }, [currentUser?.id, navigate, toast]);
 
   const handlePurchaseSuccess = () => {
     setHasTicket(true);
@@ -415,7 +408,7 @@ const EventPage: React.FC = () => {
   const goToStage = () => {
     // Use slug if available, otherwise use event ID
     const stageUrl = eventData?.slug
-      ? `/stage/${eventData.slug}`
+      ? `/stage/${eventData?.slug}`
       : `/stage/${eventData?.id || eventId}`;
     startTransition(() => navigate(stageUrl));
   };
@@ -446,7 +439,7 @@ const EventPage: React.FC = () => {
     }
 
     // For paid events without tickets, show purchase button
-    if (!hasTicket && eventData?.ticket_price && eventData.ticket_price > 0) {
+    if (!hasTicket && eventData?.ticket_price && eventData?.ticket_price > 0) {
       return (
         <Button
           onClick={handlePayment}
@@ -459,18 +452,18 @@ const EventPage: React.FC = () => {
     }
 
     // For users with tickets to paid events, show access confirmation
-    if (hasTicket && eventData?.ticket_price && eventData.ticket_price > 0) {
+    if (hasTicket && eventData?.ticket_price && eventData?.ticket_price > 0) {
       return (
         <div className="w-full text-center">
           <Badge className="bg-green-600 text-white text-sm px-4 py-2">
-            ✓ You have paid ${eventData.ticket_price} for this event
+            ✓ You have paid ${eventData?.ticket_price} for this event
           </Badge>
         </div>
       );
     }
 
     // For non-logged users, show "Watch Now" button
-    if (!currentUser) {
+    if (!currentUser?.id) {
       return (
         <Button
           onClick={handleWatchNow}
@@ -486,7 +479,7 @@ const EventPage: React.FC = () => {
     return null;
   };
 
-  if (loading) {
+  if (isLoadingEvent || isFetchingEvent || loading) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="animate-pulse">
@@ -498,7 +491,7 @@ const EventPage: React.FC = () => {
     );
   }
 
-  if (!eventData) {
+  if (eventError) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
@@ -516,23 +509,13 @@ const EventPage: React.FC = () => {
   }
 
   const mediaData =
-    eventData.media_urls?.map((url, index) => ({
+    eventData?.media_urls?.map((url, index) => ({
       id: index.toString(),
       type: url.endsWith(".mp4") ? ("video" as const) : ("image" as const),
       url,
       title: `Media ${index + 1}`,
       thumbnail: url.endsWith(".mp4") ? "/placeholder.gif" : url,
     })) || [];
-
-  console.log("[EventPage] Render state:", {
-    isLive,
-    hasToken: !!livekitToken,
-    roomName,
-    serverUrl,
-    eventDataId: eventData?.id,
-    viewerCount,
-    mediaData,
-  });
 
   return (
     <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 max-w-7xl">
@@ -551,7 +534,7 @@ const EventPage: React.FC = () => {
       {/* Page Title */}
       <div className="mb-4 sm:mb-6">
         <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-center px-2">
-          {eventData.name}
+          {eventData?.name}
         </h1>
       </div>
       {/* Responsive Layout */}
@@ -581,19 +564,19 @@ const EventPage: React.FC = () => {
                     connect={true}
                   >
                     <StreamPreviewContainer
-                      mediaUrls={eventData.media_urls || ["/placeholder.gif"]}
-                      eventName={eventData.name}
-                      isLive={eventData.is_live}
+                      mediaUrls={eventData?.media_urls || ["/placeholder.gif"]}
+                      eventName={eventData?.name}
+                      isLive={isLive}
                       hasAccess={hasTicket || canEnterStage}
                       isLoggedIn={!!currentUser}
-                      eventId={eventData.id}
+                      eventId={eventData?.id}
                     />
                     <RoomAudioRendererLazy />
 
                     {/* Pinned Message Section */}
                     <div className="">
                       <PinnedMessageSection
-                        eventId={eventData.id}
+                        eventId={eventData?.id}
                         isHost={false}
                       />
                     </div>
@@ -605,58 +588,57 @@ const EventPage: React.FC = () => {
                         <div className="p-5">
                           {selectedGameType === "custom" ? (
                             <CustomScoreboard
-                              eventId={eventData.id}
+                              eventId={eventData?.id}
                               isHost={false}
                             />
                           ) : selectedGameType === "coon_hunt" ? (
-                            <CoonhoundScoreboardViewer eventId={eventData.id} />
+                            <CoonhoundScoreboardViewer
+                              eventId={eventData?.id}
+                            />
                           ) : null}
                         </div>
                       )}
 
-                    {eventData.is_live &&
-                      livekitToken &&
-                      (hasTicket || canEnterStage) && (
-                        <LiveDiscussionSection
-                          eventId={eventData.id}
-                          currentUserProfile={
-                            currentUserProfile
-                              ? {
-                                  id: currentUserProfile.id,
-                                  username:
-                                    currentUserProfile.display_name || "User",
-                                  display_name:
-                                    currentUserProfile.display_name || "User",
-                                  profile_picture_url:
-                                    currentUserProfile.profile_picture_url ||
-                                    "",
-                                }
-                              : undefined
-                          }
-                        />
-                      )}
+                    {isLive && livekitToken && (hasTicket || canEnterStage) && (
+                      <LiveDiscussionSection
+                        eventId={eventData?.id}
+                        currentUserProfile={
+                          currentUserProfile
+                            ? {
+                                id: currentUserProfile.id,
+                                username:
+                                  currentUserProfile.display_name || "User",
+                                display_name:
+                                  currentUserProfile.display_name || "User",
+                                profile_picture_url:
+                                  currentUserProfile.profile_picture_url || "",
+                              }
+                            : undefined
+                        }
+                      />
+                    )}
                   </LiveKitRoomLazy>
                 </Suspense>
               ) : (
                 <MediaBackground
-                  src={eventData.media_urls?.[0]}
+                  src={eventData?.media_urls?.[0]}
                   fallback="/placeholder.gif"
                   className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100"
                 >
                   {/* Show 10-Second Preview for Paid Live Events */}
                   {currentUser &&
-                  eventData.ticket_price &&
-                  eventData.ticket_price > 0 &&
+                  eventData?.ticket_price &&
+                  eventData?.ticket_price > 0 &&
                   !hasTicket &&
                   !canEnterStage &&
-                  eventData.is_live ? (
+                  isLive ? (
                     <EventStreamPreview
-                      mediaUrls={eventData.media_urls || ["/placeholder.gif"]}
-                      eventId={eventData.id}
-                      eventName={eventData.name}
-                      isLive={eventData.is_live}
+                      mediaUrls={eventData?.media_urls || ["/placeholder.gif"]}
+                      eventId={eventData?.id}
+                      eventName={eventData?.name}
+                      isLive={isLive}
                       fallbackImage={
-                        eventData.media_urls?.[0] || "/placeholder.gif"
+                        eventData?.media_urls?.[0] || "/placeholder.gif"
                       }
                       hasAccess={hasTicket || canEnterStage}
                     />
@@ -677,7 +659,7 @@ const EventPage: React.FC = () => {
                       <div className="absolute inset-0 flex items-center justify-center">
                         {/* <Video className="h-12 w-12 sm:h-16 sm:w-16 lg:h-24 lg:w-24 text-purple-500" /> */}
                       </div>
-                      {eventData.is_live && (
+                      {isLive && (
                         <Badge className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-red-600 text-white text-xs">
                           <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full mr-1 animate-pulse" />
                           LIVE
@@ -699,15 +681,15 @@ const EventPage: React.FC = () => {
               )}
 
               {/* Pre-Stream Chat Archive for scheduled events */}
-              {!eventData.is_live && (hasTicket || canEnterStage) && (
+              {!isLive && (hasTicket || canEnterStage) && (
                 <div className="p-4 border-t border-border/30">
                   <div className="">
                     <PinnedMessageSection
-                      eventId={eventData.id}
+                      eventId={eventData?.id}
                       isHost={false}
                     />
                   </div>
-                  <PreStreamChatArchive eventId={eventData.id} />
+                  <PreStreamChatArchive eventId={eventData?.id} />
                 </div>
               )}
             </Card>
@@ -716,9 +698,9 @@ const EventPage: React.FC = () => {
             {/* {mediaData.length > 0 && <MediaDisplay media={mediaData} />} */}
 
             {/* Offline Streams */}
-            {/* {!eventData.is_live && (
+            {/* {!isLive && (
               <OfflineStreamSection
-                eventId={eventData.id}
+                eventId={eventData?.id}
                 hasPaid={hasTicket || canEnterStage}
               />
             )} */}
@@ -729,30 +711,31 @@ const EventPage: React.FC = () => {
             <Card>
               <CardHeader className="p-3 sm:p-3">
                 <CardTitle className="text-lg sm:text-xl lg:text-2xl font-bold break-words">
-                  {eventData.name}
+                  {eventData?.name}
                 </CardTitle>
                 <div className="flex flex-wrap gap-1 sm:gap-2">
-                  {eventData.category && (
+                  {eventData?.category && (
                     <Badge variant="secondary" className="text-xs">
-                      {eventData.category}
+                      {eventData?.category}
                     </Badge>
                   )}
-                  {eventData.is_live && (
+                  {isLive && (
                     <Badge className="bg-red-600 text-white text-xs">
                       <div className="w-1.5 h-1.5 bg-white rounded-full mr-1 animate-pulse" />
                       LIVE
                     </Badge>
                   )}
-                  {(!eventData.ticket_price || eventData.ticket_price <= 0) && (
+                  {(!eventData?.ticket_price ||
+                    eventData?.ticket_price <= 0) && (
                     <Badge className="bg-green-600 text-white text-xs">
                       Full Access (Free Event)
                     </Badge>
                   )}
                   {hasTicket &&
-                  eventData.ticket_price &&
-                  eventData.ticket_price > 0 ? (
+                  eventData?.ticket_price &&
+                  eventData?.ticket_price > 0 ? (
                     <Badge className="bg-green-600 text-white text-xs">
-                      ✓ Paid ${eventData.ticket_price}
+                      ✓ Paid ${eventData?.ticket_price}
                     </Badge>
                   ) : null}
                 </div>
@@ -760,29 +743,29 @@ const EventPage: React.FC = () => {
 
               <CardContent className="p-3 sm:p-3">
                 <p className="text-sm sm:text-base text-gray-700 mb-4 sm:mb-6 break-words">
-                  {eventData.description}
+                  {eventData?.description}
                 </p>
 
                 {/* Event Info Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
                   <div className="flex items-center text-xs sm:text-sm">
                     <Calendar className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 text-gray-500 flex-shrink-0" />
-                    <span className="truncate">{eventData.date}</span>
+                    <span className="truncate">{eventData?.date}</span>
                   </div>
                   <div className="flex items-center text-xs sm:text-sm">
                     <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 text-gray-500 flex-shrink-0" />
-                    <span className="truncate">{eventData.time}</span>
+                    <span className="truncate">{eventData?.time}</span>
                   </div>
                   <div className="flex items-center text-xs sm:text-sm">
                     <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 text-gray-500 flex-shrink-0" />
                     <span className="truncate">
-                      {eventData.viewer_count || 0} viewers
+                      {eventData?.viewer_count || 0} viewers
                     </span>
                   </div>
                   <div className="flex items-center text-xs sm:text-sm">
                     <MapPin className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 text-gray-500 flex-shrink-0" />
                     <span className="truncate">
-                      {eventData.location || "Online"}
+                      {eventData?.location || "Online"}
                     </span>
                   </div>
                 </div>
@@ -798,10 +781,10 @@ const EventPage: React.FC = () => {
               </CardHeader>
               <CardContent className="p-3 sm:p-3">
                 <SocialShareMenu
-                  title={eventData.name}
+                  title={eventData?.name}
                   url={shareUrl}
                   prettyUrl={eventUrl}
-                  description={eventData.description}
+                  description={eventData?.description}
                 />
               </CardContent>
             </Card>
@@ -833,17 +816,17 @@ const EventPage: React.FC = () => {
           <TicketPurchaseModal
             isOpen={showPurchaseModal}
             onClose={() => setShowPurchaseModal(false)}
-            eventId={eventData.id}
-            eventTitle={eventData.name}
-            price={eventData.ticket_price}
-            hostStripeAccountId={eventData.stripe_account_id}
+            eventId={eventData?.id}
+            eventTitle={eventData?.name}
+            price={eventData?.ticket_price}
+            hostStripeAccountId={eventData?.stripe_account_id}
             onPurchaseSuccess={handlePurchaseSuccess}
           />
           {currentUser && !isEventHost && !isStreamer && (
             <ReportEventModal
               open={showReportModal}
               onOpenChange={setShowReportModal}
-              eventId={eventData.id}
+              eventId={eventData?.id}
               disabled={hasReported}
               onReported={() => refreshReportStatus()}
             />
