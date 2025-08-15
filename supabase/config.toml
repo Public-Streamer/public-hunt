@@ -24,12 +24,12 @@ verify_jwt = false
 [functions.check-stripe-account-status]
 verify_jwt = true
 
-[functions.event]
+[functions.event-meta-tags]
 verify_jwt = false
 
 [functions.report-event]
 verify_jwt = true
 
 [[edge_functions]]
-function = "event"
+function = "event-meta-tags"
 pattern = "/event/**"
