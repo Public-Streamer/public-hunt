@@ -594,6 +594,7 @@ const EventPage: React.FC = () => {
                           ) : selectedGameType === "coon_hunt" ? (
                             <CoonhoundScoreboardViewer
                               eventId={eventData?.id}
+                              isViewer={isViewer}
                             />
                           ) : null}
                         </div>

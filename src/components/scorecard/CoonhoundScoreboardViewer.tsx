@@ -9,7 +9,7 @@ import { ChevronDown } from "lucide-react";
 import { ScorecardSummary } from "./ScorecardSummary";
 import type { DogData } from "./DogCard";
 
-interface Props { eventId: string }
+interface Props { eventId: string; isViewer?: boolean }
 
 type CastTimers = {
   mainHunt?: { status: TimerStatus; remaining: number };
@@ -76,7 +76,7 @@ const statusCls = (s: TimerStatus) =>
     ? "bg-destructive/10 text-destructive"
     : "bg-muted text-muted-foreground";
 
-export const CoonhoundScoreboardViewer: React.FC<Props> = ({ eventId }) => {
+export const CoonhoundScoreboardViewer: React.FC<Props> = ({ eventId, isViewer = false }) => {
   const [castTimers, setCastTimers] = useState<CastTimers>({});
   const [teams, setTeams] = useState<TeamRow[]>([]);
   const [timerOverview, setTimerOverview] = useState<Record<string, any>>({});
@@ -349,42 +349,44 @@ export const CoonhoundScoreboardViewer: React.FC<Props> = ({ eventId }) => {
 
   return (
     <div className="space-y-4">
-      {/* Hunt Timers */}
-      <Collapsible open={openHunt} onOpenChange={setOpenHunt}>
-        <Card className={`glow-surface ${glow['hunt'] ? 'glow-active glow-warning' : ''}`}>
-          <CardHeader className="py-3">
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" className="w-full justify-between p-0 h-auto">
-                <CardTitle className="text-base">Hunt Timers</CardTitle>
-                <ChevronDown className={`h-4 w-4 transition-transform ${openHunt ? "rotate-180" : ""}`} />
-              </Button>
-            </CollapsibleTrigger>
-          </CardHeader>
-          <CollapsibleContent>
-            <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                {visibleCastBlocks.length > 0 ? (
-                  visibleCastBlocks.map((b) => {
-                    const snap = (castTimers as any)[b.key] as { status: TimerStatus; remaining: number } | undefined;
-                    const rem = liveRemaining(snap?.remaining, castTimers.server_updated_at, snap?.status || "idle");
-                    const formatted = formatMMSS(rem);
-                    return (
-                      <div key={b.key} className={`rounded-md p-2 border ${statusCls(snap?.status || "idle")}`}>
-                        <div className="flex items-center justify-between text-xs">
-                          <span>{b.key === "mainHunt" && (castTimers as any).mainHuntMinutes ? `Main Hunt ${(castTimers as any).mainHuntMinutes} minutes` : b.label}</span>
-                          <span className="tabular-nums font-semibold">{formatted}</span>
+      {/* Hunt Timers - Only show for streamers, judges, and event creators, hide for viewers */}
+      {!isViewer && (
+        <Collapsible open={openHunt} onOpenChange={setOpenHunt}>
+          <Card className={`glow-surface ${glow['hunt'] ? 'glow-active glow-warning' : ''}`}>
+            <CardHeader className="py-3">
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" className="w-full justify-between p-0 h-auto">
+                  <CardTitle className="text-base">Hunt Timers</CardTitle>
+                  <ChevronDown className={`h-4 w-4 transition-transform ${openHunt ? "rotate-180" : ""}`} />
+                </Button>
+              </CollapsibleTrigger>
+            </CardHeader>
+            <CollapsibleContent>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  {visibleCastBlocks.length > 0 ? (
+                    visibleCastBlocks.map((b) => {
+                      const snap = (castTimers as any)[b.key] as { status: TimerStatus; remaining: number } | undefined;
+                      const rem = liveRemaining(snap?.remaining, castTimers.server_updated_at, snap?.status || "idle");
+                      const formatted = formatMMSS(rem);
+                      return (
+                        <div key={b.key} className={`rounded-md p-2 border ${statusCls(snap?.status || "idle")}`}>
+                          <div className="flex items-center justify-between text-xs">
+                            <span>{b.key === "mainHunt" && (castTimers as any).mainHuntMinutes ? `Main Hunt ${(castTimers as any).mainHuntMinutes} minutes` : b.label}</span>
+                            <span className="tabular-nums font-semibold">{formatted}</span>
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className="text-sm text-muted-foreground">No active cast timers</div>
-                )}
-              </div>
-            </CardContent>
-          </CollapsibleContent>
-        </Card>
-      </Collapsible>
+                      );
+                    })
+                  ) : (
+                    <div className="text-sm text-muted-foreground">No active cast timers</div>
+                  )}
+                </div>
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
+      )}
 
       {/* Scorecard Summary - Now uses the same component as judges */}
       <ScorecardSummary
