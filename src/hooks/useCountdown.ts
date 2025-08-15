@@ -106,7 +106,7 @@ export function useCountdown(initialSeconds: number, opts: UseCountdownOptions =
 
   const formatted = useMemo(() => {
     const safeRemaining = Number.isFinite(remaining) ? remaining : initialDurationRef.current;
-    const secs = Math.max(0, Math.ceil(safeRemaining));
+    const secs = Math.max(0, Math.floor(safeRemaining)); // Use Math.floor instead of Math.ceil to avoid rounding up
     const m = Math.floor(secs / 60).toString().padStart(2, "0");
     const s = (secs % 60).toString().padStart(2, "0");
     return `${m}:${s}`;
