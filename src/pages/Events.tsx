@@ -698,7 +698,7 @@ const Events: React.FC = () => {
                         }`}
                       >
                         <MediaBackground
-                          src={event.media_urls[0]}
+                          src={event?.media_urls[0]}
                           className="aspect-video"
                         />
 

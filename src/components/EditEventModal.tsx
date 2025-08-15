@@ -285,7 +285,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
           location: formData.location || null,
           category: formData.category,
           ticket_price: formData.ticket_price,
-          media_urls: formData.media_urls,
+          media_urls: formData?.media_urls,
           updated_at: new Date().toISOString(),
         })
         .eq("id", eventId);
@@ -490,13 +490,13 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
                     "video/webm",
                   ]}
                 />
-                {formData.media_urls.length > 0 && (
+                {formData?.media_urls.length > 0 && (
                   <div className="mt-4">
                     <Label className="text-sm font-medium mb-2 block">
                       Current Thumbnail:
                     </Label>
                     <img
-                      src={formData.media_urls[0]}
+                      src={formData?.media_urls[0]}
                       alt="Event thumbnail"
                       className="w-32 h-32 object-cover rounded-lg border"
                     />
