@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { supabase } from '@/lib/supabase';
-import { useToast } from '@/hooks/use-toast';
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { supabase } from "@/lib/supabase";
+import { useToast } from "@/hooks/use-toast";
 
 interface ProfileSetupProps {
   onComplete: () => void;
@@ -14,14 +14,14 @@ interface ProfileSetupProps {
 
 const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
   const [formData, setFormData] = useState({
-    username: '',
-    displayName: '',
-    bio: '',
-    location: '',
-    website: '',
-    birthday: ''
+    username: "",
+    displayName: "",
+    bio: "",
+    location: "",
+    website: "",
+    birthday: "",
   });
-  const [profilePicture, setProfilePicture] = useState<string>('');
+  const [profilePicture, setProfilePicture] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -30,34 +30,34 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
     setLoading(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No user found');
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("No user found");
 
-      const { error } = await supabase
-        .from('user_profiles')
-        .insert({
-          user_id: user.id,
-          username: formData.username,
-          display_name: formData.displayName,
-          bio: formData.bio,
-          location: formData.location,
-          website: formData.website,
-          birthday: formData.birthday || null,
-          profile_picture_url: profilePicture
-        });
+      const { error } = await supabase.from("user_profiles").insert({
+        user_id: user.id,
+        username: formData.username,
+        display_name: formData.displayName,
+        bio: formData.bio,
+        location: formData.location,
+        website: formData.website,
+        birthday: formData.birthday || null,
+        profile_picture_url: profilePicture,
+      });
 
       if (error) throw error;
 
       toast({
-        title: 'Profile created successfully!',
-        description: 'Welcome to Public Streamer'
+        title: "Profile created successfully!",
+        description: "Welcome to DogHunt.tv",
       });
       onComplete();
     } catch (error) {
       toast({
-        title: 'Error creating profile',
-        description: error instanceof Error ? error.message : 'Unknown error',
-        variant: 'destructive'
+        title: "Error creating profile",
+        description: error instanceof Error ? error.message : "Unknown error",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -93,7 +93,9 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
               id="username"
               required
               value={formData.username}
-              onChange={(e) => setFormData({...formData, username: e.target.value})}
+              onChange={(e) =>
+                setFormData({ ...formData, username: e.target.value })
+              }
               placeholder="@username"
             />
           </div>
@@ -103,7 +105,9 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
             <Input
               id="displayName"
               value={formData.displayName}
-              onChange={(e) => setFormData({...formData, displayName: e.target.value})}
+              onChange={(e) =>
+                setFormData({ ...formData, displayName: e.target.value })
+              }
               placeholder="Your display name"
             />
           </div>
@@ -113,7 +117,9 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
             <Textarea
               id="bio"
               value={formData.bio}
-              onChange={(e) => setFormData({...formData, bio: e.target.value})}
+              onChange={(e) =>
+                setFormData({ ...formData, bio: e.target.value })
+              }
               placeholder="Tell us about yourself..."
               rows={3}
             />
@@ -125,7 +131,9 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
               <Input
                 id="location"
                 value={formData.location}
-                onChange={(e) => setFormData({...formData, location: e.target.value})}
+                onChange={(e) =>
+                  setFormData({ ...formData, location: e.target.value })
+                }
                 placeholder="City, Country"
               />
             </div>
@@ -134,7 +142,9 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
               <Input
                 id="website"
                 value={formData.website}
-                onChange={(e) => setFormData({...formData, website: e.target.value})}
+                onChange={(e) =>
+                  setFormData({ ...formData, website: e.target.value })
+                }
                 placeholder="https://yoursite.com"
               />
             </div>
@@ -146,12 +156,14 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
               id="birthday"
               type="date"
               value={formData.birthday}
-              onChange={(e) => setFormData({...formData, birthday: e.target.value})}
+              onChange={(e) =>
+                setFormData({ ...formData, birthday: e.target.value })
+              }
             />
           </div>
 
           <Button type="submit" disabled={loading} className="w-full">
-            {loading ? 'Creating Profile...' : 'Create Profile'}
+            {loading ? "Creating Profile..." : "Create Profile"}
           </Button>
         </form>
       </CardContent>

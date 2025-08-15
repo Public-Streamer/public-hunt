@@ -356,10 +356,8 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                         }}
                       />
                     </div>
-
                     {/* Subtle Strobe Effect */}
                     <div className="absolute inset-0 rounded-xl bg-white/20 opacity-0 group-hover:opacity-100 group-hover:animate-pulse transition-all duration-300"></div>
-
                     {/* Live Indicator */}
                     <div
                       className="absolute -top-2 -right-2 flex items-center space-x-1 bg-red-500 text-white rounded-full animate-pulse text-xs px-2 py-1"
@@ -371,7 +369,6 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                       <span className="font-bold">LIVE</span>
                     </div>
                   </div>
-
                   {/* <div
                     className="bg-gradient-to-br from-white/30 to-white/10 backdrop-blur-sm rounded-xl border border-white/40 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 group p-4 py-6"
                     style={{
@@ -384,7 +381,6 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                       alt="Doghunt Logo"
                     />
                   </div> */}
-
                   <div className="flex flex-col min-w-0 flex-1">
                     <div className="flex flex-col">
                       <span
@@ -406,6 +402,9 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                         Hunt.tv
                       </span>
                     </div>
+                    <span className="relative inline-block w-[max-content]  text-xs text-white/80 whitespace-nowrap [clip-path:inset(0_100%_0_0)] will-change-[clip-path] animate-typewriter">
+                      by public streamer
+                    </span>
                     <div
                       className="flex space-x-1 text-white/80 font-medium text-sm mt-1"
                       style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.8)" }}

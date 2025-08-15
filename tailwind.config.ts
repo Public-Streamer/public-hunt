@@ -20,6 +20,7 @@ export default {
       }
     },
     extend: {
+      
       colors: {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
@@ -76,6 +77,10 @@ export default {
         sm: 'calc(var(--radius) - 2px)'
       },
       keyframes: {
+        typewriter: {
+          from: { clipPath: 'inset(0 100% 0 0)' },
+          to:   { clipPath: 'inset(0 0 0 0)' },
+        },
         'accordion-down': {
           from: { height: '0' },
           to: { height: 'var(--radix-accordion-content-height)' },
@@ -98,6 +103,7 @@ export default {
         'accordion-up': 'accordion-up 0.2s ease-out',
         'fade-in': 'fade-in 0.3s ease-out',
         'slide-in': 'slide-in 0.3s ease-out',
+        'typewriter': 'typewriter 2s steps(18) forwards',
       },
       typography: {
         DEFAULT: {
