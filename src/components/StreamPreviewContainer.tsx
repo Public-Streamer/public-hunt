@@ -64,8 +64,6 @@ const StreamTracksContentLazy = lazy(() =>
         onlySubscribed: false,
       });
 
-
-      // Audio muting logic
       useEffect(() => {
         if (!audioTracks) return;
         if (selectedVideoTrack) {

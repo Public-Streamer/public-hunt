@@ -39,8 +39,6 @@ import {
   AlertTriangle,
   Lock,
   Unlock,
-  Volume2,
-  VolumeX,
 } from "lucide-react";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 import { useToast } from "@/hooks/use-toast";
@@ -98,30 +96,6 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
 
   const [isChatVisible, setIsChatVisible] = useState(false);
 
-  // Audio control state - default all streamers to muted
-  const [isGlobalMuted, setIsGlobalMuted] = useState(true);
-  const [mutedParticipants, setMutedParticipants] = useState<Set<string>>(
-    new Set()
-  );
-
-  // Toggle individual participant mute
-  const toggleParticipantMute = (participantIdentity: string) => {
-    setMutedParticipants((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(participantIdentity)) {
-        newSet.delete(participantIdentity);
-      } else {
-        newSet.add(participantIdentity);
-      }
-      return newSet;
-    });
-  };
-
-  // Toggle global mute for all participants
-  const toggleGlobalMute = () => {
-    setIsGlobalMuted(!isGlobalMuted);
-  };
-
   // Stream name edit state
   const [isEditingStreamName, setIsEditingStreamName] = useState(false);
   const [streamNameValue, setStreamNameValue] = useState("");
@@ -143,29 +117,6 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   // livekit stream name
   const track = useTracks();
   const streamName = useStreamName(track[0]?.participant);
-
-  // Audio tracks for selective muting
-  const audioTracks = useTracks(
-    TrackSource
-      ? [{ source: TrackSource.Microphone, withPlaceholder: false }]
-      : [],
-    { onlySubscribed: false }
-  );
-
-  // Apply audio muting logic - default all to muted, allow selective unmuting
-  useEffect(() => {
-    if (!audioTracks || !TrackSource) return;
-
-    audioTracks.forEach((trackRef) => {
-      if (trackRef.publication?.track?.mediaStreamTrack) {
-        const participantIdentity = trackRef.participant.identity;
-        // If global mute is on OR participant is individually muted, disable audio
-        const shouldMute =
-          isGlobalMuted || mutedParticipants.has(participantIdentity);
-        trackRef.publication.track.mediaStreamTrack.enabled = !shouldMute;
-      }
-    });
-  }, [audioTracks, isGlobalMuted, mutedParticipants, TrackSource]);
 
   // Real-time scoreboard metadata tracking
   const { selectedGameType: realtimeGameType, scoreboardName } =
@@ -1088,90 +1039,6 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                 )}
               </CardContent>
             </Card>
-
-            {/* Audio Controls */}
-            {audioTracks.length > 0 && (
-              <Card>
-                <CardHeader className="p-3 sm:p-3">
-                  <CardTitle className="text-sm sm:text-base flex items-center gap-2">
-                    <Volume2 className="h-4 w-4" />
-                    Audio Controls
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-3 sm:p-3">
-                  <div className="space-y-3">
-                    {/* Global Mute Toggle */}
-                    <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                      <span className="text-sm font-medium">
-                        All Streamers Audio
-                      </span>
-                      <Button
-                        onClick={toggleGlobalMute}
-                        variant={isGlobalMuted ? "destructive" : "default"}
-                        size="sm"
-                        className="ml-2"
-                      >
-                        {isGlobalMuted ? (
-                          <>
-                            <VolumeX className="h-4 w-4 mr-1" />
-                            Muted
-                          </>
-                        ) : (
-                          <>
-                            <Volume2 className="h-4 w-4 mr-1" />
-                            Unmuted
-                          </>
-                        )}
-                      </Button>
-                    </div>
-
-                    {/* Individual Participant Controls */}
-                    <div className="space-y-2">
-                      <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        Individual Controls
-                      </h4>
-                      {audioTracks.map((trackRef) => {
-                        const participantIdentity =
-                          trackRef.participant.identity;
-                        const isParticipantMuted =
-                          mutedParticipants.has(participantIdentity);
-                        const streamName = useStreamName(trackRef.participant);
-
-                        return (
-                          <div
-                            key={participantIdentity}
-                            className="flex items-center justify-between p-2 border rounded-lg"
-                          >
-                            <span className="text-sm truncate flex-1">
-                              {streamName ||
-                                trackRef.participant.name ||
-                                participantIdentity}
-                            </span>
-                            <Button
-                              onClick={() =>
-                                toggleParticipantMute(participantIdentity)
-                              }
-                              variant={
-                                isParticipantMuted ? "outline" : "secondary"
-                              }
-                              size="xs"
-                              disabled={isGlobalMuted}
-                              className="ml-2"
-                            >
-                              {isParticipantMuted ? (
-                                <VolumeX className="h-3 w-3" />
-                              ) : (
-                                <Volume2 className="h-3 w-3" />
-                              )}
-                            </Button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
 
             {/* Other Participants */}
             {otherCameraTracks.length > 0 && (

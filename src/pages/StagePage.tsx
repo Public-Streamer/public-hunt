@@ -420,6 +420,7 @@ const StagePage: React.FC = () => {
         }}
         style={{ height: "100vh" }}
       >
+        <RoomAudioRendererLazy />
         <StreamerInterface
           eventId={eventData?.id}
           eventTitle={eventData?.name}
