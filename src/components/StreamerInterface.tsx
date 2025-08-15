@@ -40,7 +40,7 @@ import {
   Lock,
   Unlock,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabaseBrowser } from "@/lib/supabase/browser";
 import { useToast } from "@/hooks/use-toast";
 import { useStreamingControls } from "@/hooks/useStreamingControls";
 import StageShareMenu from "@/components/StageShareMenu";
@@ -150,6 +150,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
         if (!userId) return;
 
         // Check event_participants table first (newer approach)
+        const supabase = supabaseBrowser();
         const { data: participantData, error: participantError } =
           await supabase
             .from("event_participants")
@@ -202,6 +203,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   useEffect(() => {
     if (!eventId || !userId) return;
 
+    const supabase = supabaseBrowser();
     const participantsChannel = supabase
       .channel(`judge-perms-participants-${eventId}-${userId}`)
       .on(
@@ -251,6 +253,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   // Load event metadata and selected game type
   const loadEventData = async () => {
     try {
+      const supabase = supabaseBrowser();
       const { data: event, error } = await supabase
         .from("events")
         .select("metadata")
@@ -278,6 +281,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     if (!scoreboardType) return;
 
     try {
+      const supabase = supabaseBrowser();
       const { data, error } = await supabase.functions.invoke(
         "scoreboard-operations",
         {
@@ -296,6 +300,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   useEffect(() => {
     const updateViewerCount = async () => {
       try {
+        const supabase = supabaseBrowser();
         const { error } = await supabase
           .from("events")
           .update({ viewer_count: viewerCount })
@@ -316,6 +321,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   // Save selected game type to event metadata
   const saveGameTypeToEvent = async (gameType: string) => {
     try {
+      const supabase = supabaseBrowser();
       const { error } = await supabase
         .from("events")
         .update({
@@ -350,6 +356,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     if (!selectedGameType) return;
 
     try {
+      const supabase = supabaseBrowser();
       const { error: fnError } = await supabase.functions.invoke(
         "scoreboard-operations",
         {
@@ -403,6 +410,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
 
     setIsSaving(true);
     try {
+      const supabase = supabaseBrowser();
       const { error } = await supabase
         .from("events")
         .update({ name: editValue.trim() })
@@ -525,6 +533,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
       try {
         if (cancelled) return;
         // Update existing stream row to mark it active and refresh updated_at
+        const supabase = supabaseBrowser();
         await supabase
           .from("event_streams")
           .update({

@@ -390,8 +390,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   //   }
   // }, [user]);
 
-  console.log("from app context: Current User Profile", currentUserProfile);
-  console.log("from app context: Current User", user);
+  console.log("AppContext - Current User Profile", currentUserProfile);
+  console.log("AppContext - Current User", user?.email);
 
   return (
     <AppContext.Provider

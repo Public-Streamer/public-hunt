@@ -104,15 +104,26 @@ const StagePage: React.FC = () => {
   useEffect(() => {
     const checkAuthAndAssignRole = async () => {
       try {
-        // Get current user identity
-        const currentUser = await getCurrentUser();
+        // Force fresh authentication check by clearing any potentially stale state
+        console.log("StagePage - Starting fresh authentication check");
+        
+        // Get current user identity with fresh client
+        const supabase = supabaseBrowser();
+        const { data: { user: currentUser }, error } = await supabase.auth.getUser();
 
-        if (!currentUser) {
+        if (error || !currentUser) {
+          console.log("No authenticated user found, redirecting to login");
           navigate("/login");
           return;
         }
 
-        setUser(currentUser);
+        console.log("StagePage - Current authenticated user:", currentUser.email);
+        
+        const userForState = {
+          id: currentUser.id,
+          email: currentUser.email || ''
+        };
+        setUser(userForState);
 
         if (!eventId) {
           toast.error("Event ID is required");
@@ -124,12 +135,12 @@ const StagePage: React.FC = () => {
 
         // Check if user is host (event creator)
         if (eventData?.created_by === currentUser.id) {
+          console.log("User is event host (creator)");
           setUserRole("host");
           return;
         }
 
         // Check if user is assigned as streamer (use actual event UUID)
-        const supabase = supabaseBrowser();
         const { data: streamerData } = await supabase
           .from("event_streamers")
           .select("*")
@@ -138,6 +149,7 @@ const StagePage: React.FC = () => {
           .single();
 
         if (streamerData) {
+          console.log("User is assigned streamer");
           setUserRole("streamer");
           return;
         }
@@ -150,6 +162,7 @@ const StagePage: React.FC = () => {
         }
 
         // User is not authorized to access stage
+        console.log("User is not authorized to access this stage");
         toast.error("You are not authorized to access this stage");
       } catch (error) {
         console.error("Error checking access:", error);
@@ -251,6 +264,9 @@ const StagePage: React.FC = () => {
           data: { session },
           error: sessionError,
         } = await supabase.auth.getSession();
+        
+        console.log("StagePage - Session for token generation:", session?.user?.email);
+        console.log("StagePage - Expected user:", user?.email);
 
         if (sessionError || !session) {
           throw new Error("Please log in to access this stream");
