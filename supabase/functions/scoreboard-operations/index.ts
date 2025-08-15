@@ -558,12 +558,18 @@ serve(async (req) => {
           .single();
         if (evFetchError) throw evFetchError;
         const meta = (evRow?.metadata as any) || {};
+        const currentCastTimers = meta?.scorecard_cast_timers || {};
+        
+        // Merge the incoming timers with existing ones instead of replacing
+        const updatedCastTimers = {
+          ...currentCastTimers,
+          ...(timers || {}),
+          server_updated_at: nowIso,
+        };
+        
         const updatedMeta = {
           ...meta,
-          scorecard_cast_timers: {
-            ...(timers || {}),
-            server_updated_at: nowIso,
-          },
+          scorecard_cast_timers: updatedCastTimers,
         };
         const { error: evUpdateError } = await supabaseClient
           .from("events")
