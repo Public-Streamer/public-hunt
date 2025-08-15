@@ -100,11 +100,13 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
 
   // Audio control state - default all streamers to muted
   const [isGlobalMuted, setIsGlobalMuted] = useState(true);
-  const [mutedParticipants, setMutedParticipants] = useState<Set<string>>(new Set());
+  const [mutedParticipants, setMutedParticipants] = useState<Set<string>>(
+    new Set()
+  );
 
   // Toggle individual participant mute
   const toggleParticipantMute = (participantIdentity: string) => {
-    setMutedParticipants(prev => {
+    setMutedParticipants((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(participantIdentity)) {
         newSet.delete(participantIdentity);
@@ -144,19 +146,22 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
 
   // Audio tracks for selective muting
   const audioTracks = useTracks(
-    TrackSource ? [{ source: TrackSource.Microphone, withPlaceholder: false }] : [],
+    TrackSource
+      ? [{ source: TrackSource.Microphone, withPlaceholder: false }]
+      : [],
     { onlySubscribed: false }
   );
 
   // Apply audio muting logic - default all to muted, allow selective unmuting
   useEffect(() => {
     if (!audioTracks || !TrackSource) return;
-    
+
     audioTracks.forEach((trackRef) => {
       if (trackRef.publication?.track?.mediaStreamTrack) {
         const participantIdentity = trackRef.participant.identity;
         // If global mute is on OR participant is individually muted, disable audio
-        const shouldMute = isGlobalMuted || mutedParticipants.has(participantIdentity);
+        const shouldMute =
+          isGlobalMuted || mutedParticipants.has(participantIdentity);
         trackRef.publication.track.mediaStreamTrack.enabled = !shouldMute;
       }
     });
@@ -1097,7 +1102,9 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                   <div className="space-y-3">
                     {/* Global Mute Toggle */}
                     <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                      <span className="text-sm font-medium">All Streamers Audio</span>
+                      <span className="text-sm font-medium">
+                        All Streamers Audio
+                      </span>
                       <Button
                         onClick={toggleGlobalMute}
                         variant={isGlobalMuted ? "destructive" : "default"}
@@ -1124,21 +1131,29 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                         Individual Controls
                       </h4>
                       {audioTracks.map((trackRef) => {
-                        const participantIdentity = trackRef.participant.identity;
-                        const isParticipantMuted = mutedParticipants.has(participantIdentity);
+                        const participantIdentity =
+                          trackRef.participant.identity;
+                        const isParticipantMuted =
+                          mutedParticipants.has(participantIdentity);
                         const streamName = useStreamName(trackRef.participant);
-                        
+
                         return (
                           <div
                             key={participantIdentity}
                             className="flex items-center justify-between p-2 border rounded-lg"
                           >
                             <span className="text-sm truncate flex-1">
-                              {streamName || trackRef.participant.name || participantIdentity}
+                              {streamName ||
+                                trackRef.participant.name ||
+                                participantIdentity}
                             </span>
                             <Button
-                              onClick={() => toggleParticipantMute(participantIdentity)}
-                              variant={isParticipantMuted ? "outline" : "secondary"}
+                              onClick={() =>
+                                toggleParticipantMute(participantIdentity)
+                              }
+                              variant={
+                                isParticipantMuted ? "outline" : "secondary"
+                              }
                               size="xs"
                               disabled={isGlobalMuted}
                               className="ml-2"
