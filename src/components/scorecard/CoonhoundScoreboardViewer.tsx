@@ -53,7 +53,7 @@ function fromTeamRow(row: TeamRow): DogData {
 }
 
 function formatMMSS(secs: number) {
-  const s = Math.max(0, Math.ceil(secs));
+  const s = Math.max(0, Math.floor(secs)); // Use Math.floor to remove decimals
   const mStr = Math.floor(s / 60).toString().padStart(2, "0");
   const sStr = (s % 60).toString().padStart(2, "0");
   return `${mStr}:${sStr}`;
@@ -127,11 +127,11 @@ export const CoonhoundScoreboardViewer: React.FC<Props> = ({ eventId, isViewer =
           const uiTimers: Record<string, any> = {};
           for (const [key, timer] of Object.entries(timers)) {
             if (timer && typeof timer === 'object' && 'status' in timer && 'remaining' in timer) {
-              const remaining = Math.max(0, (timer as any).remaining || 0);
+              const remaining = Math.max(0, Math.floor((timer as any).remaining || 0)); // Use Math.floor to remove decimals
               const minutes = Math.floor(remaining / 60);
               const seconds = remaining % 60;
               uiTimers[key] = {
-                formatted: `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`,
+                formatted: `${minutes.toString().padStart(2, '0')}:${Math.floor(seconds).toString().padStart(2, '0')}`,
                 status: (timer as any).status || 'idle'
               };
             }
