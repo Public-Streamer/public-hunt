@@ -39,6 +39,7 @@ export interface StreamingControls {
   isTorchEnabled: boolean;
   isTorchSupported: boolean;
   toggleTorch: () => Promise<void>;
+  controlsLoading: boolean;
 }
 
 interface LiveStatusResult {
@@ -60,6 +61,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   const [isAudioEnabled, setIsAudioEnabled] = useState(false);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [goLive, setGoLive] = useState(false);
+  const [controlsLoading, setControlsLoading] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -602,6 +604,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       isTorchEnabled: false,
       isTorchSupported: false,
       toggleTorch: async () => {},
+      controlsLoading: false,
     };
   }
 
@@ -1397,6 +1400,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
 
   const stopStream = useCallback(async () => {
     try {
+      setControlsLoading(true);
       setIsStreaming(false);
       setGoLive(false);
       const {
@@ -1425,7 +1429,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
             await closeRoom(latestSession);
           }
         }
-
+        setControlsLoading(false);
         await navigateToEvent();
       }, 10);
 
@@ -1433,6 +1437,8 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
     } catch (error) {
       toast.error("Failed to stop stream");
       console.error("Stop stream error:", error);
+    } finally {
+      setControlsLoading(false);
     }
   }, [
     checkStreamerCounts,
@@ -1504,5 +1510,6 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
     isTorchEnabled,
     isTorchSupported,
     toggleTorch,
+    controlsLoading,
   };
 };
