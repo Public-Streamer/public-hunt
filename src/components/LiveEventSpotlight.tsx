@@ -211,9 +211,9 @@ const LiveEventSpotlight: React.FC = () => {
           viewers: event.viewer_count || 0,
           location: event.location,
           timeRemaining: calculateTimeRemaining(event.date, event.time),
-          thumbnail: event.media_urls?.[0],
+          thumbnail: event?.media_urls?.[0],
           slug: event.slug,
-          mediaUrls: event.media_urls,
+          mediaUrls: event?.media_urls,
           isLive: event.is_live,
         })) || []
       );

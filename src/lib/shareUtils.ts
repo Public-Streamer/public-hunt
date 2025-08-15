@@ -42,7 +42,7 @@ export async function generateEventShareData(eventId: string) {
         event.description ||
         `Join ${event.name} - Live streaming event on Doghunt`,
       image:
-        event.media_urls?.[0] || `${window.location.origin}/placeholder.svg`,
+        event?.media_urls?.[0] || `${window.location.origin}/placeholder.svg`,
     };
   } catch (error) {
     console.error("Error generating share data:", error);
