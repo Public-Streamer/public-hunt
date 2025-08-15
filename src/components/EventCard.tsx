@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import SocialMediaSection from "./SocialMediaSection";
 import TicketPurchaseModal from "./TicketPurchaseModal";
-import { supabase } from "@/integrations/supabase/client";
+import { supabaseBrowser } from "@/lib/supabase/browser";
 import { useAppContext } from "@/contexts/AppContext";
 import MediaBackground from "./MediaBackground";
 
@@ -52,6 +52,7 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
 
     setCheckingTicket(true);
     try {
+      const supabase = supabaseBrowser();
       const { data, error } = await supabase
         .from("tickets")
         .select("*")
@@ -83,7 +84,8 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
     const eventUrl = (event as any).slug
       ? `/event/${(event as any).slug}`
       : `/event/${event.id}`;
-    navigate(eventUrl);
+    // Force fresh navigation to prevent cached user state
+    window.location.href = eventUrl;
   };
 
   const handleAction = (e: React.MouseEvent) => {
@@ -91,7 +93,8 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
     const eventUrl = (event as any).slug
       ? `/event/${(event as any).slug}`
       : `/event/${event.id}`;
-    navigate(eventUrl);
+    // Force fresh navigation to prevent cached user state
+    window.location.href = eventUrl;
 
     if (!isAuthenticated) {
       navigate("/login");
@@ -104,7 +107,8 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
       const eventUrl = (event as any).slug
         ? `/event/${(event as any).slug}`
         : `/event/${event.id}`;
-      navigate(eventUrl);
+      // Force fresh navigation to prevent cached user state
+      window.location.href = eventUrl;
     }
   };
 

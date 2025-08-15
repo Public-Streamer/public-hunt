@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabaseBrowser } from '@/lib/supabase/browser';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 export interface DeltaEvent {
@@ -59,6 +59,7 @@ export function subscribeEvent(
 ): RealtimeSubscription {
   const batcher = new DeltaBatcher(onDelta);
   let channel: RealtimeChannel | null = null;
+  const supabase = supabaseBrowser();
 
   try {
     channel = supabase.channel(`event:${eventId}`)

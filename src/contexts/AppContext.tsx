@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabaseBrowser } from "@/lib/supabase/browser";
 import { User } from "@supabase/supabase-js";
 import { toast } from "@/hooks/use-toast";
 import type { Database } from "@/integrations/supabase/types";
@@ -74,6 +74,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   ) => {
     try {
       setLoading(true);
+      const supabase = supabaseBrowser();
+      
+      // Clean up existing auth state first
+      Object.keys(localStorage).forEach((key) => {
+        if (key.startsWith("supabase.auth.") || key.includes("sb-")) {
+          localStorage.removeItem(key);
+        }
+      });
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -109,6 +118,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   ) => {
     try {
       setLoading(true);
+      const supabase = supabaseBrowser();
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -213,6 +223,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       });
 
       // Attempt global sign out
+      const supabase = supabaseBrowser();
       await supabase.auth.signOut({ scope: "global" });
 
       // Clear state immediately
@@ -239,6 +250,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   // Function to check admin role
   const checkAdminRole = async (userId: string, email: string) => {
     try {
+      const supabase = supabaseBrowser();
       const { data, error } = await supabase
         .from("admin_user_assignments")
         .select("role")
@@ -271,6 +283,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
   useEffect(() => {
     let initialSessionChecked = false;
+    const supabase = supabaseBrowser();
+    
     // Set up auth state listener
     const {
       data: { subscription },
@@ -342,6 +356,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       if (!targetUserId) return null;
 
       // First, try to get the user profile by user_id
+      const supabase = supabaseBrowser();
       const { data, error } = await supabase
         .from("user_profiles")
         .select("*")

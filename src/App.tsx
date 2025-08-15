@@ -3,9 +3,10 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AppProvider } from "@/contexts/AppContext";
+import { supabaseBrowser } from "@/lib/supabase/browser";
 import Layout from "@/components/Layout";
 import Index from "./pages/Index";
 import Create from "./pages/Create";
@@ -39,6 +40,32 @@ import { SpinnerIcon } from "@livekit/components-react";
 
 const queryClient = new QueryClient();
 
+// Auth state sync component to handle session consistency
+function AuthStateSync() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const supabase = supabaseBrowser();
+    
+    // Sync auth state across tabs and handle auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state changed:', event, session?.user?.email);
+      
+      // Force a page reload on auth changes to ensure clean state
+      if (event === 'SIGNED_OUT' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        // Small delay to ensure auth state is fully processed
+        setTimeout(() => {
+          window.location.reload();
+        }, 100);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
+
+  return null;
+}
+
 const App = () => {
   return (
     <ThemeProvider defaultTheme="light">
@@ -48,6 +75,7 @@ const App = () => {
             <Toaster />
             <Sonner />
             <BrowserRouter>
+              <AuthStateSync />
               <Suspense
                 fallback={
                   <div className="flex items-center justify-center h-screen">
@@ -68,7 +96,7 @@ const App = () => {
                     {/* <Route path="/channel/:channelId" element={<ChannelPage />} /> */}
                     <Route path="/events" element={<Events />} />
                     <Route path="/event/:eventId" element={<EventPage />} />
-                    <Route path="/stage/:eventId" element={<StagePage />} />
+                    <Route path="/stage/:eventId" element={<StagePage key={`stage-${Date.now()}`} />} />
                     {/* <Route path="/profile" element={<Profile />} /> */}
                     <Route path="/profile/:userId" element={<Profile />} />
                     <Route

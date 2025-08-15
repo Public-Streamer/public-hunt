@@ -5,7 +5,9 @@ import {
   useSearchParams,
   useNavigate,
 } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { supabaseBrowser } from "@/lib/supabase/browser";
+import { getCurrentUser } from "@/lib/auth/whoami";
+import { useIdentityGuard } from "@/hooks/useIdentityGuard";
 import { LiveKitRoomLazy, RoomAudioRendererLazy } from "@/lib/livekitLazy";
 import "@livekit/components-styles";
 import { StreamerInterface } from "@/components/StreamerInterface";
@@ -15,6 +17,10 @@ import { useQuery } from "@tanstack/react-query";
 const StagePage: React.FC = () => {
   const { eventId } = useParams<{ eventId: string }>();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  // Identity guard to prevent cross-account session mix-ups
+  useIdentityGuard();
 
   // const [event, setEvent] = useState<any>(null);
   const [streamId, setStreamId] = useState<string | null>(null);
@@ -25,7 +31,6 @@ const StagePage: React.FC = () => {
   const [serverUrl, setServerUrl] = useState<string>("");
   const [tokenLoading, setTokenLoading] = useState(false);
   const tokenGenerated = useRef(false);
-  const navigate = useNavigate();
   // Store access token for optional best-effort unload pings
   const accessTokenRef = useRef<string | null>(null);
   const inviteToken = searchParams.get("token");
@@ -39,6 +44,8 @@ const StagePage: React.FC = () => {
         throw new Error("Event ID is required");
       }
 
+      const supabase = supabaseBrowser();
+      
       // Import utility functions to handle both UUID and slug
       const { parseEventIdentifier } = await import("@/lib/eventUtils");
       const { isUuid, identifier } = parseEventIdentifier(eventId);
@@ -67,6 +74,7 @@ const StagePage: React.FC = () => {
         throw new Error("Event ID is required");
       }
 
+      const supabase = supabaseBrowser();
       const streamQuery = supabase
         .from("event_streams")
         .select("id, streamer_counts")
@@ -92,17 +100,15 @@ const StagePage: React.FC = () => {
     }
   }, [streamData]);
 
+  // Identity guard and role check
   useEffect(() => {
     const checkAuthAndAssignRole = async () => {
       try {
-        // Check authentication
-        const {
-          data: { user: currentUser },
-          error: authError,
-        } = await supabase.auth.getUser();
+        // Get current user identity
+        const currentUser = await getCurrentUser();
 
-        if (authError || !currentUser) {
-          toast.error("Please log in to access the stage");
+        if (!currentUser) {
+          navigate("/login");
           return;
         }
 
@@ -123,6 +129,7 @@ const StagePage: React.FC = () => {
         }
 
         // Check if user is assigned as streamer (use actual event UUID)
+        const supabase = supabaseBrowser();
         const { data: streamerData } = await supabase
           .from("event_streamers")
           .select("*")
@@ -153,7 +160,7 @@ const StagePage: React.FC = () => {
     };
 
     checkAuthAndAssignRole();
-  }, [eventId, eventData, inviteToken]);
+  }, [eventId, eventData, inviteToken, navigate]);
 
   // Generate LiveKit token when event and user role are available
   useEffect(() => {
@@ -180,6 +187,7 @@ const StagePage: React.FC = () => {
             console.log("Invite token payload:", payload);
 
             // Get current user session
+            const supabase = supabaseBrowser();
             const {
               data: { session },
               error: sessionError,
@@ -238,6 +246,7 @@ const StagePage: React.FC = () => {
         }
 
         // Generate token through regular flow for hosts and assigned streamers
+        const supabase = supabaseBrowser();
         const {
           data: { session },
           error: sessionError,
