@@ -16,16 +16,9 @@ jobs:
       - name: SSH into VPS and deploy
         uses: appleboy/ssh-action@v0.1.0
         with:
-          host: 145.79.0.52
-          username: root
-          key: "-----BEGIN OPENSSH PRIVATE KEY-----
-b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
-QyNTUxOQAAACCULYZtjaheLW+/DylpR6USf+/etMblAoKG+bf6vu2HcQAAAKhPeeOeT3nj
-ngAAAAtzc2gtZWQyNTUxOQAAACCULYZtjaheLW+/DylpR6USf+/etMblAoKG+bf6vu2HcQ
-AAAEBrRaHMlH7LkTAdocWVo00vqRj993sg+FdU8AXDL3buopQthm2NqF4tb78PKWlHpRJ/
-7960xuUCgob5t/q+7YdxAAAAHnBlcnNvbmFsLmFiZHVycmFobWFuQGdtYWlsLmNvbQECAw
-QFBgc=
------END OPENSSH PRIVATE KEY-----"
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
           script: |
 
             # Navigate to the project directory
