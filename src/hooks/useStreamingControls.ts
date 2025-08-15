@@ -1421,14 +1421,14 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
 
       setTimeout(async () => {
         const result = await checkStreamerCounts();
-        if (result && result < 2) {
-          const {
-            data: { session: latestSession },
-          } = await supabase.auth.getSession();
-          if (latestSession) {
-            await closeRoom(latestSession);
-          }
-        }
+        // if (result && result < 2) {
+        //   const {
+        //     data: { session: latestSession },
+        //   } = await supabase.auth.getSession();
+        //   if (latestSession) {
+        //     await closeRoom(latestSession);
+        //   }
+        // }
         setControlsLoading(false);
         await navigateToEvent();
       }, 10);
@@ -1447,7 +1447,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
     isVideoEnabled,
     isAudioEnabled,
     navigateToEvent,
-    closeRoom,
+
   ]);
 
   const stopEvent = useCallback(async () => {
