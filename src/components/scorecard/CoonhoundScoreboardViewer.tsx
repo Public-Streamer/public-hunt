@@ -230,6 +230,7 @@ export const CoonhoundScoreboardViewer: React.FC<Props> = ({ eventId, isViewer =
         .eq("id", eventId)
         .maybeSingle();
       const ct = (ev?.metadata as any)?.scorecard_cast_timers as CastTimers;
+      console.log('Initial cast timers loaded:', ct);
       if (ct) setCastTimers(ct);
 
       const { data: rows } = await supabase
@@ -255,8 +256,47 @@ export const CoonhoundScoreboardViewer: React.FC<Props> = ({ eventId, isViewer =
         (payload) => {
           const meta = (payload.new as any)?.metadata;
           const ct = meta?.scorecard_cast_timers as CastTimers | undefined;
+          
+          console.log('Cast timers update received:', {
+            fullMetadata: meta,
+            castTimers: ct,
+            timestamp: new Date().toISOString()
+          });
+          
           if (ct) {
-            setCastTimers(ct);
+            // Validate and clean the cast timer data
+            const cleanedTimers: CastTimers = {
+              mainHuntMinutes: ct.mainHuntMinutes,
+              server_updated_at: ct.server_updated_at,
+            };
+            
+            // Validate each timer and only include valid ones
+            if (ct.mainHunt && typeof ct.mainHunt === 'object' && 
+                typeof ct.mainHunt.status === 'string' && 
+                typeof ct.mainHunt.remaining === 'number') {
+              cleanedTimers.mainHunt = ct.mainHunt;
+            }
+            
+            if (ct.track && typeof ct.track === 'object' && 
+                typeof ct.track.status === 'string' && 
+                typeof ct.track.remaining === 'number') {
+              cleanedTimers.track = ct.track;
+            }
+            
+            if (ct.globalShine && typeof ct.globalShine === 'object' && 
+                typeof ct.globalShine.status === 'string' && 
+                typeof ct.globalShine.remaining === 'number') {
+              cleanedTimers.globalShine = ct.globalShine;
+            }
+            
+            if (ct.babbling && typeof ct.babbling === 'object' && 
+                typeof ct.babbling.status === 'string' && 
+                typeof ct.babbling.remaining === 'number') {
+              cleanedTimers.babbling = ct.babbling;
+            }
+            
+            console.log('Setting cleaned cast timers:', cleanedTimers);
+            setCastTimers(cleanedTimers);
             setOpenHunt(true);
             triggerGlow('hunt', 'warning');
           }
@@ -377,53 +417,75 @@ export const CoonhoundScoreboardViewer: React.FC<Props> = ({ eventId, isViewer =
 
   // Convert cast timers to format expected by ScorecardSummary
   const castTimersForSummary = useMemo(() => {
+    console.log('castTimersForSummary recalculating with:', castTimers);
     const results = [];
     
-    // Main Hunt Timer
-    if (castTimers.mainHunt && (castTimers.mainHunt.status === "running" || castTimers.mainHunt.status === "paused" || castTimers.mainHunt.status === "finished")) {
+    // Main Hunt Timer - include all valid statuses
+    if (castTimers.mainHunt && 
+        castTimers.mainHunt.status && 
+        typeof castTimers.mainHunt.remaining === 'number' &&
+        (castTimers.mainHunt.status === "running" || castTimers.mainHunt.status === "paused" || castTimers.mainHunt.status === "finished")) {
       const remaining = liveRemaining(castTimers.mainHunt.remaining, castTimers.server_updated_at, castTimers.mainHunt.status);
       const huntMinutes = castTimers.mainHuntMinutes || 120;
-      results.push({
+      const timer = {
         key: "hunt",
         label: `Main Hunt ${huntMinutes} minutes`,
         status: castTimers.mainHunt.status,
-        formatted: castTimers.mainHunt.status === "finished" && remaining === 0 ? "00:00" : formatMMSS(remaining)
-      });
+        formatted: castTimers.mainHunt.status === "finished" && remaining <= 0 ? "00:00" : formatMMSS(remaining)
+      };
+      console.log('Adding main hunt timer:', timer);
+      results.push(timer);
     }
     
-    // Track Timer
-    if (castTimers.track && (castTimers.track.status === "running" || castTimers.track.status === "paused" || castTimers.track.status === "finished")) {
+    // Track Timer - include all valid statuses
+    if (castTimers.track && 
+        castTimers.track.status && 
+        typeof castTimers.track.remaining === 'number' &&
+        (castTimers.track.status === "running" || castTimers.track.status === "paused" || castTimers.track.status === "finished")) {
       const remaining = liveRemaining(castTimers.track.remaining, castTimers.server_updated_at, castTimers.track.status);
-      results.push({
+      const timer = {
         key: "track",
         label: "Track 6 minutes",
         status: castTimers.track.status,
-        formatted: castTimers.track.status === "finished" && remaining === 0 ? "00:00" : formatMMSS(remaining)
-      });
+        formatted: castTimers.track.status === "finished" && remaining <= 0 ? "00:00" : formatMMSS(remaining)
+      };
+      console.log('Adding track timer:', timer);
+      results.push(timer);
     }
     
-    // Global Shine Timer
-    if (castTimers.globalShine && (castTimers.globalShine.status === "running" || castTimers.globalShine.status === "paused" || castTimers.globalShine.status === "finished")) {
+    // Global Shine Timer - include all valid statuses
+    if (castTimers.globalShine && 
+        castTimers.globalShine.status && 
+        typeof castTimers.globalShine.remaining === 'number' &&
+        (castTimers.globalShine.status === "running" || castTimers.globalShine.status === "paused" || castTimers.globalShine.status === "finished")) {
       const remaining = liveRemaining(castTimers.globalShine.remaining, castTimers.server_updated_at, castTimers.globalShine.status);
-      results.push({
+      const timer = {
         key: "globalShine",
         label: "Global Shine 8 minutes",
         status: castTimers.globalShine.status,
-        formatted: castTimers.globalShine.status === "finished" && remaining === 0 ? "00:00" : formatMMSS(remaining)
-      });
+        formatted: castTimers.globalShine.status === "finished" && remaining <= 0 ? "00:00" : formatMMSS(remaining)
+      };
+      console.log('Adding global shine timer:', timer);
+      results.push(timer);
     }
     
-    // Babbling Timer
-    if (castTimers.babbling && (castTimers.babbling.status === "running" || castTimers.babbling.status === "paused" || castTimers.babbling.status === "finished")) {
+    // Babbling Timer - include all valid statuses
+    if (castTimers.babbling && 
+        castTimers.babbling.status && 
+        typeof castTimers.babbling.remaining === 'number' &&
+        (castTimers.babbling.status === "running" || castTimers.babbling.status === "paused" || castTimers.babbling.status === "finished")) {
       const remaining = liveRemaining(castTimers.babbling.remaining, castTimers.server_updated_at, castTimers.babbling.status);
-      results.push({
+      const timer = {
         key: "babbling",
         label: "Babbling 1 Minute",
         status: castTimers.babbling.status,
-        formatted: castTimers.babbling.status === "finished" && remaining === 0 ? "00:00" : formatMMSS(remaining)
-      });
+        formatted: castTimers.babbling.status === "finished" && remaining <= 0 ? "00:00" : formatMMSS(remaining)
+      };
+      console.log('Adding babbling timer:', timer);
+      results.push(timer);
     }
     
+    console.log('Final cast timers for summary:', results);
     return results;
   }, [castTimers, tick]);
 
