@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Trophy, Users, Clock } from 'lucide-react';
 import type { Scorecard } from '@/lib/viewerState';
+import { FullScorecardGrid } from '@/components/Scorecard/FullScorecardGrid';
+import type { FullScorecardDTO } from '@/lib/types';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ScorecardsPanelProps {
   scorecards: Scorecard[];
@@ -99,6 +102,46 @@ export const ScorecardsPanel: React.FC<ScorecardsPanelProps> = ({
   scorecards, 
   eventId 
 }) => {
+  const [fullScorecards, setFullScorecards] = useState<FullScorecardDTO[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch full scorecard data for unified display
+  useEffect(() => {
+    const fetchFullScorecards = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          setLoading(false);
+          return;
+        }
+
+        const response = await fetch(`/api/events/${eventId}/scorecards/full`, {
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setFullScorecards(data);
+        } else {
+          console.error('Failed to fetch full scorecards:', response.statusText);
+        }
+      } catch (error) {
+        console.error('Error fetching full scorecards:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFullScorecards();
+  }, [eventId]);
+
+  // If we have full scorecard data, use the unified display
+  if (!loading && fullScorecards.length > 0) {
+    return <FullScorecardGrid scorecards={fullScorecards} eventId={eventId} />;
+  }
   // Sort scorecards by score descending, then by last updated
   const sortedScorecards = [...scorecards].sort((a, b) => {
     const scoreA = (a.fields.score as number) || 0;
