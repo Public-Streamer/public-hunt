@@ -233,7 +233,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                     className="flex items-center space-x-1 text-white/80 font-medium text-xs overflow-hidden mt-1 min-w-0"
                     style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.8)" }}
                   >
-                    <Play
+                    <Zap
                       className="text-yellow-300 h-2.5 w-2.5 flex-shrink-0"
                       style={{
                         filter: "drop-shadow(2px 2px 4px rgba(0,0,0,0.7))",
@@ -245,12 +245,14 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                     {/* <div className="flex-shrink-0 mx-0.5">
                       <AnimatedConnector isMobile={true} />
                     </div> */}
-                    <Zap
+
+                    <Play
                       className="text-yellow-300 h-2.5 w-2.5 flex-shrink-0"
                       style={{
                         filter: "drop-shadow(2px 2px 4px rgba(0,0,0,0.7))",
                       }}
                     />
+
                     <span className="whitespace-nowrap text-[10px] sm:text-xs">
                       Hunt & Earn
                     </span>
@@ -341,7 +343,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
 
                       <img
                         className="h-10"
-                        src="dogLogo.png"
+                        src="/dogLogo.png"
                         alt="Doghunt Logo"
                       />
                       <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/60 to-transparent opacity-40 pointer-events-none"></div>
@@ -410,20 +412,21 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                       style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.8)" }}
                     >
                       <div className="flex items-center space-x-1">
-                        <Triangle
-                          className="rotate-90 text-yellow-300 h-4 w-4"
+                        <Zap
+                          className="text-yellow-300 h-4 w-4"
                           style={{
                             filter: "drop-shadow(2px 2px 4px rgba(0,0,0,0.7))",
                           }}
                         />
+
                         <span className="whitespace-nowrap">Stream Live</span>
                       </div>
 
                       <div className="flex items-center space-x-1">
                         {/* <AnimatedConnector isMobile={false} /> */}
 
-                        <Zap
-                          className="text-yellow-300 h-4 w-4"
+                        <Triangle
+                          className="rotate-90 text-yellow-300 h-4 w-4"
                           style={{
                             filter: "drop-shadow(2px 2px 4px rgba(0,0,0,0.7))",
                           }}
