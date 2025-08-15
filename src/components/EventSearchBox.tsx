@@ -236,7 +236,7 @@ const EventSearchBox: React.FC<EventSearchBoxProps> = ({
                   >
                     <MediaBackground
                       src={result.thumbnail}
-                      fallback="/placeholder.gif"
+                      fallback="/placeholder.svg"
                       className="w-full h-full"
                     />
                   </Link>

@@ -623,7 +623,7 @@ const EventPage: React.FC = () => {
               ) : (
                 <MediaBackground
                   src={eventData?.media_urls?.[0]}
-                  fallback="/placeholder.gif"
+                  fallback="/placeholder.svg"
                   className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100"
                 >
                   {/* Show 10-Second Preview for Paid Live Events */}
@@ -634,12 +634,12 @@ const EventPage: React.FC = () => {
                   !canEnterStage &&
                   isLive ? (
                     <EventStreamPreview
-                      mediaUrls={eventData?.media_urls || ["/placeholder.gif"]}
+                      mediaUrls={eventData?.media_urls || ["/placeholder.svg"]}
                       eventId={eventData?.id}
                       eventName={eventData?.name}
                       isLive={isLive}
                       fallbackImage={
-                        eventData?.media_urls?.[0] || "/placeholder.gif"
+                        eventData?.media_urls?.[0] || "/placeholder.svg"
                       }
                       hasAccess={hasTicket || canEnterStage}
                     />
