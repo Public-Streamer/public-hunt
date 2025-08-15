@@ -44,7 +44,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
     const sparkClass = isMobile ? "h-1 w-1" : "h-1.5 w-1.5";
 
     switch (animationIndex) {
-      case 0: // Strobing triangle
+      case 0: // Static triangle (strobe animation disabled for performance)
         return (
           <Triangle
             className={`text-yellow-400 ${
@@ -53,7 +53,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
             style={{
               filter:
                 "drop-shadow(2px 2px 4px rgba(0,0,0,0.7)) brightness(1.3)",
-              animation: "strobe 1.5s ease-in-out infinite",
+              // Removed strobe animation that was causing performance issues
             }}
           />
         );

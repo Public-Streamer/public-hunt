@@ -40,24 +40,17 @@ import { SpinnerIcon } from "@livekit/components-react";
 
 const queryClient = new QueryClient();
 
-// Auth state sync component to handle session consistency
+// Simplified auth state sync - no aggressive reloads
 function AuthStateSync() {
   const navigate = useNavigate();
 
   useEffect(() => {
     const supabase = supabaseBrowser();
     
-    // Sync auth state across tabs and handle auth changes
+    // Only sync auth state, don't force reloads
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('Auth state changed:', event, session?.user?.email);
-      
-      // Force a page reload on auth changes to ensure clean state
-      if (event === 'SIGNED_OUT' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-        // Small delay to ensure auth state is fully processed
-        setTimeout(() => {
-          window.location.reload();
-        }, 100);
-      }
+      // No forced reloads - let React handle state updates naturally
     });
 
     return () => subscription.unsubscribe();
@@ -96,7 +89,7 @@ const App = () => {
                     {/* <Route path="/channel/:channelId" element={<ChannelPage />} /> */}
                     <Route path="/events" element={<Events />} />
                     <Route path="/event/:eventId" element={<EventPage />} />
-                    <Route path="/stage/:eventId" element={<StagePage key={`stage-${Date.now()}`} />} />
+                    <Route path="/stage/:eventId" element={<StagePage />} />
                     {/* <Route path="/profile" element={<Profile />} /> */}
                     <Route path="/profile/:userId" element={<Profile />} />
                     <Route

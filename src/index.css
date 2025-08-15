@@ -78,23 +78,11 @@
   }
 }
 
-/* Strobe animation for triangle */
+/* Strobe animation for triangle - DISABLED for performance */
 @keyframes strobe {
   0%, 100% {
     color: rgb(255 255 0); /* bright yellow */
-    filter: drop-shadow(0 0 8px rgb(255 255 0)) brightness(1.5);
-  }
-  25% {
-    color: rgb(255 165 0); /* orange */
-    filter: drop-shadow(0 0 10px rgb(255 165 0)) brightness(1.7);
-  }
-  50% {
-    color: rgb(0 255 0); /* bright green */
-    filter: drop-shadow(0 0 12px rgb(0 255 0)) brightness(1.8);
-  }
-  75% {
-    color: rgb(0 255 255); /* cyan */
-    filter: drop-shadow(0 0 10px rgb(0 255 255)) brightness(1.6);
+    /* Removed filter effects that cause performance issues */
   }
 }
 

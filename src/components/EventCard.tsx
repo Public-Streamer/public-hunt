@@ -84,8 +84,7 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
     const eventUrl = (event as any).slug
       ? `/event/${(event as any).slug}`
       : `/event/${event.id}`;
-    // Force fresh navigation to prevent cached user state
-    window.location.href = eventUrl;
+    navigate(eventUrl);
   };
 
   const handleAction = (e: React.MouseEvent) => {
@@ -93,8 +92,7 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
     const eventUrl = (event as any).slug
       ? `/event/${(event as any).slug}`
       : `/event/${event.id}`;
-    // Force fresh navigation to prevent cached user state
-    window.location.href = eventUrl;
+    navigate(eventUrl);
 
     if (!isAuthenticated) {
       navigate("/login");
@@ -107,8 +105,7 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
       const eventUrl = (event as any).slug
         ? `/event/${(event as any).slug}`
         : `/event/${event.id}`;
-      // Force fresh navigation to prevent cached user state
-      window.location.href = eventUrl;
+      navigate(eventUrl);
     }
   };
 
