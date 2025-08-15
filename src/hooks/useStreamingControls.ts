@@ -1452,6 +1452,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
 
   const stopEvent = useCallback(async () => {
     try {
+      setControlsLoading(true);
       const {
         data: { session },
         error: sessionError,
@@ -1480,7 +1481,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
         toast.error("Failed to stop event");
         return;
       }
-
+      setControlsLoading(false);
       toast.success("Event stopped successfully");
     } catch (error) {
       console.error("Error stopping event:", error);

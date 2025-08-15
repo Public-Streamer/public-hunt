@@ -392,6 +392,8 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     }
   };
 
+  console.log("controls", controls.controlsLoading);
+
   // Edit handlers
   const handleEditClick = () => {
     setEditValue(eventTitle);
@@ -861,7 +863,11 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                         className="mr-1 flex-shrink-0"
                       />
                       <Play className="h-4 w-4 sm:h-4 sm:w-4 md:h-5 md:w-5 mr-1 sm:mr-2 flex-shrink-0" />
-                      <span className="truncate">Go Live</span>
+                      {controls.controlsLoading ? (
+                        <span className="animate-pulse">Starting...</span>
+                      ) : (
+                        <span>Go Live</span>
+                      )}
                     </Button>
                   ) : (
                     <div className="space-y-2">
@@ -878,10 +884,16 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                             variant="destructive"
                             className="w-full text-xs sm:text-sm"
                             size={screenSize === "mobile" ? "sm" : "lg"}
-                            disabled={controlsLocked}
+                            disabled={
+                              controlsLocked || controls.controlsLoading
+                            }
                           >
                             <Square className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                            Stop Stream (for you)
+                            {controls.controlsLoading ? (
+                              <span className="animate-pulse">Stopping...</span>
+                            ) : (
+                              <span>Stop Stream (for you)</span>
+                            )}
                           </Button>
                         </span>
                       </TooltipWrapper>
@@ -891,9 +903,14 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                           variant="destructive"
                           className="w-full text-xs sm:text-sm"
                           size={screenSize === "mobile" ? "sm" : "lg"}
+                          disabled={controlsLocked || controls.controlsLoading}
                         >
                           <Square className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                          Stop Event (for all)
+                          {controls.controlsLoading ? (
+                            <span className="animate-pulse">Stopping...</span>
+                          ) : (
+                            <span>Stop Event (for all)</span>
+                          )}
                         </Button>
                       )}
                     </div>
