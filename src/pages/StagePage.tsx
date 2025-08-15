@@ -119,6 +119,18 @@ const StagePage: React.FC = () => {
 
         console.log("StagePage - Current authenticated user:", currentUser.email);
         
+        // Force identity verification with getCurrentUser from whoami utility
+        const verifiedUser = await getCurrentUser();
+        if (!verifiedUser || verifiedUser.email !== currentUser.email) {
+          console.error("Identity mismatch detected! Forcing fresh login.", {
+            supabaseUser: currentUser.email,
+            verifiedUser: verifiedUser?.email
+          });
+          window.location.href = "/login";
+          return;
+        }
+        console.log("Identity verified:", verifiedUser.email);
+        
         const userForState = {
           id: currentUser.id,
           email: currentUser.email || ''

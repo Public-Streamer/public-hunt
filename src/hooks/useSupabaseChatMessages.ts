@@ -13,7 +13,7 @@ interface ChatMessage {
   created_at: string;
 }
 
-export const useSupabaseChatMessages = (eventId: string,  camName?: string) => {
+export const useSupabaseChatMessages = (eventId: string) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [connectionStatus, setConnectionStatus] = useState<
@@ -21,9 +21,7 @@ export const useSupabaseChatMessages = (eventId: string,  camName?: string) => {
   >("connecting");
   const { currentUserProfile, isAuthenticated, user } = useAppContext();
   
-  if(camName === user?.email){
-    camName = ""
-  }
+  // Always use authenticated user's identity, never contaminate with camName email addresses
 
   // Fetch existing messages
   const fetchMessages = useCallback(async () => {
@@ -67,7 +65,7 @@ export const useSupabaseChatMessages = (eventId: string,  camName?: string) => {
             event_id: eventId,
             user_id: currentUserProfile.user_id,
             username: currentUserProfile.username || "unknown",
-            display_name: camName ? camName : currentUserProfile.display_name || "Anonymous",
+            display_name: currentUserProfile.display_name || "Anonymous",
             profile_picture_url: currentUserProfile.profile_picture_url || null,
             message: messageContent,
             message_type: "user",
@@ -83,7 +81,7 @@ export const useSupabaseChatMessages = (eventId: string,  camName?: string) => {
         throw error;
       }
     },
-    [eventId, currentUserProfile, isAuthenticated, camName]
+    [eventId, currentUserProfile, isAuthenticated]
   );
 
   // Delete message function

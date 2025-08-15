@@ -51,10 +51,7 @@ const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
   className = "",
   eventHostId,
 }) => {
-  const { messages, sendMessage, deleteMessage } = useSupabaseChatMessages(
-    eventId,
-    camName
-  );
+  const { messages, sendMessage, deleteMessage } = useSupabaseChatMessages(eventId);
   const { currentUserProfile } = useAppContext();
   const screenSize = useScreenSize();
   const { toast } = useToast();
@@ -67,7 +64,8 @@ const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
     null
   );
 
-  console.log(camName);
+  // Debug: log current user identity
+  console.log("Chat user identity:", currentUserProfile?.display_name, currentUserProfile?.user_id);
 
   // Auto-scroll to bottom on initial render
   useEffect(() => {
