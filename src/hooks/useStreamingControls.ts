@@ -470,6 +470,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
     currentCamera,
     setActiveMediaDevice,
     getCameraType,
+    isTorchEnabled,
   ]);
 
   // Helper function to update participant live status

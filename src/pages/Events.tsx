@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Input } from "@/components/ui/input";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,25 +16,16 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
-  Star,
   Eye,
-  ChevronDown,
-  ChevronUp,
-  Plus,
   History,
   Clock,
-  DollarSign,
   User,
   Edit2,
   Trash2,
   Loader,
   Play,
+  Plus,
 } from "lucide-react";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import TooltipWrapper from "@/components/ui/tooltip-wrapper";
 import EventRankingControls, {
@@ -47,7 +38,6 @@ import { useAppContext } from "@/contexts/AppContext";
 import EditEventModal from "@/components/EditEventModal";
 import { useToast } from "@/hooks/use-toast";
 import MediaBackground from "@/components/MediaBackground";
-import { SpinnerIcon } from "@livekit/components-react";
 
 interface Event {
   id: string;
