@@ -379,44 +379,48 @@ export const CoonhoundScoreboardViewer: React.FC<Props> = ({ eventId, isViewer =
   const castTimersForSummary = useMemo(() => {
     const results = [];
     
-    if (castTimers.mainHunt?.status === "running") {
+    // Main Hunt Timer
+    if (castTimers.mainHunt && (castTimers.mainHunt.status === "running" || castTimers.mainHunt.status === "paused" || castTimers.mainHunt.status === "finished")) {
       const remaining = liveRemaining(castTimers.mainHunt.remaining, castTimers.server_updated_at, castTimers.mainHunt.status);
       const huntMinutes = castTimers.mainHuntMinutes || 120;
       results.push({
         key: "hunt",
         label: `Main Hunt ${huntMinutes} minutes`,
         status: castTimers.mainHunt.status,
-        formatted: formatMMSS(remaining)
+        formatted: castTimers.mainHunt.status === "finished" && remaining === 0 ? "00:00" : formatMMSS(remaining)
       });
     }
     
-    if (castTimers.track?.status === "running") {
+    // Track Timer
+    if (castTimers.track && (castTimers.track.status === "running" || castTimers.track.status === "paused" || castTimers.track.status === "finished")) {
       const remaining = liveRemaining(castTimers.track.remaining, castTimers.server_updated_at, castTimers.track.status);
       results.push({
         key: "track",
         label: "Track 6 minutes",
         status: castTimers.track.status,
-        formatted: formatMMSS(remaining)
+        formatted: castTimers.track.status === "finished" && remaining === 0 ? "00:00" : formatMMSS(remaining)
       });
     }
     
-    if (castTimers.globalShine?.status === "running") {
+    // Global Shine Timer
+    if (castTimers.globalShine && (castTimers.globalShine.status === "running" || castTimers.globalShine.status === "paused" || castTimers.globalShine.status === "finished")) {
       const remaining = liveRemaining(castTimers.globalShine.remaining, castTimers.server_updated_at, castTimers.globalShine.status);
       results.push({
         key: "globalShine",
         label: "Global Shine 8 minutes",
         status: castTimers.globalShine.status,
-        formatted: formatMMSS(remaining)
+        formatted: castTimers.globalShine.status === "finished" && remaining === 0 ? "00:00" : formatMMSS(remaining)
       });
     }
     
-    if (castTimers.babbling?.status === "running") {
+    // Babbling Timer
+    if (castTimers.babbling && (castTimers.babbling.status === "running" || castTimers.babbling.status === "paused" || castTimers.babbling.status === "finished")) {
       const remaining = liveRemaining(castTimers.babbling.remaining, castTimers.server_updated_at, castTimers.babbling.status);
       results.push({
         key: "babbling",
         label: "Babbling 1 Minute",
         status: castTimers.babbling.status,
-        formatted: formatMMSS(remaining)
+        formatted: castTimers.babbling.status === "finished" && remaining === 0 ? "00:00" : formatMMSS(remaining)
       });
     }
     
