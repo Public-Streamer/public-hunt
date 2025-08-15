@@ -361,7 +361,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                             "3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)",
                         }}
                       >
-                        Public
+                       Doghunt
                       </span>
                       <span
                         className="font-orbitron font-black text-white tracking-wide text-2xl leading-tight -mt-1"
@@ -370,7 +370,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                             "3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)",
                         }}
                       >
-                        Streamer
+                        TV
                       </span>
                     </div>
                     <div
