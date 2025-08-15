@@ -75,6 +75,9 @@ const ScheduledEventCard: React.FC<ScheduledEventCardProps> = ({
           </CardHeader>
           <CardContent className="">
             <p className="text-sm text-gray-600 mb-2">{event.channelName}</p>
+            <div className="text-xs text-gray-600 my-2 line-clamp-2 ">
+              {event.description}
+            </div>
 
             <div className="flex items-center text-sm text-gray-500 mb-2">
               <Calendar className="h-4 w-4 mr-1" />
@@ -83,28 +86,21 @@ const ScheduledEventCard: React.FC<ScheduledEventCardProps> = ({
               <span>{event.startTime}</span>
             </div>
 
-            <div className="text-sm font-medium text-blue-600 mb-2">
-              Starts {event.timeUntilStart}
-            </div>
-
-            <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-blue-600 mb-2">
+                Starts {event.timeUntilStart}
+              </span>
               <TooltipWrapper content="Event price">
                 <span className="flex items-center text-green-600 font-bold">
                   <DollarSign className="h-4 w-4 " />
                   {event.price}
                 </span>
               </TooltipWrapper>
-              <TooltipWrapper content="Event rating">
-                <span className="flex items-center">
-                  <Star className="h-4 w-4 mr-1" />
-                  {event.rating}
-                </span>
-              </TooltipWrapper>
             </div>
 
             <Button
               onClick={handleClick}
-              className="w-full mb-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+              className="w-full my-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
             >
               View Event
             </Button>

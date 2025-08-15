@@ -701,12 +701,17 @@ const Events: React.FC = () => {
                       content={`View ${event.name} - ${event.viewer_count} viewers`}
                     >
                       <Card
-                        className={`hover:shadow-lg transition-all cursor-pointer relative ${
+                        className={`hover:shadow-lg transition-all cursor-pointer relative h-full ${
                           highlightedEvent === event.id
                             ? "ring-4 ring-green-500 ring-opacity-50 shadow-xl"
                             : ""
                         }`}
                       >
+                        <MediaBackground
+                          src={event.media_urls[0]}
+                          className="aspect-video"
+                        />
+
                         <div className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold">
                           #{index + 1}
                         </div>
@@ -773,7 +778,7 @@ const Events: React.FC = () => {
                             </div>
                           )}
                         <div onClick={() => handleEventClick(event)}>
-                          <CardHeader className="pt-8">
+                          <CardHeader className="pt-8 h-full">
                             <div className="flex items-center justify-between">
                               <CardTitle className="text-lg">
                                 {event.name}
@@ -785,23 +790,26 @@ const Events: React.FC = () => {
                               )}
                             </div>
                           </CardHeader>
-                          <CardContent>
-                            <p className="text-sm text-gray-600 mb-2">
+                          <CardContent className="space-y-2">
+                            <p className="text-sm text-gray-600 h-full">
                               {event.category}
                             </p>
-                            <div className="flex items-center justify-between text-sm text-gray-500 mb-2">
-                              <TooltipWrapper content="Event price">
-                                <span className="font-semibold">
-                                  ${event.ticket_price}
-                                </span>
-                              </TooltipWrapper>
+                            <div className="text-xs text-gray-600 mt-2 line-clamp-4 h-full">
+                              {event.description}
+                            </div>
+                            <div className="flex items-center justify-between text-sm text-gray-500 h-full">
                               <TooltipWrapper content="Event location">
                                 <span className="text-xs">
                                   {event.location}
                                 </span>
                               </TooltipWrapper>
+                              <TooltipWrapper content="Event price">
+                                <span className="font-semibold text-green-600">
+                                  ${event.ticket_price}
+                                </span>
+                              </TooltipWrapper>
                             </div>
-                            <div className="flex items-center justify-between text-xs text-gray-400 mb-1">
+                            <div className="flex items-center justify-between text-xs text-gray-400 mb-1 h-full">
                               <TooltipWrapper content="Current viewers">
                                 <span className="flex items-center">
                                   <Eye className="h-3 w-3 mr-1" />
@@ -813,9 +821,6 @@ const Events: React.FC = () => {
                                   event.created_at
                                 ).toLocaleDateString()}
                               </span>
-                            </div>
-                            <div className="text-xs text-gray-600 mt-2 line-clamp-2">
-                              {event.description}
                             </div>
                           </CardContent>
                         </div>
