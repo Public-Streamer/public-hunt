@@ -144,7 +144,7 @@ export const ScorecardSummary: React.FC<ScorecardSummaryProps> = ({ dogs, timerO
                 const running = snap
                   ? keys
                       .map((k) => ({ key: k, t: (snap as any)[k] as DogTimerSnapshotUI }))
-                      .filter((x) => x.t && x.t.status === "running")
+                      .filter((x) => x.t && (x.t.status === "running" || x.t.status === "paused" || x.t.status === "finished"))
                   : [];
                 const { total, pending, plus, minus, circle } = calcTotals(d.entries);
                 return (
@@ -213,13 +213,13 @@ export const ScorecardSummary: React.FC<ScorecardSummaryProps> = ({ dogs, timerO
                     </div>
                     {running.length > 0 && (
                       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 mt-2">
-                        {running.map(({ key, t }) => (
-                          <div key={key} className={`rounded-md p-2 border ${statusCls(t.status)}`}>
-                            <div className="flex items-center justify-between text-xs">
-                              <span className="capitalize">{`${labelMap[key] ?? key} ${durationsMin[key]} minutes`}</span>
-                              <span className="tabular-nums font-semibold">{t.formatted}</span>
-                            </div>
-                          </div>
+                         {running.map(({ key, t }) => (
+                           <div key={key} className={`rounded-md p-2 border ${statusCls(t.status)} ${t.status === 'finished' ? 'animate-pulse' : ''}`}>
+                             <div className="flex items-center justify-between text-xs">
+                               <span className="capitalize">{`${labelMap[key] ?? key} ${durationsMin[key]} minutes`}</span>
+                               <span className={`tabular-nums font-semibold ${t.status === 'finished' ? 'text-destructive font-bold' : ''}`}>{t.formatted}</span>
+                             </div>
+                           </div>
                         ))}
                       </div>
                     )}

@@ -80,6 +80,8 @@ export const CoonhoundScoreboardViewer: React.FC<Props> = ({ eventId, isViewer =
   const [castTimers, setCastTimers] = useState<CastTimers>({});
   const [teams, setTeams] = useState<TeamRow[]>([]);
   const [timerOverview, setTimerOverview] = useState<Record<string, any>>({});
+  const [finishedTimers, setFinishedTimers] = useState<Record<string, Record<string, number>>>({});
+  const [tick, setTick] = useState(0);
 
   // Collapsible open states (open by default for viewers to see content)
   const [openHunt, setOpenHunt] = useState(true);
@@ -91,25 +93,6 @@ export const CoonhoundScoreboardViewer: React.FC<Props> = ({ eventId, isViewer =
   const triggerGlow = (key: string, variant: 'success' | 'danger' | 'warning' | 'info' | 'pending', ms = 5000) => {
     setGlow((prev) => ({ ...prev, [key]: { variant, until: Date.now() + ms } }));
   };
-  useEffect(() => {
-    const id = setInterval(() => {
-      const now = Date.now();
-      setGlow((prev) => {
-        const next: typeof prev = {} as any;
-        let changed = false;
-        for (const k in prev) { if (prev[k].until > now) next[k] = prev[k]; else changed = true; }
-        return changed ? next : prev;
-      });
-    }, 1000);
-    return () => clearInterval(id);
-  }, []);
-
-  // Tick for smooth display of running timers
-  useEffect(() => {
-    const iv = setInterval(() => setTick((t) => (t + 1) % 1000000), 1000);
-    return () => clearInterval(iv);
-  }, []);
-  const [tick, setTick] = useState(0);
 
   // Fetch timer overview for ScorecardSummary component
   const fetchTimerOverview = async () => {
@@ -130,10 +113,45 @@ export const CoonhoundScoreboardViewer: React.FC<Props> = ({ eventId, isViewer =
               const remaining = Math.max(0, Math.floor((timer as any).remaining || 0)); // Use Math.floor to remove decimals
               const minutes = Math.floor(remaining / 60);
               const seconds = remaining % 60;
-              uiTimers[key] = {
-                formatted: `${minutes.toString().padStart(2, '0')}:${Math.floor(seconds).toString().padStart(2, '0')}`,
-                status: (timer as any).status || 'idle'
-              };
+              const status = (timer as any).status || 'idle';
+              
+              // Include timer if it's running, paused, or finished (for strobing effect)
+              if (status === 'running' || status === 'paused') {
+                uiTimers[key] = {
+                  formatted: `${minutes.toString().padStart(2, '0')}:${Math.floor(seconds).toString().padStart(2, '0')}`,
+                  status: status,
+                  remaining: remaining
+                };
+              } else if (status === 'finished' && remaining === 0) {
+                // Check if this finished timer should still be visible (within 1 minute)
+                const finishedAt = finishedTimers[team.id]?.[key];
+                const oneMinute = 60 * 1000;
+                const now = Date.now();
+                
+                if (!finishedAt) {
+                  // First time seeing this finished timer, track it
+                  setFinishedTimers(prev => ({
+                    ...prev,
+                    [team.id]: {
+                      ...prev[team.id],
+                      [key]: now
+                    }
+                  }));
+                  
+                  uiTimers[key] = {
+                    formatted: '00:00',
+                    status: status,
+                    remaining: 0
+                  };
+                } else if (now - finishedAt < oneMinute) {
+                  // Still within the 1-minute strobing window
+                  uiTimers[key] = {
+                    formatted: '00:00',
+                    status: status,
+                    remaining: 0
+                  };
+                }
+              }
             }
           }
           overview[team.id] = uiTimers;
@@ -144,6 +162,64 @@ export const CoonhoundScoreboardViewer: React.FC<Props> = ({ eventId, isViewer =
       console.error('Failed to fetch timer overview:', e);
     }
   };
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      const now = Date.now();
+      setGlow((prev) => {
+        const next: typeof prev = {} as any;
+        let changed = false;
+        for (const k in prev) { if (prev[k].until > now) next[k] = prev[k]; else changed = true; }
+        return changed ? next : prev;
+      });
+    }, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Cleanup finished timers after 1 minute of strobing
+  useEffect(() => {
+    const cleanup = setInterval(() => {
+      const now = Date.now();
+      const oneMinute = 60 * 1000;
+      
+      setFinishedTimers(prev => {
+        const updated = { ...prev };
+        let hasChanges = false;
+        
+        for (const teamId in updated) {
+          for (const timerKey in updated[teamId]) {
+            if (now - updated[teamId][timerKey] > oneMinute) {
+              delete updated[teamId][timerKey];
+              hasChanges = true;
+            }
+          }
+          if (Object.keys(updated[teamId]).length === 0) {
+            delete updated[teamId];
+            hasChanges = true;
+          }
+        }
+        
+        return hasChanges ? updated : prev;
+      });
+      
+      // Also refresh timer overview to remove old finished timers
+      fetchTimerOverview();
+    }, 5000); // Check every 5 seconds
+    
+    return () => clearInterval(cleanup);
+  }, [fetchTimerOverview]); // Add dependency
+
+  // Tick for smooth display of running timers and refresh timer overview frequently
+  useEffect(() => {
+    const iv = setInterval(() => {
+      setTick((t) => (t + 1) % 1000000);
+      // Refresh timer overview every 2 seconds to catch newly started timers quickly
+      if ((tick + 1) % 2 === 0) {
+        fetchTimerOverview();
+      }
+    }, 1000);
+    return () => clearInterval(iv);
+  }, [tick, fetchTimerOverview]);
 
   // Initial fetch
   useEffect(() => {
