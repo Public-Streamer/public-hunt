@@ -99,11 +99,15 @@ export function subscribeEvent(
       });
 
     return {
-      dispose: () => {
+      dispose: async () => {
         console.log(`[Realtime] Disposing subscription for event ${eventId}`);
         batcher.destroy();
         if (channel) {
-          supabase.removeChannel(channel);
+          try {
+            await supabase.removeChannel(channel);
+          } catch (error) {
+            console.warn('[Realtime] Error removing channel:', error);
+          }
           channel = null;
         }
       }

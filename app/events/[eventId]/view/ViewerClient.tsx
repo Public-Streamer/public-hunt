@@ -32,6 +32,7 @@ export default function ViewerClient({ eventId, initialState }: ViewerClientProp
   const subscriptionRef = useRef<RealtimeSubscription | null>(null);
   const watchdogRef = useRef<WatchdogPoller | null>(null);
   const mountedRef = useRef(true);
+  const isReinitializingRef = useRef(false);
 
   // Fetch fresh state from API
   const fetchState = useCallback(async () => {
@@ -45,7 +46,8 @@ export default function ViewerClient({ eventId, initialState }: ViewerClientProp
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
           'Cache-Control': 'no-store'
-        }
+        },
+        cache: 'no-store'
       });
 
       if (!response.ok) {
@@ -102,6 +104,55 @@ export default function ViewerClient({ eventId, initialState }: ViewerClientProp
     }
   }, [isConnected]);
 
+  // Reinitialize function for focus/visibility events
+  const reinitialize = useCallback(async () => {
+    if (isReinitializingRef.current || !mountedRef.current) return;
+    
+    isReinitializingRef.current = true;
+    setIsReconnecting(true);
+    setIsConnected(false);
+
+    try {
+      // Cancel existing subscriptions
+      if (subscriptionRef.current) {
+        subscriptionRef.current.dispose();
+        subscriptionRef.current = null;
+      }
+      
+      if (watchdogRef.current) {
+        watchdogRef.current.stop();
+        watchdogRef.current = null;
+      }
+
+      // Fresh fetch
+      await fetchState();
+
+      if (!mountedRef.current) return;
+
+      // Restart realtime
+      const subscription = subscribeEvent(eventId, handleDeltas);
+      subscriptionRef.current = subscription;
+
+      // Restart watchdog
+      const watchdog = new WatchdogPoller(
+        fetchState,
+        () => {
+          if (mountedRef.current) {
+            setIsConnected(true);
+            setIsReconnecting(false);
+          }
+        }
+      );
+      watchdogRef.current = watchdog;
+      watchdog.start();
+
+    } catch (error) {
+      console.error('[ViewerClient] Reinitialize failed:', error);
+    } finally {
+      isReinitializingRef.current = false;
+    }
+  }, [eventId, fetchState, handleDeltas]);
+
   // Setup realtime and watchdog on mount
   useEffect(() => {
     let mounted = true;
@@ -155,12 +206,34 @@ export default function ViewerClient({ eventId, initialState }: ViewerClientProp
     };
   }, [eventId, handleDeltas, fetchState, isConnected]);
 
+  // Handle visibility and focus events for re-entry
+  useEffect(() => {
+    const onFocus = () => {
+      if (mountedRef.current && !isReinitializingRef.current) {
+        reinitialize();
+      }
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && mountedRef.current && !isReinitializingRef.current) {
+        reinitialize();
+      }
+    };
+
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
+  }, [reinitialize]);
+
   // Handle connection status changes
   useEffect(() => {
     const handleOnline = () => {
-      if (mountedRef.current && !isConnected) {
-        setIsReconnecting(true);
-        fetchState();
+      if (mountedRef.current && !isConnected && !isReinitializingRef.current) {
+        reinitialize();
       }
     };
 
@@ -180,7 +253,7 @@ export default function ViewerClient({ eventId, initialState }: ViewerClientProp
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [fetchState, isConnected]);
+  }, [reinitialize, isConnected]);
 
   const streams = getStreamsArray(state);
   const scorecards = getScorecardsArray(state);

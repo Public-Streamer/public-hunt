@@ -140,7 +140,7 @@ export async function GET(
 
     return NextResponse.json(snapshot, {
       headers: {
-        'Cache-Control': 'no-store, must-revalidate',
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
         'Content-Type': 'application/json'
       }
     });

@@ -47,6 +47,23 @@ const StreamTile: React.FC<StreamTileProps> = ({
     return () => observer.disconnect();
   }, [isVisible]);
 
+  // Re-attach on visibility change (for re-entry scenario)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && isVisible && containerRef.current) {
+        // Force re-check intersection when tab becomes visible
+        const rect = containerRef.current.getBoundingClientRect();
+        const isInViewport = rect.top < window.innerHeight && rect.bottom > 0;
+        if (isInViewport && !isAttached) {
+          setIsAttached(true);
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [isVisible, isAttached]);
+
   return (
     <div 
       ref={containerRef}

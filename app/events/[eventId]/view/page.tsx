@@ -4,6 +4,10 @@ import { createServerClient } from '@supabase/ssr';
 import ViewerClient from './ViewerClient';
 import type { Snapshot } from '@/lib/viewerState';
 
+// Force dynamic rendering to prevent stale state
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 async function getEventState(eventId: string, accessToken?: string): Promise<Snapshot | null> {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
@@ -71,6 +75,7 @@ export default async function ViewPage({
   return (
     <div className="min-h-screen bg-background">
       <ViewerClient 
+        key={`${eventId}-${Date.now()}`}
         eventId={eventId}
         initialState={initialState || fallbackState}
       />
