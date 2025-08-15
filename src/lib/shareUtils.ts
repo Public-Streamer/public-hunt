@@ -8,7 +8,7 @@ export function getShareableEventUrl(eventId: string, slug?: string): string {
   const functionsOrigin = "https://doghunt.tv";
   const eventIdentifier = slug || eventId;
   // Return Edge Function URL for crawlers (serves meta tags) and redirects humans
-  return `${functionsOrigin}/event/${eventIdentifier}`;
+  return `${functionsOrigin}/event-meta-tags/${eventIdentifier}`;
 }
 
 export function getDirectEventUrl(eventId: string, slug?: string): string {
@@ -42,7 +42,7 @@ export async function generateEventShareData(eventId: string) {
         event.description ||
         `Join ${event.name} - Live streaming event on Doghunt`,
       image:
-        event.media_urls?.[0] || `${window.location.origin}/placeholder.svg`,
+        event?.media_urls?.[0] || `${window.location.origin}/placeholder.svg`,
     };
   } catch (error) {
     console.error("Error generating share data:", error);
