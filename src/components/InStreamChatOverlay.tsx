@@ -291,47 +291,47 @@ const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
           isFullscreen && !showControls ? "opacity-0" : "opacity-100"
         }`}
       >
-        <div className="flex items-center gap-2 rounded-lg p-2 shadow-lg">
+        <div className="flex items-center gap-4 rounded-lg p-2 shadow-lg">
           {/* Chat Input - Left Side */}
           {isVisible && (
-            <div className="flex-1 relative max-w-xs">
+            <div className="flex-1 relative max-w-sm">
               <Input
                 value={chatMessage}
                 onChange={(e) => setChatMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Send Message"
-                className="w-full bg-black/20 backdrop-blur-sm text-white placeholder:text-white/80 h-2 md:h-10 text-xs rounded-lg pl-4 pr-10 focus-visible:ring-1 focus-visible:ring-white/40 focus-visible:ring-offset-0 focus-visible:border-white/40"
+                className="w-full bg-black/20 backdrop-blur-sm text-white placeholder:text-white/80 h-10 md:h-12 text-sm rounded-lg pl-4 pr-16 focus-visible:ring-1 focus-visible:ring-white/40 focus-visible:ring-offset-0 focus-visible:border-white/40"
               />
               <Button
                 onClick={handleSendMessage}
                 disabled={!chatMessage.trim()}
-                size={screenSize === "mobile" ? "xs" : "sm"}
-                className="absolute right-1 top-1 h-6 w-6 rounded-md bg-white/20 hover:bg-white/30 transition-all duration-200 border-none p-0"
+                size="sm"
+                className="absolute right-1 top-1 h-8 w-12 md:h-10 md:w-14 rounded-md bg-primary hover:bg-primary/90 transition-all duration-200 border-none flex items-center justify-center shadow-lg"
               >
-                <Plane className="h-4 w-4 text-white rotate-45" />
+                <Plane className="h-5 w-5 md:h-6 md:w-6 text-primary-foreground rotate-45" />
               </Button>
             </div>
           )}
 
-          {/* Control Buttons - Right Side */}
+          {/* Control Buttons - Right Side with more spacing */}
           <div
-            className={`flex items-center gap-2 ${
+            className={`flex items-center gap-4 ${
               !isVisible ? "flex-1 justify-start" : ""
             }`}
           >
             {/* Chat Toggle Button */}
             <Button
               onClick={onVisibilityToggle}
-              size={screenSize === "mobile" ? "xs" : "sm"}
+              size={screenSize === "mobile" ? "sm" : "default"}
               variant="outline"
-              className="bg-black/60 border-white/40 text-white hover:bg-black/80 h-5 px-3 shadow-lg backdrop-blur-sm"
+              className="bg-black/60 border-white/40 text-white hover:bg-black/80 h-8 md:h-10 px-4 shadow-lg backdrop-blur-sm"
             >
               {isVisible ? (
-                <X className="h-4 w-4 mr-1" />
+                <X className="h-4 w-4 mr-2" />
               ) : (
-                <MessageCircle className="h-4 w-4 mr-1" />
+                <MessageCircle className="h-4 w-4 mr-2" />
               )}
-              <span className="text-xs hidden sm:inline">
+              <span className="text-sm hidden sm:inline">
                 {isVisible ? "Hide Chat" : "Show Chat"}
               </span>
             </Button>
@@ -340,9 +340,9 @@ const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
             {showFullscreenToggle && onFullscreenToggle && (
               <Button
                 onClick={onFullscreenToggle}
-                size={screenSize === "mobile" ? "xs" : "sm"}
+                size={screenSize === "mobile" ? "sm" : "default"}
                 variant="outline"
-                className="bg-black/60 border-white/40 text-white hover:bg-black/80 h-5 w-10 px-0 shadow-lg backdrop-blur-sm"
+                className="bg-black/60 border-white/40 text-white hover:bg-black/80 h-8 md:h-10 px-4 shadow-lg backdrop-blur-sm"
               >
                 {isFullscreen ? (
                   <Minimize className="h-4 w-4" />
