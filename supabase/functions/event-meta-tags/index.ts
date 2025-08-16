@@ -72,7 +72,7 @@ serve(async (req) => {
     // Extract event identifier from URL
     let eventIdentifier = pathname.split("/").pop() || "";
 
-    // Handle different URL patterns
+    // Handle different URL patterns //NOTE: This expects the url including /event/ in it
     if (pathname.includes("/event/")) {
       eventIdentifier = pathname.split("/event/")[1];
       console.log("Event identifier from /event/ path:", eventIdentifier);
@@ -131,7 +131,8 @@ serve(async (req) => {
 
     // Generate meta tags
     const publicSiteUrl = Deno.env.get("PUBLIC_SITE_URL");
-    const defaultPublicSite = "https://www.publicstreamer.com";
+    console.log("Public site URL:", publicSiteUrl);
+    const defaultPublicSite = "https://doghunt.tv";
     const baseUrl = url.origin.includes("supabase.co")
       ? publicSiteUrl || defaultPublicSite
       : url.origin;
@@ -139,20 +140,25 @@ serve(async (req) => {
     const eventTitle = event.name;
     const eventDescription =
       event.description ||
-      `Join ${eventTitle} - Live streaming event on Public Streamer`;
+      `Join ${eventTitle} - Live streaming event on Doghunt.tv`;
     let eventImage =
       event?.media_urls && event?.media_urls.length > 0
         ? event?.media_urls[0]
         : "";
     if (!eventImage) {
-      eventImage = `${baseUrl}/placeholder.svg`;
+      eventImage = `${baseUrl}/og-default.jpg`;
     } else if (!/^https?:\/\//i.test(eventImage)) {
       eventImage = `${baseUrl}${
         eventImage.startsWith("/") ? "" : "/"
       }${eventImage}`;
     }
+    // Hints for recrawling and image content-type
+    const updatedTime = new Date().toISOString();
+    const imageType = eventImage.toLowerCase().endsWith(".png")
+      ? "image/png"
+      : "image/jpeg";
     const hostName =
-      hostData?.display_name || hostData?.username || "Public Streamer";
+      hostData?.display_name || hostData?.username || "Doghunt.tv";
     const eventDate = event.date
       ? new Date(event.date).toLocaleDateString()
       : "";
@@ -176,7 +182,7 @@ serve(async (req) => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${eventTitle} - Public Streamer</title>
+  <title>${eventTitle} - Doghunt.tv</title>
   
   <!-- Primary Meta Tags -->
   <meta name="title" content="${eventTitle}">
@@ -188,7 +194,10 @@ serve(async (req) => {
   <meta property="og:title" content="${eventTitle}">
   <meta property="og:description" content="${eventDescription}">
   <meta property="og:image" content="${eventImage}">
-  <meta property="og:site_name" content="Public Streamer">
+  <meta property="og:image:secure_url" content="${eventImage}">
+  <meta property="og:image:type" content="${imageType}">
+  <meta property="og:updated_time" content="${updatedTime}">
+  <meta property="og:site_name" content="Doghunt.tv">
   <link rel="canonical" href="${eventUrl}">
   <!-- Event specific Open Graph tags -->
   ${
@@ -213,8 +222,8 @@ serve(async (req) => {
   <meta property="twitter:image" content="${eventImage}">
   
   <!-- Additional Twitter tags -->
-  <meta name="twitter:creator" content="@publicstreamer">
-  <meta name="twitter:site" content="@publicstreamer">
+  <meta name="twitter:creator" content="@doghunttv">
+  <meta name="twitter:site" content="@doghunttv">
   
   <!-- WhatsApp specific -->
   <meta property="og:image:width" content="1200">

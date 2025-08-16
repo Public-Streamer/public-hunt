@@ -635,7 +635,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
 
         toast({
           title: "Account created successfully!",
-          description: "Welcome to Public Streamer.",
+          description: "Welcome to DogHunt.tv.",
         });
 
         if (onSuccess) {

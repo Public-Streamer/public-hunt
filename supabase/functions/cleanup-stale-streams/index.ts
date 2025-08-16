@@ -72,29 +72,29 @@ serve(async (req) => {
       }
       const hasActive = !!activeStreams;
       console.log("hasActive", hasActive, activeStreams);
-      if (!hasActive) {
-        console.log("closing event", ev.id);
-        // 3a) Mark event not live
-        const { error: updateEventErr } = await admin
-          .from("events")
-          .update({
-            is_live: false,
-            time: new Date().toISOString().slice(11, 19),
-            date: new Date().toISOString().slice(0, 10),
-            livekit_room_name: null,
-          })
-          .eq("id", ev.id);
-        if (updateEventErr) {
-          console.error(
-            `Error updating event ${ev.id} to not live:`,
-            updateEventErr
-          );
-        }
-        await admin.from("event_streams").delete().eq("event_id", ev.id);
-        closed.push(ev.id);
-      } else {
-        stillLive.push(ev.id);
-      }
+      // if (!hasActive) {
+      //   console.log("closing event", ev.id);
+      //   // 3a) Mark event not live
+      //   // const { error: updateEventErr } = await admin
+      //   //   .from("events")
+      //   //   .update({
+      //   //     is_live: false,
+      //   //     time: new Date().toISOString().slice(11, 19),
+      //   //     date: new Date().toISOString().slice(0, 10),
+      //   //     livekit_room_name: null,
+      //   //   })
+      //   //   .eq("id", ev.id);
+      //   // if (updateEventErr) {
+      //   //   console.error(
+      //   //     `Error updating event ${ev.id} to not live:`,
+      //   //     updateEventErr
+      //   //   );
+      //   // }
+      //   // await admin.from("event_streams").delete().eq("event_id", ev.id);
+      //   closed.push(ev.id);
+      // } else {
+      //   stillLive.push(ev.id);
+      // }
     }
     return new Response(
       JSON.stringify({

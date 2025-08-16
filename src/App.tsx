@@ -46,10 +46,12 @@ function AuthStateSync() {
 
   useEffect(() => {
     const supabase = supabaseBrowser();
-    
+
     // Only sync auth state, don't force reloads
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state changed:', event, session?.user?.email);
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth state changed:", event, session?.user?.email);
       // No forced reloads - let React handle state updates naturally
     });
 
@@ -73,7 +75,7 @@ const App = () => {
                 fallback={
                   <div className="flex items-center justify-center h-screen">
                     <img
-                      src="/logo.png"
+                      src="/sLogo.png"
                       className="w-24 h-24 animate-pulse"
                       alt="Logo"
                     />

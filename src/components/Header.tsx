@@ -170,12 +170,17 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                       }}
                     />
 
-                    <Play
+                    <img
+                      className="h-6 w-6"
+                      src="dogLogo.png"
+                      alt="Doghunt Logo"
+                    />
+                    {/* <Play
                       className="text-white h-6 w-6"
                       style={{
                         filter: "drop-shadow(3px 3px 6px rgba(0,0,0,0.7))",
                       }}
-                    />
+                    /> */}
                     <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/60 to-transparent opacity-40 pointer-events-none"></div>
 
                     {/* Dollar sign to the right of triangle */}
@@ -212,7 +217,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                           "3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)",
                       }}
                     >
-                      Public
+                      Dog
                     </span>
                     <span
                       className="font-orbitron font-black text-white tracking-wide text-xl leading-tight -mt-1"
@@ -221,7 +226,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                           "3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)",
                       }}
                     >
-                      Streamer
+                      Hunt.tv
                     </span>
                   </div>
                   <div
@@ -235,13 +240,21 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                       }}
                     />
                     <span className="whitespace-nowrap text-[10px] sm:text-xs">
-                      Go Live
+                      Stream Live
                     </span>
-                    <div className="flex-shrink-0 mx-0.5">
+                    {/* <div className="flex-shrink-0 mx-0.5">
                       <AnimatedConnector isMobile={true} />
-                    </div>
+                    </div> */}
+
+                    <Play
+                      className="text-yellow-300 h-2.5 w-2.5 flex-shrink-0"
+                      style={{
+                        filter: "drop-shadow(2px 2px 4px rgba(0,0,0,0.7))",
+                      }}
+                    />
+
                     <span className="whitespace-nowrap text-[10px] sm:text-xs">
-                      Get Paid
+                      Hunt & Earn
                     </span>
                     <DollarSign
                       className="text-green-300 h-2.5 w-2.5 flex-shrink-0"
@@ -271,7 +284,9 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                       className="flex items-center hover:bg-white/20 rounded-lg transition-colors space-x-1 p-1"
                     >
                       <Avatar className="h-7 w-7">
-                        <AvatarImage src={currentUserProfile.profile_picture_url} />
+                        <AvatarImage
+                          src={currentUserProfile.profile_picture_url}
+                        />
                         <AvatarFallback className="bg-white text-purple-600 text-sm">
                           {currentUserProfile.display_name[0]}
                         </AvatarFallback>
@@ -312,21 +327,28 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                     <div className="relative z-10 flex items-center justify-center h-full">
                       {/* Lightning bolt to the left of triangle */}
                       <Zap
-                        className="text-yellow-300 animate-pulse h-3 w-3 mr-1"
+                        className="text-yellow-300 animate-pulse h-3 w-3 "
                         style={{
                           filter: "drop-shadow(2px 2px 4px rgba(0,0,0,0.7))",
                           animationDuration: "0.8s",
                         }}
                       />
 
-                      <Play
+                      {/* <Play
                         className="text-white h-8 w-8"
                         style={{
                           filter: "drop-shadow(3px 3px 6px rgba(0,0,0,0.7))",
                         }}
+                      /> */}
+
+                      <img
+                        className="h-10"
+                        src="/dogLogo.png"
+                        alt="Doghunt Logo"
                       />
                       <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/60 to-transparent opacity-40 pointer-events-none"></div>
 
+                      {/* <Crosshair className=" absolute   bottom-3 right-4 w-2 h-2   " /> */}
                       {/* Dollar sign to the right of triangle */}
                       <DollarSign
                         className="text-green-300 animate-pulse h-3 w-3 ml-1"
@@ -336,10 +358,8 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                         }}
                       />
                     </div>
-
                     {/* Subtle Strobe Effect */}
                     <div className="absolute inset-0 rounded-xl bg-white/20 opacity-0 group-hover:opacity-100 group-hover:animate-pulse transition-all duration-300"></div>
-
                     {/* Live Indicator */}
                     <div
                       className="absolute -top-2 -right-2 flex items-center space-x-1 bg-red-500 text-white rounded-full animate-pulse text-xs px-2 py-1"
@@ -351,7 +371,18 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                       <span className="font-bold">LIVE</span>
                     </div>
                   </div>
-
+                  {/* <div
+                    className="bg-gradient-to-br from-white/30 to-white/10 backdrop-blur-sm rounded-xl border border-white/40 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 group p-4 py-6"
+                    style={{
+                      filter: "drop-shadow(4px 4px 8px rgba(0,0,0,0.6))",
+                    }}
+                  >
+                    <img
+                      className="h-10"
+                      src="sLogo.png"
+                      alt="Doghunt Logo"
+                    />
+                  </div> */}
                   <div className="flex flex-col min-w-0 flex-1">
                     <div className="flex flex-col">
                       <span
@@ -361,7 +392,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                             "3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)",
                         }}
                       >
-                        Public
+                        Dog
                       </span>
                       <span
                         className="font-orbitron font-black text-white tracking-wide text-2xl leading-tight -mt-1"
@@ -370,28 +401,44 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                             "3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)",
                         }}
                       >
-                        Streamer
+                        Hunt.tv
                       </span>
                     </div>
+                    <span className="relative inline-block w-[max-content]  text-xs text-white/80 whitespace-nowrap [clip-path:inset(0_100%_0_0)] will-change-[clip-path] animate-typewriter">
+                      by public streamer
+                    </span>
                     <div
-                      className="flex items-center space-x-1 text-white/80 font-medium text-sm mt-1"
+                      className="flex space-x-1 text-white/80 font-medium text-sm mt-1"
                       style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.8)" }}
                     >
-                      <Zap
-                        className="text-yellow-300 h-4 w-4"
-                        style={{
-                          filter: "drop-shadow(2px 2px 4px rgba(0,0,0,0.7))",
-                        }}
-                      />
-                      <span className="whitespace-nowrap">Go Live</span>
-                      <AnimatedConnector isMobile={false} />
-                      <span className="whitespace-nowrap">Get Paid</span>
-                      <DollarSign
-                        className="text-green-300 h-4 w-4"
-                        style={{
-                          filter: "drop-shadow(2px 2px 4px rgba(0,0,0,0.7))",
-                        }}
-                      />
+                      <div className="flex items-center space-x-1">
+                        <Zap
+                          className="text-yellow-300 h-4 w-4"
+                          style={{
+                            filter: "drop-shadow(2px 2px 4px rgba(0,0,0,0.7))",
+                          }}
+                        />
+
+                        <span className="whitespace-nowrap">Stream Live</span>
+                      </div>
+
+                      <div className="flex items-center space-x-1">
+                        {/* <AnimatedConnector isMobile={false} /> */}
+
+                        <Triangle
+                          className="rotate-90 text-yellow-300 h-4 w-4"
+                          style={{
+                            filter: "drop-shadow(2px 2px 4px rgba(0,0,0,0.7))",
+                          }}
+                        />
+                        <span className="whitespace-nowrap">Hunt & Earn </span>
+                        <DollarSign
+                          className="text-green-300 h-4 w-4"
+                          style={{
+                            filter: "drop-shadow(2px 2px 4px rgba(0,0,0,0.7))",
+                          }}
+                        />
+                      </div>
                     </div>
                   </div>
                 </Link>
@@ -479,14 +526,16 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
               </nav>
 
               <div className="flex items-center space-x-2 lg:space-x-3 ml-2 lg:ml-8 flex-shrink-0">
-                { isAuthenticated ? (
+                {isAuthenticated ? (
                   <>
                     <Link
                       to={`/profile/${user.id}`}
                       className="flex items-center hover:bg-white/20 rounded-lg transition-colors space-x-2 p-2"
                     >
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={currentUserProfile?.profile_picture_url} />
+                        <AvatarImage
+                          src={currentUserProfile?.profile_picture_url}
+                        />
                         <AvatarFallback className="bg-white text-purple-600 text-sm">
                           {currentUserProfile?.display_name[0]}
                         </AvatarFallback>

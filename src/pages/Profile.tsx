@@ -67,7 +67,7 @@ const Profile: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <img src="/logo.png" className="w-24 h-24 animate-pulse" alt="Logo" />
+        <img src="/sLogo.png" className="w-24 h-24 animate-pulse" alt="Logo" />
       </div>
     );
   }
