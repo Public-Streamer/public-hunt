@@ -28,7 +28,7 @@ export function ImageModal({
   useEffect(() => {
     if (isOpen) {
       const originalOverflow = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
       return () => {
         document.body.style.overflow = originalOverflow;
       };
@@ -59,9 +59,9 @@ export function ImageModal({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowLeft') goToPrev();
-    if (e.key === 'ArrowRight') goToNext();
-    if (e.key === 'Escape') onClose();
+    if (e.key === "ArrowLeft") goToPrev();
+    if (e.key === "ArrowRight") goToNext();
+    if (e.key === "Escape") onClose();
   };
 
   const handleBackdropClick = (e: React.MouseEvent) => {
@@ -74,19 +74,19 @@ export function ImageModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogOverlay 
-        className="bg-black/80 animate-fade-in" 
+      <DialogOverlay
+        className="backdrop-blur-sm bg-black/40 animate-fade-in"
         onClick={handleBackdropClick}
       />
-      <DialogContent 
-        className="max-w-none max-h-none w-screen h-screen p-0 bg-transparent border-none shadow-none animate-scale-in"
+      <DialogContent
+        className="max-w-none max-h-none w-screen h-screen p-0 bg-transparent border-none shadow-none animate-scale-in "
         onKeyDown={handleKeyDown}
       >
-        <div 
-          className="relative w-full h-full flex items-center justify-center" 
+        <div
+          className="relative w-full h-full flex items-center justify-center"
           onClick={handleBackdropClick}
         >
-          {images.length > 1 && (
+          {/* {images.length > 1 && (
             <Button
               variant="ghost"
               size="icon"
@@ -96,7 +96,7 @@ export function ImageModal({
             >
               &larr;
             </Button>
-          )}
+          )} */}
 
           <div className="relative flex items-center justify-center max-w-[90vw] max-h-[90vh]">
             {imageLoading && (
@@ -107,14 +107,14 @@ export function ImageModal({
             <img
               src={images[currentIndex]}
               alt={`Event image ${currentIndex + 1}`}
-              className="max-h-[90vh] max-w-[90vw] object-contain"
+              className="max-h-[90vh] max-w-[90vw] object-contain rounded-sm"
               onClick={(e) => e.stopPropagation()}
               onLoad={handleImageLoad}
-              style={{ display: imageLoading ? 'none' : 'block' }}
+              style={{ display: imageLoading ? "none" : "block" }}
             />
           </div>
 
-          {images.length > 1 && (
+          {/* {images.length > 1 && (
             <Button
               variant="ghost"
               size="icon"
@@ -124,9 +124,9 @@ export function ImageModal({
             >
               &rarr;
             </Button>
-          )}
+          )} */}
 
-          <Button
+          {/* <Button
             variant="ghost"
             size="icon"
             className="absolute top-4 right-4 z-20 h-10 w-10 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
@@ -134,9 +134,9 @@ export function ImageModal({
             aria-label="Close modal"
           >
             <X className="h-5 w-5" />
-          </Button>
+          </Button> */}
 
-          {images.length > 1 && (
+          {/* {images.length > 1 && (
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2 z-20">
               {images.map((_, index) => (
                 <button
@@ -149,7 +149,7 @@ export function ImageModal({
                 />
               ))}
             </div>
-          )}
+          )} */}
         </div>
       </DialogContent>
     </Dialog>

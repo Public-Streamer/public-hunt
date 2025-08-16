@@ -1,7 +1,13 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { cn, getMediaType, filterImageUrls } from "@/lib/utils";
 import { ImageModal } from "./ImageModal";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "./ui/carousel";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "./ui/carousel";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "./ui/button";
 
@@ -52,14 +58,15 @@ const MediaBackground: React.FC<MediaBackgroundProps> = ({
 
   // Auto-play functionality (disabled by default)
   useEffect(() => {
-    if (!autoIntervalMs || slides.length <= 1 || isHovered || isModalOpen) return;
-    
+    if (!autoIntervalMs || slides.length <= 1 || isHovered || isModalOpen)
+      return;
+
     const interval = setInterval(() => {
       if (api) {
         api.scrollNext();
       }
     }, autoIntervalMs);
-    
+
     return () => clearInterval(interval);
   }, [autoIntervalMs, slides.length, isHovered, isModalOpen, api]);
 
@@ -81,47 +88,58 @@ const MediaBackground: React.FC<MediaBackgroundProps> = ({
     };
   }, [api, onSlideChange]);
 
-  const handleMediaClick = useCallback((slideIndex: number) => {
-    const mediaUrl = slides[slideIndex];
-    const mediaType = getMediaType(mediaUrl);
+  const handleMediaClick = useCallback(
+    (slideIndex: number) => {
+      const mediaUrl = slides[slideIndex];
+      const mediaType = getMediaType(mediaUrl);
 
-    if (onClick) {
-      onClick(slideIndex);
-      return;
-    }
-
-    if (enableModal && mediaType === 'image') {
-      // Find the current image index in the imageSlides array
-      const imageIndex = imageSlides.findIndex(img => img === mediaUrl);
-      if (imageIndex >= 0) {
-        setClickedIndex(imageIndex);
-        setIsModalOpen(true);
-        onOpenModal?.(mediaUrl);
+      if (onClick) {
+        onClick(slideIndex);
+        return;
       }
-    }
-  }, [slides, imageSlides, onClick, enableModal, onOpenModal]);
+
+      if (enableModal && mediaType === "image") {
+        // Find the current image index in the imageSlides array
+        const imageIndex = imageSlides.findIndex((img) => img === mediaUrl);
+        if (imageIndex >= 0) {
+          setClickedIndex(imageIndex);
+          setIsModalOpen(true);
+          onOpenModal?.(mediaUrl);
+        }
+      }
+    },
+    [slides, imageSlides, onClick, enableModal, onOpenModal]
+  );
 
   const handleCloseModal = useCallback(() => {
     setIsModalOpen(false);
     onCloseModal?.();
   }, [onCloseModal]);
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (!api) return;
-    
-    if (e.key === 'ArrowLeft') {
-      e.preventDefault();
-      api.scrollPrev();
-    } else if (e.key === 'ArrowRight') {
-      e.preventDefault();
-      api.scrollNext();
-    }
-  }, [api]);
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (!api) return;
+
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        api.scrollPrev();
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        api.scrollNext();
+      }
+    },
+    [api]
+  );
 
   // Guard empty state
   if (!slides.length) {
     return (
-      <div className={cn("relative aspect-video overflow-hidden bg-muted", className)}>
+      <div
+        className={cn(
+          "relative aspect-video overflow-hidden bg-muted",
+          className
+        )}
+      >
         <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
           No media available
         </div>
@@ -137,17 +155,17 @@ const MediaBackground: React.FC<MediaBackgroundProps> = ({
 
     return (
       <div className={cn("relative aspect-video overflow-hidden", className)}>
-        <div 
+        <div
           className="absolute inset-0 w-full h-full cursor-pointer"
           onClick={() => handleMediaClick(0)}
         >
-          {mediaType === 'video' ? (
+          {mediaType === "video" ? (
             <video
               src={mediaUrl}
               className="w-full h-full object-cover"
               controls
               playsInline
-              poster={mediaUrl.replace(/\.[^/.]+$/, '') + '.jpg'} // Try to find poster
+              poster={mediaUrl.replace(/\.[^/.]+$/, "") + ".jpg"} // Try to find poster
             />
           ) : (
             <img
@@ -159,7 +177,7 @@ const MediaBackground: React.FC<MediaBackgroundProps> = ({
           )}
         </div>
         <div className="relative z-10 w-full h-full">{children}</div>
-        
+
         {enableModal && imageSlides.length > 0 && (
           <ImageModal
             isOpen={isModalOpen}
@@ -173,7 +191,7 @@ const MediaBackground: React.FC<MediaBackgroundProps> = ({
   }
 
   return (
-    <div 
+    <div
       className={cn("relative aspect-video overflow-hidden group", className)}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -195,28 +213,30 @@ const MediaBackground: React.FC<MediaBackgroundProps> = ({
         <CarouselContent className="h-full">
           {slides.map((mediaUrl, index) => {
             const mediaType = getMediaType(mediaUrl);
-            
+
             return (
               <CarouselItem key={`${mediaUrl}-${index}`} className="h-full">
-                <div 
+                <div
                   className="relative w-full h-full cursor-pointer"
                   onClick={() => handleMediaClick(index)}
                 >
-                  {mediaType === 'video' ? (
+                  {mediaType === "video" ? (
                     <video
                       src={mediaUrl}
                       className="w-full h-full object-cover"
                       controls
                       playsInline
-                      poster={mediaUrl.replace(/\.[^/.]+$/, '') + '.jpg'}
+                      poster={mediaUrl.replace(/\.[^/.]+$/, "") + ".jpg"}
                     />
                   ) : (
                     <img
                       src={mediaUrl}
                       alt={`${alt} ${index + 1}`}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover object-center aspect-video"
                       draggable={false}
-                      loading={Math.abs(index - currentIndex) <= 1 ? "eager" : "lazy"}
+                      loading={
+                        Math.abs(index - currentIndex) <= 1 ? "eager" : "lazy"
+                      }
                     />
                   )}
                 </div>
@@ -226,7 +246,7 @@ const MediaBackground: React.FC<MediaBackgroundProps> = ({
         </CarouselContent>
 
         {/* Navigation Controls */}
-        <div className="absolute inset-0 flex items-center justify-between p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+        {/* <div className="absolute inset-0 flex items-center justify-between p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
           <Button
             variant="outline"
             size="icon"
@@ -252,7 +272,7 @@ const MediaBackground: React.FC<MediaBackgroundProps> = ({
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
-        </div>
+        </div> */}
 
         {/* Position Indicators */}
         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 pointer-events-none">
@@ -261,8 +281,8 @@ const MediaBackground: React.FC<MediaBackgroundProps> = ({
               key={index}
               className={cn(
                 "w-2 h-2 rounded-full transition-all duration-200",
-                index === currentIndex 
-                  ? "bg-primary scale-110" 
+                index === currentIndex
+                  ? "bg-primary scale-110"
                   : "bg-background/60 backdrop-blur-sm"
               )}
               aria-label={`Slide ${index + 1} of ${slides.length}`}
@@ -271,9 +291,9 @@ const MediaBackground: React.FC<MediaBackgroundProps> = ({
         </div>
 
         {/* Slide Counter */}
-        <div className="absolute top-4 right-4 px-2 py-1 bg-background/80 backdrop-blur-sm text-foreground text-sm rounded-md pointer-events-none">
+        {/* <div className="absolute top-4 right-4 px-2 py-1 bg-background/80 backdrop-blur-sm text-foreground text-sm rounded-md pointer-events-none">
           {currentIndex + 1} / {slides.length}
-        </div>
+        </div> */}
       </Carousel>
 
       {/* Overlay content */}
