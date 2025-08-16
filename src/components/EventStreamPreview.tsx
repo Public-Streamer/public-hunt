@@ -183,7 +183,7 @@ const EventStreamPreview: React.FC<EventStreamPreviewProps> = ({
   });
 
   // Don't show preview for non-live events or users who already have access
-  if (!isLive || !hasAccess) {
+  if (!isLive || hasAccess) {
     console.log("[EventStreamPreview] Returning null - isLive:", isLive, "hasAccess:", hasAccess);
     return null;
   }
