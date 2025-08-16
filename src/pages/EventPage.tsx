@@ -65,6 +65,7 @@ const EventPage: React.FC = () => {
 
   // Separate state for frequently changing data to prevent full re-renders
 
+  //BUG: there is a bug where is_live is not updating in the store.. also i'm thinking the reactQuery is caching the data and using old data after every rel
   const isLive = useEventSelector((e) => e?.is_live ?? false);
 
   // const eventData = useEventSelector((e) => e);
