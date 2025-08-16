@@ -245,8 +245,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
   if (!track) {
     return (
       <MediaBackground
-        src={cameraOff}
-        fallback={cameraOff}
+        mediaUrls={[cameraOff]}
         className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100"
       >
         <div className="absolute inset-0 flex items-end justify-center">

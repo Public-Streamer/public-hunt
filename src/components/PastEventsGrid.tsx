@@ -19,7 +19,7 @@ interface PastEvent {
   title: string;
   description: string;
   channel_id: string;
-  thumbnail_url: string;
+  media_urls: string[];
   duration: number;
   recorded_at: string;
   visibility: "public" | "private" | "selected";

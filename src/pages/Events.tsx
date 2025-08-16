@@ -531,7 +531,7 @@ const Events: React.FC = () => {
                       onClick={() => handleEventClick(event)}
                     >
                       <MediaBackground
-                        src={event?.media_urls[0]}
+                        mediaUrls={event?.media_urls || []}
                         className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100"
                       ></MediaBackground>
                       <div className="absolute top-2 left-2 bg-purple-500 text-white text-xs px-2 py-1 rounded-full font-bold">
@@ -698,7 +698,7 @@ const Events: React.FC = () => {
                         }`}
                       >
                         <MediaBackground
-                          src={event.media_urls[0]}
+                          mediaUrls={event.media_urls || []}
                           className="aspect-video"
                         />
 

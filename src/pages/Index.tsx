@@ -47,7 +47,7 @@ const Index: React.FC = () => {
           viewers: event.viewer_count || 0,
           streamerCount: 2,
           isLive: event.is_live || false,
-          thumbnail: event.media_urls?.[0],
+          media_urls: event.media_urls,
           slug: event.slug,
         })) || []
       );

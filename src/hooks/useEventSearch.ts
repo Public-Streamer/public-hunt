@@ -5,7 +5,7 @@ export interface SearchResult {
   id: string;
   slug: string | null;
   title: string;
-  thumbnail: string | null;
+  media_urls: string[];
   channelName: string | null;
 }
 
@@ -68,7 +68,7 @@ export function useEventSearch(query: string, options: UseEventSearchOptions = {
         id: event.id,
         slug: event.slug,
         title: event.name,
-        thumbnail: event.media_urls?.[0] || null,
+        media_urls: event.media_urls,
         channelName: event.channels?.name || null,
       }));
 

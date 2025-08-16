@@ -19,24 +19,16 @@ interface MediaFile {
 
 interface MediaUploaderProps {
   onUpload: (files: MediaFile[]) => void;
+  onUploadUrls?: (urls: string[]) => void;
   maxFiles?: number;
   acceptedTypes?: string[];
 }
 
 const MediaUploader: React.FC<MediaUploaderProps> = ({
   onUpload,
-  maxFiles = 1,
-  acceptedTypes = [
-    "image/jpeg",
-    "image/png",
-    "image/gif",
-    "application/pdf",
-    "video/mp4",
-    "video/webm",
-    "video/mov",
-    "video/mpeg",
-    "video/quicktime",
-  ],
+  onUploadUrls,
+  maxFiles = 5,
+  acceptedTypes = ["image/jpeg", "image/png", "image/gif"],
 }) => {
   const [files, setFiles] = useState<MediaFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -46,10 +38,11 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
   const handleFileSelect = async (selectedFiles: FileList) => {
     const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB in bytes
     const newFiles: MediaFile[] = [];
+    const remaining = Math.max(0, maxFiles - files.length);
 
     for (
       let i = 0;
-      i < selectedFiles.length && newFiles.length < maxFiles;
+      i < selectedFiles.length && newFiles.length < remaining;
       i++
     ) {
       const file = selectedFiles[i];
@@ -81,9 +74,12 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
       if (files.length > 0) {
         await removeFile(files[0].id);
       }
-      setFiles(newFiles);
+      setFiles(newFiles.slice(0, 1));
     } else {
-      setFiles((prev) => [...prev, ...newFiles]);
+      setFiles((prev) => {
+        const merged = [...prev, ...newFiles];
+        return merged.slice(0, maxFiles);
+      });
     }
 
     await uploadFiles(newFiles);
@@ -174,8 +170,11 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
     const completedFiles = files.filter((f) => f.uploadProgress === 100);
     if (files.length > 0 && files.every((f) => !!f.url)) {
       onUpload(completedFiles);
+      if (typeof onUploadUrls === "function") {
+        onUploadUrls(completedFiles.map((f) => f.url!).filter(Boolean));
+      }
     }
-  }, [files, onUpload]);
+  }, [files, onUpload, onUploadUrls]);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -220,7 +219,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
       </CardHeader>
       <CardContent className="space-y-4">
         <div
-          className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+          className={`border-2 border-dashed rounded-lg p-4 text-center transition-colors ${
             isDragging ? "border-blue-500 bg-blue-50" : "border-gray-300"
           }`}
           onDragOver={handleDragOver}
@@ -228,7 +227,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
           onDrop={handleDrop}
         >
           {files.length > 0 && files.some((f) => f.uploadProgress === 100) ? (
-            <div className="grid grid-cols-1 gap-4 mb-4">
+            <div className="grid grid-cols-3 gap-4 mb-4">
               {files
                 .filter((f) => f.uploadProgress === 100)
                 .map((file) => (
@@ -252,10 +251,15 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
                       </div>
                     )}
                     <Button
+                      type="button"
                       size="sm"
                       variant="destructive"
                       className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => removeFile(file.id)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        removeFile(file.id);
+                      }}
                     >
                       <X className="h-3 w-3" />
                     </Button>
@@ -269,7 +273,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
                 Drop files here or click to upload
               </p>
               <p className="text-sm text-gray-500 mb-4">
-                Supported formats: JPG, PNG, GIF, PDF, MP4, MPEG, MOV <br />
+                Supported formats: JPG, PNG, GIF <br />
                 Max file size: 10 MB
               </p>
             </>
@@ -281,15 +285,16 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
             onChange={(e) => e.target.files && handleFileSelect(e.target.files)}
             className="hidden"
             id="file-upload"
-            disabled={isUploading}
+            disabled={isUploading || files.length >= maxFiles}
+            multiple={maxFiles > 1}
           />
           <Label htmlFor="file-upload" className="cursor-pointer">
             <div className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
               {isUploading
                 ? "Uploading..."
-                : files.length > 0
-                ? "Replace File"
-                : "Select File"}
+                : files.length >= maxFiles
+                ? "Max files reached"
+                : "Select files"}
             </div>
           </Label>
         </div>
@@ -300,11 +305,11 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
             {files.map((file) => (
               <div
                 key={file.id}
-                className="flex items-center gap-3 p-3 border rounded-lg"
+                className="flex items-center gap-3 p-2 border rounded-lg"
               >
                 <div className="text-gray-500">{getFileIcon(file.type)}</div>
-                <div className="flex-1">
-                  <div className="font-medium">{file.name}</div>
+                <div className="flex-1 ">
+                  <div className="font-medium truncate-1">{file.name}</div>
                   <div className="text-sm text-gray-500">
                     {formatFileSize(file.size)}
                   </div>
@@ -313,15 +318,18 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
                       <Progress value={file.uploadProgress} className="mt-1" />
                     )}
                   {file.uploadProgress === 100 && (
-                    <div className="text-sm text-green-600 mt-1">
-                      ✓ Uploaded successfully
-                    </div>
+                    <div className="text-sm text-green-600 mt-1">✓</div>
                   )}
                 </div>
                 <Button
+                  type="button"
                   size="sm"
                   variant="ghost"
-                  onClick={() => removeFile(file.id)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    removeFile(file.id);
+                  }}
                   disabled={isUploading}
                 >
                   <X className="h-4 w-4" />

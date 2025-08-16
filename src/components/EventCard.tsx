@@ -32,7 +32,7 @@ interface Event {
   viewers: number;
   streamerCount: number;
   isLive: boolean;
-  thumbnail: string;
+  media_urls: string[];
 }
 
 interface EventCardProps {
@@ -126,9 +126,6 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
     return `Watch Preview`;
   };
 
-  const noThumb = "/placeholder.svg";
-  const bgUrl = event.thumbnail ? event.thumbnail : noThumb;
-
   return (
     <div>
       <Card
@@ -136,7 +133,7 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
         onClick={handleCardClick}
       >
         <MediaBackground
-          src={bgUrl}
+          mediaUrls={event.media_urls}
           className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100"
         >
           <div className="absolute inset-0 flex items-center justify-center">
