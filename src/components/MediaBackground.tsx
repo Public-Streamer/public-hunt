@@ -42,10 +42,13 @@ const MediaBackground: React.FC<MediaBackgroundProps> = ({
 }) => {
   const slides = useMemo(() => {
     if (Array.isArray(mediaUrls) && mediaUrls.length)
-      return mediaUrls.filter(Boolean);
+      console.log("Media URLs:", mediaUrls);
+    return mediaUrls.filter(Boolean);
     const single = src || fallback;
     return single ? [single] : [];
   }, [mediaUrls, src, fallback]);
+
+  console.log("Slides:", slides);
 
   // Filter to only show images in modal
   const imageSlides = useMemo(() => filterImageUrls(slides), [slides]);
@@ -101,6 +104,7 @@ const MediaBackground: React.FC<MediaBackgroundProps> = ({
       if (enableModal && mediaType === "image") {
         // Find the current image index in the imageSlides array
         const imageIndex = imageSlides.findIndex((img) => img === mediaUrl);
+        console.log("Image index:", imageIndex);
         if (imageIndex >= 0) {
           setClickedIndex(imageIndex);
           setIsModalOpen(true);
@@ -171,12 +175,12 @@ const MediaBackground: React.FC<MediaBackgroundProps> = ({
             <img
               src={mediaUrl}
               alt={alt}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover z-20"
               draggable={false}
             />
           )}
         </div>
-        <div className="relative z-10 w-full h-full">{children}</div>
+        {/* <div className="relative z-10 w-full h-full">{children}</div> */}
 
         {enableModal && imageSlides.length > 0 && (
           <ImageModal
