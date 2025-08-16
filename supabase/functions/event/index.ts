@@ -141,8 +141,8 @@ serve(async (req) => {
       event.description ||
       `Join ${eventTitle} - Live streaming event on Public Streamer`;
     let eventImage =
-      event.media_urls && event.media_urls.length > 0
-        ? event.media_urls[0]
+      event?.media_urls && event?.media_urls.length > 0
+        ? event?.media_urls[0]
         : "";
     if (!eventImage) {
       eventImage = `${baseUrl}/placeholder.svg`;

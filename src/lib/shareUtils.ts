@@ -5,7 +5,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export function getShareableEventUrl(eventId: string, slug?: string): string {
-  const functionsOrigin = "https://share.publicstreamer.com";
+  const functionsOrigin = "https://zmfugicftfwvuudensdo.supabase.co";
   const eventIdentifier = slug || eventId;
   // Return Edge Function URL for crawlers (serves meta tags) and redirects humans
   return `${functionsOrigin}/event/${eventIdentifier}`;
@@ -42,7 +42,7 @@ export async function generateEventShareData(eventId: string) {
         event.description ||
         `Join ${event.name} - Live streaming event on Public Streamer`,
       image:
-        event.media_urls?.[0] || `${window.location.origin}/placeholder.svg`,
+        event?.media_urls?.[0] || `${window.location.origin}/placeholder.svg`,
     };
   } catch (error) {
     console.error("Error generating share data:", error);
