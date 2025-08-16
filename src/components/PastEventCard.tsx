@@ -13,7 +13,6 @@ interface PastEvent {
   title: string;
   description: string;
   channel_id: string;
-  thumbnail_url: string;
   duration: number;
   recorded_at: string;
   visibility: "public" | "private" | "selected";
@@ -82,8 +81,6 @@ const PastEventCard: React.FC<PastEventCardProps> = ({
     onPlay(event);
   };
 
-  const bgUrl = event?.media_urls[0];
-
   return (
     <>
       <TooltipWrapper
@@ -100,7 +97,7 @@ const PastEventCard: React.FC<PastEventCardProps> = ({
           onClick={handleCardClick}
         >
           <MediaBackground
-            src={bgUrl}
+            mediaUrls={event?.media_urls || []}
             className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100"
           ></MediaBackground>
           <CardHeader>

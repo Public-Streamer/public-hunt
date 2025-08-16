@@ -622,8 +622,7 @@ const EventPage: React.FC = () => {
                 </Suspense>
               ) : (
                 <MediaBackground
-                  src={eventData?.media_urls?.[0]}
-                  fallback="/placeholder.svg"
+                  mediaUrls={eventData?.media_urls || ["/placeholder.svg"]}
                   className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100"
                 >
                   {/* Show 10-Second Preview for Paid Live Events */}

@@ -61,7 +61,7 @@ const StreamContentLazy = lazy(() =>
       if (activeVideoTracks.length === 0) {
         return (
           <MediaBackground
-            src={fallbackImage}
+            mediaUrls={[fallbackImage]}
             alt={eventName}
             className="w-full h-full group-hover:scale-105 transition-transform duration-300"
           />

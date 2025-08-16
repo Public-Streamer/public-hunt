@@ -82,7 +82,7 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({
   }, [token, serverUrl]);
 
   if (!token || !serverUrl) {
-    return <MediaBackground src={mediaUrls[0]} className="h-full" />;
+    return <MediaBackground mediaUrls={mediaUrls} className="h-full" />;
   }
 
   return (
@@ -141,7 +141,7 @@ const StreamContent: React.FC<{
   );
 
   if (activeVideoTracks.length === 0) {
-    return <MediaBackground src={cameraOff} className="h-full" />;
+    return <MediaBackground mediaUrls={[cameraOff]} className="h-full" />;
   }
 
   return (
@@ -196,7 +196,7 @@ const EventStreamPreview: React.FC<EventStreamPreviewProps> = ({
               mediaUrls={mediaUrls}
             />
           ) : (
-            <MediaBackground src={mediaUrls[0]} className="h-full">
+            <MediaBackground mediaUrls={mediaUrls} className="h-full">
               <div className="flex flex-col items-center justify-center h-full space-y-4 bg-black/80">
                 <Video className="h-16 w-16 text-purple-500" />
                 <div className="text-white font-medium">
