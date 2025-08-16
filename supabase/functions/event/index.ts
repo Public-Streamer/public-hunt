@@ -131,7 +131,7 @@ serve(async (req) => {
 
     // Generate meta tags
     const publicSiteUrl = Deno.env.get("PUBLIC_SITE_URL");
-    const defaultPublicSite = "https://www.publicstreamer.com";
+    const defaultPublicSite = "https://www.doghunt.tv";
     const baseUrl = url.origin.includes("supabase.co")
       ? publicSiteUrl || defaultPublicSite
       : url.origin;
@@ -139,7 +139,7 @@ serve(async (req) => {
     const eventTitle = event.name;
     const eventDescription =
       event.description ||
-      `Join ${eventTitle} - Live streaming event on Public Streamer`;
+      `Join ${eventTitle} - Live streaming event on Doghunt`;
     let eventImage =
       event?.media_urls && event?.media_urls.length > 0
         ? event?.media_urls[0]
@@ -151,8 +151,7 @@ serve(async (req) => {
         eventImage.startsWith("/") ? "" : "/"
       }${eventImage}`;
     }
-    const hostName =
-      hostData?.display_name || hostData?.username || "Public Streamer";
+    const hostName = hostData?.display_name || hostData?.username || "Doghunt";
     const eventDate = event.date
       ? new Date(event.date).toLocaleDateString()
       : "";
@@ -176,7 +175,7 @@ serve(async (req) => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${eventTitle} - Public Streamer</title>
+  <title>${eventTitle} - Doghunt</title>
   
   <!-- Primary Meta Tags -->
   <meta name="title" content="${eventTitle}">
@@ -188,7 +187,7 @@ serve(async (req) => {
   <meta property="og:title" content="${eventTitle}">
   <meta property="og:description" content="${eventDescription}">
   <meta property="og:image" content="${eventImage}">
-  <meta property="og:site_name" content="Public Streamer">
+  <meta property="og:site_name" content="Doghunt">
   <link rel="canonical" href="${eventUrl}">
   <!-- Event specific Open Graph tags -->
   ${
@@ -213,8 +212,8 @@ serve(async (req) => {
   <meta property="twitter:image" content="${eventImage}">
   
   <!-- Additional Twitter tags -->
-  <meta name="twitter:creator" content="@publicstreamer">
-  <meta name="twitter:site" content="@publicstreamer">
+  <meta name="twitter:creator" content="@doghunt">
+  <meta name="twitter:site" content="@doghunt">
   
   <!-- WhatsApp specific -->
   <meta property="og:image:width" content="1200">
