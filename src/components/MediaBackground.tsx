@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { cn } from "@/lib/utils";
+import { cn, filterImageUrls } from "@/lib/utils";
 import { ImageModal } from "./ImageModal";
 
 interface MediaBackgroundProps {
@@ -32,6 +32,9 @@ const MediaBackground: React.FC<MediaBackgroundProps> = ({
     return single ? [single] : [];
   }, [mediaUrls, src, fallback]);
 
+  // Filter to only show images in modal
+  const imageSlides = useMemo(() => filterImageUrls(slides), [slides]);
+
   const [index, setIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [clickedIndex, setClickedIndex] = useState(0);
@@ -44,13 +47,18 @@ const MediaBackground: React.FC<MediaBackgroundProps> = ({
     return () => clearInterval(id);
   }, [slides.length, autoIntervalMs]);
 
-  const handleClick = (e: React.MouseEvent, index: number) => {
+  const handleClick = (e: React.MouseEvent, slideIndex: number) => {
     e.stopPropagation();
     if (onClick) {
-      onClick(index);
-    } else if (enableModal && slides.length > 0) {
-      setClickedIndex(index);
-      setIsModalOpen(true);
+      onClick(slideIndex);
+    } else if (enableModal && imageSlides.length > 0) {
+      // Find the current image index in the imageSlides array
+      const currentImageUrl = slides[slideIndex];
+      const imageIndex = imageSlides.findIndex(img => img === currentImageUrl);
+      if (imageIndex >= 0) {
+        setClickedIndex(imageIndex);
+        setIsModalOpen(true);
+      }
     }
   };
 
@@ -92,11 +100,11 @@ const MediaBackground: React.FC<MediaBackgroundProps> = ({
       {/* overlay content */}
       <div className="relative z-10 w-full h-full">{children}</div>
 
-      {enableModal && slides.length > 0 && (
+      {enableModal && imageSlides.length > 0 && (
         <ImageModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
-          images={slides}
+          images={imageSlides}
           initialIndex={clickedIndex}
         />
       )}

@@ -624,6 +624,7 @@ const EventPage: React.FC = () => {
                 <MediaBackground
                   mediaUrls={eventData?.media_urls || ["/placeholder.svg"]}
                   className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100"
+                  enableModal={true}
                 >
                   {/* Show 10-Second Preview for Paid Live Events */}
                   {currentUser &&

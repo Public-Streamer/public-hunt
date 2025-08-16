@@ -26,7 +26,7 @@ const AppLayout: React.FC = () => {
       viewers: 1234,
       streamerCount: 4,
       isLive: true,
-      thumbnail: ''
+      media_urls: []
     },
     {
       id: '2',
@@ -39,7 +39,7 @@ const AppLayout: React.FC = () => {
       viewers: 567,
       streamerCount: 3,
       isLive: false,
-      thumbnail: ''
+      media_urls: []
     },
     {
       id: '3',
@@ -52,7 +52,7 @@ const AppLayout: React.FC = () => {
       viewers: 2345,
       streamerCount: 6,
       isLive: true,
-      thumbnail: ''
+      media_urls: []
     }
   ];
 

@@ -12,7 +12,7 @@ interface Event {
   viewers: number;
   streamerCount: number;
   isLive: boolean;
-  thumbnail: string;
+  media_urls: string[];
 }
 
 interface EventGridProps {
