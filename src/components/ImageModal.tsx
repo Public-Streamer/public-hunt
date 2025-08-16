@@ -107,7 +107,7 @@ export function ImageModal({
             <img
               src={images[currentIndex]}
               alt={`Event image ${currentIndex + 1}`}
-              className="max-h-[90vh] max-w-[90vw] object-contain rounded-sm"
+              className="max-h-[90vh] max-w-[90vw] object-contain rounded-sm shadow-lg"
               onClick={(e) => e.stopPropagation()}
               onLoad={handleImageLoad}
               style={{ display: imageLoading ? "none" : "block" }}
