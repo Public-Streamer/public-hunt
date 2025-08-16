@@ -54,7 +54,9 @@ const MediaBackground: React.FC<MediaBackgroundProps> = ({
     } else if (enableModal && imageSlides.length > 0) {
       // Find the current image index in the imageSlides array
       const currentImageUrl = slides[slideIndex];
-      const imageIndex = imageSlides.findIndex(img => img === currentImageUrl);
+      const imageIndex = imageSlides.findIndex(
+        (img) => img === currentImageUrl
+      );
       if (imageIndex >= 0) {
         setClickedIndex(imageIndex);
         setIsModalOpen(true);
@@ -89,7 +91,7 @@ const MediaBackground: React.FC<MediaBackgroundProps> = ({
           >
             <img
               src={url}
-              alt={alt}
+              // alt={alt}
               className="w-full h-full object-cover"
               draggable={false}
             />
