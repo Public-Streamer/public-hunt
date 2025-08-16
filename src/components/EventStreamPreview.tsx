@@ -174,8 +174,17 @@ const EventStreamPreview: React.FC<EventStreamPreviewProps> = ({
   const [showPreview, setShowPreview] = useState(false);
   const screenSize = useScreenSize();
 
+  console.log("[EventStreamPreview] Component received props:", {
+    eventId,
+    eventName,
+    isLive,
+    hasAccess,
+    mediaUrls: mediaUrls?.length
+  });
+
   // Don't show preview for non-live events or users who already have access
   if (!isLive || hasAccess) {
+    console.log("[EventStreamPreview] Returning null - isLive:", isLive, "hasAccess:", hasAccess);
     return null;
   }
 

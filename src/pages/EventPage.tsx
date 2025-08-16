@@ -628,12 +628,33 @@ const EventPage: React.FC = () => {
                   autoIntervalMs={3000}
                 >
                   {/* Show 10-Second Preview for Paid Live Events */}
-                  {currentUser &&
-                  eventData?.ticket_price &&
-                  eventData?.ticket_price > 0 &&
-                  !hasTicket &&
-                  !canEnterStage &&
-                  isLive ? (
+                  {(() => {
+                    const previewConditions = {
+                      currentUser: !!currentUser,
+                      hasTicketPrice: !!eventData?.ticket_price && eventData?.ticket_price > 0,
+                      noTicket: !hasTicket,
+                      cannotEnterStage: !canEnterStage,
+                      isLive: isLive
+                    };
+                    
+                    console.log("[EventStreamPreview] Debug conditions:", previewConditions);
+                    console.log("[EventStreamPreview] eventData?.ticket_price:", eventData?.ticket_price);
+                    console.log("[EventStreamPreview] hasTicket:", hasTicket);
+                    console.log("[EventStreamPreview] canEnterStage:", canEnterStage);
+                    console.log("[EventStreamPreview] isLive:", isLive);
+                    console.log("[EventStreamPreview] currentUser:", !!currentUser);
+                    
+                    const shouldShowPreview = currentUser &&
+                      eventData?.ticket_price &&
+                      eventData?.ticket_price > 0 &&
+                      !hasTicket &&
+                      !canEnterStage &&
+                      isLive;
+                      
+                    console.log("[EventStreamPreview] Should show preview:", shouldShowPreview);
+                    
+                    return shouldShowPreview;
+                  })() ? (
                     <EventStreamPreview
                       mediaUrls={eventData?.media_urls || ["/placeholder.svg"]}
                       eventId={eventData?.id}
