@@ -53,8 +53,6 @@ const ScheduledEventCard: React.FC<ScheduledEventCardProps> = ({
 
   console.log(event);
 
-  const bgUrl = event?.media_urls[0];
-
   return (
     <>
       <TooltipWrapper
@@ -64,7 +62,10 @@ const ScheduledEventCard: React.FC<ScheduledEventCardProps> = ({
           className="hover:shadow-lg transition-shadow cursor-pointer h-full flex flex-col justify-between"
           onClick={handleClick}
         >
-          <MediaBackground src={bgUrl} className="aspect-video " />
+          <MediaBackground
+            mediaUrls={event?.media_urls || []}
+            className="aspect-video "
+          />
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg">{event.title}</CardTitle>

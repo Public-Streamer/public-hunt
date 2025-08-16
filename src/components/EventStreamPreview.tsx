@@ -82,7 +82,7 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({
   }, [token, serverUrl]);
 
   if (!token || !serverUrl) {
-    return <MediaBackground src={mediaUrls[0]} className="h-full" />;
+    return <MediaBackground mediaUrls={mediaUrls} className="h-full" />;
   }
 
   return (
@@ -141,7 +141,7 @@ const StreamContent: React.FC<{
   );
 
   if (activeVideoTracks.length === 0) {
-    return <MediaBackground src={cameraOff} className="h-full" />;
+    return <MediaBackground mediaUrls={[cameraOff]} className="h-full" />;
   }
 
   return (
@@ -174,8 +174,22 @@ const EventStreamPreview: React.FC<EventStreamPreviewProps> = ({
   const [showPreview, setShowPreview] = useState(false);
   const screenSize = useScreenSize();
 
+  console.log("[EventStreamPreview] Component received props:", {
+    eventId,
+    eventName,
+    isLive,
+    hasAccess,
+    mediaUrls: mediaUrls?.length,
+  });
+
   // Don't show preview for non-live events or users who already have access
   if (!isLive || hasAccess) {
+    console.log(
+      "[EventStreamPreview] Returning null - isLive:",
+      isLive,
+      "hasAccess:",
+      hasAccess
+    );
     return null;
   }
 
@@ -184,7 +198,7 @@ const EventStreamPreview: React.FC<EventStreamPreviewProps> = ({
   };
 
   return (
-    <div className="bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg p-4 md:p-6 border border-purple-200">
+    <div className="bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg ">
       <div className="text-center space-y-4">
         {/* Preview Area */}
         <div className="aspect-video bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg border border-purple-200 relative overflow-hidden">
@@ -196,30 +210,29 @@ const EventStreamPreview: React.FC<EventStreamPreviewProps> = ({
               mediaUrls={mediaUrls}
             />
           ) : (
-            <MediaBackground src={mediaUrls[0]} className="h-full">
-              <div className="flex flex-col items-center justify-center h-full space-y-4 bg-black/80">
-                <Video className="h-16 w-16 text-purple-500" />
-                <div className="text-white font-medium">
-                  Show 10 Sec preview here
-                </div>
-                {isLive && (
-                  <Badge className="bg-red-600 hover:bg-red-700 text-white">
-                    LIVE
-                  </Badge>
-                )}
-                {isLive && (
-                  <div className="w-1/2">
-                    <Button
-                      size={screenSize === "mobile" ? "xs" : "sm"}
-                      onClick={handlePreviewClick}
-                      className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3"
-                    >
-                      Preview
-                    </Button>
-                  </div>
-                )}
+            <div className="flex flex-col items-center justify-center h-full space-y-4 bg-black/80">
+              {/* <MediaBackground mediaUrls={mediaUrls} className="h-full" /> */}
+              <Video className="h-16 w-16 text-purple-500" />
+              <div className="text-white font-medium">
+                Show 10 Sec preview here
               </div>
-            </MediaBackground>
+              {isLive && (
+                <Badge className="bg-red-600 hover:bg-red-700 text-white">
+                  LIVE
+                </Badge>
+              )}
+              {isLive && (
+                <div className="w-1/2">
+                  <Button
+                    size={screenSize === "mobile" ? "xs" : "sm"}
+                    onClick={handlePreviewClick}
+                    className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3"
+                  >
+                    Preview
+                  </Button>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>

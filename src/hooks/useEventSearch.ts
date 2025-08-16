@@ -5,7 +5,7 @@ export interface SearchResult {
   id: string;
   slug: string | null;
   title: string;
-  thumbnail: string | null;
+  media_urls: string[];
   channelName: string | null;
 }
 
@@ -70,13 +70,13 @@ export function useEventSearch(
           throw new Error(searchError.message);
         }
 
-        const searchResults: SearchResult[] = (data || []).map((event) => ({
-          id: event.id,
-          slug: event.slug,
-          title: event.name,
-          thumbnail: event?.media_urls?.[0] || null,
-          channelName: event.channels?.name || null,
-        }));
+      const searchResults: SearchResult[] = (data || []).map(event => ({
+        id: event.id,
+        slug: event.slug,
+        title: event.name,
+        media_urls: event.media_urls,
+        channelName: event.channels?.name || null,
+      }));
 
         // Cache the results
         setCache((prev) => new Map(prev).set(searchQuery, searchResults));
