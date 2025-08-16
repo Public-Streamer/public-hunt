@@ -621,52 +621,70 @@ const EventPage: React.FC = () => {
                   </LiveKitRoomLazy>
                 </Suspense>
               ) : (
-                <MediaBackground
-                  mediaUrls={eventData?.media_urls || ["/placeholder.svg"]}
-                  className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100"
-                  enableModal={true}
-                  autoIntervalMs={3000}
-                >
-                  {/* Show 10-Second Preview for Paid Live Events */}
+                <>
                   {(() => {
                     const previewConditions = {
                       currentUser: !!currentUser,
-                      hasTicketPrice: !!eventData?.ticket_price && eventData?.ticket_price > 0,
+                      hasTicketPrice:
+                        !!eventData?.ticket_price &&
+                        eventData?.ticket_price > 0,
                       noTicket: !hasTicket,
                       cannotEnterStage: !canEnterStage,
-                      isLive: isLive
+                      isLive: isLive,
                     };
-                    
-                    console.log("[EventStreamPreview] Debug conditions:", previewConditions);
-                    console.log("[EventStreamPreview] eventData?.ticket_price:", eventData?.ticket_price);
+
+                    console.log(
+                      "[EventStreamPreview] Debug conditions:",
+                      previewConditions
+                    );
+                    console.log(
+                      "[EventStreamPreview] eventData?.ticket_price:",
+                      eventData?.ticket_price
+                    );
                     console.log("[EventStreamPreview] hasTicket:", hasTicket);
-                    console.log("[EventStreamPreview] canEnterStage:", canEnterStage);
+                    console.log(
+                      "[EventStreamPreview] canEnterStage:",
+                      canEnterStage
+                    );
                     console.log("[EventStreamPreview] isLive:", isLive);
-                    console.log("[EventStreamPreview] currentUser:", !!currentUser);
-                    
-                    const shouldShowPreview = currentUser &&
+                    console.log(
+                      "[EventStreamPreview] currentUser:",
+                      !!currentUser
+                    );
+
+                    const shouldShowPreview =
+                      currentUser &&
                       eventData?.ticket_price &&
                       eventData?.ticket_price > 0 &&
                       !hasTicket &&
                       !canEnterStage &&
                       isLive;
-                      
-                    console.log("[EventStreamPreview] Should show preview:", shouldShowPreview);
-                    
+
+                    console.log("[EventStreamPreview] Should show preview:");
+
                     return shouldShowPreview;
                   })() ? (
-                    <EventStreamPreview
-                      mediaUrls={eventData?.media_urls || ["/placeholder.svg"]}
-                      eventId={eventData?.id}
-                      eventName={eventData?.name}
-                      isLive={isLive}
-                      fallbackImage={
-                        eventData?.media_urls?.[0] || "/placeholder.svg"
-                      }
-                      hasAccess={hasTicket || canEnterStage}
-                    />
+                    <div className="relative aspect-video bg-black">
+                      <EventStreamPreview
+                        mediaUrls={
+                          eventData?.media_urls || ["/placeholder.svg"]
+                        }
+                        eventId={eventData?.id}
+                        eventName={eventData?.name}
+                        isLive={isLive}
+                        fallbackImage={
+                          eventData?.media_urls?.[0] || "/placeholder.svg"
+                        }
+                        hasAccess={hasTicket || canEnterStage}
+                      />
+                    </div>
                   ) : (
-                    <>
+                    <MediaBackground
+                      mediaUrls={eventData?.media_urls || ["/placeholder.svg"]}
+                      className="aspect-video "
+                      enableModal={true}
+                      autoIntervalMs={3000}
+                    >
                       {!currentUser && (
                         <div className="absolute inset-0 backdrop-blur-md bg-black/20 flex items-center justify-center z-10">
                           <div className="text-center bg-white/90 p-6 rounded-lg shadow-lg">
@@ -698,9 +716,9 @@ const EventPage: React.FC = () => {
                       {controls?.participantCount - 1}
                     </Badge> */}
                       </div>
-                    </>
+                    </MediaBackground>
                   )}
-                </MediaBackground>
+                </>
               )}
 
               {/* Pre-Stream Chat Archive for scheduled events */}
@@ -744,7 +762,7 @@ const EventPage: React.FC = () => {
                   )}
                   {isLive && (
                     <Badge className="bg-red-600 text-white text-xs">
-                      <div className="w-1.5 h-1.5 bg-white rounded-full mr-1 animate-pulse" />
+                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full mr-1 animate-pulse" />
                       LIVE
                     </Badge>
                   )}
