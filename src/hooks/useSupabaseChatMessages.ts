@@ -77,7 +77,7 @@ export const useSupabaseChatMessages = (eventId: string, camName?: string) => {
             event_id: eventId,
             user_id: currentUserProfile.user_id,
             username: currentUserProfile.username || "unknown",
-            display_name: streamerName,
+            display_name: streamerName ? streamerName : currentUserProfile.display_name,
             profile_picture_url: currentUserProfile.profile_picture_url || null,
             message: messageContent,
             message_type: "user",
@@ -93,7 +93,7 @@ export const useSupabaseChatMessages = (eventId: string, camName?: string) => {
         throw error;
       }
     },
-    [eventId, currentUserProfile, isAuthenticated]
+    [eventId, currentUserProfile, isAuthenticated, streamerName]
   );
 
   // Delete message function
