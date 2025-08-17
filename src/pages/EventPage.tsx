@@ -601,25 +601,6 @@ const EventPage: React.FC = () => {
                           ) : null}
                         </div>
                       )}
-
-                    {isLive && livekitToken && (hasTicket || canEnterStage) && (
-                      <LiveDiscussionSection
-                        eventId={eventData?.id}
-                        currentUserProfile={
-                          currentUserProfile
-                            ? {
-                                id: currentUserProfile.id,
-                                username:
-                                  currentUserProfile.display_name || "User",
-                                display_name:
-                                  currentUserProfile.display_name || "User",
-                                profile_picture_url:
-                                  currentUserProfile.profile_picture_url || "",
-                              }
-                            : undefined
-                        }
-                      />
-                    )}
                   </LiveKitRoomLazy>
                 </Suspense>
               ) : (
@@ -690,19 +671,6 @@ const EventPage: React.FC = () => {
                   )}
                 </>
               )}
-
-              {/* Pre-Stream Chat Archive for scheduled events */}
-              {!isLive && (hasTicket || canEnterStage) && (
-                <div className="p-4 border-t border-border/30">
-                  <div className="">
-                    <PinnedMessageSection
-                      eventId={eventData?.id}
-                      isHost={false}
-                    />
-                  </div>
-                  <PreStreamChatArchive eventId={eventData?.id} />
-                </div>
-              )}
             </Card>
 
             {/* Promotional Media */}
@@ -715,9 +683,26 @@ const EventPage: React.FC = () => {
                 hasPaid={hasTicket || canEnterStage}
               />
             )} */}
+            {eventData && <EventSocialSection eventId={eventData.id} />}
+            <LiveDiscussionSection
+              eventId={eventData?.id}
+              currentUserProfile={
+                currentUserProfile
+                  ? {
+                      id: currentUserProfile.id,
+                      username: currentUserProfile.display_name || "User",
+                      display_name: currentUserProfile.display_name || "User",
+                      profile_picture_url:
+                        currentUserProfile.profile_picture_url || "",
+                    }
+                  : undefined
+              }
+            />
           </div>
 
           {/* Right Column - Event Details and Actions */}
+          {/* Event Social Section */}
+
           <div className="space-y-4 sm:space-y-6">
             <Card>
               <CardHeader className="p-3 sm:p-3">
@@ -799,11 +784,6 @@ const EventPage: React.FC = () => {
                 />
               </CardContent>
             </Card>
-
-            {/* Event Social Section */}
-            {eventData && currentUser && (
-              <EventSocialSection eventId={eventData.id} />
-            )}
 
             {currentUser && !isEventHost && !isStreamer && (
               <Card>
