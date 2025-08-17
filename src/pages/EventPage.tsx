@@ -685,39 +685,7 @@ const EventPage: React.FC = () => {
                       className="aspect-video "
                       enableModal={true}
                       autoIntervalMs={3000}
-                    >
-                      {!currentUser && (
-                        <div className="absolute inset-0 backdrop-blur-md bg-black/20 flex items-center justify-center z-10">
-                          <div className="text-center bg-white/90 p-6 rounded-lg shadow-lg">
-                            <div className="text-lg font-semibold mb-2">
-                              Sign In to Watch Stream
-                            </div>
-                            <div className="text-sm text-gray-600">
-                              Please sign in to access this event
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        {/* <Video className="h-12 w-12 sm:h-16 sm:w-16 lg:h-24 lg:w-24 text-purple-500" /> */}
-                      </div>
-                      {isLive && (
-                        <Badge className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-red-600 text-white text-xs">
-                          <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full mr-1 animate-pulse" />
-                          LIVE
-                        </Badge>
-                      )}
-                      {/* Viewer Count */}
-                      <div className="absolute top-2 right-2">
-                        {/* <Badge
-                      variant="secondary"
-                      className="flex items-center gap-1 text-xs"
-                    >
-                      <Eye className="h-3 w-3" />
-                      {controls?.participantCount - 1}
-                    </Badge> */}
-                      </div>
-                    </MediaBackground>
+                    />
                   )}
                 </>
               )}
