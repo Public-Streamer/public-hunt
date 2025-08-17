@@ -143,97 +143,100 @@ export function EventSocialSection({ eventId, className }: EventSocialSectionPro
 
   return (
     <Card className={cn("w-full", className)}>
-      <CardContent className="p-4 space-y-4">
-        {/* Action Buttons */}
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={toggleLike}
-            disabled={loadingLikes}
+      <CardContent className="p-4 space-y-3">
+        {/* Collapsed State: Social Summary + Action Buttons */}
+        <div className="flex items-center justify-between gap-4">
+          {/* Social Summary - Clickable to expand comments */}
+          <div 
             className={cn(
-              "flex items-center gap-2 h-8 px-3 md:h-9 md:px-4",
-              userLike ? "text-red-600 hover:text-red-700" : "text-muted-foreground hover:text-foreground"
+              "flex-1 cursor-pointer",
+              comments.length > 0 && "hover:text-foreground transition-colors"
             )}
+            onClick={() => comments.length > 0 && setShowComments(!showComments)}
           >
-            <Heart
-              className={cn(
-                "h-4 w-4",
-                userLike ? "fill-current" : ""
-              )}
-            />
-            <span className="text-sm font-medium">
-              {likes.length > 0 ? likes.length : "Like"}
-            </span>
-          </Button>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowComments(!showComments)}
-            className="flex items-center gap-2 h-8 px-3 text-muted-foreground hover:text-foreground md:h-9 md:px-4"
-          >
-            <MessageSquare className="h-4 w-4" />
-            <span className="text-sm font-medium">
-              {comments.length > 0 ? comments.length : "Comment"}
-            </span>
-          </Button>
-        </div>
-
-        {/* Social Summary */}
-        {renderSocialSummary() && (
-          <div className="px-1">
-            {renderSocialSummary()}
+            {renderSocialSummary() || (
+              <span className="text-sm text-muted-foreground md:text-xs">
+                Be the first to like this event
+              </span>
+            )}
           </div>
-        )}
 
-        {/* Comment Input */}
-        <div className="space-y-3">
-          <form onSubmit={handleSubmitComment} className="flex gap-2">
-            <Textarea
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Write a comment..."
-              className="flex-1 min-h-[36px] py-2 text-sm resize-none md:min-h-[40px]"
-              rows={1}
-              disabled={isCommenting}
-            />
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2">
             <Button
-              type="submit"
+              variant="ghost"
               size="sm"
-              disabled={!newComment.trim() || isCommenting}
-              className="h-9 px-3 md:h-10 md:px-4"
+              onClick={toggleLike}
+              disabled={loadingLikes}
+              className={cn(
+                "flex items-center gap-2 h-8 px-3 md:h-9 md:px-4",
+                userLike ? "text-red-600 hover:text-red-700" : "text-muted-foreground hover:text-foreground"
+              )}
             >
-              <Send className="h-4 w-4" />
+              <Heart
+                className={cn(
+                  "h-4 w-4",
+                  userLike ? "fill-current" : ""
+                )}
+              />
+              <span className="text-sm font-medium">
+                {likes.length > 0 ? likes.length : "Like"}
+              </span>
             </Button>
-          </form>
-          
-          <p className="text-xs text-muted-foreground px-1">
-            Press Enter to post, Shift+Enter for new line
-          </p>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowComments(!showComments)}
+              className="flex items-center gap-2 h-8 px-3 text-muted-foreground hover:text-foreground md:h-9 md:px-4"
+            >
+              <MessageSquare className="h-4 w-4" />
+              <span className="text-sm font-medium">
+                {comments.length > 0 ? comments.length : "Comment"}
+              </span>
+            </Button>
+          </div>
         </div>
 
-        {/* Comments Section */}
-        {showComments && comments.length > 0 && (
-          <>
+        {/* Expanded State: Comment Input and Comments */}
+        {showComments && (
+          <div className="space-y-4 pt-2">
             <Separator />
-            <div className="space-y-4 max-h-96 overflow-y-auto">
-              {comments.map(renderComment)}
+            
+            {/* Comment Input */}
+            <div className="space-y-3">
+              <form onSubmit={handleSubmitComment} className="flex gap-2">
+                <Textarea
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Write a comment..."
+                  className="flex-1 min-h-[36px] py-2 text-sm resize-none md:min-h-[40px]"
+                  rows={1}
+                  disabled={isCommenting}
+                />
+                <Button
+                  type="submit"
+                  size="sm"
+                  disabled={!newComment.trim() || isCommenting}
+                  className="h-9 px-3 md:h-10 md:px-4"
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+              </form>
+              
+              <p className="text-xs text-muted-foreground px-1">
+                Press Enter to post, Shift+Enter for new line
+              </p>
             </div>
-          </>
-        )}
 
-        {/* Show Comments Button */}
-        {!showComments && comments.length > 0 && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowComments(true)}
-            className="w-full text-sm text-muted-foreground hover:text-foreground"
-          >
-            View {comments.length} comment{comments.length > 1 ? 's' : ''}
-          </Button>
+            {/* Comments Section */}
+            {comments.length > 0 && (
+              <div className="space-y-4 max-h-96 overflow-y-auto">
+                {comments.map(renderComment)}
+              </div>
+            )}
+          </div>
         )}
       </CardContent>
     </Card>
