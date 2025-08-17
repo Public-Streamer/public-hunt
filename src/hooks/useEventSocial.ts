@@ -19,6 +19,9 @@ export interface EventComment {
   author_avatar?: string;
   created_at: string;
   updated_at: string;
+  parent_comment_id?: string;
+  reply_count: number;
+  replies?: EventComment[];
 }
 
 export function useEventSocial(eventId: string) {
@@ -27,6 +30,7 @@ export function useEventSocial(eventId: string) {
   const [loadingLikes, setLoadingLikes] = useState(false);
   const [loadingComments, setLoadingComments] = useState(false);
   const [userLike, setUserLike] = useState<EventLike | null>(null);
+  const [loadingReplies, setLoadingReplies] = useState<Record<string, boolean>>({});
   const { toast } = useToast();
 
   const fetchLikes = useCallback(async () => {
@@ -62,6 +66,7 @@ export function useEventSocial(eventId: string) {
         .from('event_comments')
         .select('*')
         .eq('event_id', eventId)
+        .is('parent_comment_id', null) // Only fetch top-level comments
         .order('created_at', { ascending: true });
 
       if (error) throw error;
@@ -162,7 +167,7 @@ export function useEventSocial(eventId: string) {
     }
   }, [eventId, userLike, toast]);
 
-  const addComment = useCallback(async (content: string) => {
+  const addComment = useCallback(async (content: string, parentCommentId?: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -199,10 +204,22 @@ export function useEventSocial(eventId: string) {
         author_name: profile.display_name || 'Unknown User',
         author_avatar: profile.profile_picture_url,
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        parent_comment_id: parentCommentId,
+        reply_count: 0
       };
 
-      setComments(prev => [...prev, tempComment]);
+      if (parentCommentId) {
+        // For replies, update the parent comment's reply count optimistically
+        setComments(prev => prev.map(comment => 
+          comment.id === parentCommentId 
+            ? { ...comment, reply_count: comment.reply_count + 1, replies: [...(comment.replies || []), tempComment] }
+            : comment
+        ));
+      } else {
+        // For top-level comments, add to main list
+        setComments(prev => [...prev, tempComment]);
+      }
 
       const { data: newComment, error } = await supabase
         .from('event_comments')
@@ -211,19 +228,36 @@ export function useEventSocial(eventId: string) {
           user_profile_id: profile.id,
           content: content.trim(),
           author_name: profile.display_name || 'Unknown User',
-          author_avatar: profile.profile_picture_url
+          author_avatar: profile.profile_picture_url,
+          parent_comment_id: parentCommentId
         })
         .select()
         .single();
 
       if (error) {
         // Rollback optimistic update
-        setComments(prev => prev.filter(comment => comment.id !== tempComment.id));
+        if (parentCommentId) {
+          setComments(prev => prev.map(comment => 
+            comment.id === parentCommentId 
+              ? { ...comment, reply_count: Math.max(0, comment.reply_count - 1), replies: (comment.replies || []).filter(r => r.id !== tempComment.id) }
+              : comment
+          ));
+        } else {
+          setComments(prev => prev.filter(comment => comment.id !== tempComment.id));
+        }
         throw error;
       }
 
       // Replace temp comment with real one
-      setComments(prev => prev.map(comment => comment.id === tempComment.id ? newComment : comment));
+      if (parentCommentId) {
+        setComments(prev => prev.map(comment => 
+          comment.id === parentCommentId 
+            ? { ...comment, replies: (comment.replies || []).map(r => r.id === tempComment.id ? newComment : r) }
+            : comment
+        ));
+      } else {
+        setComments(prev => prev.map(comment => comment.id === tempComment.id ? newComment : comment));
+      }
       return true;
     } catch (error) {
       console.error('Error adding comment:', error);
@@ -236,13 +270,58 @@ export function useEventSocial(eventId: string) {
     }
   }, [eventId, toast]);
 
-  const deleteComment = useCallback(async (commentId: string) => {
+  const fetchReplies = useCallback(async (commentId: string) => {
     try {
-      const commentToDelete = comments.find(c => c.id === commentId);
+      setLoadingReplies(prev => ({ ...prev, [commentId]: true }));
+      const { data: repliesData, error } = await supabase
+        .from('event_comments')
+        .select('*')
+        .eq('parent_comment_id', commentId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+
+      setComments(prev => prev.map(comment => 
+        comment.id === commentId 
+          ? { ...comment, replies: repliesData || [] }
+          : comment
+      ));
+    } catch (error) {
+      console.error('Error fetching replies:', error);
+    } finally {
+      setLoadingReplies(prev => ({ ...prev, [commentId]: false }));
+    }
+  }, []);
+
+  const deleteComment = useCallback(async (commentId: string, parentCommentId?: string) => {
+    try {
+      let commentToDelete: EventComment | undefined;
+      
+      if (parentCommentId) {
+        // Find reply to delete
+        const parentComment = comments.find(c => c.id === parentCommentId);
+        commentToDelete = parentComment?.replies?.find(r => r.id === commentId);
+      } else {
+        // Find top-level comment to delete
+        commentToDelete = comments.find(c => c.id === commentId);
+      }
+      
       if (!commentToDelete) return;
 
       // Optimistic update
-      setComments(prev => prev.filter(comment => comment.id !== commentId));
+      if (parentCommentId) {
+        setComments(prev => prev.map(comment => 
+          comment.id === parentCommentId 
+            ? { 
+                ...comment, 
+                reply_count: Math.max(0, comment.reply_count - 1),
+                replies: (comment.replies || []).filter(r => r.id !== commentId) 
+              }
+            : comment
+        ));
+      } else {
+        setComments(prev => prev.filter(comment => comment.id !== commentId));
+      }
 
       const { error } = await supabase
         .from('event_comments')
@@ -251,7 +330,19 @@ export function useEventSocial(eventId: string) {
 
       if (error) {
         // Rollback optimistic update
-        setComments(prev => [...prev, commentToDelete]);
+        if (parentCommentId) {
+          setComments(prev => prev.map(comment => 
+            comment.id === parentCommentId 
+              ? { 
+                  ...comment, 
+                  reply_count: comment.reply_count + 1,
+                  replies: [...(comment.replies || []), commentToDelete!] 
+                }
+              : comment
+          ));
+        } else {
+          setComments(prev => [...prev, commentToDelete!]);
+        }
         throw error;
       }
     } catch (error) {
@@ -303,17 +394,55 @@ export function useEventSocial(eventId: string) {
           filter: `event_id=eq.${eventId}`
         },
         (payload) => {
+          const newComment = payload.new as EventComment;
+          const oldComment = payload.old as EventComment;
+
           if (payload.eventType === 'INSERT') {
-            setComments(prev => {
-              const exists = prev.find(comment => comment.id === payload.new.id);
-              return exists ? prev : [...prev, payload.new as EventComment];
-            });
+            if (!newComment.parent_comment_id) {
+              // Top-level comment
+              setComments(prev => {
+                const exists = prev.find(comment => comment.id === newComment.id);
+                return exists ? prev : [...prev, newComment];
+              });
+            } else {
+              // Reply - update parent comment's replies
+              setComments(prev => prev.map(comment => 
+                comment.id === newComment.parent_comment_id 
+                  ? { 
+                      ...comment, 
+                      replies: [...(comment.replies || []), newComment].sort((a, b) => 
+                        new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+                      ) 
+                    }
+                  : comment
+              ));
+            }
           } else if (payload.eventType === 'DELETE') {
-            setComments(prev => prev.filter(comment => comment.id !== payload.old.id));
+            if (!oldComment.parent_comment_id) {
+              // Top-level comment
+              setComments(prev => prev.filter(comment => comment.id !== oldComment.id));
+            } else {
+              // Reply - remove from parent's replies
+              setComments(prev => prev.map(comment => 
+                comment.id === oldComment.parent_comment_id 
+                  ? { ...comment, replies: (comment.replies || []).filter(r => r.id !== oldComment.id) }
+                  : comment
+              ));
+            }
           } else if (payload.eventType === 'UPDATE') {
-            setComments(prev => prev.map(comment => 
-              comment.id === payload.new.id ? payload.new as EventComment : comment
-            ));
+            if (!newComment.parent_comment_id) {
+              // Top-level comment
+              setComments(prev => prev.map(comment => 
+                comment.id === newComment.id ? newComment : comment
+              ));
+            } else {
+              // Reply - update in parent's replies
+              setComments(prev => prev.map(comment => 
+                comment.id === newComment.parent_comment_id 
+                  ? { ...comment, replies: (comment.replies || []).map(r => r.id === newComment.id ? newComment : r) }
+                  : comment
+              ));
+            }
           }
         }
       )
@@ -337,9 +466,11 @@ export function useEventSocial(eventId: string) {
     userLike,
     loadingLikes,
     loadingComments,
+    loadingReplies,
     toggleLike,
     addComment,
     deleteComment,
+    fetchReplies,
     refreshLikes: fetchLikes,
     refreshComments: fetchComments
   };

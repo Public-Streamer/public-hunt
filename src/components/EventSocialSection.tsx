@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Heart, MessageSquare, Send } from "lucide-react";
+import { Heart, MessageSquare, Send, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -7,8 +7,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useEventSocial, EventComment } from "@/hooks/useEventSocial";
+import { ReplyComposer } from "@/components/ReplyComposer";
+import { CommentReply } from "@/components/CommentReply";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
 
 interface EventSocialSectionProps {
   eventId: string;
@@ -24,14 +27,35 @@ export function EventSocialSection({
     comments,
     userLike,
     loadingLikes,
+    loadingReplies,
     toggleLike,
     addComment,
     deleteComment,
+    fetchReplies,
   } = useEventSocial(eventId);
 
   const [newComment, setNewComment] = useState("");
   const [isCommenting, setIsCommenting] = useState(false);
   const [showComments, setShowComments] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [showReplies, setShowReplies] = useState<Record<string, boolean>>({});
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  // Get current user ID
+  React.useEffect(() => {
+    const getCurrentUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
+        setCurrentUserId(profile?.id || null);
+      }
+    };
+    getCurrentUser();
+  }, []);
 
   const handleSubmitComment = async (
     e: React.FormEvent | React.KeyboardEvent
@@ -45,6 +69,50 @@ export function EventSocialSection({
       setNewComment("");
     }
     setIsCommenting(false);
+  };
+
+  const handleSubmitReply = async (content: string, parentCommentId: string) => {
+    const success = await addComment(content, parentCommentId);
+    if (success) {
+      setReplyingTo(null);
+    }
+    return success;
+  };
+
+  const handleDeleteComment = async (commentId: string, parentCommentId?: string) => {
+    await deleteComment(commentId, parentCommentId);
+  };
+
+  const handleToggleReplies = async (commentId: string) => {
+    const isCurrentlyShown = showReplies[commentId];
+    
+    if (!isCurrentlyShown) {
+      // Load replies if not already loaded
+      const comment = comments.find(c => c.id === commentId);
+      if (!comment?.replies) {
+        await fetchReplies(commentId);
+      }
+    }
+    
+    setShowReplies(prev => ({
+      ...prev,
+      [commentId]: !isCurrentlyShown
+    }));
+  };
+
+  // Format relative timestamp for mobile
+  const formatMobileTime = (date: Date) => {
+    const now = Date.now();
+    const diff = now - date.getTime();
+    const minutes = Math.floor(diff / (1000 * 60));
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    
+    if (minutes < 1) return "now";
+    if (minutes < 60) return `${minutes}m`;
+    if (hours < 24) return `${hours}h`;
+    if (days < 7) return `${days}d`;
+    return formatDistanceToNow(date, { addSuffix: true });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -113,41 +181,108 @@ export function EventSocialSection({
   };
 
   const renderComment = (comment: EventComment) => {
-    const isOwner = comment.user_profile_id === userLike?.user_id; // Simple check, could be improved
+    const isOwner = comment.user_profile_id === currentUserId;
+    const hasReplies = comment.reply_count > 0;
+    const repliesVisible = showReplies[comment.id];
+    const isLoadingReplies = loadingReplies[comment.id];
 
     return (
-      <div key={comment.id} className="flex gap-3 group">
-        <Avatar className="h-8 w-8 flex-shrink-0">
-          <AvatarImage src={comment.author_avatar} />
-          <AvatarFallback className="text-xs">
-            {comment.author_name?.charAt(0)?.toUpperCase() || "U"}
-          </AvatarFallback>
-        </Avatar>
+      <div key={comment.id} className="space-y-2">
+        {/* Main Comment */}
+        <div className="flex gap-3 group">
+          <Avatar className="h-8 w-8 flex-shrink-0">
+            <AvatarImage src={comment.author_avatar} />
+            <AvatarFallback className="text-xs">
+              {comment.author_name?.charAt(0)?.toUpperCase() || "U"}
+            </AvatarFallback>
+          </Avatar>
 
-        <div className="flex-1 space-y-1">
-          <div className="bg-muted rounded-lg px-3 py-2">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="font-medium text-sm">{comment.author_name}</span>
-              <span className="text-xs text-muted-foreground">
-                {formatDistanceToNow(new Date(comment.created_at), {
-                  addSuffix: true,
-                })}
-              </span>
+          <div className="flex-1 space-y-1">
+            <div className="bg-muted rounded-lg px-3 py-2">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="font-medium text-sm truncate max-w-[150px]">
+                  {comment.author_name}
+                </span>
+                <span className="text-xs text-muted-foreground flex-shrink-0">
+                  {formatMobileTime(new Date(comment.created_at))}
+                </span>
+              </div>
+              <p className="text-sm text-foreground whitespace-pre-wrap break-words">
+                {comment.content}
+              </p>
             </div>
-            <p className="text-sm text-foreground whitespace-pre-wrap break-words">
-              {comment.content}
-            </p>
-          </div>
 
-          {isOwner && (
-            <button
-              onClick={() => deleteComment(comment.id)}
-              className="text-xs text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              Delete
-            </button>
-          )}
+            {/* Comment Actions */}
+            <div className="flex items-center gap-3 text-xs">
+              <button
+                onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+                className="text-muted-foreground hover:text-foreground transition-colors font-medium"
+              >
+                Reply
+              </button>
+              
+              {isOwner && (
+                <button
+                  onClick={() => handleDeleteComment(comment.id)}
+                  className="text-muted-foreground hover:text-destructive transition-colors opacity-0 group-hover:opacity-100"
+                >
+                  Delete
+                </button>
+              )}
+            </div>
+
+            {/* Reply Composer */}
+            {replyingTo === comment.id && (
+              <div className="mt-2 ml-2">
+                <ReplyComposer
+                  onSubmit={(content) => handleSubmitReply(content, comment.id)}
+                  placeholder="Write a reply..."
+                  className="text-xs"
+                />
+                <p className="text-xs text-muted-foreground mt-1 px-1">
+                  Press Enter to post, Shift+Enter for new line
+                </p>
+              </div>
+            )}
+
+            {/* View Replies Toggle */}
+            {hasReplies && (
+              <button
+                onClick={() => handleToggleReplies(comment.id)}
+                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors font-medium"
+                disabled={isLoadingReplies}
+              >
+                {isLoadingReplies ? (
+                  "Loading..."
+                ) : repliesVisible ? (
+                  <>
+                    <ChevronUp className="h-3 w-3" />
+                    Hide replies
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown className="h-3 w-3" />
+                    View {comment.reply_count} {comment.reply_count === 1 ? 'reply' : 'replies'}
+                  </>
+                )}
+              </button>
+            )}
+          </div>
         </div>
+
+        {/* Replies */}
+        {repliesVisible && comment.replies && (
+          <div className="space-y-2">
+            {comment.replies.map((reply) => (
+              <CommentReply
+                key={reply.id}
+                reply={reply}
+                currentUserId={currentUserId}
+                onDelete={() => handleDeleteComment(reply.id, comment.id)}
+              />
+            ))}
+          </div>
+        )}
       </div>
     );
   };

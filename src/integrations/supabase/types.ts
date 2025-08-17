@@ -841,6 +841,8 @@ export type Database = {
           created_at: string
           event_id: string
           id: string
+          parent_comment_id: string | null
+          reply_count: number
           updated_at: string
           user_profile_id: string | null
         }
@@ -851,6 +853,8 @@ export type Database = {
           created_at?: string
           event_id: string
           id?: string
+          parent_comment_id?: string | null
+          reply_count?: number
           updated_at?: string
           user_profile_id?: string | null
         }
@@ -861,6 +865,8 @@ export type Database = {
           created_at?: string
           event_id?: string
           id?: string
+          parent_comment_id?: string | null
+          reply_count?: number
           updated_at?: string
           user_profile_id?: string | null
         }
@@ -870,6 +876,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "event_comments"
             referencedColumns: ["id"]
           },
           {
