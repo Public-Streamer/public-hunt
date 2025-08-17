@@ -27,6 +27,7 @@ import SocialShareMenu from "@/components/SocialShareMenu";
 import TicketPurchaseModal from "@/components/TicketPurchaseModal";
 import StreamPreviewContainer from "@/components/StreamPreviewContainer";
 import { ReportEventModal } from "@/components/ReportEventModal";
+import { EventSocialSection } from "@/components/EventSocialSection";
 import { useReportEvent } from "@/hooks/useReportEvent";
 import { CustomScoreboard } from "@/components/CustomScoreboard";
 import { PinnedMessageSection } from "@/components/PinnedMessageSection";
@@ -798,6 +799,11 @@ const EventPage: React.FC = () => {
                 />
               </CardContent>
             </Card>
+
+            {/* Event Social Section */}
+            {eventData && currentUser && (
+              <EventSocialSection eventId={eventData.id} />
+            )}
 
             {currentUser && !isEventHost && !isStreamer && (
               <Card>

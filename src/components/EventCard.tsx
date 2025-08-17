@@ -132,27 +132,18 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
         className="hover:shadow-xl transition-transform duration-300 overflow-hidden cursor-pointer h-full flex flex-col justify-between   "
         onClick={handleCardClick}
       >
-        <MediaBackground
-          mediaUrls={event.media_urls}
-          className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100"
-        >
-          <div className="absolute inset-0 flex items-center justify-center">
-            {/* <Video className="h-16 w-16 text-base-300" /> */}
-          </div>
+        <div className="relative">
+          <MediaBackground
+            mediaUrls={event.media_urls}
+            className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100"
+          />
           {event.isLive && (
             <Badge className="absolute top-2 left-2 bg-red-600 text-white">
               <div className="w-2 h-2 bg-white rounded-full mr-1 animate-pulse" />
               LIVE
             </Badge>
           )}
-          {/* <Badge
-            variant="outline"
-            className="absolute top-2 right-2 text-white px-2 py-1 rounded text-sm"
-          >
-            <Eye className="h-4 w-4 mr-1" />
-            {event.streamerCount}
-          </Badge> */}
-        </MediaBackground>
+        </div>
 
         <CardHeader className="pb-3">
           <CardTitle className="text-lg font-semibold line-clamp-2">
