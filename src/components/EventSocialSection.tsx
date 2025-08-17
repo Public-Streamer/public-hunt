@@ -1,5 +1,11 @@
 import React, { useState } from "react";
-import { Heart, MessageSquare, Send, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  Heart,
+  MessageSquare,
+  Send,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -44,12 +50,14 @@ export function EventSocialSection({
   // Get current user ID
   React.useEffect(() => {
     const getCurrentUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user) {
         const { data: profile } = await supabase
-          .from('user_profiles')
-          .select('id')
-          .eq('user_id', user.id)
+          .from("user_profiles")
+          .select("id")
+          .eq("user_id", user.id)
           .single();
         setCurrentUserId(profile?.id || null);
       }
@@ -71,7 +79,10 @@ export function EventSocialSection({
     setIsCommenting(false);
   };
 
-  const handleSubmitReply = async (content: string, parentCommentId: string) => {
+  const handleSubmitReply = async (
+    content: string,
+    parentCommentId: string
+  ) => {
     const success = await addComment(content, parentCommentId);
     if (success) {
       setReplyingTo(null);
@@ -79,24 +90,27 @@ export function EventSocialSection({
     return success;
   };
 
-  const handleDeleteComment = async (commentId: string, parentCommentId?: string) => {
+  const handleDeleteComment = async (
+    commentId: string,
+    parentCommentId?: string
+  ) => {
     await deleteComment(commentId, parentCommentId);
   };
 
   const handleToggleReplies = async (commentId: string) => {
     const isCurrentlyShown = showReplies[commentId];
-    
+
     if (!isCurrentlyShown) {
       // Load replies if not already loaded
-      const comment = comments.find(c => c.id === commentId);
+      const comment = comments.find((c) => c.id === commentId);
       if (!comment?.replies) {
         await fetchReplies(commentId);
       }
     }
-    
-    setShowReplies(prev => ({
+
+    setShowReplies((prev) => ({
       ...prev,
-      [commentId]: !isCurrentlyShown
+      [commentId]: !isCurrentlyShown,
     }));
   };
 
@@ -107,7 +121,7 @@ export function EventSocialSection({
     const minutes = Math.floor(diff / (1000 * 60));
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    
+
     if (minutes < 1) return "now";
     if (minutes < 60) return `${minutes}m`;
     if (hours < 24) return `${hours}h`;
@@ -215,12 +229,14 @@ export function EventSocialSection({
             {/* Comment Actions */}
             <div className="flex items-center gap-3 text-xs">
               <button
-                onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+                onClick={() =>
+                  setReplyingTo(replyingTo === comment.id ? null : comment.id)
+                }
                 className="text-muted-foreground hover:text-foreground transition-colors font-medium"
               >
                 Reply
               </button>
-              
+
               {isOwner && (
                 <button
                   onClick={() => handleDeleteComment(comment.id)}
@@ -262,7 +278,8 @@ export function EventSocialSection({
                 ) : (
                   <>
                     <ChevronDown className="h-3 w-3" />
-                    View {comment.reply_count} {comment.reply_count === 1 ? 'reply' : 'replies'}
+                    View {comment.reply_count}{" "}
+                    {comment.reply_count === 1 ? "reply" : "replies"}
                   </>
                 )}
               </button>

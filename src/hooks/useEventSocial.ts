@@ -79,6 +79,7 @@ export function useEventSocial(eventId: string) {
   }, [eventId]);
 
   const toggleLike = useCallback(async () => {
+    setLoadingLikes(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -156,6 +157,7 @@ export function useEventSocial(eventId: string) {
         // Replace temp like with real one
         setUserLike(newLike);
         setLikes(prev => prev.map(like => like.id === tempLike.id ? newLike : like));
+        setLoadingLikes(false);
       }
     } catch (error) {
       console.error('Error toggling like:', error);
@@ -165,7 +167,9 @@ export function useEventSocial(eventId: string) {
         variant: "destructive"
       });
     }
+    setLoadingLikes(false);
   }, [eventId, userLike, toast]);
+
 
   const addComment = useCallback(async (content: string, parentCommentId?: string) => {
     try {

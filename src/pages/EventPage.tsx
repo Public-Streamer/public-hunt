@@ -21,8 +21,6 @@ import {
 } from "lucide-react";
 import { LiveKitRoomLazy, RoomAudioRendererLazy } from "@/lib/livekitLazy";
 import "@livekit/components-styles";
-import LiveDiscussionSection from "@/components/LiveDiscussionSection";
-import { PreStreamChatArchive } from "@/components/PreStreamChatArchive";
 import SocialShareMenu from "@/components/SocialShareMenu";
 import TicketPurchaseModal from "@/components/TicketPurchaseModal";
 import StreamPreviewContainer from "@/components/StreamPreviewContainer";
@@ -684,7 +682,7 @@ const EventPage: React.FC = () => {
               />
             )} */}
             {eventData && <EventSocialSection eventId={eventData.id} />}
-            <LiveDiscussionSection
+            {/* <LiveDiscussionSection
               eventId={eventData?.id}
               currentUserProfile={
                 currentUserProfile
@@ -697,7 +695,7 @@ const EventPage: React.FC = () => {
                     }
                   : undefined
               }
-            />
+            /> */}
           </div>
 
           {/* Right Column - Event Details and Actions */}

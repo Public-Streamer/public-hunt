@@ -60,6 +60,7 @@ import { useStreamName } from "@/hooks/useStreamName";
 import { useScoreboardTeams } from "@/hooks/useScoreboardTeams";
 import { useEventScoreboardMeta } from "@/hooks/useEventScoreboardMeta";
 import InStreamChatOverlay from "./InStreamChatOverlay";
+import { EventSocialSection } from "./EventSocialSection";
 
 interface StreamerInterfaceProps {
   eventId: string;
@@ -1096,6 +1097,8 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
               eventId={eventId}
               isHost={userRole === "host"}
             />
+
+            <EventSocialSection eventId={eventId} />
 
             {/* Scoreboard Section - Show for hosts (when creating or managing) and streamers (when teams exist) */}
             {canSeeScoreboard && (

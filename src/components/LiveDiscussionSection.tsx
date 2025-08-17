@@ -14,8 +14,8 @@ import { useSupabaseChatMessages } from "@/hooks/useSupabaseChatMessages";
 // Lazy emoji picker to avoid bundling heavy data on initial load
 const EmojiPickerLazy = React.lazy(async () => {
   const [{ default: Picker }, data] = await Promise.all([
-    import('@emoji-mart/react'),
-    import('@emoji-mart/data'),
+    import("@emoji-mart/react"),
+    import("@emoji-mart/data"),
   ]);
   return { default: (props: any) => <Picker data={data} {...props} /> };
 });
@@ -34,7 +34,12 @@ const LiveDiscussionSection: React.FC<LiveDiscussionSectionProps> = ({
   eventId,
   currentUserProfile,
 }) => {
-  const { messages, loading: messagesLoading, sendMessage, canSend } = useSupabaseChatMessages(eventId);
+  const {
+    messages,
+    loading: messagesLoading,
+    sendMessage,
+    canSend,
+  } = useSupabaseChatMessages(eventId);
 
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -56,8 +61,8 @@ const LiveDiscussionSection: React.FC<LiveDiscussionSectionProps> = ({
         setShowEmojiPicker(false);
       }
     }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showEmojiPicker]);
   const navigate = useNavigate();
   const { isAuthenticated } = useAppContext();
@@ -66,7 +71,9 @@ const LiveDiscussionSection: React.FC<LiveDiscussionSectionProps> = ({
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     if (messagesEndRef.current) {
-      const scrollContainer = messagesEndRef.current.closest('[data-radix-scroll-area-viewport]');
+      const scrollContainer = messagesEndRef.current.closest(
+        "[data-radix-scroll-area-viewport]"
+      );
       if (scrollContainer) {
         scrollContainer.scrollTop = scrollContainer.scrollHeight;
       }
@@ -79,7 +86,7 @@ const LiveDiscussionSection: React.FC<LiveDiscussionSectionProps> = ({
 
     setLoading(true);
     const messageContent = newMessage.trim();
-    
+
     try {
       await sendMessage(messageContent);
       setNewMessage("");
@@ -122,7 +129,8 @@ const LiveDiscussionSection: React.FC<LiveDiscussionSectionProps> = ({
                 <Avatar className="w-8 h-8">
                   <AvatarImage src={currentUserProfile.profile_picture_url} />
                   <AvatarFallback>
-                    {currentUserProfile.display_name?.[0] || currentUserProfile.username[0]}
+                    {currentUserProfile.display_name?.[0] ||
+                      currentUserProfile.username[0]}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 w-full flex items-start gap-2 relative">
@@ -135,24 +143,35 @@ const LiveDiscussionSection: React.FC<LiveDiscussionSectionProps> = ({
                       tabIndex={0}
                       ref={emojiButtonRef}
                     >
-                      <span role="img" aria-label="emoji picker" className="text-xl">
+                      <span
+                        role="img"
+                        aria-label="emoji picker"
+                        className="text-xl"
+                      >
                         <Smile className="w-5 h-5" />
                       </span>
                     </button>
                     {showEmojiPicker && (
-                      <div ref={emojiPickerRef} className="absolute z-20 mt-12 sm:mt-10">
+                      <div
+                        ref={emojiPickerRef}
+                        className="absolute z-20 mt-12 sm:mt-10"
+                      >
                         <Suspense fallback={null}>
                           <EmojiPickerLazy
                             onEmojiSelect={(emoji: { native: string }) => {
                               if (textareaRef.current) {
-                                const start = textareaRef.current.selectionStart;
+                                const start =
+                                  textareaRef.current.selectionStart;
                                 const end = textareaRef.current.selectionEnd;
                                 const before = newMessage.slice(0, start);
                                 const after = newMessage.slice(end);
                                 setNewMessage(before + emoji.native + after);
                                 setTimeout(() => {
                                   textareaRef.current?.focus();
-                                  textareaRef.current?.setSelectionRange(start + emoji.native.length, start + emoji.native.length);
+                                  textareaRef.current?.setSelectionRange(
+                                    start + emoji.native.length,
+                                    start + emoji.native.length
+                                  );
                                 }, 0);
                               } else {
                                 setNewMessage((msg) => msg + emoji.native);
@@ -160,7 +179,7 @@ const LiveDiscussionSection: React.FC<LiveDiscussionSectionProps> = ({
                               setShowEmojiPicker(false);
                             }}
                             theme="light"
-                            style={{ position: 'absolute', left: 0 }}
+                            style={{ position: "absolute", left: 0 }}
                           />
                         </Suspense>
                       </div>
@@ -176,7 +195,6 @@ const LiveDiscussionSection: React.FC<LiveDiscussionSectionProps> = ({
                     className="resize-none w-full text-base"
                   />
                 </div>
-
               </div>
               <div className="flex justify-end w-full">
                 <TooltipWrapper content="Send message to live discussion">
@@ -202,7 +220,7 @@ const LiveDiscussionSection: React.FC<LiveDiscussionSectionProps> = ({
                     window.location.pathname + window.location.search;
                   navigate(`/login?redirect=${encodeURIComponent(currentUrl)}`);
                 }}
-                className="p-0 h-auto font-normal"
+                className="px-2 h-auto font-normal"
               >
                 Sign in
               </Button>{" "}
@@ -224,7 +242,7 @@ const LiveDiscussionSection: React.FC<LiveDiscussionSectionProps> = ({
               <p>No messages yet. Be the first to start the discussion!</p>
             </div>
           ) : (
-            <ScrollArea className="h-64 w-full pr-0 sm:pr-4" >
+            <ScrollArea className="h-64 w-full pr-0 sm:pr-4">
               <div className="space-y-3 w-full">
                 {messages.map((message) => (
                   <div
@@ -232,28 +250,28 @@ const LiveDiscussionSection: React.FC<LiveDiscussionSectionProps> = ({
                     className="flex flex-col items-start gap-2 sm:gap-3 p-2 sm:p-3 border rounded-lg w-full bg-white/95 shadow-sm"
                   >
                     <div className="flex items-center gap-2">
-                    <Avatar className="w-10 h-10 sm:w-10 sm:h-10 mt-0 sm:mt-1  sm:mx-0">
-                      {message.profile_picture_url ? (
-                        <AvatarImage 
-                          src={message.profile_picture_url} 
-                          alt={message.display_name} 
-                        />
-                      ) : (
-                        <AvatarFallback>
-                          {getInitials(message.display_name)}
-                        </AvatarFallback>
-                      )}
-                    </Avatar>
-                   <div className="flex flex-col">
-                   <span className=" text-xs truncate max-w-full">
+                      <Avatar className="w-10 h-10 sm:w-10 sm:h-10 mt-0 sm:mt-1  sm:mx-0">
+                        {message.profile_picture_url ? (
+                          <AvatarImage
+                            src={message.profile_picture_url}
+                            alt={message.display_name}
+                          />
+                        ) : (
+                          <AvatarFallback>
+                            {getInitials(message.display_name)}
+                          </AvatarFallback>
+                        )}
+                      </Avatar>
+                      <div className="flex flex-col">
+                        <span className=" text-xs truncate max-w-full">
                           {message.display_name}
                         </span>
-                    <span className="text-xs text-muted-foreground truncate max-w-full">
+                        <span className="text-xs text-muted-foreground truncate max-w-full">
                           {formatDistanceToNow(new Date(message.created_at), {
                             addSuffix: true,
                           })}
                         </span>
-                   </div>
+                      </div>
                     </div>
                     <div className="flex-1 min-w-0 w-full">
                       <p className="font-medium text-md mt-1 break-words w-full   ">
