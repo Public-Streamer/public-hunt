@@ -1,17 +1,17 @@
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface ResetPasswordFormProps {
   onClose: () => void;
 }
 
 const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({ onClose }) => {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -28,12 +28,12 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({ onClose }) => {
         toast({
           variant: "destructive",
           title: "Error",
-          description: error.message
+          description: error.message,
         });
       } else {
         toast({
           title: "Password Reset Email Sent",
-          description: "Please check your email for the password reset link."
+          description: "Please check your email for the password reset link.",
         });
         onClose();
       }
@@ -41,7 +41,7 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({ onClose }) => {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "An unexpected error occurred"
+        description: "An unexpected error occurred",
       });
     } finally {
       setIsLoading(false);
@@ -67,14 +67,14 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({ onClose }) => {
                 required
               />
             </div>
-            
+
             <div className="space-y-2">
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Sending...' : 'Send Reset Link'}
+                {isLoading ? "Sending..." : "Send Reset Link"}
               </Button>
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 onClick={onClose}
                 className="w-full"
               >
