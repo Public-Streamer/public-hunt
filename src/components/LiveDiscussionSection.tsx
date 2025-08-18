@@ -10,6 +10,7 @@ import TooltipWrapper from "@/components/ui/tooltip-wrapper";
 import { formatDistanceToNow } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useSupabaseChatMessages } from "@/hooks/useSupabaseChatMessages";
+import { Input } from "./ui/input";
 
 // Lazy emoji picker to avoid bundling heavy data on initial load
 const EmojiPickerLazy = React.lazy(async () => {
@@ -134,11 +135,11 @@ const LiveDiscussionSection: React.FC<LiveDiscussionSectionProps> = ({
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 w-full flex items-start gap-2 relative">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center  gap-2">
                     <button
                       type="button"
                       aria-label="Add emoji"
-                      className="p-1 rounded bg-transparent focus:outline-none absolute right-2 top-2"
+                      className="p-1 rounded bg-transparent focus:outline-none absolute right-2 top-3"
                       onClick={() => setShowEmojiPicker((v) => !v)}
                       tabIndex={0}
                       ref={emojiButtonRef}
@@ -185,14 +186,13 @@ const LiveDiscussionSection: React.FC<LiveDiscussionSectionProps> = ({
                       </div>
                     )}
                   </div>
-                  <Textarea
+                  <Input
                     ref={textareaRef}
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     onKeyPress={handleKeyPress}
                     placeholder="Join the live discussion..."
-                    rows={2}
-                    className="resize-none w-full text-base"
+                    className="resize-none w-full text-base "
                   />
                 </div>
               </div>
@@ -249,7 +249,10 @@ const LiveDiscussionSection: React.FC<LiveDiscussionSectionProps> = ({
                     key={message.id}
                     className="flex flex-col items-start gap-2 sm:gap-3 p-2 sm:p-3 border rounded-lg w-full bg-white/95 shadow-sm"
                   >
-                    <div className="flex items-center gap-2">
+                    <div
+                      onClick={() => navigate(`/profile/${message.user_id}`)}
+                      className="flex items-center gap-2 cursor-pointer"
+                    >
                       <Avatar className="w-10 h-10 sm:w-10 sm:h-10 mt-0 sm:mt-1  sm:mx-0">
                         {message.profile_picture_url ? (
                           <AvatarImage
