@@ -240,7 +240,7 @@ export function EventSocialSection({
               {isOwner && (
                 <button
                   onClick={() => handleDeleteComment(comment.id)}
-                  className="text-muted-foreground hover:text-destructive transition-colors opacity-0 group-hover:opacity-100"
+                  className=" text-muted-foreground hover:text-destructive"
                 >
                   Delete
                 </button>
