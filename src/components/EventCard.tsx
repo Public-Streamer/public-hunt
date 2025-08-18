@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ import TicketPurchaseModal from "./TicketPurchaseModal";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 import { useAppContext } from "@/contexts/AppContext";
 import MediaBackground from "./MediaBackground";
+import { EventSocialSection } from "./EventSocialSection";
 
 interface Event {
   id: string;
@@ -47,7 +48,7 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
   const { user, isAuthenticated } = useAppContext();
   const navigate = useNavigate();
 
-  const checkTicketStatus = async () => {
+  const checkTicketStatus = useCallback(async () => {
     if (!user) return;
 
     setCheckingTicket(true);
@@ -72,13 +73,13 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
     } finally {
       setCheckingTicket(false);
     }
-  };
+  }, [user, event.id]);
 
   useEffect(() => {
     if (isAuthenticated && user) {
       checkTicketStatus();
     }
-  }, [user, isAuthenticated, event.id]);
+  }, [user, isAuthenticated, event.id, checkTicketStatus]);
 
   const handleCardClick = () => {
     const eventUrl = (event as any).slug
@@ -220,6 +221,7 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
                 <span className="hidden xs:inline sm:inline">Share</span>
               </Button>
             </div> */}
+            <EventSocialSection eventId={event.id} />
           </div>
         </CardContent>
       </Card>
