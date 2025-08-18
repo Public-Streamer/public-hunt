@@ -13,7 +13,7 @@ interface ChatMessage {
   created_at: string;
 }
 
-export const useSupabaseChatMessages = (eventId: string) => {
+export const useSupabaseChatMessages = (eventId: string, camName?: string) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [connectionStatus, setConnectionStatus] = useState<
@@ -47,6 +47,18 @@ export const useSupabaseChatMessages = (eventId: string) => {
     }
   }, [eventId]);
 
+  console.log(messages)
+
+  let streamerName;
+  if(camName == user?.email || ""){
+    streamerName = currentUserProfile?.display_name;
+  }
+  else{
+    streamerName = camName;
+  }
+
+  
+
   // Send message function
   const sendMessage = useCallback(
     async (messageContent: string) => {
@@ -65,7 +77,7 @@ export const useSupabaseChatMessages = (eventId: string) => {
             event_id: eventId,
             user_id: currentUserProfile.user_id,
             username: currentUserProfile.username || "unknown",
-            display_name: currentUserProfile.display_name || "Anonymous",
+            display_name: streamerName ? streamerName : currentUserProfile.display_name,
             profile_picture_url: currentUserProfile.profile_picture_url || null,
             message: messageContent,
             message_type: "user",
@@ -81,7 +93,7 @@ export const useSupabaseChatMessages = (eventId: string) => {
         throw error;
       }
     },
-    [eventId, currentUserProfile, isAuthenticated]
+    [eventId, currentUserProfile, isAuthenticated, streamerName]
   );
 
   // Delete message function

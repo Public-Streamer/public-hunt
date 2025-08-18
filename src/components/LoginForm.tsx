@@ -14,6 +14,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import SignupForm from "./SignupForm";
 import { ScrollArea } from "./ui/scroll-area";
 import CompanyAccountSelector from "./CompanyAccountSelector";
+import ResetPasswordForm from "./ResetPasswordForm";
 import { supabase } from "@/integrations/supabase/client";
 import TooltipWrapper from "@/components/ui/tooltip-wrapper";
 
@@ -29,6 +30,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose, redirectUrl }) => {
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [showSignup, setShowSignup] = useState(false);
   const [showAccountSelector, setShowAccountSelector] = useState(false);
+  const [showResetPassword, setShowResetPassword] = useState(false);
   const [pendingUser, setPendingUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -122,6 +124,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose, redirectUrl }) => {
     setShowAccountSelector(false);
     setPendingUser(null);
   };
+
+  if (showResetPassword) {
+    return (
+      <ResetPasswordForm onClose={() => setShowResetPassword(false)} />
+    );
+  }
 
   if (showAccountSelector && pendingUser) {
     return (
@@ -241,6 +249,18 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose, redirectUrl }) => {
                   Cancel
                 </Button>
               </TooltipWrapper>
+            </div>
+
+            {/* Forgot password link */}
+            <div className="flex justify-center">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setShowResetPassword(true)}
+                className="text-sm font-medium h-auto px-2 py-1 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Forgot your password?
+              </Button>
             </div>
 
             {/* Centered signup link with proper spacing and positioning */}

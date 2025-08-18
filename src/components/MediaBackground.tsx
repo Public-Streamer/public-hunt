@@ -15,7 +15,7 @@ interface MediaBackgroundProps {
   mediaUrls?: string[];
   src?: string; // Legacy prop, will be deprecated
   fallback?: string; // Fallback image URL
-  children?: React.ReactNode;
+
   className?: string;
   alt?: string;
   autoIntervalMs?: number; // Auto-play interval (disabled by default)
@@ -30,7 +30,7 @@ const MediaBackground: React.FC<MediaBackgroundProps> = ({
   mediaUrls,
   src,
   fallback,
-  children,
+
   className = "",
   alt = "Media background",
   autoIntervalMs,
@@ -147,7 +147,6 @@ const MediaBackground: React.FC<MediaBackgroundProps> = ({
         <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
           No media available
         </div>
-        <div className="relative z-10 w-full h-full">{children}</div>
       </div>
     );
   }
@@ -180,7 +179,6 @@ const MediaBackground: React.FC<MediaBackgroundProps> = ({
             />
           )}
         </div>
-        {/* <div className="relative z-10 w-full h-full">{children}</div> */}
 
         {enableModal && imageSlides.length > 0 && (
           <ImageModal
@@ -300,10 +298,10 @@ const MediaBackground: React.FC<MediaBackgroundProps> = ({
         </div> */}
       </Carousel>
 
-      {/* Overlay content */}
+      {/* Overlay content
       <div className="relative z-10 w-full h-full pointer-events-none">
-        <div className="pointer-events-auto">{children}</div>
-      </div>
+        <div className="pointer-events-auto"></div>
+      </div> */}
 
       {enableModal && imageSlides.length > 0 && (
         <ImageModal

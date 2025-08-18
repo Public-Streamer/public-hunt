@@ -25,6 +25,8 @@ import { useSupabaseChatMessages } from "@/hooks/useSupabaseChatMessages";
 import { useAppContext } from "@/contexts/AppContext";
 import { useToast } from "@/hooks/use-toast";
 import { useScreenSize } from "@/hooks/use-mobile";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { formatDistanceToNow } from "date-fns";
 
 interface InStreamChatOverlayProps {
   eventId: string;
@@ -51,7 +53,10 @@ const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
   className = "",
   eventHostId,
 }) => {
-  const { messages, sendMessage, deleteMessage } = useSupabaseChatMessages(eventId);
+  const { messages, sendMessage, deleteMessage } = useSupabaseChatMessages(
+    eventId,
+    camName
+  );
   const { currentUserProfile } = useAppContext();
   const screenSize = useScreenSize();
   const { toast } = useToast();
@@ -65,7 +70,11 @@ const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
   );
 
   // Debug: log current user identity
-  console.log("Chat user identity:", currentUserProfile?.display_name, currentUserProfile?.user_id);
+  console.log(
+    "Chat user identity:",
+    currentUserProfile?.display_name,
+    currentUserProfile?.user_id
+  );
 
   // Auto-scroll to bottom on initial render
   useEffect(() => {
@@ -197,12 +206,21 @@ const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
                       opacity: baseOpacity,
                     }}
                   >
-                    <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-2 justify-start">
+                      <Avatar className="h-6 w-6">
+                        <AvatarImage src={message.profile_picture_url} />
+                        <AvatarFallback>
+                          {message.display_name?.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
                       <div className="flex flex-col flex-1 min-w-0">
-                        <span className="font-semibold text-blue-200 text-xs sm:text-sm leading-tight truncate max-w-full">
-                          {message.display_name || "Anonymous"}
+                        <span className="flex items-baseline gap-2 font-semibold text-blue-200 text-xs sm:text-sm leading-tight truncate max-w-full">
+                          {message.display_name || "Anonymous"}{" "}
+                          <span className="text-white/60 text-xs sm:text-sm">
+                            {formatDistanceToNow(new Date(message.created_at))}
+                          </span>
                         </span>
-                        <span className="text-white text-xs sm:text-sm leading-relaxed break-words">
+                        <span className="text-white text-xs sm:text-sm leading-relaxed break-words ">
                           {message.message}
                         </span>
                       </div>

@@ -244,15 +244,15 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
   const bgUrl = mediaUrls?.[0] ? mediaUrls[0] : cameraOff;
   if (!track) {
     return (
-      <MediaBackground
-        mediaUrls={[cameraOff]}
-        className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100"
-      >
+      <div className="relative aspect-video bg-gradient-to-br from-purple-100 to-pink-100">
+        <MediaBackground
+          mediaUrls={[cameraOff]}
+          className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100"
+        />
         <div className="absolute inset-0 flex items-end justify-center">
           <h1 className="p-10 text-2xl font-thin text-white">
             Camera/Screen is Off
           </h1>
-          {/* <Video className="h-12 w-12 sm:h-16 sm:w-16 lg:h-24 lg:w-24 text-purple-500" /> */}
         </div>
         {isLive && (
           <Badge className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-red-600 text-white text-xs">
@@ -260,7 +260,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
             LIVE
           </Badge>
         )}
-      </MediaBackground>
+      </div>
     );
   }
 

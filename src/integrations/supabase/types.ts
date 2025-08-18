@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -829,6 +829,109 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_comments: {
+        Row: {
+          author_avatar: string | null
+          author_name: string
+          content: string
+          created_at: string
+          event_id: string
+          id: string
+          parent_comment_id: string | null
+          reply_count: number
+          updated_at: string
+          user_profile_id: string | null
+        }
+        Insert: {
+          author_avatar?: string | null
+          author_name: string
+          content: string
+          created_at?: string
+          event_id: string
+          id?: string
+          parent_comment_id?: string | null
+          reply_count?: number
+          updated_at?: string
+          user_profile_id?: string | null
+        }
+        Update: {
+          author_avatar?: string | null
+          author_name?: string
+          content?: string
+          created_at?: string
+          event_id?: string
+          id?: string
+          parent_comment_id?: string | null
+          reply_count?: number
+          updated_at?: string
+          user_profile_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_comments_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "event_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_comments_user_profile_id_fkey"
+            columns: ["user_profile_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_likes: {
+        Row: {
+          created_at: string
+          display_name: string
+          event_id: string
+          id: string
+          user_id: string
+          user_profile_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          display_name: string
+          event_id: string
+          id?: string
+          user_id: string
+          user_profile_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          display_name?: string
+          event_id?: string
+          id?: string
+          user_id?: string
+          user_profile_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_likes_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_likes_user_profile_id_fkey"
+            columns: ["user_profile_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1859,20 +1962,20 @@ export type Database = {
       debug_event_live_status: {
         Args: { p_event_id: string }
         Returns: {
+          all_participants: Json
           event_id: string
+          event_is_live: boolean
           live_count: number
           live_participants: Json
-          event_is_live: boolean
-          all_participants: Json
         }[]
       }
       debug_live_status: {
         Args: { p_event_id: string }
         Returns: {
-          user_id: string
-          role: string
           is_live: boolean
+          role: string
           total_count: number
+          user_id: string
         }[]
       }
       generate_slug: {
@@ -1894,9 +1997,9 @@ export type Database = {
       update_event_live_status_atomic: {
         Args: { p_event_id: string }
         Returns: {
-          should_close_room: boolean
           event_was_live: boolean
           live_participants_count: number
+          should_close_room: boolean
         }[]
       }
       update_stripe_account_status: {
@@ -1911,10 +2014,10 @@ export type Database = {
       verify_live_participants: {
         Args: { p_event_id: string }
         Returns: {
-          total_participants: number
           live_hosts: number
           live_streamers: number
           total_live: number
+          total_participants: number
         }[]
       }
     }

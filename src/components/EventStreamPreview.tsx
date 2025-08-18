@@ -210,28 +210,35 @@ const EventStreamPreview: React.FC<EventStreamPreviewProps> = ({
               mediaUrls={mediaUrls}
             />
           ) : (
-            <div className="flex flex-col items-center justify-center h-full space-y-4 bg-black/80">
-              {/* <MediaBackground mediaUrls={mediaUrls} className="h-full" /> */}
-              <Video className="h-16 w-16 text-purple-500" />
-              <div className="text-white font-medium">
-                Show 10 Sec preview here
-              </div>
-              {isLive && (
-                <Badge className="bg-red-600 hover:bg-red-700 text-white">
-                  LIVE
-                </Badge>
-              )}
-              {isLive && (
-                <div className="w-1/2">
-                  <Button
-                    size={screenSize === "mobile" ? "xs" : "sm"}
-                    onClick={handlePreviewClick}
-                    className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3"
-                  >
-                    Preview
-                  </Button>
+            <div
+              style={{
+                backgroundImage: `url(${mediaUrls[0]})`,
+                backgroundSize: "cover",
+              }}
+              className="flex flex-col items-center justify-center h-full space-y-4 bg-black/80"
+            >
+              <div className="flex flex-col justify-center items-center space-y-2 bg-black/80 w-full h-full">
+                <Video className="h-16 w-16 text-purple-500" />
+                <div className="text-white font-medium">
+                  Show 10 Sec preview here
                 </div>
-              )}
+                {isLive && (
+                  <Badge className="bg-red-600 hover:bg-red-700 text-white">
+                    LIVE
+                  </Badge>
+                )}
+                {isLive && (
+                  <div className="w-1/2">
+                    <Button
+                      size={screenSize === "mobile" ? "xs" : "sm"}
+                      onClick={handlePreviewClick}
+                      className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3"
+                    >
+                      Preview
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>

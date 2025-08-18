@@ -21,12 +21,11 @@ import {
 } from "lucide-react";
 import { LiveKitRoomLazy, RoomAudioRendererLazy } from "@/lib/livekitLazy";
 import "@livekit/components-styles";
-import LiveDiscussionSection from "@/components/LiveDiscussionSection";
-import { PreStreamChatArchive } from "@/components/PreStreamChatArchive";
 import SocialShareMenu from "@/components/SocialShareMenu";
 import TicketPurchaseModal from "@/components/TicketPurchaseModal";
 import StreamPreviewContainer from "@/components/StreamPreviewContainer";
 import { ReportEventModal } from "@/components/ReportEventModal";
+import { EventSocialSection } from "@/components/EventSocialSection";
 import { useReportEvent } from "@/hooks/useReportEvent";
 import { CustomScoreboard } from "@/components/CustomScoreboard";
 import { PinnedMessageSection } from "@/components/PinnedMessageSection";
@@ -64,9 +63,6 @@ const EventPage: React.FC = () => {
   const [showReportModal, setShowReportModal] = useState(false);
 
   // Separate state for frequently changing data to prevent full re-renders
-
-  //BUG: there is a bug where is_live is not updating in the store.. also i'm thinking the reactQuery is caching the data and using old data after every rel
-  const isLive = useEventSelector((e) => e?.is_live ?? false);
 
   // const eventData = useEventSelector((e) => e);
   // console.log("eventData", eventData);
@@ -126,6 +122,9 @@ const EventPage: React.FC = () => {
       setIsStreamer(false);
     }
   }, [currentUser, eventData?.id]);
+
+  const isLive = useEventSelector((e) => e?.is_live ?? eventData?.is_live);
+  // const isLive = eventData?.is_live;
 
   // console.log("eventData", eventData);
 
@@ -600,25 +599,6 @@ const EventPage: React.FC = () => {
                           ) : null}
                         </div>
                       )}
-
-                    {isLive && livekitToken && (hasTicket || canEnterStage) && (
-                      <LiveDiscussionSection
-                        eventId={eventData?.id}
-                        currentUserProfile={
-                          currentUserProfile
-                            ? {
-                                id: currentUserProfile.id,
-                                username:
-                                  currentUserProfile.display_name || "User",
-                                display_name:
-                                  currentUserProfile.display_name || "User",
-                                profile_picture_url:
-                                  currentUserProfile.profile_picture_url || "",
-                              }
-                            : undefined
-                        }
-                      />
-                    )}
                   </LiveKitRoomLazy>
                 </Suspense>
               ) : (
@@ -685,54 +665,9 @@ const EventPage: React.FC = () => {
                       className="aspect-video "
                       enableModal={true}
                       autoIntervalMs={3000}
-                    >
-                      {!currentUser && (
-                        <div className="absolute inset-0 backdrop-blur-md bg-black/20 flex items-center justify-center z-10">
-                          <div className="text-center bg-white/90 p-6 rounded-lg shadow-lg">
-                            <div className="text-lg font-semibold mb-2">
-                              Sign In to Watch Stream
-                            </div>
-                            <div className="text-sm text-gray-600">
-                              Please sign in to access this event
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        {/* <Video className="h-12 w-12 sm:h-16 sm:w-16 lg:h-24 lg:w-24 text-purple-500" /> */}
-                      </div>
-                      {isLive && (
-                        <Badge className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-red-600 text-white text-xs">
-                          <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full mr-1 animate-pulse" />
-                          LIVE
-                        </Badge>
-                      )}
-                      {/* Viewer Count */}
-                      <div className="absolute top-2 right-2">
-                        {/* <Badge
-                      variant="secondary"
-                      className="flex items-center gap-1 text-xs"
-                    >
-                      <Eye className="h-3 w-3" />
-                      {controls?.participantCount - 1}
-                    </Badge> */}
-                      </div>
-                    </MediaBackground>
+                    />
                   )}
                 </>
-              )}
-
-              {/* Pre-Stream Chat Archive for scheduled events */}
-              {!isLive && (hasTicket || canEnterStage) && (
-                <div className="p-4 border-t border-border/30">
-                  <div className="">
-                    <PinnedMessageSection
-                      eventId={eventData?.id}
-                      isHost={false}
-                    />
-                  </div>
-                  <PreStreamChatArchive eventId={eventData?.id} />
-                </div>
               )}
             </Card>
 
@@ -746,9 +681,26 @@ const EventPage: React.FC = () => {
                 hasPaid={hasTicket || canEnterStage}
               />
             )} */}
+            {eventData && <EventSocialSection eventId={eventData.id} />}
+            {/* <LiveDiscussionSection
+              eventId={eventData?.id}
+              currentUserProfile={
+                currentUserProfile
+                  ? {
+                      id: currentUserProfile.id,
+                      username: currentUserProfile.display_name || "User",
+                      display_name: currentUserProfile.display_name || "User",
+                      profile_picture_url:
+                        currentUserProfile.profile_picture_url || "",
+                    }
+                  : undefined
+              }
+            /> */}
           </div>
 
           {/* Right Column - Event Details and Actions */}
+          {/* Event Social Section */}
+
           <div className="space-y-4 sm:space-y-6">
             <Card>
               <CardHeader className="p-3 sm:p-3">
