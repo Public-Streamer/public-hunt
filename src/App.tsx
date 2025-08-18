@@ -37,6 +37,8 @@ import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import ReportDMCA from "./pages/ReportDMCA";
 import { SpinnerIcon } from "@livekit/components-react";
+import ResetPasswordForm from "./components/ResetPasswordForm";
+import SetNewPassword from "./pages/SetNewPassword";
 
 const queryClient = new QueryClient();
 
@@ -62,6 +64,7 @@ function AuthStateSync() {
 }
 
 const App = () => {
+  // const navigate = useNavigate();
   return (
     <ThemeProvider defaultTheme="light">
       <QueryClientProvider client={queryClient}>
@@ -99,6 +102,10 @@ const App = () => {
                       element={<CompanyProfile />}
                     />
                     <Route path="/login" element={<Login />} />
+                    <Route
+                      path="/auth/reset-password"
+                      element={<SetNewPassword />}
+                    />
                     <Route path="/payments" element={<PaymentSetup />} />
                     <Route path="/past-events" element={<PastEvents />} />
                     <Route path="/my-ads" element={<MyAds />} />
