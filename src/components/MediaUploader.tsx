@@ -22,6 +22,7 @@ interface MediaUploaderProps {
   onUploadUrls?: (urls: string[]) => void;
   maxFiles?: number;
   acceptedTypes?: string[];
+  initialUrls?: string[];
 }
 
 const MediaUploader: React.FC<MediaUploaderProps> = ({
@@ -29,11 +30,34 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
   onUploadUrls,
   maxFiles = 5,
   acceptedTypes = ["image/jpeg", "image/png", "image/gif"],
+  initialUrls = [],
 }) => {
   const [files, setFiles] = useState<MediaFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
+
+  // Initialize with existing URLs
+  useEffect(() => {
+    if (initialUrls.length > 0) {
+      const existingFiles: MediaFile[] = initialUrls.map((url, index) => {
+        const fileName = url.split('/').pop() || `media-${index}`;
+        const fileType = fileName.includes('.') 
+          ? `image/${fileName.split('.').pop()}`
+          : 'image/jpeg';
+        
+        return {
+          id: `existing-${index}`,
+          name: fileName,
+          type: fileType,
+          size: 0, // Unknown size for existing files
+          url: url,
+          uploadProgress: 100, // Mark as completed
+        };
+      });
+      setFiles(existingFiles);
+    }
+  }, [initialUrls]);
 
   const handleFileSelect = async (selectedFiles: FileList) => {
     const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB in bytes
@@ -152,7 +176,8 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
   const removeFile = async (fileId: string) => {
     const fileToRemove = files.find((f) => f.id === fileId);
 
-    if (fileToRemove?.url) {
+    // Only remove from storage if it's a newly uploaded file (not an existing one)
+    if (fileToRemove?.url && !fileId.startsWith('existing-')) {
       try {
         const fileName = fileToRemove.url.split("/").pop();
         if (fileName) {
@@ -168,11 +193,10 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
 
   useEffect(() => {
     const completedFiles = files.filter((f) => f.uploadProgress === 100);
-    if (files.length > 0 && files.every((f) => !!f.url)) {
-      onUpload(completedFiles);
-      if (typeof onUploadUrls === "function") {
-        onUploadUrls(completedFiles.map((f) => f.url!).filter(Boolean));
-      }
+    // Always call onUpload with current files (even if empty array)
+    onUpload(completedFiles);
+    if (typeof onUploadUrls === "function") {
+      onUploadUrls(completedFiles.map((f) => f.url!).filter(Boolean));
     }
   }, [files, onUpload, onUploadUrls]);
 
