@@ -187,7 +187,6 @@ const LiveDiscussionSection: React.FC<LiveDiscussionSectionProps> = ({
                     )}
                   </div>
                   <Input
-                    ref={textareaRef}
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     onKeyPress={handleKeyPress}
