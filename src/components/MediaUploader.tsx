@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,10 +36,17 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
+  const initializedRef = useRef(false);
 
-  // Initialize with existing URLs
+  // Generate unique ID for files
+  const generateFileId = useCallback(() => {
+    return `file-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+  }, []);
+
+  // Initialize with existing URLs once
   useEffect(() => {
-    if (initialUrls.length > 0) {
+    if (initialUrls.length > 0 && !initializedRef.current) {
+      console.log('MediaUploader: Initializing with existing URLs:', initialUrls);
       const existingFiles: MediaFile[] = initialUrls.map((url, index) => {
         const fileName = url.split('/').pop() || `media-${index}`;
         const fileType = fileName.includes('.') 
@@ -47,7 +54,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
           : 'image/jpeg';
         
         return {
-          id: `existing-${index}`,
+          id: `existing-${index}-${Math.random().toString(36).substring(2, 8)}`,
           name: fileName,
           type: fileType,
           size: 0, // Unknown size for existing files
@@ -56,13 +63,17 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
         };
       });
       setFiles(existingFiles);
+      initializedRef.current = true;
     }
   }, [initialUrls]);
 
-  const handleFileSelect = async (selectedFiles: FileList) => {
+  const handleFileSelect = useCallback(async (selectedFiles: FileList) => {
+    console.log('MediaUploader: File selection started, files:', selectedFiles.length);
     const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB in bytes
     const newFiles: MediaFile[] = [];
     const remaining = Math.max(0, maxFiles - files.length);
+
+    console.log('MediaUploader: Current files count:', files.length, 'Max files:', maxFiles, 'Remaining slots:', remaining);
 
     for (
       let i = 0;
@@ -70,6 +81,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
       i++
     ) {
       const file = selectedFiles[i];
+      console.log('MediaUploader: Processing file:', file.name, 'Type:', file.type, 'Size:', file.size);
 
       // Check file size limit
       if (file.size > MAX_FILE_SIZE) {
@@ -83,31 +95,47 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
 
       // Check accepted type
       if (acceptedTypes.includes(file.type)) {
+        const fileId = generateFileId();
+        console.log('MediaUploader: Adding file with ID:', fileId);
         newFiles.push({
-          id: Date.now() + i + "",
+          id: fileId,
           name: file.name,
           type: file.type,
           size: file.size,
           uploadProgress: 0,
           file: file,
         });
+      } else {
+        console.log('MediaUploader: File type not accepted:', file.type);
+        toast({
+          title: "File Type Not Supported",
+          description: `${file.name} is not a supported file type`,
+          variant: "destructive",
+        });
       }
     }
 
+    console.log('MediaUploader: New files to upload:', newFiles.length);
+
     if (maxFiles === 1) {
       if (files.length > 0) {
+        console.log('MediaUploader: Removing existing file for single file mode');
         await removeFile(files[0].id);
       }
       setFiles(newFiles.slice(0, 1));
     } else {
       setFiles((prev) => {
         const merged = [...prev, ...newFiles];
-        return merged.slice(0, maxFiles);
+        const result = merged.slice(0, maxFiles);
+        console.log('MediaUploader: Updated files array, total count:', result.length);
+        return result;
       });
     }
 
-    await uploadFiles(newFiles);
-  };
+    if (newFiles.length > 0) {
+      await uploadFiles(newFiles);
+    }
+  }, [files.length, maxFiles, acceptedTypes, generateFileId, toast]);
 
   const uploadFiles = async (filesToUpload: MediaFile[]) => {
     setIsUploading(true);
@@ -173,7 +201,8 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
     setIsUploading(false);
   };
 
-  const removeFile = async (fileId: string) => {
+  const removeFile = useCallback(async (fileId: string) => {
+    console.log('MediaUploader: Removing file with ID:', fileId);
     const fileToRemove = files.find((f) => f.id === fileId);
 
     // Only remove from storage if it's a newly uploaded file (not an existing one)
@@ -181,6 +210,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
       try {
         const fileName = fileToRemove.url.split("/").pop();
         if (fileName) {
+          console.log('MediaUploader: Removing from storage:', fileName);
           await supabase.storage.from("media").remove([fileName]);
         }
       } catch (error) {
@@ -188,17 +218,29 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
       }
     }
 
-    setFiles((prev) => prev.filter((file) => file.id !== fileId));
-  };
+    setFiles((prev) => {
+      const updated = prev.filter((file) => file.id !== fileId);
+      console.log('MediaUploader: Files after removal:', updated.length);
+      return updated;
+    });
+  }, [files]);
+
+  // Stabilized callback to prevent unnecessary re-renders
+  const stableOnUpload = useCallback(onUpload, []);
+  const stableOnUploadUrls = useCallback(onUploadUrls || (() => {}), [onUploadUrls]);
 
   useEffect(() => {
     const completedFiles = files.filter((f) => f.uploadProgress === 100);
+    console.log('MediaUploader: Triggering onUpload callback with', completedFiles.length, 'completed files');
+    
     // Always call onUpload with current files (even if empty array)
-    onUpload(completedFiles);
-    if (typeof onUploadUrls === "function") {
-      onUploadUrls(completedFiles.map((f) => f.url!).filter(Boolean));
+    stableOnUpload(completedFiles);
+    if (typeof stableOnUploadUrls === "function") {
+      const urls = completedFiles.map((f) => f.url!).filter(Boolean);
+      console.log('MediaUploader: Triggering onUploadUrls callback with URLs:', urls);
+      stableOnUploadUrls(urls);
     }
-  }, [files, onUpload, onUploadUrls]);
+  }, [files, stableOnUpload, stableOnUploadUrls]);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
