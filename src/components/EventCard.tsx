@@ -21,7 +21,6 @@ import { supabaseBrowser } from "@/lib/supabase/browser";
 import { useAppContext } from "@/contexts/AppContext";
 import MediaBackground from "./MediaBackground";
 
-
 interface Event {
   id: string;
   title: string;
@@ -87,7 +86,7 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
   const getButtonText = () => {
     if (!isAuthenticated) return "Login to Purchase";
     if (event.price === 0) return "Watch Event (Free)";
-    return `Watch Preview`;
+    return `Watch Event`;
   };
 
   return (
@@ -160,7 +159,7 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
               }`}
             >
               {event.isLive && event.price === 0
-                ? "Watch Now"
+                ? "Watch Now!"
                 : getButtonText()}
             </Button>
 
