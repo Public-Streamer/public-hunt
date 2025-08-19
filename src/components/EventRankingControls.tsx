@@ -71,8 +71,6 @@ const EventRankingControls: React.FC<EventRankingControlsProps> = ({
     return labels[option];
   };
 
-  
-
   return (
     <div className="space-y-4 mb-6">
       <div className="flex flex-col md:flex-row gap-4">
@@ -100,7 +98,9 @@ const EventRankingControls: React.FC<EventRankingControlsProps> = ({
           <SelectContent>
             {activeTab === "live" && (
               <>
-                <SelectItem value="most-live-viewers">Most Live Viewers</SelectItem>
+                <SelectItem value="most-live-viewers">
+                  Most Live Viewers
+                </SelectItem>
                 <SelectItem value="newest">Newest First</SelectItem>
                 <SelectItem value="oldest">Oldest First</SelectItem>
                 <SelectItem value="alphabetical">Alphabetical (A–Z)</SelectItem>
@@ -120,14 +120,12 @@ const EventRankingControls: React.FC<EventRankingControlsProps> = ({
             )}
             {activeTab === "past" && (
               <>
-                <SelectItem value="most-views">Most Views</SelectItem>
-                <SelectItem value="least-views">Least Views</SelectItem>
-                <SelectItem value="most-revenue">Most Revenue</SelectItem>
-                <SelectItem value="least-revenue">Least Revenue</SelectItem>
-                <SelectItem value="most-popular">Most Popular</SelectItem>
-                <SelectItem value="least-popular">Least Popular</SelectItem>
+                <SelectItem value="most-live-viewers">
+                  Most Live Viewers
+                </SelectItem>
                 <SelectItem value="newest">Newest First</SelectItem>
                 <SelectItem value="oldest">Oldest First</SelectItem>
+                <SelectItem value="alphabetical">Alphabetical (A–Z)</SelectItem>
               </>
             )}
           </SelectContent>

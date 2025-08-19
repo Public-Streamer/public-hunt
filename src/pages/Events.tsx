@@ -38,6 +38,7 @@ import { useAppContext } from "@/contexts/AppContext";
 import EditEventModal from "@/components/EditEventModal";
 import { useToast } from "@/hooks/use-toast";
 import MediaBackground from "@/components/MediaBackground";
+import PastEvents from "./PastEvents";
 
 interface Event {
   id: string;
@@ -68,7 +69,7 @@ const Events: React.FC = () => {
   const [liveEvents, setLiveEvents] = useState<Event[]>([]);
   const [scheduledEvents, setScheduledEvents] = useState<Event[]>([]);
   const [myEvents, setMyEvents] = useState<Event[]>([]);
-  // const [pastEvents, setPastEvents] = useState<Event[]>([]);
+  const [pastEvents, setPastEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [highlightedEvent, setHighlightedEvent] = useState<string | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -147,7 +148,22 @@ const Events: React.FC = () => {
         throw scheduledError;
       }
 
-      // fetch past events
+      // Fetch past events (not live, events that have already occurred)
+      const { data: pastEventsData, error: pastEventsError } = await supabase
+        .from("events")
+        .select("*")
+        .eq("is_live", false)
+        // date < today OR (date = today AND time < now)
+        .or(
+          `date.lt.${todayLocal},and(date.eq.${todayLocal},time.lt.${currentTimeLocal})`
+        )
+        .order("date", { ascending: false })
+        .order("time", { ascending: false });
+
+      if (pastEventsError) {
+        console.error("Error fetching past events:", pastEventsError);
+        throw pastEventsError;
+      }
 
       // Fetch user's own events if authenticated
       let myEventsData = [];
@@ -167,6 +183,7 @@ const Events: React.FC = () => {
 
       setLiveEvents(liveEventsData || []);
       setScheduledEvents(scheduledEventsData || []);
+      setPastEvents(pastEventsData || []);
       setMyEvents(myEventsData);
     } catch (error) {
       console.error("Error fetching events:", error);
@@ -175,7 +192,6 @@ const Events: React.FC = () => {
     }
   }, [currentUserProfile?.user_id]);
 
-  // Helpers to update lists in-place based on realtime payloads
   const upsertById = useCallback((list: Event[], item: Event) => {
     const idx = list.findIndex((e) => e.id === item.id);
     if (idx >= 0) {
@@ -295,46 +311,88 @@ const Events: React.FC = () => {
   }
 
   const sortEvents = (events: Event[], sortOption: SortOption) => {
+    if (!events.length) return [];
+
     return [...events].sort((a, b) => {
-      const dateA =
-        a.date && a.time
-          ? new Date(`${a.date}T${a.time}`)
-          : new Date(a.created_at);
-      const dateB =
-        b.date && b.time
-          ? new Date(`${b.date}T${b.time}`)
-          : new Date(b.created_at);
+      // Helper function to parse date safely
+      const getEventDate = (event: Event): Date => {
+        try {
+          if (event.date && event.time) {
+            return new Date(`${event.date}T${event.time}`);
+          }
+          return new Date(event.created_at);
+        } catch (e) {
+          return new Date(0); // Fallback to epoch if date parsing fails
+        }
+      };
+
+      const dateA = getEventDate(a);
+      const dateB = getEventDate(b);
+      const now = new Date();
+
+      // Calculate time until start for each event
+      const timeUntilStartA = Math.max(0, dateA.getTime() - now.getTime());
+      const timeUntilStartB = Math.max(0, dateB.getTime() - now.getTime());
+
+      // Get values with null/undefined fallbacks
+      const getValue = (event: Event, key: keyof Event) => {
+        const val = event[key];
+        if (val === null || val === undefined) return 0;
+        if (typeof val === "number") return val;
+        if (typeof val === "string" && !isNaN(Number(val))) return Number(val);
+        return 0;
+      };
+
+      // Main sorting logic
       switch (sortOption) {
+        // View-based sorting
         case "most-views":
         case "most-live-viewers":
-          return (b.viewer_count || 0) - (a.viewer_count || 0);
+          return getValue(b, "viewer_count") - getValue(a, "viewer_count");
+
         case "least-views":
         case "least-live-viewers":
-          return (a.viewer_count || 0) - (b.viewer_count || 0);
+          return getValue(a, "viewer_count") - getValue(b, "viewer_count");
+
+        // Date-based sorting
         case "newest":
           return (
             new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
           );
+
         case "oldest":
           return (
             new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
           );
+
+        case "starts-soon":
+          return timeUntilStartA - timeUntilStartB;
+
+        // Alphabetical sorting
         case "alphabetical":
           return (a.name || "").localeCompare(b.name || "");
-        case "starts-soon":
-          return dateA.getTime() - dateB.getTime();
+
+        // Revenue/sales sorting
         case "most-revenue":
-          return (b.ticket_price || 0) - (a.ticket_price || 0);
+          return (
+            (getValue(b, "ticket_price") || 0) -
+            (getValue(a, "ticket_price") || 0)
+          );
+
         case "least-revenue":
-          return (a.ticket_price || 0) - (b.ticket_price || 0);
-        case "most-subscribers":
-          return (b.viewer_count || 0) - (a.viewer_count || 0);
-        case "least-subscribers":
-          return (a.viewer_count || 0) - (b.viewer_count || 0);
+          return (
+            (getValue(a, "ticket_price") || 0) -
+            (getValue(b, "ticket_price") || 0)
+          );
+
+        // Popularity/engagement
         case "most-popular":
           return (b.viewer_count || 0) - (a.viewer_count || 0);
+
         case "least-popular":
           return (a.viewer_count || 0) - (b.viewer_count || 0);
+
+        // Default to most viewers if sort option is not recognized
         default:
           return (b.viewer_count || 0) - (a.viewer_count || 0);
       }
@@ -357,6 +415,7 @@ const Events: React.FC = () => {
 
   const filteredLiveEvents = sortEvents(filterEvents(liveEvents), sortBy);
   const filteredMyEvents = sortEvents(filterEvents(myEvents), mySortBy);
+  const filteredPastEvents = sortEvents(filterEvents(pastEvents), sortBy);
 
   const handleEventClick = (event: Event & { slug?: string }) => {
     const eventUrl = event.slug ? `/event/${event.slug}` : `/event/${event.id}`;
@@ -654,7 +713,31 @@ const Events: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="past" className="space-y-6">
-            <PastEventsGrid />
+            <PastEvents
+              events={filteredPastEvents.map((event) => ({
+                id: event.id,
+                title: event.name,
+                channelName: event.category || "General",
+                startDate: event.date,
+                startTime: event.time,
+                views: event.viewer_count || 0,
+                rating: "0", // Default rating
+                price: event.ticket_price || 0,
+                ticketRevenue: 0, // Default value
+                timeUntilStart: getTimeUntilStart(
+                  new Date(`${event.date}T${event.time}`)
+                ),
+                startDateTime: new Date(`${event.date}T${event.time}`),
+                participants: [],
+                description: event.description || "",
+                subscribers: 0, // Default value
+                slug: event.slug,
+                media_urls: event.media_urls,
+                channel_id: "", // Add required field
+                is_live: event.is_live,
+                category: event.category,
+              }))}
+            />
           </TabsContent>
 
           {isAuthenticated && (

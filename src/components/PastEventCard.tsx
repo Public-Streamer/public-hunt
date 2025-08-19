@@ -11,37 +11,34 @@ import MediaBackground from "./MediaBackground";
 interface PastEvent {
   id: string;
   title: string;
+  channelName: string;
+  startDate: string;
+  startTime: string;
+  views: number;
+  rating: string;
+  price: number;
+  ticketRevenue: number;
+  timeUntilStart: string;
+  startDateTime: Date;
+  participants: string[];
   description: string;
-  channel_id: string;
-  duration: number;
-  recorded_at: string;
-  visibility: "public" | "private" | "selected";
-  view_count: number;
-  tags: string[];
-  category: string;
-  date?: string;
+  subscribers: number;
   slug?: string;
-  created_at?: string;
-  updated_at?: string;
-  name?: string;
-  time?: string;
-  location?: string;
-  ticket_price?: number;
-  is_live?: boolean;
-  viewer_count?: number;
   media_urls?: string[];
+  channel_id: string;
+  is_live: boolean;
+  category: string;
 }
 
 interface PastEventCardProps {
   event: PastEvent;
-  onPlay: (event: PastEvent) => void;
+
   onPurchase?: (eventId: string) => void;
   ranking?: number;
 }
 
 const PastEventCard: React.FC<PastEventCardProps> = ({
   event,
-  onPlay,
   onPurchase,
   ranking,
 }) => {
@@ -67,29 +64,15 @@ const PastEventCard: React.FC<PastEventCardProps> = ({
     navigate(eventUrl);
   };
 
-  const handlePlayClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (event.ticket_price > 0) {
-      setShowPurchaseModal(true);
-    } else {
-      onPlay(event);
-    }
-  };
-
   const handlePurchaseSuccess = () => {
     onPurchase?.(event.id);
-    onPlay(event);
   };
 
   return (
     <>
       <TooltipWrapper
-        content={`${(event.name || event.title) ?? "Event"}${
-          event.recorded_at || event.date
-            ? ` - Recorded on ${formatDate(
-                (event.recorded_at || event.date) as string
-              )}`
-            : ""
+        content={`${event.title}${
+          event.startDate ? ` - Recorded on ${formatDate(event.startDate)}` : ""
         }`}
       >
         <Card
@@ -97,22 +80,17 @@ const PastEventCard: React.FC<PastEventCardProps> = ({
           onClick={handleCardClick}
         >
           <MediaBackground
-            mediaUrls={event?.media_urls || []}
+            mediaUrls={event.media_urls || []}
             className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100"
           ></MediaBackground>
           <CardHeader>
             <div className="flex justify-between gap-2">
-              <CardTitle className="text-lg">
-                {event.name || event.title}
-              </CardTitle>
+              <CardTitle className="text-lg">{event.title}</CardTitle>
               <div className="flex items-center gap-2">
                 {ranking && (
                   <Badge variant="outline" className="bg-gray-50 text-gray-600">
                     {ranking}
                   </Badge>
-                )}
-                {event.visibility === "private" && (
-                  <Badge variant="secondary">Private</Badge>
                 )}
                 <Badge variant="outline" className="bg-red-50 text-purple-600">
                   {event.is_live ? "LIVE" : "PAST"}
@@ -129,40 +107,28 @@ const PastEventCard: React.FC<PastEventCardProps> = ({
             <div className="flex items-center gap-2 justify-between text-sm text-gray-500 mb-2">
               <div className="flex items-center justify-center gap-1">
                 <div className="flex items-center">
-                  {event.time && (
-                    <>
-                      <Clock className="h-4 w-4 mr-1" />
-                      <span>{event.time}</span>
-                    </>
-                  )}
+                  <Clock className="h-4 w-4 mr-1" />
+                  <span>{event.startTime}</span>
                 </div>
                 <div className="flex items-center">
-                  {event.date && (
-                    <>
-                      <Calendar className="h-4 w-4 ml-3 mr-1" />
-                      <span>{formatDate(event.date as string)}</span>
-                    </>
-                  )}
+                  <Calendar className="h-4 w-4 ml-3 mr-1" />
+                  <span>{formatDate(event.startDate)}</span>
                 </div>
               </div>
 
               <div className="flex items-center">
-                {event.ticket_price > 0 && (
+                {event.price > 0 && (
                   <TooltipWrapper content="Event price">
                     <span className="flex items-center text-green-600">
-                      <DollarSign className="h-4 w-4 mr-1" />$
-                      {event.ticket_price}
+                      <DollarSign className="h-4 w-4 mr-1" />${event.price}
                     </span>
                   </TooltipWrapper>
                 )}
               </div>
             </div>
 
-            {event.tags && event.tags.length > 0 && (
-              <div className="text-sm text-gray-600 mb-2">
-                {event.category && `${event.category} • `}
-                {event.tags.slice(0, 2).join(" • ")}
-              </div>
+            {event.category && (
+              <div className="text-sm text-gray-600 mb-2">{event.category}</div>
             )}
 
             <Button
@@ -174,7 +140,12 @@ const PastEventCard: React.FC<PastEventCardProps> = ({
             </Button>
 
             <div className="flex items-center justify-between text-xs text-gray-400">
-              <span>Streamed on {formatDate(event?.date)}</span>
+              <div className="flex items-center gap-2">
+                <span>{event.views} views</span>
+                {/* <span>•</span> */}
+                {/* <span>{event.rating} ★</span> */}
+              </div>
+              <span>Streamed on {formatDate(event.startDate)}</span>
             </div>
           </CardContent>
         </Card>
@@ -184,8 +155,8 @@ const PastEventCard: React.FC<PastEventCardProps> = ({
         isOpen={showPurchaseModal}
         onClose={() => setShowPurchaseModal(false)}
         eventId={event.id}
-        eventTitle={(event.title || event.name) as string}
-        price={event.ticket_price}
+        eventTitle={event.title}
+        price={event.price}
         onPurchaseSuccess={handlePurchaseSuccess}
       />
     </>

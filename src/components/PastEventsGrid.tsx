@@ -1,229 +1,121 @@
-import React, { useState, useEffect } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Search, Filter, SortAsc, Loader } from "lucide-react";
+import React from "react";
 import PastEventCard from "./PastEventCard";
-import { supabase } from "@/lib/supabase";
-import { useToast } from "@/hooks/use-toast";
-import EventCard from "./EventCard";
 
-interface PastEvent {
+interface Event {
   id: string;
   title: string;
-  description: string;
-  channel_id: string;
-  media_urls: string[];
-  duration: number;
-  recorded_at: string;
-  visibility: "public" | "private" | "selected";
+  channelName: string;
+  startDate: string;
+  startTime: string;
+  views: number;
+  rating: string;
   price: number;
-  view_count: number;
-  tags: string[];
+  ticketRevenue: number;
+  timeUntilStart: string;
+  startDateTime: Date;
+  participants: string[];
+  description: string;
+  subscribers: number;
+  slug?: string;
+  media_urls?: string[];
+  channel_id: string;
+  is_live: boolean;
   category: string;
 }
 
-const PastEventsGrid: React.FC = () => {
-  const [events, setEvents] = useState<PastEvent[]>([]);
-  const [filteredEvents, setFilteredEvents] = useState<PastEvent[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("all");
-  const [sortBy, setSortBy] = useState("recent");
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
+interface PastEventsGridProps {
+  events: Event[];
+  searchTerm: string;
+  memberSearch: string;
+  sortBy: string;
+}
 
-  const today = new Date().toISOString().split("T")[0];
-  const time = new Date().toISOString().slice(11, 19);
+const PastEventsGrid: React.FC<PastEventsGridProps> = ({
+  events,
+  searchTerm,
+  memberSearch,
+  sortBy,
+}) => {
+  // Filter events based on search terms
+  const filteredEvents = events.filter((event) => {
+    const matchesKeyword =
+      event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      event.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      event.channelName.toLowerCase().includes(searchTerm.toLowerCase());
 
-  // Fetch past events from Supabase
-  const fetchPastEvents = async () => {
-    try {
-      setLoading(true);
-      const pad = (n: number) => String(n).padStart(2, "0");
+    const matchesMember =
+      memberSearch === "" ||
+      event.participants.some((participant) =>
+        participant.toLowerCase().includes(memberSearch.toLowerCase())
+      );
 
-      const now = new Date();
-      const todayLocal = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(
-        now.getDate()
-      )}`;
-      const currentTimeLocal = `${pad(now.getHours())}:${pad(
-        now.getMinutes()
-      )}:${pad(now.getSeconds())}`;
+    return matchesKeyword && matchesMember;
+  });
 
-      const { data, error } = await supabase
-        .from("events")
-        .select("*")
-        .eq("is_live", false)
-        // date < today OR (date = today AND time < now)
-        .or(
-          `date.lt.${todayLocal},and(date.eq.${todayLocal},time.lt.${currentTimeLocal})`
-        )
-        .order("date", { ascending: false })
-        .order("time", { ascending: false });
-
-      if (error) throw error;
-      setEvents((data ?? []) as PastEvent[]);
-    } catch (error) {
-      console.error("Error fetching past events:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load past events",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
+  // Sort events based on selected option
+  const sortedEvents = [...filteredEvents].sort((a, b) => {
+    switch (sortBy) {
+      case "most-views":
+        return b.views - a.views;
+      case "least-views":
+        return a.views - b.views;
+      case "most-revenue":
+        return b.ticketRevenue - a.ticketRevenue;
+      case "least-revenue":
+        return a.ticketRevenue - b.ticketRevenue;
+      case "most-ticket-sales":
+        return (b.ticketRevenue || 0) - (a.ticketRevenue || 0);
+      case "least-ticket-sales":
+        return (a.ticketRevenue || 0) - (b.ticketRevenue || 0);
+      case "most-ticket-revenue":
+        return (b.ticketRevenue || 0) - (a.ticketRevenue || 0);
+      case "least-ticket-revenue":
+        return (a.ticketRevenue || 0) - (b.ticketRevenue || 0);
+      case "most-subscribers":
+        return (b.subscribers || 0) - (a.subscribers || 0);
+      case "least-subscribers":
+        return (a.subscribers || 0) - (b.subscribers || 0);
+      case "most-popular":
+        return b.views * parseFloat(b.rating) - a.views * parseFloat(a.rating);
+      case "least-popular":
+        return a.views * parseFloat(a.rating) - b.views * parseFloat(b.rating);
+      case "newest":
+        return b.startDateTime.getTime() - a.startDateTime.getTime();
+      case "oldest":
+        return a.startDateTime.getTime() - b.startDateTime.getTime();
+      case "alphabetical":
+        return a.title.localeCompare(b.title);
+      case "starts-soon":
+        return a.startDateTime.getTime() - b.startDateTime.getTime();
+      default:
+        // Default: starts soon
+        return a.startDateTime.getTime() - b.startDateTime.getTime();
     }
-  };
+  });
 
-  // Filter and sort events whenever dependencies change
-
-  const filterAndSortEvents = () => {
-    setLoading(true);
-    const filtered = events.filter((event) => {
-      const matchesSearch =
-        (event.title ?? "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (event.description ?? "")
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
-        (event.tags ?? []).some((tag) =>
-          (tag ?? "").toLowerCase().includes(searchTerm.toLowerCase())
-        );
-      const matchesCategory =
-        categoryFilter === "all" || event.category === categoryFilter;
-      return matchesSearch && matchesCategory;
-    });
-
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case "recent":
-          return (
-            new Date(b.recorded_at).getTime() -
-            new Date(a.recorded_at).getTime()
-          );
-        case "popular":
-          return b.view_count - a.view_count;
-        case "price-low":
-          return a.price - b.price;
-        case "price-high":
-          return b.price - a.price;
-        default:
-          return 0;
-      }
-    });
-
-    setFilteredEvents(filtered);
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    fetchPastEvents();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    filterAndSortEvents();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [events, searchTerm, categoryFilter, sortBy]);
-
-  const handlePlayEvent = (event: PastEvent) => {
-    if (event.price > 0) {
-      toast({
-        title: "Payment Required",
-        description: `This event costs $${event.price} to view`,
-      });
-    } else {
-      toast({
-        title: "Playing Event",
-        description: `Now playing: ${event.title}`,
-      });
-    }
-  };
-
-  const categories = [
-    "all",
-    ...Array.from(new Set(events.map((e) => e.category).filter(Boolean))),
-  ];
-
-  if (loading) {
+  if (sortedEvents.length === 0) {
     return (
-      <div className="text-center py-8">
-        <div className=" flex items-center justify-center">
-          <Loader className="h-8 w-8 animate-spin" />
-        </div>
+      <div className="text-center py-12">
+        <p className="text-gray-500 text-lg">No past events found</p>
+        <p className="text-gray-400 text-sm mt-2">
+          {searchTerm || memberSearch
+            ? "Try adjusting your search terms"
+            : "Check back later for upcoming events"}
+        </p>
       </div>
     );
   }
 
-  // console.log("Filtered Events", filteredEvents);
-  // console.log("Events", events);
   return (
-    <div className="space-y-6">
-      {/* Search and Filters */}
-      <div className="flex flex-col md:flex-row gap-4 items-center">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-          <Input
-            placeholder="Search past events..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {sortedEvents.map((event, index) => (
+        <div key={event.id} className="relative">
+          <div className="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-bold z-10">
+            #{index + 1}
+          </div>
+          <PastEventCard event={event} />
         </div>
-        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-          <SelectTrigger className="w-48">
-            <Filter className="h-4 w-4 mr-2" />
-            <SelectValue placeholder="Category" />
-          </SelectTrigger>
-          <SelectContent>
-            {categories.map((category) => (
-              <SelectItem key={category} value={category}>
-                {category === "all" ? "All Categories" : category}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger className="w-48">
-            <SortAsc className="h-4 w-4 mr-2" />
-            <SelectValue placeholder="Sort by" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="recent">Most Recent</SelectItem>
-            <SelectItem value="popular">Most Popular</SelectItem>
-            <SelectItem value="price-low">Price: Low to High</SelectItem>
-            <SelectItem value="price-high">Price: High to Low</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Results Count */}
-      <div className="text-sm text-gray-600">
-        {events.length} event{events.length !== 1 ? "s" : ""} found
-      </div>
-
-      {/* Events Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3  gap-6">
-        {filteredEvents.map((event) => (
-          <PastEventCard
-            key={event.id}
-            event={event}
-            onPlay={handlePlayEvent}
-          />
-        ))}
-      </div>
-
-      {events.length === 0 && !loading && (
-        <div className="text-center py-12">
-          <p className="text-gray-500">
-            No past events found matching your criteria.
-          </p>
-        </div>
-      )}
+      ))}
     </div>
   );
 };
