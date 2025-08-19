@@ -135,19 +135,28 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
 
     // Fire and forget; startStream already handles guards and UI state
 
-    console.log("auto resumeeee")
+    console.log("auto resumeeee");
     startStream(count, lastStreamIdRef.current).catch(() => {});
   }, [room, controlsLoading]);
 
+  console.log("here's the room", room);
+
   // Listen for reconnection and online events
   useEffect(() => {
-    if (!room) return;
+    console.log({ room });
+    if (!room) {
+      console.log("room not found while auto resuming");
+      return;
+    }
 
     const handleReconnected = () => {
+      console.log("room reconnected while auto resuming");
       tryAutoResume();
     };
     const handleStateChanged = () => {
+      console.log("room state changed while auto resuming");
       if (room.state === "connected") {
+        console.log("room state changed to connected while auto resuming");
         tryAutoResume();
       }
     };
