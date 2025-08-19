@@ -1,6 +1,7 @@
 import React from "react";
 import { VideoTrackLazy } from "@/lib/livekitLazy";
 import type { TrackReference } from "@livekit/components-core";
+import type { LocalVideoTrack, RemoteVideoTrack } from "livekit-client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Mic, MicOff } from "lucide-react";
@@ -31,7 +32,22 @@ const StreamerPreview: React.FC<StreamerPreviewProps> = ({
       onClick={onClick}
     >
       <div className="aspect-video relative">
-        <VideoTrackLazy trackRef={track} className="w-full h-full object-cover" />
+        {(() => {
+          const pub = track.publication;
+          const mediaId = (
+            pub?.track as LocalVideoTrack | RemoteVideoTrack | undefined
+          )?.mediaStreamTrack?.id;
+          const previewKey = `${mediaId ?? pub?.trackSid ?? "no-sid"}-${
+            track.participant?.identity ?? "no-id"
+          }`;
+          return (
+            <VideoTrackLazy
+              key={previewKey}
+              trackRef={track}
+              className="w-full h-full object-cover"
+            />
+          );
+        })()}
 
         {/* Live badge */}
         <Badge className="absolute top-2 left-2 bg-red-600 text-white text-xs">

@@ -6,6 +6,7 @@ import { Eye } from "lucide-react";
 import { useStreamingControls } from "@/hooks/useStreamingControls";
 import MediaBackground from "./MediaBackground";
 import InStreamChatOverlay from "./InStreamChatOverlay";
+import { useRoomContext } from "@livekit/components-react";
 
 interface MainStreamPreviewProps {
   track?: TrackReference;
@@ -38,6 +39,9 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
   const hideControlsTimer = useRef<NodeJS.Timeout | null>(null);
   const controls = useStreamingControls(eventId);
   const [isHome, setIsHome] = useState(false);
+
+  const room = useRoomContext();
+  console.log(JSON.stringify(`room exists, ${room.name}`));
 
   useEffect(() => {
     if (window.location.pathname === "/") {
@@ -299,6 +303,11 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
         onTouchStart={handleMouseMove}
       >
         <VideoTrackLazy
+          key={`${
+            track.publication?.track?.mediaStreamTrack?.id ??
+            track.publication?.trackSid ??
+            "no-sid"
+          }-${track.participant?.identity ?? "no-id"}`}
           trackRef={track}
           className="w-full h-full object-cover"
         />

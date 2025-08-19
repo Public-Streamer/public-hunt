@@ -37,26 +37,57 @@ const LiveKitRoomLazy = lazy(() =>
 // Lazy StreamContent that uses useTracks from @livekit/components-react
 const StreamContentLazy = lazy(() =>
   import("@livekit/components-react").then((m) => {
-    const { useTracks } = m;
+    const { useTracks, useRoomContext } = m;
     const Comp: React.FC<{
       eventName: string;
       fallbackImage: string;
       event: any;
     }> = ({ eventName, fallbackImage, event }) => {
       const [isMuted, setIsMuted] = useState(false);
+      const [reconnectBump, setReconnectBump] = useState(0);
+      const room = useRoomContext();
       const TrackSource = useLiveKitTrackSource();
       const sources = TrackSource
         ? [TrackSource.Camera, TrackSource.ScreenShare]
         : [];
 
       const videoTracks = useTracks(sources, {
-        updateOnlyOn: [],
         onlySubscribed: false,
       });
 
       const activeVideoTracks = videoTracks.filter(
-        (track) => track.publication && track.participant.identity !== "viewer"
+        (track) =>
+          track.publication &&
+          track.publication.track &&
+          track.publication.kind === "video" &&
+          track.participant.identity !== "viewer"
       );
+
+      // Bump on LiveKit room reconnection to force remounts
+      useEffect(() => {
+        let cleanup = () => {};
+        let mounted = true;
+        (async () => {
+          try {
+            const lk = await import("livekit-client");
+            if (!mounted || !room) return;
+            const onReconnected = () => setReconnectBump((v) => v + 1);
+            room.on(lk.RoomEvent.Reconnected, onReconnected);
+            cleanup = () => {
+              room.off(lk.RoomEvent.Reconnected, onReconnected);
+            };
+          } catch (e) {
+            console.debug(
+              "[LiveEventSpotlight] Unable to attach Reconnected handler",
+              e
+            );
+          }
+        })();
+        return () => {
+          mounted = false;
+          cleanup();
+        };
+      }, [room]);
 
       if (activeVideoTracks.length === 0) {
         return (
@@ -68,9 +99,20 @@ const StreamContentLazy = lazy(() =>
         );
       }
 
+      const selected = activeVideoTracks[0];
+      const pub = selected.publication;
+      const t = pub?.track as unknown as
+        | { mediaStreamTrack?: MediaStreamTrack }
+        | undefined;
+      const mediaId = t?.mediaStreamTrack?.id;
+      const previewKey = `${mediaId ?? pub?.trackSid ?? "no-sid"}-${
+        selected.participant?.identity ?? "no-id"
+      }-r${reconnectBump}`;
+
       return (
         <div className={`w-full h-full transition-all duration-500`}>
           <MainStreamPreview
+            key={previewKey}
             mediaUrls={event?.mediaUrls || []}
             track={activeVideoTracks[0] as any}
             eventName={eventName}
