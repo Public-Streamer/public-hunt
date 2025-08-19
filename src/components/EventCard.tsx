@@ -20,7 +20,7 @@ import TicketPurchaseModal from "./TicketPurchaseModal";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 import { useAppContext } from "@/contexts/AppContext";
 import MediaBackground from "./MediaBackground";
-import { EventSocialSection } from "./EventSocialSection";
+
 
 interface Event {
   id: string;
@@ -183,10 +183,6 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
                 <span className="hidden xs:inline sm:inline">Share</span>
               </Button>
             </div> */}
-            <EventSocialSection 
-              eventId={event.id} 
-              currentUserProfileId={currentUserProfile?.id || null}
-            />
           </div>
         </CardContent>
       </Card>
