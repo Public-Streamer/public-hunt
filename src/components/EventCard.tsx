@@ -45,7 +45,7 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [hasTicket, setHasTicket] = useState(false);
   const [checkingTicket, setCheckingTicket] = useState(false);
-  const { user, isAuthenticated } = useAppContext();
+  const { user, isAuthenticated, currentUserProfile } = useAppContext();
   const navigate = useNavigate();
 
   const checkTicketStatus = useCallback(async () => {
@@ -221,7 +221,10 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
                 <span className="hidden xs:inline sm:inline">Share</span>
               </Button>
             </div> */}
-            <EventSocialSection eventId={event.id} />
+            <EventSocialSection 
+              eventId={event.id} 
+              currentUserProfileId={currentUserProfile?.id || null}
+            />
           </div>
         </CardContent>
       </Card>

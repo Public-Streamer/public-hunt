@@ -21,11 +21,13 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface EventSocialSectionProps {
   eventId: string;
+  currentUserProfileId?: string | null;
   className?: string;
 }
 
 export function EventSocialSection({
   eventId,
+  currentUserProfileId,
   className,
 }: EventSocialSectionProps) {
   const {
@@ -38,32 +40,13 @@ export function EventSocialSection({
     addComment,
     deleteComment,
     fetchReplies,
-  } = useEventSocial(eventId);
+  } = useEventSocial(eventId, currentUserProfileId);
 
   const [newComment, setNewComment] = useState("");
   const [isCommenting, setIsCommenting] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [showReplies, setShowReplies] = useState<Record<string, boolean>>({});
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-
-  // Get current user ID
-  React.useEffect(() => {
-    const getCurrentUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user) {
-        const { data: profile } = await supabase
-          .from("user_profiles")
-          .select("id")
-          .eq("user_id", user.id)
-          .single();
-        setCurrentUserId(profile?.id || null);
-      }
-    };
-    getCurrentUser();
-  }, []);
 
   const handleSubmitComment = async (
     e: React.FormEvent | React.KeyboardEvent
@@ -195,7 +178,7 @@ export function EventSocialSection({
   };
 
   const renderComment = (comment: EventComment) => {
-    const isOwner = comment.user_profile_id === currentUserId;
+    const isOwner = comment.user_profile_id === currentUserProfileId;
     const hasReplies = comment.reply_count > 0;
     const repliesVisible = showReplies[comment.id];
     const isLoadingReplies = loadingReplies[comment.id];
@@ -294,7 +277,7 @@ export function EventSocialSection({
               <CommentReply
                 key={reply.id}
                 reply={reply}
-                currentUserId={currentUserId}
+                currentUserId={currentUserProfileId}
                 onDelete={() => handleDeleteComment(reply.id, comment.id)}
               />
             ))}

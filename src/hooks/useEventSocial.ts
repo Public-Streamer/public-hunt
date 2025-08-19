@@ -24,7 +24,7 @@ export interface EventComment {
   replies?: EventComment[];
 }
 
-export function useEventSocial(eventId: string) {
+export function useEventSocial(eventId: string, currentUserProfileId?: string | null) {
   const [likes, setLikes] = useState<EventLike[]>([]);
   const [comments, setComments] = useState<EventComment[]>([]);
   const [loadingLikes, setLoadingLikes] = useState(false);
@@ -46,11 +46,13 @@ export function useEventSocial(eventId: string) {
 
       setLikes(likesData || []);
       
-      // Check if current user liked
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const currentUserLike = likesData?.find(like => like.user_id === user.id);
-        setUserLike(currentUserLike || null);
+      // Check if current user liked (only if user is authenticated)
+      if (currentUserProfileId) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const currentUserLike = likesData?.find(like => like.user_id === user.id);
+          setUserLike(currentUserLike || null);
+        }
       }
     } catch (error) {
       console.error('Error fetching likes:', error);
