@@ -169,7 +169,17 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({
   );
 };
 
-const LiveEventSpotlight: React.FC = () => {
+interface LiveEventSpotlightProps {
+  liveEvents?: any[];
+  isLoading?: boolean;
+  error?: any;
+}
+
+const LiveEventSpotlight: React.FC<LiveEventSpotlightProps> = ({ 
+  liveEvents: propLiveEvents,
+  isLoading: propIsLoading,
+  error: propError 
+}) => {
   // Move this function above useQuery so it can be used inside queryFn
   const calculateTimeRemaining = (eventDate: string, eventTime: string) => {
     if (!eventDate || !eventTime) return undefined;
@@ -182,15 +192,15 @@ const LiveEventSpotlight: React.FC = () => {
     if (hours > 0) return `${hours}h ${minutes}m left`;
     return `${minutes}m left`;
   };
-  const { isAuthenticated } = useAppContext();
-
-  // React Query for live events
+  // Use props if provided, otherwise fallback to separate query
+  const shouldUseOwnQuery = !propLiveEvents;
+  
   const {
-    data: liveEvents = [],
-    isLoading: isEventsLoading,
-    error: eventsError,
+    data: queryLiveEvents = [],
+    isLoading: queryIsLoading,
+    error: queryError,
   } = useQuery({
-    queryKey: ["live-events", isAuthenticated],
+    queryKey: ["live-events"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("events")
@@ -200,7 +210,6 @@ const LiveEventSpotlight: React.FC = () => {
         .limit(6);
 
       if (error) {
-        console.log(error.message);
         throw new Error(error.message || "Error fetching live events");
       }
 
@@ -218,11 +227,19 @@ const LiveEventSpotlight: React.FC = () => {
         })) || []
       );
     },
+    enabled: shouldUseOwnQuery
   });
+
+  // Use props or query data
+  const liveEvents = propLiveEvents || queryLiveEvents;
+  const isEventsLoading = propIsLoading !== undefined ? propIsLoading : queryIsLoading;
+  const eventsError = propError || queryError;
 
   const queryClient = useQueryClient();
 
   useEffect(() => {
+    if (!shouldUseOwnQuery) return; // Don't set up subscription if using props
+    
     const channel = supabase
       .channel("public:events-live-spotlight")
       .on(
@@ -237,7 +254,7 @@ const LiveEventSpotlight: React.FC = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [queryClient]);
+  }, [queryClient, shouldUseOwnQuery]);
 
   const navigate = useNavigate();
   const handleWatchNow = (event: any) => {

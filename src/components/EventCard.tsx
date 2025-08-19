@@ -20,7 +20,7 @@ import TicketPurchaseModal from "./TicketPurchaseModal";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 import { useAppContext } from "@/contexts/AppContext";
 import MediaBackground from "./MediaBackground";
-import { EventSocialSection } from "./EventSocialSection";
+import { EventSocialDisplay } from "./EventSocialDisplay";
 
 interface Event {
   id: string;
@@ -34,13 +34,21 @@ interface Event {
   streamerCount: number;
   isLive: boolean;
   media_urls: string[];
+  social?: {
+    likes_count: number;
+    comments_count: number;
+    user_has_liked: boolean;
+    recent_likers: string[];
+    all_likes: any[];
+  };
 }
 
 interface EventCardProps {
   event: Event;
+  onSocialUpdate?: () => void;
 }
 
-const EventCard: React.FC<EventCardProps> = ({ event }) => {
+const EventCard: React.FC<EventCardProps> = ({ event, onSocialUpdate }) => {
   const [showSocial, setShowSocial] = useState(false);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const { user, isAuthenticated, currentUserProfile } = useAppContext();
@@ -183,10 +191,13 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
                 <span className="hidden xs:inline sm:inline">Share</span>
               </Button>
             </div> */}
-            <EventSocialSection 
-              eventId={event.id} 
-              currentUserProfileId={currentUserProfile?.id || null}
-            />
+            {event.social && (
+              <EventSocialDisplay 
+                eventId={event.id} 
+                social={event.social}
+                onSocialUpdate={onSocialUpdate}
+              />
+            )}
           </div>
         </CardContent>
       </Card>

@@ -13,13 +13,21 @@ interface Event {
   streamerCount: number;
   isLive: boolean;
   media_urls: string[];
+  social?: {
+    likes_count: number;
+    comments_count: number;
+    user_has_liked: boolean;
+    recent_likers: string[];
+    all_likes: any[];
+  };
 }
 
 interface EventGridProps {
   events: Event[];
+  onSocialUpdate?: () => void;
 }
 
-const EventGrid: React.FC<EventGridProps> = ({ events }) => {
+const EventGrid: React.FC<EventGridProps> = ({ events, onSocialUpdate }) => {
   return (
     <div className="py-12">
       <div className="container mx-auto px-2">
@@ -35,7 +43,7 @@ const EventGrid: React.FC<EventGridProps> = ({ events }) => {
             <EventCard 
               key={event.id}
               event={event}
-             
+              onSocialUpdate={onSocialUpdate}
             />
           ))}
         </div>
