@@ -15,31 +15,41 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 const Index: React.FC = () => {
-  // React Query for events
+  // React Query for events with consolidated social data
   const {
     data: events = [],
     isLoading: isEventsLoading,
     error: eventsError,
   } = useQuery({
-    queryKey: ["all-events"],
+    queryKey: ["all-events-consolidated"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("events")
-        .select(`*, channels ( name, description )`)
-        .order("created_at", { ascending: false });
+      // Get current user for personalized data
+      const { data: { user } } = await supabase.auth.getUser();
+      const userId = user?.id;
+
+      const { data, error } = await supabase.rpc('get_events_with_social_data', {
+        user_id_param: userId
+      });
 
       if (error) {
-        throw new Error(error.message || "Error fetching events");
-      }
+        console.error('RPC Error:', error);
+        // Fallback to basic query if RPC fails
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from("events")
+          .select(`
+            *, 
+            channels ( name, description )
+          `)
+          .order("created_at", { ascending: false });
 
-      return (
-        data?.map((event) => ({
+        if (fallbackError) {
+          throw new Error(fallbackError.message || "Error fetching events");
+        }
+
+        return fallbackData?.map((event) => ({
           id: event.id,
           title: event.name,
-          description:
-            event.description ||
-            event.channels?.description ||
-            "No description available",
+          description: event.description || event.channels?.description || "No description available",
           price: Number(event.ticket_price) || 0,
           date: event.date || new Date().toISOString().split("T")[0],
           time: event.time || "12:00 PM",
@@ -49,10 +59,42 @@ const Index: React.FC = () => {
           isLive: event.is_live || false,
           media_urls: event.media_urls,
           slug: event.slug,
-        })) || []
-      );
+          // Default social data for fallback
+          likes_count: 0,
+          comments_count: 0,
+          user_has_liked: false,
+          user_has_ticket: false,
+          recent_likers: []
+        })) || [];
+      }
+
+      return data?.map((event: any) => ({
+        id: event.id,
+        title: event.name,
+        description: event.description || event.channel_description || "No description available",
+        price: Number(event.ticket_price) || 0,
+        date: event.date || new Date().toISOString().split("T")[0],
+        time: event.time || "12:00 PM",
+        duration: "2 hours",
+        viewers: event.viewer_count || 0,
+        streamerCount: 2,
+        isLive: event.is_live || false,
+        media_urls: event.media_urls,
+        slug: event.slug,
+        // Social data from joins
+        likes_count: event.likes_count || 0,
+        comments_count: event.comments_count || 0,
+        user_has_liked: event.user_has_liked || false,
+        user_has_ticket: event.user_has_ticket || false,
+        recent_likers: event.recent_likers || []
+      })) || [];
     },
+    staleTime: 30 * 1000, // Consider data fresh for 30 seconds
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
   });
+
+  // Filter live events from the consolidated data
+  const liveEvents = events.filter(event => event.isLive);
 
   // Realtime updates for events list
   const queryClient = useQueryClient();
