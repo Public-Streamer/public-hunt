@@ -32,7 +32,6 @@ import EventRankingControls, {
   SortOption,
 } from "@/components/EventRankingControls";
 import ScheduledEventsGrid from "@/components/ScheduledEventsGrid";
-import PastEventsGrid from "@/components/PastEventsGrid";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppContext } from "@/contexts/AppContext";
 import EditEventModal from "@/components/EditEventModal";
@@ -65,6 +64,7 @@ const Events: React.FC = () => {
   const [scheduledSortBy, setScheduledSortBy] =
     useState<SortOption>("starts-soon");
   const [mySortBy, setMySortBy] = useState<SortOption>("starts-soon");
+  const [pastSortBy, setPastSortBy] = useState<SortOption>("newest");
   const [activeTab, setActiveTab] = useState("live");
   const [liveEvents, setLiveEvents] = useState<Event[]>([]);
   const [scheduledEvents, setScheduledEvents] = useState<Event[]>([]);
@@ -88,7 +88,13 @@ const Events: React.FC = () => {
       "alphabetical",
     ];
     const scheduledAllowed: SortOption[] = ["starts-soon", "alphabetical"];
-    const myAllowed: SortOption[] = ["starts-soon", "alphabetical"];
+    const myAllowed: SortOption[] = ["newest", "oldest", "alphabetical"];
+    const pastAllowed: SortOption[] = [
+      "newest",
+      "oldest",
+      "alphabetical",
+      "most-views",
+    ];
 
     if (activeTab === "live" && !liveAllowed.includes(sortBy)) {
       setSortBy("most-live-viewers");
@@ -100,7 +106,10 @@ const Events: React.FC = () => {
       setScheduledSortBy("starts-soon");
     }
     if (activeTab === "my-events" && !myAllowed.includes(mySortBy)) {
-      setMySortBy("starts-soon");
+      setMySortBy("alphabetical");
+    }
+    if (activeTab === "past" && !pastAllowed.includes(pastSortBy)) {
+      setPastSortBy("newest");
     }
   }, [activeTab]);
 
@@ -400,16 +409,64 @@ const Events: React.FC = () => {
   };
 
   const filterEvents = (events: Event[]) => {
+    // Normalize and prepare search terms once
+    const normalizedSearchTerm = searchTerm.trim().toLowerCase();
+    const normalizedMemberSearch = memberSearch.trim().toLowerCase();
+    const searchTerms = normalizedSearchTerm.split(/\s+/).filter(Boolean);
+    const memberSearchTerms = normalizedMemberSearch
+      .split(/\s+/)
+      .filter(Boolean);
+
     return events.filter((event) => {
+      // Skip if no search criteria
+      if (!searchTerms.length && !memberSearchTerms.length) {
+        return true;
+      }
+
+      // Keyword search
+      const searchText = [
+        event.name,
+        // event.description || "",
+        event.category || "",
+      ]
+        .join(" ")
+        .toLowerCase();
+
       const matchesKeyword =
-        event.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        event.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        event.category?.toLowerCase().includes(searchTerm.toLowerCase());
+        searchTerms.length === 0 ||
+        searchTerms.every((term) => {
+          // Create a regex pattern that matches whole words only
+          const wordPattern = new RegExp(
+            `\\b${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
+            "i"
+          );
 
-      // For member search, we'll need to implement participant lookup later
-      const matchesMember = memberSearch === "";
+          // Check for exact word matches in the search text
+          const hasExactWord = wordPattern.test(searchText);
 
-      return matchesKeyword && matchesMember;
+          // Also check for word starts if no exact match found
+          if (!hasExactWord) {
+            const wordStartsPattern = new RegExp(
+              `\\b${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`,
+              "i"
+            );
+            return searchText
+              .split(/\s+/)
+              .some((word) => wordStartsPattern.test(word));
+          }
+
+          return true;
+        });
+
+      // Member search
+      // const matchesMember = memberSearchTerms.length === 0 ||
+      //   (event.participants || []).some(participant =>
+      //     memberSearchTerms.every(term =>
+      //       participant.toLowerCase().includes(term)
+      //     )
+      //   );
+
+      return matchesKeyword;
     });
   };
 
@@ -550,13 +607,14 @@ const Events: React.FC = () => {
           </TabsList>
 
           <TabsContent value="live" className="space-y-6">
-            <Button
+            {/* <Button
               onClick={() => navigate("/create?tab=event")}
               className="mb-4 w-full md:w-auto bg-gradient-to-r from-purple-500 to-pink-500 text-white border-none hover:from-purple-600 hover:to-pink-600"
             >
               <Plus className="h-4 w-4 mr-2" />
               Create New Event
-            </Button>
+            </Button> */}
+            <h1 className="text-3xl font-bold mb-4">Live Events</h1>
 
             <EventRankingControls
               searchTerm={searchTerm}
@@ -665,6 +723,7 @@ const Events: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="scheduled" className="space-y-6">
+            <h1 className="text-3xl font-bold mb-4">Scheduled Events</h1>
             <EventRankingControls
               searchTerm={searchTerm}
               onSearchChange={setSearchTerm}
@@ -713,6 +772,7 @@ const Events: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="past" className="space-y-6">
+            <h1 className="text-3xl font-bold mb-4">Past Events</h1>
             <PastEvents
               events={filteredPastEvents.map((event) => ({
                 id: event.id,

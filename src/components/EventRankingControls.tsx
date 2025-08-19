@@ -120,10 +120,8 @@ const EventRankingControls: React.FC<EventRankingControlsProps> = ({
             )}
             {activeTab === "past" && (
               <>
-                <SelectItem value="most-live-viewers">
-                  Most Live Viewers
-                </SelectItem>
                 <SelectItem value="newest">Newest First</SelectItem>
+                <SelectItem value="most-views">Most Views</SelectItem>
                 <SelectItem value="oldest">Oldest First</SelectItem>
                 <SelectItem value="alphabetical">Alphabetical (A–Z)</SelectItem>
               </>

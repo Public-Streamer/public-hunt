@@ -8,7 +8,13 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "./ui/carousel";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Image,
+  MonitorPlay,
+  Video,
+} from "lucide-react";
 import { Button } from "./ui/button";
 
 interface MediaBackgroundProps {
@@ -145,7 +151,7 @@ const MediaBackground: React.FC<MediaBackgroundProps> = ({
         )}
       >
         <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
-          No media available
+          <Video className="w-12 h-12" />
         </div>
       </div>
     );

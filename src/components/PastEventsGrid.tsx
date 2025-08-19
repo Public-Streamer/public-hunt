@@ -21,6 +21,7 @@ interface Event {
   channel_id: string;
   is_live: boolean;
   category: string;
+  ticketSales: number; // Add ticketSales property to Event interface
 }
 
 interface PastEventsGridProps {
@@ -57,39 +58,20 @@ const PastEventsGrid: React.FC<PastEventsGridProps> = ({
     switch (sortBy) {
       case "most-views":
         return b.views - a.views;
-      case "least-views":
-        return a.views - b.views;
       case "most-revenue":
         return b.ticketRevenue - a.ticketRevenue;
-      case "least-revenue":
-        return a.ticketRevenue - b.ticketRevenue;
       case "most-ticket-sales":
-        return (b.ticketRevenue || 0) - (a.ticketRevenue || 0);
-      case "least-ticket-sales":
-        return (a.ticketRevenue || 0) - (b.ticketRevenue || 0);
-      case "most-ticket-revenue":
-        return (b.ticketRevenue || 0) - (a.ticketRevenue || 0);
-      case "least-ticket-revenue":
-        return (a.ticketRevenue || 0) - (b.ticketRevenue || 0);
-      case "most-subscribers":
-        return (b.subscribers || 0) - (a.subscribers || 0);
-      case "least-subscribers":
-        return (a.subscribers || 0) - (b.subscribers || 0);
+        return (b.ticketSales || 0) - (a.ticketSales || 0);
       case "most-popular":
         return b.views * parseFloat(b.rating) - a.views * parseFloat(a.rating);
-      case "least-popular":
-        return a.views * parseFloat(a.rating) - b.views * parseFloat(b.rating);
       case "newest":
         return b.startDateTime.getTime() - a.startDateTime.getTime();
       case "oldest":
         return a.startDateTime.getTime() - b.startDateTime.getTime();
       case "alphabetical":
         return a.title.localeCompare(b.title);
-      case "starts-soon":
-        return a.startDateTime.getTime() - b.startDateTime.getTime();
       default:
-        // Default: starts soon
-        return a.startDateTime.getTime() - b.startDateTime.getTime();
+        return b.views - a.views; // Default to most views
     }
   });
 

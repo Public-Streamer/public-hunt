@@ -14,21 +14,21 @@ interface PastEvent {
   rating: string;
   price: number;
   ticketRevenue: number;
-  ticketSales?: number;
+  ticketSales: number;
   timeUntilStart: string;
   startDateTime: Date;
   participants: string[];
   description: string;
-  subscribers?: number;
+  subscribers: number;
   slug?: string;
   media_urls?: string[];
   duration?: number;
   recorded_at?: string;
-  visibility?: "public" | "private" | "selected";
+  visibility: "public" | "private" | "selected";
   viewer_count?: number;
-  tags?: string[];
-  category?: string;
-  is_live?: boolean;
+  tags: string[];
+  category: string;
+  is_live: boolean;
   channel_id: string;
 }
 
@@ -39,13 +39,11 @@ interface PastEventsProps {
 const PastEvents: React.FC<PastEventsProps> = ({ events = [] }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [memberSearch, setMemberSearch] = useState("");
-  const [pastSortBy, setPastSortBy] = useState<SortOption>("starts-soon");
+  const [pastSortBy, setPastSortBy] = useState<SortOption>("newest");
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-4">Past Events</h1>
-
+    <div className="container mx-auto p-4">
+      <div className="">
         <EventRankingControls
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}

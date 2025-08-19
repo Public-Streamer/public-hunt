@@ -216,36 +216,40 @@ const EventSearchBox: React.FC<EventSearchBoxProps> = ({
           {showResults && (
             <div className="p-2">
               {results.map((result, index) => (
-                <div
-                  key={result.id}
-                  role="option"
-                  aria-selected={selectedIndex === index}
-                  className={cn(
-                    "flex items-center space-x-3 p-2 rounded cursor-pointer",
-                    selectedIndex === index ? "bg-accent" : "hover:bg-accent/50"
-                  )}
-                  onClick={() => handleSelect(result)}
+                <Link
+                  to={
+                    result.slug
+                      ? `/event/${result.slug}`
+                      : `/event/${result.id}`
+                  }
+                  className="w-10 h-10 rounded-md overflow-hidden bg-muted flex-shrink-0"
                 >
-                  <Link
-                    to={
-                      result.slug
-                        ? `/event/${result.slug}`
-                        : `/event/${result.id}`
-                    }
-                    className="w-10 h-10 rounded-md overflow-hidden bg-muted flex-shrink-0"
+                  <div
+                    key={result.id}
+                    role="option"
+                    aria-selected={selectedIndex === index}
+                    className={cn(
+                      "flex items-center space-x-3 p-2 rounded cursor-pointer",
+                      selectedIndex === index
+                        ? "bg-accent"
+                        : "hover:bg-accent/50"
+                    )}
+                    onClick={() => handleSelect(result)}
                   >
                     <MediaBackground
-                      mediaUrls={result.media_urls}
+                      mediaUrls={[result.media_urls[0]]}
                       fallback="/placeholder.gif"
-                      className="w-full h-full"
+                      className="w-12 h-12 rounded-sm shadow-sm
+                    "
                     />
-                  </Link>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">
-                      {result.title}
-                    </p>
+
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">
+                        {result.title}
+                      </p>
+                    </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           )}
