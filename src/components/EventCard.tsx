@@ -79,7 +79,7 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
     if (isAuthenticated && user) {
       checkTicketStatus();
     }
-  }, [user, isAuthenticated, event.id, checkTicketStatus]);
+  }, [user, isAuthenticated, event.id]);
 
   const handleCardClick = () => {
     const eventUrl = (event as any).slug
