@@ -3,8 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Video } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { LiveKitRoom, useRoomContext, useTracks } from "@livekit/components-react";
-import type { LocalVideoTrack, RemoteVideoTrack } from "livekit-client";
+import { LiveKitRoom, useTracks } from "@livekit/components-react";
 import { useLiveKitTrackSource } from "@/lib/livekitLazy";
 import MainStreamPreview from "@/components/MainStreamPreview";
 import { useScreenSize } from "@/hooks/use-mobile";
@@ -125,66 +124,25 @@ const StreamContent: React.FC<{
   mediaUrls: string[];
 }> = ({ eventName, fallbackImage, isBlurred, eventId, mediaUrls }) => {
   const [isMuted, setIsMuted] = useState(true);
-  const [reconnectBump, setReconnectBump] = useState(0);
-  const room = useRoomContext();
   const TrackSource = useLiveKitTrackSource();
   const sources = TrackSource
     ? [TrackSource.Camera, TrackSource.ScreenShare]
     : [];
 
   const videoTracks = useTracks(sources, {
+    updateOnlyOn: [],
     onlySubscribed: false,
   });
 
   const cameraOff = "/cameraOff.jpg";
 
   const activeVideoTracks = videoTracks.filter(
-    (track) =>
-      track.publication &&
-      track.publication.track &&
-      track.publication.kind === "video" &&
-      track.participant.identity !== "viewer"
+    (track) => track.publication && track.participant.identity !== "viewer"
   );
-
-  // Bump key on LiveKit room reconnection to force remount
-  useEffect(() => {
-    let cleanup = () => {};
-    let mounted = true;
-    (async () => {
-      try {
-        const lk = await import("livekit-client");
-        if (!mounted || !room) return;
-        const onReconnected = () => setReconnectBump((v) => v + 1);
-        room.on(lk.RoomEvent.Reconnected, onReconnected);
-        cleanup = () => {
-          room.off(lk.RoomEvent.Reconnected, onReconnected);
-        };
-      } catch (e) {
-        // Non-fatal if room context unavailable during initial mount
-        console.debug(
-          "[EventStreamPreview] Unable to attach Reconnected handler",
-          e
-        );
-      }
-    })();
-    return () => {
-      mounted = false;
-      cleanup();
-    };
-  }, [room]);
 
   if (activeVideoTracks.length === 0) {
     return <MediaBackground mediaUrls={[cameraOff]} className="h-full" />;
   }
-
-  const selected = activeVideoTracks[0];
-  const pub = selected.publication;
-  const mediaId = (
-    pub?.track as LocalVideoTrack | RemoteVideoTrack | undefined
-  )?.mediaStreamTrack?.id;
-  const previewKey = `${mediaId ?? pub?.trackSid ?? "no-sid"}-${
-    selected.participant?.identity ?? "no-id"
-  }-r${reconnectBump}`;
 
   return (
     <div
@@ -193,7 +151,6 @@ const StreamContent: React.FC<{
       }`}
     >
       <MainStreamPreview
-        key={previewKey}
         mediaUrls={mediaUrls}
         track={activeVideoTracks[0]}
         eventName={eventName}

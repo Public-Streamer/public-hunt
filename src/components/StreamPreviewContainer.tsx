@@ -16,7 +16,7 @@ interface StreamPreviewContainerProps {
 // Lazy-loaded inner content that uses LiveKit hooks/components so we don't statically import them in this file
 const StreamTracksContentLazy = lazy(() =>
   import("@livekit/components-react").then((m) => {
-    const { useTracks, StartAudio, useRoomContext } = m;
+    const { useTracks, StartAudio } = m;
 
     const Comp: React.FC<{
       eventName: string;
@@ -27,35 +27,6 @@ const StreamTracksContentLazy = lazy(() =>
       const [selectedTrackIndex, setSelectedTrackIndex] = useState<number>(0);
       const [isMuted, setIsMuted] = useState(false);
       const TrackSource = useLiveKitTrackSource();
-      const room = useRoomContext?.();
-      const [reconnectBump, setReconnectBump] = useState(0);
-
-      // Bump version on room reconnected to force remounts
-      useEffect(() => {
-        let cleanup = () => {};
-        let mounted = true;
-        (async () => {
-          try {
-            const lk = await import("livekit-client");
-            if (!mounted || !room) return;
-            const onReconnected = () => setReconnectBump((v) => v + 1);
-            room.on(lk.RoomEvent.Reconnected, onReconnected);
-            cleanup = () => {
-              room.off(lk.RoomEvent.Reconnected, onReconnected);
-            };
-          } catch (e) {
-            // Non-fatal: room context may be unavailable during initial mount
-            console.debug(
-              "[StreamPreviewContainer] Unable to attach Reconnected handler",
-              e
-            );
-          }
-        })();
-        return () => {
-          mounted = false;
-          cleanup();
-        };
-      }, [room]);
 
       const videoSources = TrackSource
         ? [TrackSource.Camera, TrackSource.ScreenShare]
@@ -66,7 +37,7 @@ const StreamTracksContentLazy = lazy(() =>
           { source: videoSources[0], withPlaceholder: false },
           { source: videoSources[1], withPlaceholder: false },
         ].filter(Boolean) as any,
-        { onlySubscribed: false }
+        { onlySubscribed: false, updateOnlyOn: [] }
       );
 
       const videoTracks = useMemo(() => {
@@ -85,13 +56,6 @@ const StreamTracksContentLazy = lazy(() =>
 
       const selectedVideoTrack =
         videoTracks[selectedTrackIndex] || videoTracks[0];
-
-      // Ensure selected index stays in range when track list changes (e.g., after reconnection)
-      useEffect(() => {
-        if (selectedTrackIndex >= videoTracks.length) {
-          setSelectedTrackIndex(0);
-        }
-      }, [videoTracks.length, selectedTrackIndex]);
 
       const micSource = TrackSource
         ? [{ source: TrackSource.Microphone, withPlaceholder: false }]
@@ -132,13 +96,6 @@ const StreamTracksContentLazy = lazy(() =>
       return (
         <div className="space-y-4">
           <MainStreamPreview
-            key={`${
-              selectedVideoTrack?.publication?.track?.mediaStreamTrack?.id ??
-              selectedVideoTrack?.publication?.trackSid ??
-              "no-sid"
-            }-${
-              selectedVideoTrack?.participant?.identity ?? "no-id"
-            }-${reconnectBump}`}
             mediaUrls={mediaUrls}
             track={selectedVideoTrack as any}
             eventName={eventName}

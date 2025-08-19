@@ -49,7 +49,10 @@ interface LiveStatusResult {
   live_participants_count: number;
 }
 
-export const useStreamingControls = (eventId: string): StreamingControls => {
+export const useStreamingControls = (
+  eventId: string,
+  generateToken: () => Promise<string>
+): StreamingControls => {
   const { localParticipant } = useLocalParticipant();
   const room = useRoomContext();
 
@@ -124,7 +127,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   //   );
 
   // Try to auto-resume after network recovery or LiveKit reconnection
-  const tryAutoResume = useCallback(() => {
+  const tryAutoResume = useCallback(async () => {
     if (!room) return;
     if (room.state !== "connected") return;
     if (!shouldAutoResumeRef.current) return;
@@ -134,16 +137,13 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
     if (controlsLoading) return;
 
     // Fire and forget; startStream already handles guards and UI state
+    await generateToken();
 
-    console.log("auto resumeeee");
     startStream(count, lastStreamIdRef.current).catch(() => {});
   }, [room, controlsLoading]);
 
-  console.log("here's the room", room);
-
   // Listen for reconnection and online events
   useEffect(() => {
-    console.log({ room });
     if (!room) {
       console.log("room not found while auto resuming");
       return;

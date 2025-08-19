@@ -72,8 +72,7 @@ interface StreamerInterfaceProps {
   streamId?: string;
   // When true, the stream should start automatically once connected
   autoGoLive?: boolean;
-  token?: string;
-  serverUrl?: string;
+  generateToken: () => Promise<void>;
 }
 
 export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
@@ -85,18 +84,16 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   eventHostId,
   streamId,
   autoGoLive,
-  token,
-  serverUrl,
+  generateToken,
 }) => {
   const { localParticipant } = useLocalParticipant();
   const participants = useParticipants();
-  const controls = useStreamingControls(eventId);
+  const controls = useStreamingControls(eventId, generateToken);
   const screenSize = useScreenSize();
   const { checkScreenShareSupport } = useMobileMediaPermissions();
   const { toast } = useToast();
 
   const TrackSource = useLiveKitTrackSource();
-  console.log(JSON.stringify(`token: ${token}, serverUrl: ${serverUrl}`));
 
   // Edit state management
   const [isEditing, setIsEditing] = useState(false);

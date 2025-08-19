@@ -114,11 +114,11 @@ const StagePage: React.FC = () => {
           error,
         } = await supabase.auth.getUser();
 
-        if (error || !currentUser) {
-          console.log("No authenticated user found, redirecting to login");
-          navigate("/login");
-          return;
-        }
+        // if (error || !currentUser) {
+        //   console.log("No authenticated user found, redirecting to login");
+        //   navigate("/login");
+        //   return;
+        // }
 
         console.log(
           "StagePage - Current authenticated user:",
@@ -132,7 +132,7 @@ const StagePage: React.FC = () => {
             supabaseUser: currentUser.email,
             verifiedUser: verifiedUser?.email,
           });
-          window.location.href = "/login";
+          // window.location.href = "/login";
           return;
         }
         console.log("Identity verified:", verifiedUser.email);
@@ -193,151 +193,138 @@ const StagePage: React.FC = () => {
     checkAuthAndAssignRole();
   }, [eventId, eventData, inviteToken, navigate]);
 
+  const generateToken = async () => {
+    // if (!eventData?.id || !userRole || !user || tokenGenerated.current) return;
+
+    try {
+      console.log("generating livekit token from funccc");
+      setTokenLoading(true);
+
+      // If using invite token, validate it and create a proper user token with streamer permissions
+      if (inviteToken && userRole === "streamer") {
+        console.log("Using invite token for LiveKit connection");
+
+        try {
+          // Basic validation that it looks like a JWT
+          const jwtParts = inviteToken.split(".");
+          if (jwtParts.length !== 3) {
+            throw new Error("Invalid invite token format");
+          }
+
+          // Decode the JWT payload to validate it's for this event and get room info
+          const payload = JSON.parse(atob(jwtParts[1]));
+          console.log("Invite token payload:", payload);
+
+          // Get current user session
+          const supabase = supabaseBrowser();
+          const {
+            data: { session },
+            error: sessionError,
+          } = await supabase.auth.getSession();
+
+          if (sessionError || !session) {
+            throw new Error("Please log in to use invite token");
+          }
+
+          // Create a new edge function call to generate a user-specific streamer token
+          const { data: tokenData, error: tokenError } =
+            await supabase.functions.invoke("create-livekit-token", {
+              body: {
+                eventId: eventData?.id,
+                userRole: "streamer",
+                permissions: {
+                  roomJoin: true,
+                  canPublish: true,
+                  canSubscribe: true,
+                  canPublishData: true,
+                  hidden: false,
+                  recorder: false,
+                },
+              },
+              headers: {
+                Authorization: `Bearer ${session.access_token}`,
+              },
+            });
+
+          if (tokenError || !tokenData) {
+            console.error(
+              "Failed to generate streamer token, falling back to invite token:",
+              tokenError
+            );
+            // Fallback to using the invite token directly
+            setToken(inviteToken);
+            setServerUrl(payload.iss || "wss://localhost:7880"); // Use server from payload or default
+          } else {
+            // Use the newly generated token with proper user identity
+            setToken(tokenData.token);
+            setServerUrl(tokenData.serverUrl);
+          }
+
+          // tokenGenerated.current = true;
+          console.log(
+            "Generated streamer token for invited user:",
+            user?.email
+          );
+          // Save access token for optional keepalive usage
+          accessTokenRef.current = session.access_token;
+          return;
+        } catch (err) {
+          console.error("Invite token validation failed:", err);
+          throw new Error("Invalid or expired invite token");
+        }
+      }
+
+      // Generate token through regular flow for hosts and assigned streamers
+      const supabase = supabaseBrowser();
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError || !session) {
+        throw new Error("Please log in to access this stream");
+      }
+
+      const { data, error } = await supabase.functions.invoke(
+        "create-livekit-token",
+        {
+          body: {
+            eventId: eventData?.id,
+            userRole,
+          },
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        }
+      );
+
+      if (error) {
+        throw new Error(error.message || "Failed to generate token");
+      }
+
+      if (!data?.token || !data?.serverUrl) {
+        throw new Error("Invalid token response");
+      }
+
+      setToken(data.token);
+      setServerUrl(data.serverUrl);
+      tokenGenerated.current = true;
+      // Save access token for optional keepalive usage
+      accessTokenRef.current = session.access_token;
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to generate LiveKit token";
+      toast.error(errorMessage);
+      console.error("Token generation error:", err);
+      // Reset flag on error to allow retry
+      tokenGenerated.current = false;
+    } finally {
+      setTokenLoading(false);
+    }
+  };
+
   // Generate LiveKit token when event and user role are available
   useEffect(() => {
-    const generateToken = async () => {
-      if (!eventData?.id || !userRole || !user || tokenGenerated.current)
-        return;
-
-      try {
-        setTokenLoading(true);
-
-        // If using invite token, validate it and create a proper user token with streamer permissions
-        if (inviteToken && userRole === "streamer") {
-          console.log("Using invite token for LiveKit connection");
-
-          try {
-            // Basic validation that it looks like a JWT
-            const jwtParts = inviteToken.split(".");
-            if (jwtParts.length !== 3) {
-              throw new Error("Invalid invite token format");
-            }
-
-            // Decode the JWT payload to validate it's for this event and get room info
-            const payload = JSON.parse(atob(jwtParts[1]));
-            console.log("Invite token payload:", payload);
-
-            // Get current user session
-            const supabase = supabaseBrowser();
-            const {
-              data: { session },
-              error: sessionError,
-            } = await supabase.auth.getSession();
-
-            if (sessionError || !session) {
-              throw new Error("Please log in to use invite token");
-            }
-
-            // Create a new edge function call to generate a user-specific streamer token
-            const { data: tokenData, error: tokenError } =
-              await supabase.functions.invoke("create-livekit-token", {
-                body: {
-                  eventId: eventData?.id,
-                  userRole: "streamer",
-                  permissions: {
-                    roomJoin: true,
-                    canPublish: true,
-                    canSubscribe: true,
-                    canPublishData: true,
-                    hidden: false,
-                    recorder: false,
-                  },
-                },
-                headers: {
-                  Authorization: `Bearer ${session.access_token}`,
-                },
-              });
-
-            if (tokenError || !tokenData) {
-              console.error(
-                "Failed to generate streamer token, falling back to invite token:",
-                tokenError
-              );
-              // Fallback to using the invite token directly
-              setToken(inviteToken);
-              setServerUrl(payload.iss || "wss://localhost:7880"); // Use server from payload or default
-            } else {
-              // Use the newly generated token with proper user identity
-              setToken(tokenData.token);
-              setServerUrl(tokenData.serverUrl);
-            }
-
-            tokenGenerated.current = true;
-            console.log(
-              "Generated streamer token for invited user:",
-              user?.email
-            );
-            // Save access token for optional keepalive usage
-            accessTokenRef.current = session.access_token;
-            return;
-          } catch (err) {
-            console.error("Invite token validation failed:", err);
-            throw new Error("Invalid or expired invite token");
-          }
-        }
-
-        // Generate token through regular flow for hosts and assigned streamers
-        const supabase = supabaseBrowser();
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession();
-
-        console.log(
-          "StagePage - Session for token generation:",
-          session?.user?.email
-        );
-        console.log("StagePage - Expected user:", user?.email);
-
-        if (sessionError || !session) {
-          throw new Error("Please log in to access this stream");
-        }
-
-        const { data, error } = await supabase.functions.invoke(
-          "create-livekit-token",
-          {
-            body: {
-              eventId: eventData?.id,
-              userRole,
-            },
-            headers: {
-              Authorization: `Bearer ${session.access_token}`,
-            },
-          }
-        );
-
-        if (error) {
-          throw new Error(error.message || "Failed to generate token");
-        }
-
-        if (!data?.token || !data?.serverUrl) {
-          throw new Error("Invalid token response");
-        }
-
-        setToken(data.token);
-        setServerUrl(data.serverUrl);
-        tokenGenerated.current = true;
-        // Save access token for optional keepalive usage
-        accessTokenRef.current = session.access_token;
-        console.log("LiveKit token generated successfully:", {
-          roomName: data.roomName,
-          serverUrl: data.serverUrl,
-          userRole,
-        });
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error
-            ? err.message
-            : "Failed to generate LiveKit token";
-        toast.error(errorMessage);
-        console.error("Token generation error:", err);
-        // Reset flag on error to allow retry
-        tokenGenerated.current = false;
-      } finally {
-        setTokenLoading(false);
-      }
-    };
-
     if (!tokenGenerated.current) {
       console.log("Generating token...");
       generateToken();
@@ -364,22 +351,22 @@ const StagePage: React.FC = () => {
     );
   }
 
-  if (!user) {
-    const redirectUrl = window.location.pathname + window.location.search;
+  // if (!user) {
+  //   const redirectUrl = window.location.pathname + window.location.search;
 
-    const redirectWithToken = inviteToken
-      ? `${redirectUrl}${
-          redirectUrl.includes("?") ? "&" : "?"
-        }token=${inviteToken}`
-      : redirectUrl;
+  //   const redirectWithToken = inviteToken
+  //     ? `${redirectUrl}${
+  //         redirectUrl.includes("?") ? "&" : "?"
+  //       }token=${inviteToken}`
+  //     : redirectUrl;
 
-    return (
-      <Navigate
-        to={`/login?redirect=${encodeURIComponent(redirectWithToken)}`}
-        replace
-      />
-    );
-  }
+  //   return (
+  //     <Navigate
+  //       to={`/login?redirect=${encodeURIComponent(redirectWithToken)}`}
+  //       replace
+  //     />
+  //   );
+  // }
 
   if (!eventData || !userRole) {
     return (
@@ -410,6 +397,7 @@ const StagePage: React.FC = () => {
       <LiveKitRoomLazy
         token={token}
         serverUrl={serverUrl}
+        connect={true}
         connectOptions={{
           autoSubscribe: true,
         }}
@@ -439,8 +427,7 @@ const StagePage: React.FC = () => {
           eventHostId={eventData?.created_by}
           streamId={streamId}
           autoGoLive={eventData?.is_live}
-          token={token}
-          serverUrl={serverUrl}
+          generateToken={generateToken}
         />
       </LiveKitRoomLazy>
     </Suspense>
