@@ -325,11 +325,11 @@ const StagePage: React.FC = () => {
 
   // Generate LiveKit token when event and user role are available
   useEffect(() => {
-    if (!tokenGenerated.current) {
+    if (!tokenGenerated.current || !eventData?.id || !userRole || !user) {
       console.log("Generating token...");
       generateToken();
     }
-  }, [eventData?.id, userRole, user, inviteToken]);
+  }, [eventData?.id, userRole, user]);
 
   // Cleanup token generation flag on unmount
   useEffect(() => {
