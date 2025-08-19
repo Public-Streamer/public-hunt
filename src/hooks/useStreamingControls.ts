@@ -52,7 +52,7 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   const { localParticipant } = useLocalParticipant();
   const room = useRoomContext();
 
-  console.log("room name", room.name);
+  // console.log("room name", room.name);
 
   const TrackSource = useLiveKitTrackSource();
 
@@ -878,6 +878,8 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
         userAgent,
       };
     };
+
+    setCurrentFacingMode(getDeviceInfo().isMobile ? "environment" : "user");
 
     const checkTorchSupport = async () => {
       const deviceInfo = getDeviceInfo();
