@@ -41,6 +41,7 @@ import { CoonhoundScoreboardViewer } from "@/components/scorecard/CoonhoundScore
 import { patchEvent } from "@/lib/eventStore";
 import { useEventSelector } from "@/hooks/useEventData";
 import { useQuery } from "@tanstack/react-query";
+import LiveDiscussionSection from "@/components/LiveDiscussionSection";
 
 type EventData = Database["public"]["Tables"]["events"]["Row"];
 
@@ -682,7 +683,7 @@ const EventPage: React.FC = () => {
               />
             )} */}
             {eventData && <EventSocialSection eventId={eventData.id} />}
-            {/* <LiveDiscussionSection
+            <LiveDiscussionSection
               eventId={eventData?.id}
               currentUserProfile={
                 currentUserProfile
@@ -695,7 +696,7 @@ const EventPage: React.FC = () => {
                     }
                   : undefined
               }
-            /> */}
+            />
           </div>
 
           {/* Right Column - Event Details and Actions */}

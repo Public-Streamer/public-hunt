@@ -45,7 +45,7 @@ const StagePage: React.FC = () => {
       }
 
       const supabase = supabaseBrowser();
-      
+
       // Import utility functions to handle both UUID and slug
       const { parseEventIdentifier } = await import("@/lib/eventUtils");
       const { isUuid, identifier } = parseEventIdentifier(eventId);
@@ -106,10 +106,13 @@ const StagePage: React.FC = () => {
       try {
         // Force fresh authentication check by clearing any potentially stale state
         console.log("StagePage - Starting fresh authentication check");
-        
+
         // Get current user identity with fresh client
         const supabase = supabaseBrowser();
-        const { data: { user: currentUser }, error } = await supabase.auth.getUser();
+        const {
+          data: { user: currentUser },
+          error,
+        } = await supabase.auth.getUser();
 
         if (error || !currentUser) {
           console.log("No authenticated user found, redirecting to login");
@@ -117,23 +120,26 @@ const StagePage: React.FC = () => {
           return;
         }
 
-        console.log("StagePage - Current authenticated user:", currentUser.email);
-        
+        console.log(
+          "StagePage - Current authenticated user:",
+          currentUser.email
+        );
+
         // Force identity verification with getCurrentUser from whoami utility
         const verifiedUser = await getCurrentUser();
         if (!verifiedUser || verifiedUser.email !== currentUser.email) {
           console.error("Identity mismatch detected! Forcing fresh login.", {
             supabaseUser: currentUser.email,
-            verifiedUser: verifiedUser?.email
+            verifiedUser: verifiedUser?.email,
           });
           window.location.href = "/login";
           return;
         }
         console.log("Identity verified:", verifiedUser.email);
-        
+
         const userForState = {
           id: currentUser.id,
-          email: currentUser.email || ''
+          email: currentUser.email || "",
         };
         setUser(userForState);
 
@@ -276,8 +282,11 @@ const StagePage: React.FC = () => {
           data: { session },
           error: sessionError,
         } = await supabase.auth.getSession();
-        
-        console.log("StagePage - Session for token generation:", session?.user?.email);
+
+        console.log(
+          "StagePage - Session for token generation:",
+          session?.user?.email
+        );
         console.log("StagePage - Expected user:", user?.email);
 
         if (sessionError || !session) {
@@ -429,6 +438,7 @@ const StagePage: React.FC = () => {
           userId={user?.id}
           eventHostId={eventData?.created_by}
           streamId={streamId}
+          autoGoLive={eventData?.is_live}
         />
       </LiveKitRoomLazy>
     </Suspense>

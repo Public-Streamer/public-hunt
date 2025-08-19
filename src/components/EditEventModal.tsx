@@ -319,13 +319,13 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
   };
 
   const handleMediaUpload = useCallback((files: any[]) => {
-    if (files.length > 0) {
-      const imageUrl = files[0].url;
-      setFormData((prev) => ({
-        ...prev,
-        media_urls: [imageUrl], // Always replace index 0 with the new image
-      }));
-    }
+    // Update media URLs to match current MediaUploader state
+    const currentUrls = files.map(f => f.url).filter(Boolean);
+    
+    setFormData((prev) => ({
+      ...prev,
+      media_urls: currentUrls,
+    }));
   }, []);
 
   return (
@@ -471,37 +471,31 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
               </CardContent>
             </Card>
 
-            {/* Event Thumbnail Section */}
+            {/* Event Media Section */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg font-semibold">
-                  Event Thumbnail
+                  Event Media
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <MediaUploader
                   onUpload={handleMediaUpload}
-                  maxFiles={1}
+                  maxFiles={5}
                   acceptedTypes={[
                     "image/jpeg",
-                    "image/png",
+                    "image/png", 
                     "image/gif",
                     "video/mp4",
                     "video/webm",
+                    "video/avi",
+                    "video/quicktime",
+                    "audio/mp3",
+                    "audio/wav",
+                    "audio/ogg",
                   ]}
+                  initialUrls={formData.media_urls}
                 />
-                {formData?.media_urls.length > 0 && (
-                  <div className="mt-4">
-                    <Label className="text-sm font-medium mb-2 block">
-                      Current Thumbnail:
-                    </Label>
-                    <img
-                      src={formData?.media_urls[0]}
-                      alt="Event thumbnail"
-                      className="w-32 h-32 object-cover rounded-lg border"
-                    />
-                  </div>
-                )}
               </CardContent>
             </Card>
 

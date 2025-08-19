@@ -97,54 +97,54 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   const participantCount = room?.numParticipants || 1;
 
   // Enhanced mobile debugging - Log available cameras whenever they change
-  useEffect(() => {
-    console.log(
-      "📱 MOBILE DEBUG - Available Video Devices:",
-      JSON.stringify(
-        {
-          deviceCount: videoDevices.length,
-          devices: videoDevices.map((device) => ({
-            deviceId: device.deviceId,
-            label: device.label,
-            kind: device.kind,
-            groupId: device.groupId,
-          })),
-          currentActiveCamera: currentCamera,
-          currentFacingMode: currentFacingMode,
-        },
-        null,
-        2
-      )
-    );
-  }, [videoDevices, currentCamera, currentFacingMode]);
+  // useEffect(() => {
+  //   console.log(
+  //     "📱 MOBILE DEBUG - Available Video Devices:",
+  //     JSON.stringify(
+  //       {
+  //         deviceCount: videoDevices.length,
+  //         devices: videoDevices.map((device) => ({
+  //           deviceId: device.deviceId,
+  //           label: device.label,
+  //           kind: device.kind,
+  //           groupId: device.groupId,
+  //         })),
+  //         currentActiveCamera: currentCamera,
+  //         currentFacingMode: currentFacingMode,
+  //       },
+  //       null,
+  //       2
+  //     )
+  //   );
+  // }, [videoDevices, currentCamera, currentFacingMode]);
 
   // Enhanced helper function to detect camera type from device info for Android devices
   const getCameraType = useCallback(
     (device: MediaDeviceInfo): "user" | "environment" | "unknown" => {
       const label = device.label.toLowerCase();
-      console.log(
-        "📱 MOBILE DEBUG - Camera Classification:",
-        JSON.stringify(
-          {
-            deviceId: device.deviceId,
-            originalLabel: device.label,
-            lowercaseLabel: label,
-            containsFront: label.includes("front"),
-            containsUser: label.includes("user"),
-            containsFacing: label.includes("facing"),
-            containsBack: label.includes("back"),
-            containsRear: label.includes("rear"),
-            containsEnvironment: label.includes("environment"),
-            // Android-specific patterns
-            containsCamera2_0: label.includes("camera2 0"),
-            containsCamera2_1: label.includes("camera2 1"),
-            containsCamera_0: label.includes("camera 0"),
-            containsCamera_1: label.includes("camera 1"),
-          },
-          null,
-          2
-        )
-      );
+      // console.log(
+      //   "📱 MOBILE DEBUG - Camera Classification:",
+      //   JSON.stringify(
+      //     {
+      //       deviceId: device.deviceId,
+      //       originalLabel: device.label,
+      //       lowercaseLabel: label,
+      //       containsFront: label.includes("front"),
+      //       containsUser: label.includes("user"),
+      //       containsFacing: label.includes("facing"),
+      //       containsBack: label.includes("back"),
+      //       containsRear: label.includes("rear"),
+      //       containsEnvironment: label.includes("environment"),
+      //       // Android-specific patterns
+      //       containsCamera2_0: label.includes("camera2 0"),
+      //       containsCamera2_1: label.includes("camera2 1"),
+      //       containsCamera_0: label.includes("camera 0"),
+      //       containsCamera_1: label.includes("camera 1"),
+      //     },
+      //     null,
+      //     2
+      //   )
+      // );
 
       // Standard front camera detection
       if (

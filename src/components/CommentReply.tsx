@@ -10,9 +10,13 @@ interface CommentReplyProps {
   onDelete: () => void;
 }
 
-export function CommentReply({ reply, currentUserId, onDelete }: CommentReplyProps) {
+export function CommentReply({
+  reply,
+  currentUserId,
+  onDelete,
+}: CommentReplyProps) {
   const isOwner = currentUserId === reply.user_profile_id;
-  
+
   // Format relative timestamp for mobile
   const formatMobileTime = (date: Date) => {
     const now = Date.now();
@@ -20,7 +24,7 @@ export function CommentReply({ reply, currentUserId, onDelete }: CommentReplyPro
     const minutes = Math.floor(diff / (1000 * 60));
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    
+
     if (minutes < 1) return "now";
     if (minutes < 60) return `${minutes}m`;
     if (hours < 24) return `${hours}h`;
@@ -54,10 +58,7 @@ export function CommentReply({ reply, currentUserId, onDelete }: CommentReplyPro
 
         <div className="flex items-center gap-3 text-xs">
           {isOwner && (
-            <button
-              onClick={onDelete}
-              className="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-            >
+            <button onClick={onDelete} className="text-destructive">
               Delete
             </button>
           )}

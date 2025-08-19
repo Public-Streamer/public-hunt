@@ -70,6 +70,8 @@ interface StreamerInterfaceProps {
   userId?: string;
   eventHostId?: string;
   streamId?: string;
+  // When true, the stream should start automatically once connected
+  autoGoLive?: boolean;
 }
 
 export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
@@ -80,6 +82,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   userId,
   eventHostId,
   streamId,
+  autoGoLive,
 }) => {
   const { localParticipant } = useLocalParticipant();
   const participants = useParticipants();
@@ -525,6 +528,34 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   const totalTracksLength = useMemo(() => {
     return localCameraTracks.length + otherCameraTracks.length;
   }, [localCameraTracks, otherCameraTracks]);
+
+  // Auto start stream when page loads and connection is ready
+  const autoStartAttemptedRef = useRef(false);
+  useEffect(() => {
+    // Only auto start for host/streamer roles
+    const allowedRole = userRole === "host" || userRole === "streamer";
+    if (
+      autoGoLive &&
+      allowedRole &&
+      controls.isConnected &&
+      !controls.isStreaming &&
+      !controls.controlsLoading &&
+      !autoStartAttemptedRef.current
+    ) {
+      autoStartAttemptedRef.current = true;
+      try {
+        controls.startStream(totalTracksLength);
+      } catch (e) {
+        // If start fails, allow a future retry if conditions change
+        autoStartAttemptedRef.current = false;
+      }
+    }
+  }, [
+    autoGoLive,
+    userRole,
+    controls,
+    totalTracksLength,
+  ]);
 
   // Heartbeat: mark streamer as active periodically so server can detect ungraceful closes
   useEffect(() => {
