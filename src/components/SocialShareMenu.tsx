@@ -1,9 +1,25 @@
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Share2, Facebook, Instagram, MessageCircle, Mail, Phone, Copy, Twitter, Youtube } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  Share2,
+  Facebook,
+  Instagram,
+  MessageCircle,
+  Mail,
+  Phone,
+  Copy,
+  Twitter,
+  Youtube,
+} from "lucide-react";
+import { FaXTwitter } from "react-icons/fa6";
+import { useToast } from "@/hooks/use-toast";
 
 interface SocialShareMenuProps {
   title: string;
@@ -12,20 +28,83 @@ interface SocialShareMenuProps {
   prettyUrl?: string; // Pretty URL to show/copy for users
 }
 
-const SocialShareMenu: React.FC<SocialShareMenuProps> = ({ title, url, description, prettyUrl }) => {
+interface Platform {
+  id: string;
+  name: string;
+  icon: any; // Properly type the icon
+  color: string;
+  tooltip: string;
+  action?: (url: string, title: string, description?: string) => void;
+}
+
+const SocialShareMenu: React.FC<SocialShareMenuProps> = ({
+  title,
+  url,
+  description,
+  prettyUrl,
+}) => {
   const { toast } = useToast();
 
-  const addCacheBuster = (u: string) => `${u}${u.includes('?') ? '&' : '?'}cb=${Date.now()}`;
+  const addCacheBuster = (u: string) =>
+    `${u}${u.includes("?") ? "&" : "?"}cb=${Date.now()}`;
 
-const platforms = [
-    { id: 'whatsapp', name: 'WhatsApp', icon: MessageCircle, color: 'bg-green-500', tooltip: 'Share on WhatsApp' },
-    { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'bg-blue-600', tooltip: 'Share on Facebook' },
-    { id: 'instagram', name: 'Instagram', icon: Instagram, color: 'bg-pink-600', tooltip: 'Copy link for Instagram' },
-    { id: 'x', name: 'X (Twitter)', icon: Twitter, color: 'bg-gray-900', tooltip: 'Share on X (Twitter)' },
-    { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'bg-red-600', tooltip: 'Share on YouTube' },
-    { id: 'email', name: 'Email', icon: Mail, color: 'bg-blue-500', tooltip: 'Share via Email' },
-    { id: 'sms', name: 'SMS', icon: Phone, color: 'bg-green-600', tooltip: 'Share via SMS' },
-    { id: 'copy', name: 'Copy Link', icon: Copy, color: 'bg-gray-600', tooltip: 'Copy event link to clipboard' }
+  const platforms = [
+    {
+      id: "whatsapp",
+      name: "WhatsApp",
+      icon: MessageCircle,
+      color: "bg-green-500",
+      tooltip: "Share on WhatsApp",
+    },
+    {
+      id: "facebook",
+      name: "Facebook",
+      icon: Facebook,
+      color: "bg-blue-600",
+      tooltip: "Share on Facebook",
+    },
+    {
+      id: "instagram",
+      name: "Instagram",
+      icon: Instagram,
+      color: "bg-pink-600",
+      tooltip: "Copy link for Instagram",
+    },
+    {
+      id: "x",
+      name: "X",
+      icon: FaXTwitter,
+      color: "bg-gray-900",
+      tooltip: "Share on X",
+    },
+    {
+      id: "youtube",
+      name: "YouTube",
+      icon: Youtube,
+      color: "bg-red-600",
+      tooltip: "Share on YouTube",
+    },
+    {
+      id: "email",
+      name: "Email",
+      icon: Mail,
+      color: "bg-blue-500",
+      tooltip: "Share via Email",
+    },
+    {
+      id: "sms",
+      name: "SMS",
+      icon: Phone,
+      color: "bg-green-600",
+      tooltip: "Share via SMS",
+    },
+    {
+      id: "copy",
+      name: "Copy Link",
+      icon: Copy,
+      color: "bg-gray-600",
+      tooltip: "Copy event link to clipboard",
+    },
   ];
 
   const createShareMessage = (platform: string): string => {
@@ -36,18 +115,19 @@ const platforms = [
     const fullMessage = description
       ? `${baseMessage}\n\n📍 ${description}\n\n${callToAction}\n\n🔗 ${link}`
       : `${baseMessage}\n\n${callToAction}\n\n🔗 ${link}`;
-    
+
     switch (platform) {
-      case 'x':
+      case "x":
         return `${baseMessage} ${link}`.substring(0, 260); // Keep tweet concise; preview via &url
-      case 'sms':
+      case "sms":
         return `${baseMessage} ${link}`.substring(0, 160); // SMS limit
-      case 'whatsapp':
-        {
-          const waLink = addCacheBuster(link);
-          return `🎯 *${title}* - Live Event Invitation!\n\n${description ? `📋 ${description}\n\n` : ''}${callToAction}\n\n${waLink}`;
-        }
-      case 'email':
+      case "whatsapp": {
+        const waLink = addCacheBuster(link);
+        return `🎯 *${title}* - Live Event Invitation!\n\n${
+          description ? `📋 ${description}\n\n` : ""
+        }${callToAction}\n\n${waLink}`;
+      }
+      case "email":
         return fullMessage;
       default:
         return fullMessage;
@@ -58,32 +138,34 @@ const platforms = [
     const link = url;
     return {
       subject: `🎉 ${title} - Join this amazing event!`,
-      body: `Hi!\n\nI wanted to share this exciting event with you:\n\n${title}\n\n${description || ''}\n\nLink: ${link}\n\nHope to see you there!`
+      body: `Hi!\n\nI wanted to share this exciting event with you:\n\n${title}\n\n${
+        description || ""
+      }\n\nLink: ${link}\n\nHope to see you there!`,
     };
   };
 
   const shareToUrl = (platformUrl: string) => {
-    window.open(platformUrl, '_blank', 'noopener,noreferrer');
+    window.open(platformUrl, "_blank", "noopener,noreferrer");
   };
 
   const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      toast({ 
-        title: 'Link copied!', 
-        description: 'The event link has been copied to your clipboard' 
+      toast({
+        title: "Link copied!",
+        description: "The event link has been copied to your clipboard",
       });
     } catch (error) {
       // Fallback for browsers without clipboard API
-      const textArea = document.createElement('textarea');
+      const textArea = document.createElement("textarea");
       textArea.value = text;
       document.body.appendChild(textArea);
       textArea.select();
-      document.execCommand('copy');
+      document.execCommand("copy");
       document.body.removeChild(textArea);
-      toast({ 
-        title: 'Link copied!', 
-        description: 'The event link has been copied to your clipboard' 
+      toast({
+        title: "Link copied!",
+        description: "The event link has been copied to your clipboard",
       });
     }
   };
@@ -91,79 +173,97 @@ const platforms = [
   const handlePlatformClick = async (platformId: string) => {
     try {
       switch (platformId) {
-        case 'whatsapp':
-          shareToUrl(`https://wa.me/?text=${encodeURIComponent(createShareMessage('whatsapp'))}`);
-          toast({ 
-            title: 'WhatsApp opened!', 
-            description: 'Share the event with your WhatsApp contacts' 
+        case "whatsapp":
+          shareToUrl(
+            `https://wa.me/?text=${encodeURIComponent(
+              createShareMessage("whatsapp")
+            )}`
+          );
+          toast({
+            title: "WhatsApp opened!",
+            description: "Share the event with your WhatsApp contacts",
           });
           break;
-        
-        case 'facebook':
-          const fbQuote = createShareMessage('facebook');
-          shareToUrl(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(fbQuote)}`);
-          toast({ 
-            title: 'Facebook opened!', 
-            description: 'Share the event on your Facebook timeline' 
+
+        case "facebook":
+          const fbQuote = createShareMessage("facebook");
+          shareToUrl(
+            `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+              url
+            )}&quote=${encodeURIComponent(fbQuote)}`
+          );
+          toast({
+            title: "Facebook opened!",
+            description: "Share the event on your Facebook timeline",
           });
           break;
-        
-        case 'instagram':
+
+        case "instagram":
           await copyToClipboard(url);
-          toast({ 
-            title: 'Link copied for Instagram!', 
-            description: 'Paste the link in your Instagram story or bio' 
+          toast({
+            title: "Link copied for Instagram!",
+            description: "Paste the link in your Instagram story or bio",
           });
           break;
-        
-        case 'x':
-          const tweetText = createShareMessage('x');
-          shareToUrl(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(url)}`);
-          toast({ 
-            title: 'X (Twitter) opened!', 
-            description: 'Share the event with your followers' 
+
+        case "x":
+          const tweetText = createShareMessage("x").replace(url, "").trim();
+          shareToUrl(
+            `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+              tweetText
+            )}&url=${encodeURIComponent(url)}`
+          );
+          toast({
+            title: "X (Twitter) opened!",
+            description: "Share the event with your followers",
           });
           break;
-        
-        case 'email':
+
+        case "email":
           const emailData = createEmailData();
-          shareToUrl(`mailto:?subject=${encodeURIComponent(emailData.subject)}&body=${encodeURIComponent(emailData.body)}`);
-          toast({ 
-            title: 'Email client opened!', 
-            description: 'Send the event details via email' 
+          shareToUrl(
+            `mailto:?subject=${encodeURIComponent(
+              emailData.subject
+            )}&body=${encodeURIComponent(emailData.body)}`
+          );
+          toast({
+            title: "Email client opened!",
+            description: "Send the event details via email",
           });
           break;
-        
-        case 'sms':
-          shareToUrl(`sms:?body=${encodeURIComponent(createShareMessage('sms'))}`);
-          toast({ 
-            title: 'SMS opened!', 
-            description: 'Send the event details via text message' 
+
+        case "sms":
+          shareToUrl(
+            `sms:?body=${encodeURIComponent(createShareMessage("sms"))}`
+          );
+          toast({
+            title: "SMS opened!",
+            description: "Send the event details via text message",
           });
           break;
-        
-        case 'youtube':
+
+        case "youtube":
           await copyToClipboard(url);
-          toast({ 
-            title: 'Link copied for YouTube!', 
-            description: 'Paste the link in your YouTube video description, community post, or comments' 
+          toast({
+            title: "Link copied for YouTube!",
+            description:
+              "Paste the link in your YouTube video description, community post, or comments",
           });
           break;
-        
-        case 'copy':
+
+        case "copy":
           await copyToClipboard(url);
           break;
-        
-        
+
         default:
           break;
       }
     } catch (error) {
       console.error(`Error sharing to ${platformId}:`, error);
-      toast({ 
-        title: 'Sharing failed', 
-        description: 'Please try again or use a different platform',
-        variant: 'destructive'
+      toast({
+        title: "Sharing failed",
+        description: "Please try again or use a different platform",
+        variant: "destructive",
       });
     }
   };
@@ -181,7 +281,7 @@ const platforms = [
           <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
             {platforms.map((platform) => {
               const Icon = platform.icon;
-              
+
               return (
                 <Tooltip key={platform.id}>
                   <TooltipTrigger asChild>
