@@ -370,6 +370,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
       return data;
     },
+    enabled: !!user?.id, // Only run query when user exists
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
   });
 
   // useEffect(() => {
@@ -402,7 +405,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         sidebarOpen,
         toggleSidebar,
         user,
-        currentUserProfile,
+        currentUserProfile: currentUserProfile || null,
         signIn,
         signUp,
         logout,

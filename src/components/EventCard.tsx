@@ -43,43 +43,8 @@ interface EventCardProps {
 const EventCard: React.FC<EventCardProps> = ({ event }) => {
   const [showSocial, setShowSocial] = useState(false);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
-  const [hasTicket, setHasTicket] = useState(false);
-  const [checkingTicket, setCheckingTicket] = useState(false);
   const { user, isAuthenticated, currentUserProfile } = useAppContext();
   const navigate = useNavigate();
-
-  const checkTicketStatus = useCallback(async () => {
-    if (!user) return;
-
-    setCheckingTicket(true);
-    try {
-      const supabase = supabaseBrowser();
-      const { data, error } = await supabase
-        .from("tickets")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("event_id", event.id)
-        .eq("status", "active")
-        .single();
-
-      if (error && error.code !== "PGRST116") {
-        console.error("Error checking ticket status:", error);
-        return;
-      }
-
-      setHasTicket(!!data);
-    } catch (error) {
-      console.error("Error checking ticket status:", error);
-    } finally {
-      setCheckingTicket(false);
-    }
-  }, [user, event.id]);
-
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      checkTicketStatus();
-    }
-  }, [user, isAuthenticated, event.id]);
 
   const handleCardClick = () => {
     const eventUrl = (event as any).slug
@@ -116,14 +81,12 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
   };
 
   const handlePurchaseSuccess = () => {
-    setHasTicket(true);
+    // Ticket purchase handled by modal, no local state needed
   };
 
   const getButtonText = () => {
-    if (checkingTicket) return "Checking...";
     if (!isAuthenticated) return "Login to Purchase";
     if (event.price === 0) return "Watch Event (Free)";
-    if (hasTicket) return "Watch Event";
     return `Watch Preview`;
   };
 
@@ -190,14 +153,13 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
 
             <Button
               onClick={handleAction}
-              disabled={checkingTicket}
               className={`w-full ${
-                event.isLive && (event.price === 0 || hasTicket)
+                event.isLive && event.price === 0
                   ? "bg-red-600 hover:bg-red-700"
                   : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
               }`}
             >
-              {event.isLive && (event.price === 0 || hasTicket)
+              {event.isLive && event.price === 0
                 ? "Watch Now"
                 : getButtonText()}
             </Button>

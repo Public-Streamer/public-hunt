@@ -48,6 +48,7 @@ export function useEventSocial(eventId: string, currentUserProfileId?: string | 
       
       // Check if current user liked (only if user is authenticated)
       if (currentUserProfileId) {
+        // Get current user ID from auth to match with likes
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           const currentUserLike = likesData?.find(like => like.user_id === user.id);
@@ -59,7 +60,7 @@ export function useEventSocial(eventId: string, currentUserProfileId?: string | 
     } finally {
       setLoadingLikes(false);
     }
-  }, [eventId]);
+  }, [eventId, currentUserProfileId]);
 
   const fetchComments = useCallback(async () => {
     try {
