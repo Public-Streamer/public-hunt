@@ -1,5 +1,6 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { useState, useCallback, useEffect, useRef } from "react";
+import { RoomEvent } from "livekit-client";
 import {
   useLocalParticipant,
   useRoomContext,
@@ -96,6 +97,11 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
 
   const participantCount = room?.numParticipants || 1;
 
+  // Track streaming intent and last parameters for auto-resume
+  const shouldAutoResumeRef = useRef(false);
+  const lastStreamerCountRef = useRef<number | null>(null);
+  const lastStreamIdRef = useRef<string | undefined>(undefined);
+
   // Enhanced mobile debugging - Log available cameras whenever they change
   // useEffect(() => {
   //   console.log(
@@ -116,6 +122,46 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   //       2
   //     )
   //   );
+
+  // Try to auto-resume after network recovery or LiveKit reconnection
+  const tryAutoResume = useCallback(() => {
+    if (!room) return;
+    if (room.state !== "connected") return;
+    if (!shouldAutoResumeRef.current) return;
+
+    const count = lastStreamerCountRef.current ?? 1;
+    // Avoid overlapping calls if one is already in progress
+    if (controlsLoading) return;
+
+    // Fire and forget; startStream already handles guards and UI state
+
+    console.log("auto resumeeee")
+    startStream(count, lastStreamIdRef.current).catch(() => {});
+  }, [room, controlsLoading]);
+
+  // Listen for reconnection and online events
+  useEffect(() => {
+    if (!room) return;
+
+    const handleReconnected = () => {
+      tryAutoResume();
+    };
+    const handleStateChanged = () => {
+      if (room.state === "connected") {
+        tryAutoResume();
+      }
+    };
+
+    room.on(RoomEvent.Reconnected, handleReconnected);
+    room.on(RoomEvent.ConnectionStateChanged, handleStateChanged);
+    window.addEventListener("online", handleReconnected);
+
+    return () => {
+      room.off(RoomEvent.Reconnected, handleReconnected);
+      room.off(RoomEvent.ConnectionStateChanged, handleStateChanged);
+      window.removeEventListener("online", handleReconnected);
+    };
+  }, [room, tryAutoResume]);
 
   // Enhanced helper function to detect camera type from device info for Android devices
   const getCameraType = useCallback(
@@ -215,9 +261,10 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
     if (initialCameraSetRef.current) return;
 
     // Basic mobile detection
-    const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-      navigator.userAgent
-    );
+    const isMobile =
+      /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+      );
 
     if (!isMobile) return;
 
@@ -1250,6 +1297,10 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
   const startStream = useCallback(
     async (streamerCount: number, streamId?: string) => {
       try {
+        // Save last parameters and mark intent for auto-resume
+        lastStreamerCountRef.current = streamerCount;
+        lastStreamIdRef.current = streamId;
+        shouldAutoResumeRef.current = true;
         // Use a more direct approach - request permissions using native getUserMedia
         // This bypasses any potential issues with the custom permission hook
         let cameraGranted = false;
@@ -1457,6 +1508,10 @@ export const useStreamingControls = (eventId: string): StreamingControls => {
       setControlsLoading(true);
       setIsStreaming(false);
       setGoLive(false);
+      // Clear auto-resume intent when user explicitly stops
+      shouldAutoResumeRef.current = false;
+      lastStreamerCountRef.current = null;
+      lastStreamIdRef.current = undefined;
       const {
         data: { session },
         error: sessionError,
