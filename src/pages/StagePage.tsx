@@ -439,6 +439,8 @@ const StagePage: React.FC = () => {
           eventHostId={eventData?.created_by}
           streamId={streamId}
           autoGoLive={eventData?.is_live}
+          token={token}
+          serverUrl={serverUrl}
         />
       </LiveKitRoomLazy>
     </Suspense>

@@ -72,6 +72,8 @@ interface StreamerInterfaceProps {
   streamId?: string;
   // When true, the stream should start automatically once connected
   autoGoLive?: boolean;
+  token?: string;
+  serverUrl?: string;
 }
 
 export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
@@ -83,6 +85,8 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   eventHostId,
   streamId,
   autoGoLive,
+  token,
+  serverUrl,
 }) => {
   const { localParticipant } = useLocalParticipant();
   const participants = useParticipants();
@@ -92,6 +96,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   const { toast } = useToast();
 
   const TrackSource = useLiveKitTrackSource();
+  console.log(JSON.stringify(`token: ${token}, serverUrl: ${serverUrl}`));
 
   // Edit state management
   const [isEditing, setIsEditing] = useState(false);
@@ -550,12 +555,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
         autoStartAttemptedRef.current = false;
       }
     }
-  }, [
-    autoGoLive,
-    userRole,
-    controls,
-    totalTracksLength,
-  ]);
+  }, [autoGoLive, userRole, controls, totalTracksLength]);
 
   // Heartbeat: mark streamer as active periodically so server can detect ungraceful closes
   useEffect(() => {
