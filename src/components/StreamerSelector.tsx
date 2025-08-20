@@ -1,15 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Search, UserPlus, X, Lock, Edit } from 'lucide-react';
-import { useAppContext } from '@/contexts/AppContext';
-import EventRoleManager from '@/components/EventRoleManager';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { supabase } from "@/integrations/supabase/client"
+import React, { useState, useEffect } from "react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Search, UserPlus, X, Lock, Edit } from "lucide-react";
+import { useAppContext } from "@/contexts/AppContext";
+import EventRoleManager from "@/components/EventRoleManager";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Subscriber {
   id: string;
@@ -28,16 +33,24 @@ interface StreamerSelectorProps {
   initialStreamers?: SelectedMember[];
 }
 
-const StreamerSelector: React.FC<StreamerSelectorProps> = ({ onStreamersChange, initialStreamers = [] }) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedMembers, setSelectedMembers] = useState<SelectedMember[]>(initialStreamers);
+const StreamerSelector: React.FC<StreamerSelectorProps> = ({
+  onStreamersChange,
+  initialStreamers = [],
+}) => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedMembers, setSelectedMembers] =
+    useState<SelectedMember[]>(initialStreamers);
   const [isLocked, setIsLocked] = useState(false);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAppContext();
-  
-  const userRole = 'Event Manager';
-  const canModifyRoles = ['Event Manager', 'Event Admin', 'Event Master'].includes(userRole);
+
+  const userRole = "Event Manager";
+  const canModifyRoles = [
+    "Event Manager",
+    "Event Admin",
+    "Event Master",
+  ].includes(userRole);
 
   // Fetch real users from user_profiles table
   // Future: This will be replaced with channel_subscribers query when channels are implemented
@@ -45,26 +58,28 @@ const StreamerSelector: React.FC<StreamerSelectorProps> = ({ onStreamersChange, 
     const fetchUsers = async () => {
       try {
         const { data, error } = await supabase
-          .from('user_profiles')
-          .select('id, username, display_name, profile_picture_url, user_id')
-          .limit(50);
+          .from("user_profiles")
+          .select("id, username, display_name, profile_picture_url, user_id")
+          .limit(100);
 
         if (error) {
-          console.error('Error fetching users:', error);
+          console.error("Error fetching users:", error);
           return;
         }
 
         // Transform user_profiles data into subscribers format
-        const transformedSubscribers: Subscriber[] = (data || []).map(profile => ({
-          id: profile.user_id || profile.id,
-          name: profile.display_name || profile.username || 'Unknown User',
-          email: profile.username || 'user@example.com', // Username as email placeholder
-          avatar: profile.profile_picture_url
-        }));
+        const transformedSubscribers: Subscriber[] = (data || []).map(
+          (profile) => ({
+            id: profile.user_id || profile.id,
+            name: profile.display_name || profile.username || "Unknown User",
+            email: profile.username || "user@example.com", // Username as email placeholder
+            avatar: profile.profile_picture_url,
+          })
+        );
 
         setSubscribers(transformedSubscribers);
       } catch (error) {
-        console.error('Error fetching users:', error);
+        console.error("Error fetching users:", error);
       } finally {
         setLoading(false);
       }
@@ -75,46 +90,55 @@ const StreamerSelector: React.FC<StreamerSelectorProps> = ({ onStreamersChange, 
 
   // Update selectedMembers when initialStreamers changes
   useEffect(() => {
-    console.log('useEffect triggered - initialStreamers:', initialStreamers, 'current selectedMembers:', selectedMembers);
+    console.log(
+      "useEffect triggered - initialStreamers:",
+      initialStreamers,
+      "current selectedMembers:",
+      selectedMembers
+    );
     // Only update if initialStreamers is different and not empty (unless we're resetting)
-    if (initialStreamers.length > 0 && JSON.stringify(initialStreamers) !== JSON.stringify(selectedMembers)) {
-      console.log('Updating selectedMembers from initialStreamers');
+    if (
+      initialStreamers.length > 0 &&
+      JSON.stringify(initialStreamers) !== JSON.stringify(selectedMembers)
+    ) {
+      console.log("Updating selectedMembers from initialStreamers");
       setSelectedMembers(initialStreamers);
     }
   }, [initialStreamers]);
 
-  const filteredSubscribers = subscribers.filter(sub => 
-    sub.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    sub.email.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredSubscribers = subscribers.filter(
+    (sub) =>
+      sub.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      sub.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const addMember = (subscriber: Subscriber) => {
     if (selectedMembers.length >= 20 || isLocked) return;
-    
+
     const newMember: SelectedMember = {
       ...subscriber,
-      permissions: ['event_master'], // Default to event_master role (Streamer)
-      confirmed: false
+      permissions: ["event_master"], // Default to event_master role (Streamer)
+      confirmed: false,
     };
-    
-    console.log('Adding member:', newMember);
+
+    console.log("Adding member:", newMember);
     const updated = [...selectedMembers, newMember];
-    console.log('Updated selectedMembers:', updated);
+    console.log("Updated selectedMembers:", updated);
     setSelectedMembers(updated);
     onStreamersChange(updated);
-    setSearchTerm(''); // Clear search after adding
+    setSearchTerm(""); // Clear search after adding
   };
 
   const removeMember = (id: string) => {
     if (isLocked) return;
-    const updated = selectedMembers.filter(s => s.id !== id);
+    const updated = selectedMembers.filter((s) => s.id !== id);
     setSelectedMembers(updated);
     onStreamersChange(updated);
   };
 
   const updateMemberPermissions = (memberId: string, permissions: string[]) => {
     if (isLocked) return;
-    const updated = selectedMembers.map(member => {
+    const updated = selectedMembers.map((member) => {
       if (member.id === memberId) {
         return { ...member, permissions };
       }
@@ -125,7 +149,7 @@ const StreamerSelector: React.FC<StreamerSelectorProps> = ({ onStreamersChange, 
   };
 
   const confirmMember = (memberId: string) => {
-    const updated = selectedMembers.map(member => {
+    const updated = selectedMembers.map((member) => {
       if (member.id === memberId) {
         return { ...member, confirmed: true };
       }
@@ -147,9 +171,15 @@ const StreamerSelector: React.FC<StreamerSelectorProps> = ({ onStreamersChange, 
     }
   };
 
-  const allMembersConfirmed = selectedMembers.length > 0 && selectedMembers.every(m => m.confirmed);
+  const allMembersConfirmed =
+    selectedMembers.length > 0 && selectedMembers.every((m) => m.confirmed);
 
-  console.log('StreamerSelector render - selectedMembers:', selectedMembers, 'length:', selectedMembers.length);
+  console.log(
+    "StreamerSelector render - selectedMembers:",
+    selectedMembers,
+    "length:",
+    selectedMembers.length
+  );
 
   return (
     <Card>
@@ -173,7 +203,9 @@ const StreamerSelector: React.FC<StreamerSelectorProps> = ({ onStreamersChange, 
       <CardContent className="space-y-4">
         {!isLocked && (
           <div>
-            <Label htmlFor="search">Search and add subscribers to event production team</Label>
+            <Label htmlFor="search">
+              Search and add subscribers to event production team
+            </Label>
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
@@ -193,8 +225,11 @@ const StreamerSelector: React.FC<StreamerSelectorProps> = ({ onStreamersChange, 
 
         {searchTerm && !isLocked && (
           <div className="max-h-40 overflow-y-auto border rounded-md p-2">
-            {filteredSubscribers.map(subscriber => (
-              <div key={subscriber.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
+            {filteredSubscribers.map((subscriber) => (
+              <div
+                key={subscriber.id}
+                className="flex items-center justify-between p-2 hover:bg-gray-50 rounded"
+              >
                 <div className="flex items-center space-x-2">
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={subscriber.avatar} />
@@ -212,7 +247,10 @@ const StreamerSelector: React.FC<StreamerSelectorProps> = ({ onStreamersChange, 
                         size="sm"
                         variant="outline"
                         onClick={() => addMember(subscriber)}
-                        disabled={selectedMembers.length >= 20 || selectedMembers.some(s => s.id === subscriber.id)}
+                        disabled={
+                          selectedMembers.length >= 20 ||
+                          selectedMembers.some((s) => s.id === subscriber.id)
+                        }
                       >
                         <UserPlus className="h-3 w-3 mr-1" />
                         Add
@@ -230,42 +268,59 @@ const StreamerSelector: React.FC<StreamerSelectorProps> = ({ onStreamersChange, 
 
         <div>
           <div className="flex items-center justify-between mb-4">
-            <Label className="text-base font-semibold text-gray-700">Event Production Team ({selectedMembers.length}/20)</Label>
-            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
-              isLocked 
-                ? "bg-gradient-to-r from-green-100 to-green-50 text-green-800 border border-green-200 shadow-sm" 
-                : selectedMembers.length > 0
+            <Label className="text-base font-semibold text-gray-700">
+              Event Production Team ({selectedMembers.length}/20)
+            </Label>
+            <div
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
+                isLocked
+                  ? "bg-gradient-to-r from-green-100 to-green-50 text-green-800 border border-green-200 shadow-sm"
+                  : selectedMembers.length > 0
                   ? "bg-gradient-to-r from-blue-100 to-blue-50 text-blue-800 border border-blue-200 shadow-sm"
                   : "bg-gray-100 text-gray-600 border border-gray-200"
-            }`}>
+              }`}
+            >
               <span className="font-semibold">
-                {selectedMembers.length} member{selectedMembers.length !== 1 ? 's' : ''} selected
+                {selectedMembers.length} member
+                {selectedMembers.length !== 1 ? "s" : ""} selected
               </span>
               {isLocked && (
                 <div className="flex items-center justify-center w-5 h-5 bg-green-600 rounded-full">
-                  <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  <svg
+                    className="w-3 h-3 text-white"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                 </div>
               )}
             </div>
           </div>
-          
+
           <div className="space-y-3">
             {selectedMembers.length === 0 ? (
               <div className="text-center text-gray-500 py-4">
                 No team members selected yet. Search and add members above.
               </div>
             ) : (
-              selectedMembers.map(member => {
-                console.log('Rendering member:', member);
+              selectedMembers.map((member) => {
+                console.log("Rendering member:", member);
                 return (
                   <EventRoleManager
                     key={member.id}
                     member={member}
-                    onPermissionsChange={(permissions) => updateMemberPermissions(member.id, permissions)}
+                    onPermissionsChange={(permissions) =>
+                      updateMemberPermissions(member.id, permissions)
+                    }
                     onConfirm={() => confirmMember(member.id)}
-                    onRemove={!isLocked ? () => removeMember(member.id) : undefined}
+                    onRemove={
+                      !isLocked ? () => removeMember(member.id) : undefined
+                    }
                     disabled={isLocked}
                   />
                 );
@@ -301,7 +356,8 @@ const StreamerSelector: React.FC<StreamerSelectorProps> = ({ onStreamersChange, 
             <div className="flex items-center justify-center space-x-2 mb-2">
               <Lock className="h-4 w-4 text-green-600" />
               <span className="text-sm text-green-700 font-medium">
-                Production team confirmed with {selectedMembers.length} member{selectedMembers.length !== 1 ? 's' : ''}
+                Production team confirmed with {selectedMembers.length} member
+                {selectedMembers.length !== 1 ? "s" : ""}
               </span>
             </div>
             {canModifyRoles && (
