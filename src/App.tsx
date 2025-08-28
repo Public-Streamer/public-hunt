@@ -54,7 +54,6 @@ function AuthStateSync() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("Auth state changed:", event, session?.user?.email);
-      // No forced reloads - let React handle state updates naturally
     });
 
     return () => subscription.unsubscribe();
