@@ -64,7 +64,6 @@ function AuthStateSync() {
 }
 
 const App = () => {
-  // const navigate = useNavigate();
   return (
     <ThemeProvider defaultTheme="light">
       <QueryClientProvider client={queryClient}>
