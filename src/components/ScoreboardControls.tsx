@@ -33,6 +33,7 @@ const TEAM_COLORS = [
 export const ScoreboardControls: React.FC<ScoreboardControlsProps> = ({
   eventId,
 }) => {
+  console.log('ScoreboardControls rendered with eventId:', eventId);
   const [teams, setTeams] = useState<Team[]>([]);
   const [newTeamName, setNewTeamName] = useState("");
   const [loading, setLoading] = useState(false);
