@@ -79,7 +79,9 @@ const EventProductionTeam: React.FC<EventProductionTeamProps> = ({
         .from("user_profiles")
         .select("id, username, display_name, profile_picture_url, user_id") // we need get all the profiles except the current user one
         .neq("user_id", user?.id)
-        .limit(50);
+        .limit(100);
+
+      console.log("profiles", profiles?.length);
 
       if (profilesError) throw profilesError;
 

@@ -27,7 +27,6 @@ const LiveChatSection: React.FC<LiveChatSectionProps> = ({
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     if (messagesEndRef.current) {
       const scrollContainer = messagesEndRef.current.closest(
