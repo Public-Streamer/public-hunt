@@ -63,6 +63,9 @@ function AuthStateSync() {
 }
 
 const App = () => {
+  // console.log(import.meta.env.MODE);
+  // console.log(import.meta.env.VITE_BRAND_NAME);
+  // console.log(import.meta.env.VITE_PROD_URL);
   return (
     <ThemeProvider defaultTheme="light">
       <QueryClientProvider client={queryClient}>

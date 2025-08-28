@@ -5,8 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:doghunt": "vite dev --mode doghunt",
+    "dev:publicstreamer": "vite dev --mode publicstreamer",
     "build": "vite build",
-    "build:vps": "vite build && rsync -av --delete dist/ /var/www/publicstreamer/",
+    "build:doghunt": "vite build --mode doghunt --outDir dist-doghunt",
+    "build:publicstreamer": "vite build --mode publicstreamer --outDir dist-publicstreamer",
+    "deploy:doghunt": "bun run build:doghunt && rsync -av --delete dist-doghunt/ /var/www/doghunt/",
+    "deploy:publicstreamer": "bun run build:publicstreamer && rsync -av --delete dist-publicstreamer/ /var/www/publicstreamercom/",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview"

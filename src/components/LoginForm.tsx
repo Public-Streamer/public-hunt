@@ -17,6 +17,7 @@ import CompanyAccountSelector from "./CompanyAccountSelector";
 import ResetPasswordForm from "./ResetPasswordForm";
 import { supabase } from "@/integrations/supabase/client";
 import TooltipWrapper from "@/components/ui/tooltip-wrapper";
+import { brandName } from "@/lib/brand";
 
 interface LoginFormProps {
   onClose: () => void;
@@ -126,9 +127,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose, redirectUrl }) => {
   };
 
   if (showResetPassword) {
-    return (
-      <ResetPasswordForm onClose={() => setShowResetPassword(false)} />
-    );
+    return <ResetPasswordForm onClose={() => setShowResetPassword(false)} />;
   }
 
   if (showAccountSelector && pendingUser) {
@@ -184,7 +183,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose, redirectUrl }) => {
       <Card className="w-full max-w-md max-h-[95vh] sm:max-h-[90vh] auth-template">
         <CardHeader className="pb-3 sm:pb-6">
           <CardTitle className="text-lg sm:text-xl">
-            Welcome to DogHunt.tv
+            Welcome to {brandName}
           </CardTitle>
           <CardDescription className="text-sm">
             Sign in to your account

@@ -3,9 +3,10 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { brandName, brandUrl } from "./brand";
 
 export function getShareableEventUrl(eventId: string, slug?: string): string {
-  const functionsOrigin = "https://doghunt.tv";
+  const functionsOrigin = brandUrl;
   const eventIdentifier = slug || eventId;
   // Return Edge Function URL for crawlers (serves meta tags) and redirects humans
   return `${functionsOrigin}/event/${eventIdentifier}`;
@@ -40,7 +41,7 @@ export async function generateEventShareData(eventId: string) {
       title: event.name,
       description:
         event.description ||
-        `Join ${event.name} - Live streaming event on Doghunt`,
+        `Join ${event.name} - Live streaming event on ${brandName}`,
       image:
         event?.media_urls?.[0] || `${window.location.origin}/placeholder.svg`,
     };

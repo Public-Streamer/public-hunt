@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
+import { brandName } from "@/lib/brand";
 
 interface ProfileSetupProps {
   onComplete: () => void;
@@ -50,7 +51,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
 
       toast({
         title: "Profile created successfully!",
-        description: "Welcome to DogHunt.tv",
+        description: "Welcome to " + brandName,
       });
       onComplete();
     } catch (error) {
