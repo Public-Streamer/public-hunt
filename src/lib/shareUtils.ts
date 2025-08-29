@@ -7,6 +7,7 @@ import { brandName, brandUrl } from "./brand";
 
 export function getShareableEventUrl(eventId: string, slug?: string): string {
   const functionsOrigin = brandUrl;
+  console.log("functionsOrigin", functionsOrigin)
   const eventIdentifier = slug || eventId;
   // Return Edge Function URL for crawlers (serves meta tags) and redirects humans
   return `${functionsOrigin}/event/${eventIdentifier}`;
@@ -19,6 +20,8 @@ export function getDirectEventUrl(eventId: string, slug?: string): string {
   // Return direct event page URL (for internal navigation)
   return `${baseUrl}/event/${eventIdentifier}`;
 }
+
+
 
 export async function generateEventShareData(eventId: string) {
   try {
