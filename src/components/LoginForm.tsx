@@ -35,7 +35,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose, redirectUrl }) => {
   const [pendingUser, setPendingUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const isDoghuntMode = import.meta.env.MODE === "doghunt";
 
   // Check URL parameters to show signup form automatically
   useEffect(() => {
@@ -150,9 +149,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose, redirectUrl }) => {
               Create Account
             </CardTitle>
             <CardDescription className="text-lg sm:text-xl font-semibold">
-              {isDoghuntMode
-                ? "Join Doghunt today"
-                : "Join Public Streamer today"}
+              Join Public Streamer today
             </CardDescription>
           </CardHeader>
           <CardContent className="h-[70vh] sm:h-[75vh] p-0 auth-template">
