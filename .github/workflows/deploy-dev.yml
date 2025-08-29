@@ -1,9 +1,9 @@
-name: Deploy Doghunt
+name: Deploy dev
 
 on:
   push:
     branches:
-      - doghunt
+      - dev
 
 jobs:
   deploy:
@@ -25,9 +25,10 @@ jobs:
             cd apps/public-hunt
 
             # Pull the latest changes from the repository
-            git checkout doghunt
-            git pull origin doghunt
+            git checkout dev
+            git pull origin dev
 
             # Gracefully stop the containers to allow proper shutdown
              
-             bun run build:doghunt
+             bun run deploy:doghunt
+             bun run deploy:publicstreamer
