@@ -173,20 +173,17 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                       }}
                     />
 
-                    {isDoghuntMode ? (
-                      <img
-                        className="h-8 w-8"
-                        src="dogLogo.png"
-                        alt="Doghunt Logo"
-                      />
-                    ) : (
-                      <Play
-                        className="text-white h-8 w-8"
-                        style={{
-                          filter: "drop-shadow(3px 3px 6px rgba(0,0,0,0.7))",
-                        }}
-                      />
-                    )}
+                    <img
+                      className="h-6 w-6"
+                      src="dogLogo.png"
+                      alt="Doghunt Logo"
+                    />
+                    {/* <Play
+                      className="text-white h-6 w-6"
+                      style={{
+                        filter: "drop-shadow(3px 3px 6px rgba(0,0,0,0.7))",
+                      }}
+                    /> */}
                     <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/60 to-transparent opacity-40 pointer-events-none"></div>
 
                     {/* Dollar sign to the right of triangle */}
@@ -215,49 +212,26 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                 </div>
 
                 <div className="flex flex-col min-w-0 flex-1">
-                  {isDoghuntMode ? (
-                    <div className="flex flex-col">
-                      <span
-                        className="font-orbitron font-black text-white tracking-wide text-xl leading-tight"
-                        style={{
-                          textShadow:
-                            "3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)",
-                        }}
-                      >
-                        Dog
-                      </span>
-                      <span
-                        className="font-orbitron font-black text-white tracking-wide text-xl leading-tight -mt-1"
-                        style={{
-                          textShadow:
-                            "3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)",
-                        }}
-                      >
-                        Hunt.tv
-                      </span>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col">
-                      <span
-                        className="font-orbitron font-black text-white tracking-wide text-xl leading-tight"
-                        style={{
-                          textShadow:
-                            "3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)",
-                        }}
-                      >
-                        Public
-                      </span>
-                      <span
-                        className="font-orbitron font-black text-white tracking-wide text-xl leading-tight -mt-1"
-                        style={{
-                          textShadow:
-                            "3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)",
-                        }}
-                      >
-                        Streamer
-                      </span>
-                    </div>
-                  )}
+                  <div className="flex flex-col">
+                    <span
+                      className="font-orbitron font-black text-white tracking-wide text-xl leading-tight"
+                      style={{
+                        textShadow:
+                          "3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)",
+                      }}
+                    >
+                      Dog
+                    </span>
+                    <span
+                      className="font-orbitron font-black text-white tracking-wide text-xl leading-tight -mt-1"
+                      style={{
+                        textShadow:
+                          "3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)",
+                      }}
+                    >
+                      Hunt.tv
+                    </span>
+                  </div>
                   <div
                     className="flex items-center space-x-1 text-white/80 font-medium text-xs overflow-hidden mt-1 min-w-0"
                     style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.8)" }}
@@ -283,7 +257,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                     />
 
                     <span className="whitespace-nowrap text-[10px] sm:text-xs">
-                      & Earn
+                      Hunt & Earn
                     </span>
                     <DollarSign
                       className="text-green-300 h-2.5 w-2.5 flex-shrink-0"
@@ -363,21 +337,18 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                         }}
                       />
 
-                      {isDoghuntMode ? (
-                        <img
-                          className="h-10"
-                          src="/dogLogo.png"
-                          alt="Doghunt Logo"
-                        />
-                      ) : (
-                        <Play
-                          className="text-white h-10 w-10"
-                          style={{
-                            filter: "drop-shadow(3px 3px 6px rgba(0,0,0,0.7))",
-                          }}
-                        />
-                      )}
+                      {/* <Play
+                        className="text-white h-8 w-8"
+                        style={{
+                          filter: "drop-shadow(3px 3px 6px rgba(0,0,0,0.7))",
+                        }}
+                      /> */}
 
+                      <img
+                        className="h-10"
+                        src="/dogLogo.png"
+                        alt="Doghunt Logo"
+                      />
                       <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/60 to-transparent opacity-40 pointer-events-none"></div>
 
                       {/* <Crosshair className=" absolute   bottom-3 right-4 w-2 h-2   " /> */}
@@ -403,134 +374,76 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                       <span className="font-bold">LIVE</span>
                     </div>
                   </div>
-
-                  {isDoghuntMode ? (
-                    <div className="flex flex-col min-w-0 flex-1">
-                      <div className="flex flex-col">
-                        <span
-                          className="font-orbitron font-black text-white tracking-wide text-2xl leading-tight"
-                          style={{
-                            textShadow:
-                              "3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)",
-                          }}
-                        >
-                          Dog
-                        </span>
-                        <span
-                          className="font-orbitron font-black text-white tracking-wide text-2xl leading-tight -mt-1"
-                          style={{
-                            textShadow:
-                              "3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)",
-                          }}
-                        >
-                          Hunt.tv
-                        </span>
-                      </div>
-                      <span className="relative inline-block w-[max-content]  text-xs text-white/80 whitespace-nowrap [clip-path:inset(0_100%_0_0)] will-change-[clip-path] animate-typewriter">
-                        by public streamer
+                  {/* <div
+                    className="bg-gradient-to-br from-white/30 to-white/10 backdrop-blur-sm rounded-xl border border-white/40 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 group p-4 py-6"
+                    style={{
+                      filter: "drop-shadow(4px 4px 8px rgba(0,0,0,0.6))",
+                    }}
+                  >
+                    <img
+                      className="h-10"
+                      src="sLogo.png"
+                      alt="Doghunt Logo"
+                    />
+                  </div> */}
+                  <div className="flex flex-col min-w-0 flex-1">
+                    <div className="flex flex-col">
+                      <span
+                        className="font-orbitron font-black text-white tracking-wide text-2xl leading-tight"
+                        style={{
+                          textShadow:
+                            "3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)",
+                        }}
+                      >
+                        Dog
                       </span>
-                      <div
-                        className="flex space-x-1 text-white/80 font-medium text-sm mt-1"
-                        style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.8)" }}
+                      <span
+                        className="font-orbitron font-black text-white tracking-wide text-2xl leading-tight -mt-1"
+                        style={{
+                          textShadow:
+                            "3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)",
+                        }}
                       >
-                        <div className="flex items-center space-x-1">
-                          <Zap
-                            className="text-yellow-300 h-4 w-4"
-                            style={{
-                              filter:
-                                "drop-shadow(2px 2px 4px rgba(0,0,0,0.7))",
-                            }}
-                          />
+                        Hunt.tv
+                      </span>
+                    </div>
+                    <span className="relative inline-block w-[max-content]  text-xs text-white/80 whitespace-nowrap [clip-path:inset(0_100%_0_0)] will-change-[clip-path] animate-typewriter">
+                      by public streamer
+                    </span>
+                    <div
+                      className="flex space-x-1 text-white/80 font-medium text-sm mt-1"
+                      style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.8)" }}
+                    >
+                      <div className="flex items-center space-x-1">
+                        <Zap
+                          className="text-yellow-300 h-4 w-4"
+                          style={{
+                            filter: "drop-shadow(2px 2px 4px rgba(0,0,0,0.7))",
+                          }}
+                        />
 
-                          <span className="whitespace-nowrap">Stream Live</span>
-                        </div>
+                        <span className="whitespace-nowrap">Stream Live</span>
+                      </div>
 
-                        <div className="flex items-center space-x-1">
-                          {/* <AnimatedConnector isMobile={false} /> */}
+                      <div className="flex items-center space-x-1">
+                        {/* <AnimatedConnector isMobile={false} /> */}
 
-                          <Triangle
-                            className="rotate-90 text-yellow-300 h-4 w-4"
-                            style={{
-                              filter:
-                                "drop-shadow(2px 2px 4px rgba(0,0,0,0.7))",
-                            }}
-                          />
-                          <span className="whitespace-nowrap">
-                            Hunt & Earn{" "}
-                          </span>
-                          <DollarSign
-                            className="text-green-300 h-4 w-4"
-                            style={{
-                              filter:
-                                "drop-shadow(2px 2px 4px rgba(0,0,0,0.7))",
-                            }}
-                          />
-                        </div>
+                        <Triangle
+                          className="rotate-90 text-yellow-300 h-4 w-4"
+                          style={{
+                            filter: "drop-shadow(2px 2px 4px rgba(0,0,0,0.7))",
+                          }}
+                        />
+                        <span className="whitespace-nowrap">Hunt & Earn </span>
+                        <DollarSign
+                          className="text-green-300 h-4 w-4"
+                          style={{
+                            filter: "drop-shadow(2px 2px 4px rgba(0,0,0,0.7))",
+                          }}
+                        />
                       </div>
                     </div>
-                  ) : (
-                    <div className="flex flex-col min-w-0 flex-1">
-                      <div className="flex flex-col">
-                        <span
-                          className="font-orbitron font-black text-white tracking-wide text-2xl leading-tight"
-                          style={{
-                            textShadow:
-                              "3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)",
-                          }}
-                        >
-                          Public
-                        </span>
-                        <span
-                          className="font-orbitron font-black text-white tracking-wide text-2xl leading-tight -mt-1"
-                          style={{
-                            textShadow:
-                              "3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)",
-                          }}
-                        >
-                          Streamer
-                        </span>
-                      </div>
-                      {/* <span className="relative inline-block w-[max-content]  text-xs text-white/80 whitespace-nowrap [clip-path:inset(0_100%_0_0)] will-change-[clip-path] animate-typewriter">
-                        by public streamer
-                      </span> */}
-                      <div
-                        className="flex space-x-1 text-white/80 font-medium text-sm mt-1"
-                        style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.8)" }}
-                      >
-                        <div className="flex items-center space-x-1">
-                          <Zap
-                            className="text-yellow-300 h-4 w-4"
-                            style={{
-                              filter:
-                                "drop-shadow(2px 2px 4px rgba(0,0,0,0.7))",
-                            }}
-                          />
-
-                          <span className="whitespace-nowrap">Stream Live</span>
-                        </div>
-
-                        <div className="flex items-center space-x-1">
-                          {/* <AnimatedConnector isMobile={false} /> */}
-
-                          <Triangle
-                            className="rotate-90 text-yellow-300 h-4 w-4"
-                            style={{
-                              filter:
-                                "drop-shadow(2px 2px 4px rgba(0,0,0,0.7))",
-                            }}
-                          />
-                          <span className="whitespace-nowrap">& Earn </span>
-                          <DollarSign
-                            className="text-green-300 h-4 w-4"
-                            style={{
-                              filter:
-                                "drop-shadow(2px 2px 4px rgba(0,0,0,0.7))",
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  </div>
                 </Link>
               </div>
 
