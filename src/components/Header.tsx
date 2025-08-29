@@ -15,6 +15,7 @@ import { useAppContext } from "@/contexts/AppContext";
 import MobileNav from "./MobileNav";
 import TooltipWrapper from "@/components/ui/tooltip-wrapper";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { brandMode } from "@/lib/brand";
 
 interface HeaderProps {
   onLoginClick?: () => void;
@@ -26,7 +27,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
   const { user, currentUserProfile, logout, isAuthenticated } = useAppContext();
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
-  const isDoghuntMode = import.meta.env.MODE === "doghunt";
+  const isDoghuntMode = brandMode === "doghunt";
 
   // Animation cycling state (0: strobe triangle, 1: sparks, 2: lightning, 3: energy pulse)
   const [animationIndex, setAnimationIndex] = useState(0);
