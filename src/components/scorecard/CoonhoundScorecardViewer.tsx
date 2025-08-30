@@ -76,7 +76,20 @@ const statusCls = (s: TimerStatus) =>
     ? "bg-destructive/10 text-destructive"
     : "bg-muted text-muted-foreground";
 
-export const CoonhoundScoreboardViewer: React.FC<Props> = ({ eventId, isViewer = false }) => {
+/**
+ * CoonhoundScorecardViewer - Read-Only Viewer Interface for Coon Hunt Scoreboards
+ * 
+ * This is the VIEWER interface for coon hunt competitions, providing real-time
+ * display of scores and timers without editing capabilities. Features include:
+ * - Live score updates with visual highlights
+ * - Timer displays (hunt, track, shine, individual dog timers)
+ * - Real-time synchronization with host interface
+ * - Expandable sections for detailed views
+ * 
+ * Data Source: Reads scoreboard_type = 'coon_hunt' from event_scoreboard table
+ * Host Interface: See CoonhoundScorecardHost for full editing capabilities
+ */
+export const CoonhoundScorecardViewer: React.FC<Props> = ({ eventId, isViewer = false }) => {
   const [castTimers, setCastTimers] = useState<CastTimers>({});
   const [teams, setTeams] = useState<TeamRow[]>([]);
   const [timerOverview, setTimerOverview] = useState<Record<string, any>>({});
@@ -648,4 +661,4 @@ export const CoonhoundScoreboardViewer: React.FC<Props> = ({ eventId, isViewer =
   );
 };
 
-export default CoonhoundScoreboardViewer;
+export default CoonhoundScorecardViewer;

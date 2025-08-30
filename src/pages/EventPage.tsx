@@ -37,7 +37,7 @@ import { useAppContext } from "@/contexts/AppContext";
 import { useScoreboardTeams } from "@/hooks/useScoreboardTeams";
 import { getShareableEventUrl } from "@/lib/shareUtils";
 import { Database } from "@/integrations/supabase/types";
-import { CoonhoundScoreboardViewer } from "@/components/scorecard/CoonhoundScoreboardViewer";
+import { CoonhoundScorecardViewer } from "@/components/scorecard/CoonhoundScorecardViewer";
 import { patchEvent } from "@/lib/eventStore";
 import { useEventSelector } from "@/hooks/useEventData";
 import { useQuery } from "@tanstack/react-query";
@@ -593,7 +593,7 @@ const EventPage: React.FC = () => {
                               isHost={false}
                             />
                           ) : selectedGameType === "coon_hunt" ? (
-                            <CoonhoundScoreboardViewer
+                            <CoonhoundScorecardViewer
                               eventId={eventData?.id}
                               isViewer={isViewer}
                             />

@@ -51,7 +51,7 @@ import LiveStreamLogo from "@/components/ui/live-stream-logo";
 import TooltipWrapper from "@/components/ui/tooltip-wrapper";
 import CameraSwitchButton from "@/components/CameraSwitchButton";
 import TorchButton from "@/components/TorchButton";
-import { CoonhoundScorecardV2 } from "@/components/scorecard/CoonhoundScorecardV2";
+import { CoonhoundScorecardHost } from "@/components/scorecard/CoonhoundScorecardHost";
 import { CustomScoreboard } from "@/components/CustomScoreboard";
 import { ScoreboardGameSelector } from "@/components/ScoreboardGameSelector";
 import { PinnedMessageSection } from "@/components/PinnedMessageSection";
@@ -1154,7 +1154,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                       </div>
                     </div>
                   ) : selectedGameType === "coon_hunt" ? (
-                    <CoonhoundScorecardV2
+                    <CoonhoundScorecardHost
                       eventId={eventId}
                       isHost={canManageScoreboard}
                     />

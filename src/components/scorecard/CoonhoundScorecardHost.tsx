@@ -58,7 +58,20 @@ function toPayload(d: DogData) {
   } as const;
 }
 
-export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
+/**
+ * CoonhoundScorecardHost - Host/Streamer Interface for Coon Hunt Scoreboards
+ * 
+ * This is the PRIMARY scoreboard interface for hosts and streamers managing
+ * coon hunt competitions. It provides full editing capabilities including:
+ * - Dog registration and management
+ * - Real-time scoring with strike/tree/circle entries
+ * - Timer controls (hunt, track, shine, individual dog timers)
+ * - Judge notes and disqualification management
+ * 
+ * Data Storage: Uses scoreboard_type = 'coon_hunt' in event_scoreboard table
+ * Viewer Interface: See CoonhoundScorecardViewer for read-only viewer experience
+ */
+export const CoonhoundScorecardHost: React.FC<Props> = ({ eventId, isHost }) => {
   const [dogs, setDogs] = useState<DogData[]>([]);
   const [loading, setLoading] = useState(false);
   const [huntMinutes, setHuntMinutes] = useState<number>(120);
