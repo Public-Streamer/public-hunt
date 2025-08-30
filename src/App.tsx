@@ -36,8 +36,6 @@ import Post from "./pages/Post";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import ReportDMCA from "./pages/ReportDMCA";
-import { SpinnerIcon } from "@livekit/components-react";
-import ResetPasswordForm from "./components/ResetPasswordForm";
 import SetNewPassword from "./pages/SetNewPassword";
 
 const queryClient = new QueryClient();
@@ -108,7 +106,10 @@ const App = () => {
                       element={<SetNewPassword />}
                     />
                     <Route path="/payments" element={<PaymentSetup />} />
-                    <Route path="/past-events" element={<PastEvents />} />
+                    <Route
+                      path="/past-events"
+                      element={<PastEvents events={[]} />}
+                    />
                     <Route path="/my-ads" element={<MyAds />} />
                     <Route path="/advertisers" element={<Advertisers />} />
                     <Route path="/create-ad" element={<CreateAd />} />
