@@ -147,7 +147,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose, redirectUrl }) => {
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-3 auth-template ">
         <Card className="w-full overflow-y-hidden auth-template relative">
           <X
-            className="absolute top-2 right-0 cursor-pointer font-bold"
+            className="absolute top-4 right-4 cursor-pointer font-bold"
             onClick={onClose}
           />
           <CardHeader className="pb-3 sm:pb-6">
@@ -160,8 +160,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose, redirectUrl }) => {
                 : "Join Public Streamer today"}
             </CardDescription>
           </CardHeader>
-          <CardContent className="h-[70vh] sm:h-[75vh] p-0  auth-template">
-            <ScrollArea className="w-full px-3 sm:px-6 pb-3 sm:pb-6 auth-template">
+          <CardContent className="h-[70vh] sm:h-[75vh] p-0  auth-template ">
+            <ScrollArea className="w-full px-3 sm:px-6 pb-3 sm:pb-6 auth-template ">
               <SignupForm
                 onClose={onClose}
                 onSuccess={handleSignupSuccess}
@@ -190,7 +190,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose, redirectUrl }) => {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-3 auth-template">
       <Card className="relative w-full max-w-md max-h-[95vh] sm:max-h-[90vh] auth-template">
         <X
-          className="absolute top-2 right-0 cursor-pointer font-bold"
+          className="absolute top-4 right-4 cursor-pointer font-bold"
           onClick={onClose}
         />
         <CardHeader className="pb-3 sm:pb-6">
