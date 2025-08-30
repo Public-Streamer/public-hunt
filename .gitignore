@@ -9,6 +9,8 @@ lerna-debug.log*
 
 node_modules
 dist
+dist-doghunt
+dist-publicstreamer
 dist-ssr
 *.local
 
@@ -23,6 +25,7 @@ dist-ssr
 *.sln
 *.sw?
 .env*
+
 
 # Temporary files
 stats.html
