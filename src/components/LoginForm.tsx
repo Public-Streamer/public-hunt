@@ -17,7 +17,7 @@ import CompanyAccountSelector from "./CompanyAccountSelector";
 import ResetPasswordForm from "./ResetPasswordForm";
 import { supabase } from "@/integrations/supabase/client";
 import TooltipWrapper from "@/components/ui/tooltip-wrapper";
-import { brandMode } from "@/lib/brand";
+import { brandMode, brandName } from "@/lib/brand";
 
 interface LoginFormProps {
   onClose: () => void;
