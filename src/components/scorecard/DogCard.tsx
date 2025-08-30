@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState, useCallback, useRef } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Plus, Clock, ChevronDown, Upload, Edit3, Trash2 } from "lucide-react";
 import { TimerControl } from "./TimerControl";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
