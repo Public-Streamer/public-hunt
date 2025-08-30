@@ -18,6 +18,7 @@ import ResetPasswordForm from "./ResetPasswordForm";
 import { supabase } from "@/integrations/supabase/client";
 import TooltipWrapper from "@/components/ui/tooltip-wrapper";
 import { brandMode, brandName } from "@/lib/brand";
+import { X } from "lucide-react";
 
 interface LoginFormProps {
   onClose: () => void;
@@ -143,8 +144,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose, redirectUrl }) => {
 
   if (showSignup) {
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-3 auth-template">
-        <Card className="w-full  max-h-[95vh] sm:max-h-[90vh] auth-template">
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-3 auth-template ">
+        <Card className="w-full overflow-y-hidden auth-template relative">
+          <X
+            className="absolute top-2 right-0 cursor-pointer font-bold"
+            onClick={onClose}
+          />
           <CardHeader className="pb-3 sm:pb-6">
             <CardTitle className="text-2xl sm:text-3xl font-bold">
               Create Account
@@ -155,8 +160,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose, redirectUrl }) => {
                 : "Join Public Streamer today"}
             </CardDescription>
           </CardHeader>
-          <CardContent className="h-[70vh] sm:h-[75vh] p-0 auth-template">
-            <ScrollArea className="h-full w-full px-3 sm:px-6 pb-3 sm:pb-6 auth-template">
+          <CardContent className="h-[70vh] sm:h-[75vh] p-0  auth-template">
+            <ScrollArea className="w-full px-3 sm:px-6 pb-3 sm:pb-6 auth-template">
               <SignupForm
                 onClose={onClose}
                 onSuccess={handleSignupSuccess}
@@ -183,7 +188,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose, redirectUrl }) => {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-3 auth-template">
-      <Card className="w-full max-w-md max-h-[95vh] sm:max-h-[90vh] auth-template">
+      <Card className="relative w-full max-w-md max-h-[95vh] sm:max-h-[90vh] auth-template">
+        <X
+          className="absolute top-2 right-0 cursor-pointer font-bold"
+          onClick={onClose}
+        />
         <CardHeader className="pb-3 sm:pb-6">
           <CardTitle className="text-lg sm:text-xl">
             Welcome to {brandName}
