@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "test": "node test.js",
     "dev": "vite",
     "dev:doghunt": "vite dev --mode doghunt",
     "dev:publicstreamer": "vite dev --mode publicstreamer",
@@ -14,7 +15,8 @@
     "deploy:publicstreamer": "bun run build:publicstreamer && rsync -av --delete dist-publicstreamer/ /var/www/publicstreamer/",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "prepare": "husky"
   },
   "dependencies": {
     "@emoji-mart/data": "^1.2.1",
@@ -95,6 +97,8 @@
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.9",
     "globals": "^15.9.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.5",
     "postcss": "^8.4.47",
     "rollup-plugin-visualizer": "^6.0.3",
     "tailwindcss": "^3.4.11",
