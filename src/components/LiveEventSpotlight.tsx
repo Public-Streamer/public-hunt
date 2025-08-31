@@ -248,7 +248,7 @@ const LiveEventSpotlight: React.FC = () => {
   // Handle loading and error states
   if (isEventsLoading) {
     return (
-      <div className="text-center py-12">
+      <div className="text-center flex justify-center items-center h-[200px] ">
         <Loader className="animate-spin" />
       </div>
     );
