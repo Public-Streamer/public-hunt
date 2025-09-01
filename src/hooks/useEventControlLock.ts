@@ -65,7 +65,9 @@ export const useEventControlLock = ({
           body: { action: "renewLock", eventId, override: overrideIfHost },
         });
         if (!error) setLock((data as any)?.lock || null);
-      } catch {}
+      } catch (e: any) {
+        console.log(e)
+      }
       renewingRef.current = false;
     }
   };
@@ -76,7 +78,9 @@ export const useEventControlLock = ({
       await supabase.functions.invoke("scoreboard-operations", {
         body: { action: "releaseLock", eventId },
       });
-    } catch {}
+    } catch (e: any) {
+      console.log(e)
+    }
     setLock(null);
   };
 

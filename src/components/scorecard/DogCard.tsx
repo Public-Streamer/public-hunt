@@ -114,7 +114,9 @@ export const DogCard: React.FC<DogCardProps> = ({
       if (typeof navigator !== "undefined" && "vibrate" in navigator) {
         try {
           (navigator as any).vibrate?.(200);
-        } catch {}
+        } catch (e: any) {
+          console.log(e);
+        }
       }
     },
   });
@@ -127,7 +129,9 @@ export const DogCard: React.FC<DogCardProps> = ({
       if (typeof navigator !== "undefined" && "vibrate" in navigator) {
         try {
           (navigator as any).vibrate?.(200);
-        } catch {}
+        } catch (e: any) {
+          console.log(e);
+        }
       }
       treeTimer.reset(3 * 60);
       onTimerAction?.(draft.id, snapshotTimers());
@@ -142,7 +146,9 @@ export const DogCard: React.FC<DogCardProps> = ({
       if (typeof navigator !== "undefined" && "vibrate" in navigator) {
         try {
           (navigator as any).vibrate?.(200);
-        } catch {}
+        } catch (e: any) {
+          console.log(e);
+        }
       }
     },
   });
@@ -155,7 +161,9 @@ export const DogCard: React.FC<DogCardProps> = ({
       if (typeof navigator !== "undefined" && "vibrate" in navigator) {
         try {
           (navigator as any).vibrate?.(200);
-        } catch {}
+        } catch (e: any) {
+          console.log(e);
+        }
       }
     },
   });
@@ -168,7 +176,9 @@ export const DogCard: React.FC<DogCardProps> = ({
       if (typeof navigator !== "undefined" && "vibrate" in navigator) {
         try {
           (navigator as any).vibrate?.(200);
-        } catch {}
+        } catch (e: any) {
+          console.log(e);
+        }
       }
     },
   });
@@ -181,7 +191,9 @@ export const DogCard: React.FC<DogCardProps> = ({
       if (typeof navigator !== "undefined" && "vibrate" in navigator) {
         try {
           (navigator as any).vibrate?.(200);
-        } catch {}
+        } catch (e: any) {
+          console.log(e);
+        }
       }
     },
   });
@@ -194,7 +206,9 @@ export const DogCard: React.FC<DogCardProps> = ({
       if (typeof navigator !== "undefined" && "vibrate" in navigator) {
         try {
           (navigator as any).vibrate?.(200);
-        } catch {}
+        } catch (e: any) {
+          console.log(e);
+        }
       }
     },
   });
@@ -212,7 +226,9 @@ export const DogCard: React.FC<DogCardProps> = ({
         if (typeof navigator !== "undefined" && "vibrate" in navigator) {
           try {
             (navigator as any).vibrate?.(200);
-          } catch {}
+          } catch (e: any) {
+            console.log(e);
+          }
         }
         onTimerAction?.(draft.id, snapshotTimers());
         return;
@@ -232,7 +248,9 @@ export const DogCard: React.FC<DogCardProps> = ({
       if (typeof navigator !== "undefined" && "vibrate" in navigator) {
         try {
           (navigator as any).vibrate?.(200);
-        } catch {}
+        } catch (e: any) {
+          console.log(e);
+        }
       }
       onTimerAction?.(draft.id, snapshotTimers());
     },
@@ -246,7 +264,9 @@ export const DogCard: React.FC<DogCardProps> = ({
       if (typeof navigator !== "undefined" && "vibrate" in navigator) {
         try {
           (navigator as any).vibrate?.(200);
-        } catch {}
+        } catch (e: any) {
+          console.log(e);
+        }
       }
     },
   });
@@ -261,7 +281,9 @@ export const DogCard: React.FC<DogCardProps> = ({
       if (typeof navigator !== "undefined" && "vibrate" in navigator) {
         try {
           (navigator as any).vibrate?.(200);
-        } catch {}
+        } catch (e: any) {
+          console.log(e);
+        }
       }
       onTimerAction?.(draft.id, snapshotTimers());
     },
@@ -449,7 +471,9 @@ export const DogCard: React.FC<DogCardProps> = ({
         if (typeof navigator !== "undefined" && "vibrate" in navigator) {
           try {
             (navigator as any).vibrate?.(200);
-          } catch {}
+          } catch (e: any) {
+            console.log(e);
+          }
         }
       },
     });

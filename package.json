@@ -4,7 +4,6 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "test": "node test.js",
     "dev": "vite",
     "dev:doghunt": "vite dev --mode doghunt",
     "dev:publicstreamer": "vite dev --mode publicstreamer",
@@ -19,6 +18,10 @@
     "preview": "vite preview",
     "prepare": "husky"
   },
+ "lint-staged": {
+  "*.{js,ts,jsx,tsx}": ["npm run lint:fix"]
+}
+,
   "dependencies": {
     "@emoji-mart/data": "^1.2.1",
     "@emoji-mart/react": "^1.1.1",
