@@ -11,8 +11,6 @@ import Layout from "@/components/Layout";
 import Index from "./pages/Index";
 import Create from "./pages/Create";
 import CreateEpisode from "./pages/CreateEpisode";
-// import Channels from "./pages/Channels";
-// import ChannelPage from "./pages/ChannelPage";
 import Events from "./pages/Events";
 
 const StagePage = React.lazy(() => import("./pages/StagePage"));
@@ -36,7 +34,6 @@ import Post from "./pages/Post";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import ReportDMCA from "./pages/ReportDMCA";
-import { SpinnerIcon } from "@livekit/components-react";
 import ResetPasswordForm from "./components/ResetPasswordForm";
 import SetNewPassword from "./pages/SetNewPassword";
 

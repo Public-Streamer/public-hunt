@@ -35,8 +35,8 @@ interface EventRankingControlsProps {
   onSearchChange: (value: string) => void;
   sortBy: SortOption;
   onSortChange: (value: SortOption) => void;
-  memberSearch: string;
-  onMemberSearchChange: (value: string) => void;
+  memberSearch?: string;
+  onMemberSearchChange?: (value: string) => void;
   activeTab: string;
 }
 

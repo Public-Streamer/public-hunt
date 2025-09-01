@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import EventRankingControls, {
   SortOption,
 } from "@/components/EventRankingControls";
@@ -7,10 +6,8 @@ import ScheduledEventsGrid from "@/components/ScheduledEventsGrid";
 
 const EventsScheduled: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [memberSearch, setMemberSearch] = useState("");
   const [scheduledSortBy, setScheduledSortBy] =
     useState<SortOption>("most-ticket-sales");
-  const navigate = useNavigate();
 
   // Generate mock scheduled events
   const scheduledEvents = Array.from({ length: 30 }, (_, i) => {
@@ -66,15 +63,12 @@ const EventsScheduled: React.FC = () => {
           onSearchChange={setSearchTerm}
           sortBy={scheduledSortBy}
           onSortChange={setScheduledSortBy}
-          memberSearch={memberSearch}
-          onMemberSearchChange={setMemberSearch}
           activeTab="scheduled"
         />
 
         <ScheduledEventsGrid
           events={scheduledEvents}
           searchTerm={searchTerm}
-          memberSearch={memberSearch}
           sortBy={scheduledSortBy}
         />
       </div>

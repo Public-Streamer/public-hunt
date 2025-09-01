@@ -15,6 +15,7 @@
     "deploy:publicstreamer": "bun run build:publicstreamer && rsync -av --delete dist-publicstreamer/ /var/www/publicstreamer/",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "preview": "vite preview",
     "prepare": "husky"
   },
