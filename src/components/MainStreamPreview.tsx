@@ -6,6 +6,7 @@ import { Eye } from "lucide-react";
 import { useStreamingControls } from "@/hooks/useStreamingControls";
 import MediaBackground from "./MediaBackground";
 import InStreamChatOverlay from "./InStreamChatOverlay";
+import { useCameraName } from "@/hooks/useCameraName";
 
 interface MainStreamPreviewProps {
   track?: TrackReference;
@@ -38,6 +39,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
   const hideControlsTimer = useRef<NodeJS.Timeout | null>(null);
   const controls = useStreamingControls(eventId);
   const [isHome, setIsHome] = useState(false);
+  const { cameraName } = useCameraName();
 
   useEffect(() => {
     if (window.location.pathname === "/") {
@@ -343,23 +345,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
 
         {/* Participant info */}
         <div className="absolute bottom-2 right-2 flex justify-end items-start z-10">
-          <Badge variant="default">
-            {(() => {
-              try {
-                const metadata = track?.participant?.metadata
-                  ? JSON.parse(track?.participant?.metadata)
-                  : {};
-                return (
-                  metadata.streamName ||
-                  track?.participant?.name ||
-                  track?.participant?.identity
-                );
-              } catch {
-                return track?.participant?.name || track?.participant?.identity;
-              }
-            })()}
-            {/* {track?.participant?.name || track?.participant?.identity} */}
-          </Badge>
+          <Badge variant="default">{cameraName}</Badge>
         </div>
       </div>
     </>
