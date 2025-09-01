@@ -153,7 +153,7 @@ serve(async (req) => {
     };
 
     switch (action) {
-      case "fetch":
+      case "fetch": {
         const requestedType = scoreboardType || "coon_hunt";
         const { data: teams, error: fetchError } = await supabaseClient
           .from("event_scoreboard")
@@ -166,6 +166,7 @@ serve(async (req) => {
         return new Response(JSON.stringify(teams), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
+      }
 
       case "create": {
         const createType = scoreboardType || "coon_hunt";
@@ -299,7 +300,7 @@ serve(async (req) => {
         });
       }
 
-      case "fetchPinnedMessage":
+      case "fetchPinnedMessage": {
         const { data: eventData, error: eventError } = await supabaseClient
           .from("events")
           .select("pinned_message")
@@ -331,8 +332,9 @@ serve(async (req) => {
         return new Response(JSON.stringify({ messages }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
+      }
 
-      case "updatePinnedMessage":
+      case "updatePinnedMessage": { 
         // Legacy support for single message updates
         const { error: updatePinnedError } = await supabaseClient
           .from("events")
@@ -343,8 +345,9 @@ serve(async (req) => {
         return new Response(JSON.stringify({ success: true }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
+      }
 
-      case "updatePinnedMessages":
+      case "updatePinnedMessages": {
         const { error: updateMessagesError } = await supabaseClient
           .from("events")
           .update({ pinned_message: JSON.stringify(pinnedMessages) })
@@ -354,8 +357,9 @@ serve(async (req) => {
         return new Response(JSON.stringify({ success: true }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
+      }
 
-      case "addPinnedMessage":
+      case "addPinnedMessage": {
         // Fetch current messages
         const { data: currentEventData, error: fetchCurrentError } =
           await supabaseClient
@@ -402,8 +406,9 @@ serve(async (req) => {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           }
         );
+      }
 
-      case "updateSinglePinnedMessage":
+      case "updateSinglePinnedMessage": {
         // Fetch current messages
         const { data: updateEventData, error: fetchUpdateError } =
           await supabaseClient
@@ -444,8 +449,9 @@ serve(async (req) => {
         return new Response(JSON.stringify({ success: true }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
+      }
 
-      case "deletePinnedMessage":
+      case "deletePinnedMessage": {
         // Fetch current messages
         const { data: deleteEventData, error: fetchDeleteError } =
           await supabaseClient
@@ -487,8 +493,9 @@ serve(async (req) => {
         return new Response(JSON.stringify({ success: true }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
+      }
 
-      case "reorderPinnedMessages":
+      case "reorderPinnedMessages": {
         const { error: reorderError } = await supabaseClient
           .from("events")
           .update({ pinned_message: JSON.stringify(newOrder) })
@@ -498,6 +505,7 @@ serve(async (req) => {
         return new Response(JSON.stringify({ success: true }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
+      }
 
       case "updateDogTimers": {
         const eId = await getEventIdByTeam(teamId);
