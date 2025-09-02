@@ -1089,7 +1089,6 @@ export type Database = {
           permissions: string[] | null
           role_type: string | null
           streamer_id: string
-          camera_name?: string | null
         }
         Insert: {
           assigned_at?: string | null
@@ -1099,7 +1098,6 @@ export type Database = {
           permissions?: string[] | null
           role_type?: string | null
           streamer_id: string
-          camera_name?: string | null
         }
         Update: {
           assigned_at?: string | null
@@ -1109,7 +1107,6 @@ export type Database = {
           permissions?: string[] | null
           role_type?: string | null
           streamer_id?: string
-          camera_name?: string | null
         }
         Relationships: []
       }

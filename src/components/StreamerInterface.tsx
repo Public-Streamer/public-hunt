@@ -56,16 +56,16 @@ import { CustomScoreboard } from "@/components/CustomScoreboard";
 import { ScoreboardGameSelector } from "@/components/ScoreboardGameSelector";
 import { PinnedMessageSection } from "@/components/PinnedMessageSection";
 import EventProductionTeam from "@/components/EventProductionTeam";
+import { useStreamName } from "@/hooks/useStreamName";
 import { useScoreboardTeams } from "@/hooks/useScoreboardTeams";
 import { useEventScoreboardMeta } from "@/hooks/useEventScoreboardMeta";
 import InStreamChatOverlay from "./InStreamChatOverlay";
 import { EventSocialSection } from "./EventSocialSection";
-import { useAppContext } from "@/contexts/AppContext";
-import { useCameraName } from "@/hooks/useCameraName";
 
 interface StreamerInterfaceProps {
   eventId: string;
   eventTitle: string;
+  isLive: boolean;
   userRole?: "host" | "streamer";
   userId?: string;
   eventHostId?: string;
@@ -78,6 +78,7 @@ interface StreamerInterfaceProps {
 export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   eventId,
   eventTitle,
+  isLive,
   userRole,
   userId,
   eventHostId,
@@ -86,11 +87,11 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   generateToken,
 }) => {
   const { localParticipant } = useLocalParticipant();
+  const participants = useParticipants();
   const controls = useStreamingControls(eventId, generateToken);
   const screenSize = useScreenSize();
   const { checkScreenShareSupport } = useMobileMediaPermissions();
   const { toast } = useToast();
-  const { cameraName, isLoadingCameraName, refetch } = useCameraName(userId);
 
   const TrackSource = useLiveKitTrackSource();
 
@@ -102,9 +103,9 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   const [isChatVisible, setIsChatVisible] = useState(false);
 
   // Stream name edit state
-  const [isEditingcameraName, setIsEditingcameraName] = useState(false);
-  const [cameraNameValue, setcameraNameValue] = useState("");
-  const [isSavingcameraName, setIsSavingcameraName] = useState(false);
+  const [isEditingStreamName, setIsEditingStreamName] = useState(false);
+  const [streamNameValue, setStreamNameValue] = useState("");
+  const [isSavingStreamName, setIsSavingStreamName] = useState(false);
   // Prevent accidental stop: lock stop button
   const [controlsLocked, setControlsLocked] = useState(false);
   // Auto-lock controls when stream goes live; unlock when it ends
@@ -118,6 +119,10 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     }
     prevIsStreamingRef.current = controls.isStreaming;
   }, [controls.isStreaming]);
+
+  // livekit stream name
+  const track = useTracks();
+  const streamName = useStreamName(track[0]?.participant);
 
   // Real-time scoreboard metadata tracking
   const { selectedGameType: realtimeGameType, scoreboardName } =
@@ -451,60 +456,61 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     }
   };
 
-  // Camera name edit handlers
-  const handleEditcameraName = () => {
-    const currentcameraName = localParticipant?.metadata
-      ? JSON.parse(localParticipant.metadata).cameraName || ""
+  // Stream name edit handlers
+  const handleEditStreamName = () => {
+    const currentStreamName = localParticipant?.metadata
+      ? JSON.parse(localParticipant.metadata).streamName || ""
       : "";
-    setcameraNameValue(currentcameraName);
-    setIsEditingcameraName(true);
+    setStreamNameValue(currentStreamName);
+    setIsEditingStreamName(true);
   };
 
-  console.log(cameraNameValue);
-  console.log(userId);
+  // console.log(streamNameValue);
 
-  const handleSavecameraName = async () => {
+  const handleSaveStreamName = async () => {
     if (!localParticipant) return;
 
-    setIsSavingcameraName(true);
+    setIsSavingStreamName(true);
     try {
-      const supabase = supabaseBrowser();
-      const { error } = await supabase
-        .from("event_streamers")
-        .update({ camera_name: cameraNameValue.trim() })
-        .eq("streamer_id", userId);
-      if (error) throw error;
-      setIsEditingcameraName(false);
-      refetch();
+      const currentMetadata = localParticipant.metadata
+        ? JSON.parse(localParticipant.metadata)
+        : {};
+      const newMetadata = {
+        ...currentMetadata,
+        streamName: streamNameValue.trim() || undefined,
+      };
+
+      await localParticipant.setMetadata(JSON.stringify(newMetadata));
+      setIsEditingStreamName(false);
       toast({
         title: "Success",
-        description: "Camera name updated successfully",
+        description: "Stream name updated successfully",
       });
     } catch (error) {
-      console.error("Error updating camera name:", error);
+      console.error("Error updating stream name:", error);
       toast({
         title: "Error",
-        description: "Failed to update camera name",
+        description: "Failed to update stream name",
         variant: "destructive",
       });
     } finally {
-      setIsSavingcameraName(false);
+      setIsSavingStreamName(false);
     }
   };
 
-  const handleCancelcameraName = () => {
-    const currentcameraName = localParticipant?.metadata
-      ? JSON.parse(localParticipant.metadata).cameraName || ""
+  const handleCancelStreamName = () => {
+    const currentStreamName = localParticipant?.metadata
+      ? JSON.parse(localParticipant.metadata).streamName || ""
       : "";
-    setcameraNameValue(currentcameraName);
-    setIsEditingcameraName(false);
+    setStreamNameValue(currentStreamName);
+    setIsEditingStreamName(false);
   };
 
-  const handlecameraNameKeyPress = (e: React.KeyboardEvent) => {
+  const handleStreamNameKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
-      handleSavecameraName();
+      handleSaveStreamName();
     } else if (e.key === "Escape") {
-      handleCancelcameraName();
+      handleCancelStreamName();
     }
   };
 
@@ -721,16 +727,16 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
             <Card>
               <CardHeader className="p-3 sm:p-3">
                 <div className="flex items-center justify-between">
-                  {isEditingcameraName ? (
+                  {isEditingStreamName ? (
                     <div className="flex items-center gap-2 flex-1">
                       <Input
-                        value={cameraNameValue}
-                        onChange={(e) => setcameraNameValue(e.target.value)}
-                        onKeyDown={handlecameraNameKeyPress}
+                        value={streamNameValue}
+                        onChange={(e) => setStreamNameValue(e.target.value)}
+                        onKeyDown={handleStreamNameKeyPress}
                         placeholder="Enter stream name (e.g., Camera 01)"
                         className="text-sm h-8 flex-1"
                         autoFocus
-                        disabled={isSavingcameraName}
+                        disabled={isSavingStreamName}
                       />
                       <Button
                         size={
@@ -738,8 +744,8 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                             ? "xs"
                             : "sm"
                         }
-                        onClick={handleSavecameraName}
-                        disabled={isSavingcameraName}
+                        onClick={handleSaveStreamName}
+                        disabled={isSavingStreamName}
                         className="h-8 w-8 p-0"
                       >
                         <Check className="h-4 w-4" />
@@ -751,8 +757,8 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                             : "sm"
                         }
                         variant="outline"
-                        onClick={handleCancelcameraName}
-                        disabled={isSavingcameraName}
+                        onClick={handleCancelStreamName}
+                        disabled={isSavingStreamName}
                         className="h-8 w-8 p-0"
                       >
                         <X className="h-4 w-4" />
@@ -761,7 +767,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                   ) : (
                     <div className="flex items-center gap-2">
                       <CardTitle className="text-sm sm:text-base">
-                        {cameraName}{" "}
+                        {streamName}{" "}
                         <span className="text-xs text-muted-foreground">
                           (click to edit)
                         </span>
@@ -773,7 +779,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                             : "sm"
                         }
                         variant="ghost"
-                        onClick={handleEditcameraName}
+                        onClick={handleEditStreamName}
                         className="h-8 w-8 p-0"
                       >
                         <Edit className="h-4 w-4" />
@@ -801,7 +807,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
 
                   {/* In-Stream Chat Overlay */}
                   <InStreamChatOverlay
-                    camName={cameraName}
+                    camName={streamName}
                     eventId={eventId}
                     isVisible={isChatVisible}
                     onVisibilityToggle={() => setIsChatVisible(!isChatVisible)}
@@ -1094,7 +1100,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                                   ? JSON.parse(trackRef.participant.metadata)
                                   : {};
                                 return (
-                                  metadata.cameraName ||
+                                  metadata.streamName ||
                                   trackRef.participant.name ||
                                   trackRef.participant.identity
                                 );
