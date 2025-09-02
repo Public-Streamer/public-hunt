@@ -465,13 +465,22 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     setIsEditingStreamName(true);
   };
 
-  // console.log(streamNameValue);
-
   const handleSaveStreamName = async () => {
     if (!localParticipant) return;
 
     setIsSavingStreamName(true);
     try {
+      // First save to database
+      const supabase = supabaseBrowser();
+      const { error } = await supabase
+        .from("event_streamers")
+        .update({ camera_name: streamNameValue.trim() })
+        .eq("streamer_id", userId)
+        .eq("event_id", eventId);
+
+      if (error) throw error;
+
+      // Then update local participant metadata
       const currentMetadata = localParticipant.metadata
         ? JSON.parse(localParticipant.metadata)
         : {};
@@ -482,6 +491,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
 
       await localParticipant.setMetadata(JSON.stringify(newMetadata));
       setIsEditingStreamName(false);
+
       toast({
         title: "Success",
         description: "Stream name updated successfully",
@@ -587,6 +597,44 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
       clearInterval(interval);
     };
   }, [eventId, userId, totalTracksLength, streamId]);
+
+  // Add this effect to load stream name from database on mount
+  useEffect(() => {
+    const loadStreamName = async () => {
+      if (!localParticipant || !userId) return;
+
+      try {
+        const supabase = supabaseBrowser();
+        const { data, error } = await supabase
+          .from("event_streamers")
+          .select("camera_name")
+          .eq("streamer_id", userId)
+          .single();
+
+        if (error) throw error;
+
+        if (data?.camera_name) {
+          // Update local state
+          setStreamNameValue(data.camera_name);
+
+          // Update participant metadata
+          const currentMetadata = localParticipant.metadata
+            ? JSON.parse(localParticipant.metadata)
+            : {};
+          const newMetadata = {
+            ...currentMetadata,
+            streamName: data.camera_name,
+          };
+
+          await localParticipant.setMetadata(JSON.stringify(newMetadata));
+        }
+      } catch (error) {
+        console.error("Error loading stream name:", error);
+      }
+    };
+
+    loadStreamName();
+  }, [localParticipant, userId]);
 
   if (!localParticipant) {
     return (
