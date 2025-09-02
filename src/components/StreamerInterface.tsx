@@ -60,6 +60,7 @@ import { useScoreboardTeams } from "@/hooks/useScoreboardTeams";
 import { useEventScoreboardMeta } from "@/hooks/useEventScoreboardMeta";
 import InStreamChatOverlay from "./InStreamChatOverlay";
 import { EventSocialSection } from "./EventSocialSection";
+import { useStreamName } from "@/hooks/useStreamName";
 import { StreamNameEditor } from "@/components/StreamNameEditor";
 
 interface StreamerInterfaceProps {
@@ -91,6 +92,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   const screenSize = useScreenSize();
   const { checkScreenShareSupport } = useMobileMediaPermissions();
   const { toast } = useToast();
+  const streamName = useStreamName(localParticipant);
 
   const TrackSource = useLiveKitTrackSource();
 
@@ -654,7 +656,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
 
                   {/* In-Stream Chat Overlay */}
                   <InStreamChatOverlay
-                    camName="Stream" // Use generic name since we can't easily access the current stream name here
+                    camName={streamName} // Use generic name since we can't easily access the current stream name here
                     eventId={eventId}
                     isVisible={isChatVisible}
                     onVisibilityToggle={() => setIsChatVisible(!isChatVisible)}

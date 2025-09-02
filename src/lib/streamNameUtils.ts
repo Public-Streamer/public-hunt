@@ -65,7 +65,7 @@ export function validateStreamName(name: string): { isValid: boolean; error?: st
   }
   
   // Check for invalid characters (optional - adjust as needed)
-  const invalidChars = /[<>\"'&]/;
+  const invalidChars = /[<>"'&]/;
   if (invalidChars.test(trimmed)) {
     return { isValid: false, error: 'Stream name contains invalid characters' };
   }

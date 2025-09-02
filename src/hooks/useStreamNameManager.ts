@@ -59,7 +59,7 @@ export function useStreamNameManager({
     } catch (error) {
       console.error("Failed to update participant metadata:", error);
     }
-  }, [participant]);
+  }, [participant, originalValue]);
 
   /**
    * Load initial stream name from database
@@ -88,7 +88,7 @@ export function useStreamNameManager({
       setError("Failed to load stream name");
       setSyncStatus('error');
     }
-  }, [eventId, userId, supabase, updateParticipantMetadata]);
+  }, [eventId, userId, supabase, updateParticipantMetadata, originalValue]);
 
   /**
    * Save stream name to database
@@ -166,56 +166,14 @@ export function useStreamNameManager({
     }
   }, [eventId, userId, value, supabase]);
 
-  /**
-   * Set up realtime synchronization
-   */
-  useEffect(() => {
-    if (!userId || !eventId) return;
 
-    const channel = supabase
-      .channel(`stream-name-${eventId}-${userId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*", // Listen to INSERT, UPDATE, and DELETE
-          schema: "public",
-          table: "event_streamers",
-          filter: `event_id=eq.${eventId}`,
-        },
-        async (payload) => {
-          const row: any = payload.new;
-          if (row.streamer_id !== userId) return;
-
-          const name = row.camera_name ?? "";
-          
-          console.log("Realtime update received:", { name, isEditing });
-          
-          // Only update if not currently editing to avoid conflicts
-          if (!isEditing) {
-            setValue(name);
-            setOriginalValue(name);
-          }
-          
-          // Always update participant metadata to keep it in sync
-          await updateParticipantMetadata(name);
-        }
-      )
-      .subscribe();
-
-    channelRef.current = channel;
-
-    return () => {
-      channel.unsubscribe();
-      channelRef.current = null;
-    };
-  }, [eventId, userId, supabase, updateParticipantMetadata]); // Removed isEditing to prevent re-subscription
 
   /**
    * Load initial data on mount
    */
   useEffect(() => {
     loadStreamName();
-  }, [loadStreamName]);
+  }, [loadStreamName, eventId, userId]);
 
   /**
    * Auto-save with debouncing when editing

@@ -1,10 +1,10 @@
-import React from 'react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Check, X, AlertCircle, Loader2, Edit3 } from 'lucide-react';
-import { useStreamNameManager } from '@/hooks/useStreamNameManager';
-import type { LocalParticipant } from 'livekit-client';
+import React from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Check, X, AlertCircle, Loader2, Edit3 } from "lucide-react";
+import { useStreamNameManager } from "@/hooks/useStreamNameManager";
+import type { LocalParticipant } from "livekit-client";
 
 interface StreamNameEditorProps {
   eventId: string;
@@ -19,7 +19,7 @@ export const StreamNameEditor: React.FC<StreamNameEditorProps> = ({
   userId,
   participant,
   className = "",
-  placeholder = "Enter stream name..."
+  placeholder = "Enter stream name...",
 }) => {
   const {
     value,
@@ -37,21 +37,21 @@ export const StreamNameEditor: React.FC<StreamNameEditorProps> = ({
   // Render sync status indicator
   const renderSyncStatus = () => {
     switch (syncStatus) {
-      case 'saving':
+      case "saving":
         return (
           <Badge variant="secondary" className="gap-1">
             <Loader2 className="h-3 w-3 animate-spin" />
             Saving...
           </Badge>
         );
-      case 'success':
+      case "success":
         return (
           <Badge variant="default" className="gap-1 bg-green-500">
             <Check className="h-3 w-3" />
             Saved
           </Badge>
         );
-      case 'error':
+      case "error":
         return (
           <Badge variant="destructive" className="gap-1">
             <AlertCircle className="h-3 w-3" />
@@ -102,10 +102,10 @@ export const StreamNameEditor: React.FC<StreamNameEditorProps> = ({
           disabled={isSaving}
           autoFocus
           onKeyDown={(e) => {
-            if (e.key === 'Enter') {
+            if (e.key === "Enter") {
               e.preventDefault();
               save();
-            } else if (e.key === 'Escape') {
+            } else if (e.key === "Escape") {
               e.preventDefault();
               cancelEdit();
             }
@@ -133,14 +133,14 @@ export const StreamNameEditor: React.FC<StreamNameEditorProps> = ({
         </Button>
         {renderSyncStatus()}
       </div>
-      
+
       {error && (
         <div className="text-sm text-destructive flex items-center gap-1">
           <AlertCircle className="h-3 w-3" />
           {error}
         </div>
       )}
-      
+
       <div className="text-xs text-muted-foreground">
         {hasUnsavedChanges && "Auto-saves after 2 seconds"}
         {!hasUnsavedChanges && "Press Enter to save, Esc to cancel"}
