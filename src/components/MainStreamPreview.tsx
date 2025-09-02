@@ -3,7 +3,7 @@ import { VideoTrackLazy } from "@/lib/livekitLazy";
 import type { TrackReference } from "@livekit/components-core";
 import { Badge } from "@/components/ui/badge";
 import { Eye } from "lucide-react";
-import { useStreamingControls } from "@/hooks/useStreamingControls";
+import { useStreamName } from '@/hooks/useStreamName';
 import MediaBackground from "./MediaBackground";
 import InStreamChatOverlay from "./InStreamChatOverlay";
 
@@ -36,8 +36,12 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const hideControlsTimer = useRef<NodeJS.Timeout | null>(null);
-  const controls = useStreamingControls(eventId);
+  // Remove unused controls hook call as it requires generateToken
+  // const controls = useStreamingControls(eventId);
   const [isHome, setIsHome] = useState(false);
+
+  // Get stream name at top level - not in JSX
+  const streamName = useStreamName(track?.participant);
 
   useEffect(() => {
     if (window.location.pathname === "/") {
@@ -324,7 +328,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
             className="flex items-center gap-1 text-xs"
           >
             <Eye className="h-3 w-3" />
-            {controls?.participantCount - 1}
+                    {0}
           </Badge>
         </div>
 
@@ -344,21 +348,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
         {/* Participant info */}
         <div className="absolute bottom-2 right-2 flex justify-end items-start z-10">
           <Badge variant="default">
-            {(() => {
-              try {
-                const metadata = track?.participant?.metadata
-                  ? JSON.parse(track?.participant?.metadata)
-                  : {};
-                return (
-                  metadata.streamName ||
-                  track?.participant?.name ||
-                  track?.participant?.identity
-                );
-              } catch {
-                return track?.participant?.name || track?.participant?.identity;
-              }
-            })()}
-            {/* {track?.participant?.name || track?.participant?.identity} */}
+            {streamName || 'Unknown'}
           </Badge>
         </div>
       </div>
