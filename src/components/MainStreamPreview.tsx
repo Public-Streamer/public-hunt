@@ -40,6 +40,9 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
   // const controls = useStreamingControls(eventId);
   const [isHome, setIsHome] = useState(false);
 
+  // Get stream name at top level - not in JSX
+  const streamName = useStreamName(track?.participant);
+
   useEffect(() => {
     if (window.location.pathname === "/") {
       setIsHome(true);
@@ -345,7 +348,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
         {/* Participant info */}
         <div className="absolute bottom-2 right-2 flex justify-end items-start z-10">
           <Badge variant="default">
-            {useStreamName(track?.participant) || 'Unknown'}
+            {streamName || 'Unknown'}
           </Badge>
         </div>
       </div>

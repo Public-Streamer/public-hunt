@@ -113,13 +113,31 @@ export function useStreamNameManager({
     const thisSaveId = ++latestSaveId.current;
 
     try {
+      console.log("Attempting to save stream name:", { eventId, userId, trimmedValue });
+      
+      // Use UPSERT logic to handle both INSERT and UPDATE cases
       const { error } = await supabase
         .from("event_streamers")
-        .update({ camera_name: trimmedValue })
-        .eq("event_id", eventId)
-        .eq("streamer_id", userId);
+        .upsert(
+          { 
+            event_id: eventId,
+            streamer_id: userId,
+            camera_name: trimmedValue,
+            assigned_by: userId, // Required field
+            permissions: [] // Default empty permissions
+          },
+          { 
+            onConflict: 'event_id,streamer_id',
+            ignoreDuplicates: false 
+          }
+        );
 
-      if (error) throw error;
+      if (error) {
+        console.error("Database error:", error);
+        throw error;
+      }
+
+      console.log("Stream name saved successfully");
 
       // Only update state if this is still the latest save
       if (latestSaveId.current === thisSaveId) {
@@ -159,7 +177,7 @@ export function useStreamNameManager({
       .on(
         "postgres_changes",
         {
-          event: "UPDATE",
+          event: "*", // Listen to INSERT, UPDATE, and DELETE
           schema: "public",
           table: "event_streamers",
           filter: `event_id=eq.${eventId}`,
@@ -169,6 +187,8 @@ export function useStreamNameManager({
           if (row.streamer_id !== userId) return;
 
           const name = row.camera_name ?? "";
+          
+          console.log("Realtime update received:", { name, isEditing });
           
           // Only update if not currently editing to avoid conflicts
           if (!isEditing) {
@@ -188,7 +208,7 @@ export function useStreamNameManager({
       channel.unsubscribe();
       channelRef.current = null;
     };
-  }, [eventId, userId, supabase, isEditing, updateParticipantMetadata]);
+  }, [eventId, userId, supabase, updateParticipantMetadata]); // Removed isEditing to prevent re-subscription
 
   /**
    * Load initial data on mount
