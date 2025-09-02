@@ -20,6 +20,7 @@ import TicketPurchaseModal from "./TicketPurchaseModal";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 import { useAppContext } from "@/contexts/AppContext";
 import MediaBackground from "./MediaBackground";
+import { ViewerCountDisplay } from "./ViewerCountDisplay";
 
 interface Event {
   id: string;
@@ -132,12 +133,13 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
 
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4 text-sm text-gray-600">
+                <ViewerCountDisplay 
+                  eventId={event.id}
+                  variant="text" 
+                  showIcon={true}
+                  size="sm"
+                />
                 <span className="flex items-center">
-                  <Users className="h-4 w-4 mr-1" />
-                  {event.viewers}
-                </span>
-                <span className="flex items-center">
-                  {" "}
                   <Timer className="h-4 w-4 mr-1" /> {event.duration}
                 </span>
               </div>

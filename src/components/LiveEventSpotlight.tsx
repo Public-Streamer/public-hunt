@@ -9,6 +9,7 @@ import MainStreamPreview from "@/components/MainStreamPreview";
 import MediaBackground from "@/components/MediaBackground";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAppContext } from "@/contexts/AppContext";
+import { ViewerCountDisplay } from "./ViewerCountDisplay";
 
 interface LiveEvent {
   id: string;
@@ -320,6 +321,13 @@ const LiveEventSpotlight: React.FC = () => {
 
                   {/* Stats row with proper spacing */}
                   <div className="flex items-center justify-between text-xs gap-2">
+                    <ViewerCountDisplay 
+                      eventId={event.id}
+                      variant="text" 
+                      showIcon={true}
+                      size="sm"
+                      className="text-xs text-white/80"
+                    />
                     {event.timeRemaining && (
                       <div className="flex items-center gap-1 flex-shrink-0">
                         <Clock className="h-3 w-3" />
