@@ -73,7 +73,7 @@ export const StreamNameEditor: React.FC<StreamNameEditorProps> = ({
       <div className={`flex items-center gap-2 ${className}`}>
         <div className="flex-1 min-w-0">
           <div className="text-sm font-medium truncate">
-            {value || "No stream name"}
+            {value || participant?.name}
           </div>
         </div>
         <Button

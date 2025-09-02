@@ -213,6 +213,8 @@ export function useStreamNameManager({
     await saveStreamName();
   }, [saveStreamName]);
 
+  console.log("value from useStreamNameManager", value);
+
   return {
     value,
     setValue,
