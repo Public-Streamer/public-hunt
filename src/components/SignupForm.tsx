@@ -589,6 +589,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
         followers_count: 0,
         following_count: 0,
         friends_count: 0,
+        stream_name: "", // Add missing stream_name field
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       });
