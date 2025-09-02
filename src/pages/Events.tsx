@@ -795,7 +795,10 @@ const Events: React.FC = () => {
                 media_urls: event.media_urls,
                 channel_id: "", // Add required field
                 is_live: event.is_live,
-                category: event.category,
+                 category: event.category,
+                 ticketSales: 0, // Default value
+                 visibility: "public" as const, // Default visibility
+                 tags: [], // Default empty tags
               }))}
             />
           </TabsContent>

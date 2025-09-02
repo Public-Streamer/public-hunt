@@ -60,7 +60,7 @@ import { useScoreboardTeams } from "@/hooks/useScoreboardTeams";
 import { useEventScoreboardMeta } from "@/hooks/useEventScoreboardMeta";
 import InStreamChatOverlay from "./InStreamChatOverlay";
 import { EventSocialSection } from "./EventSocialSection";
-import { useStreamNameSync } from "@/hooks/useStreamNameSync";
+import { StreamNameEditor } from "@/components/StreamNameEditor";
 
 interface StreamerInterfaceProps {
   eventId: string;
@@ -71,7 +71,7 @@ interface StreamerInterfaceProps {
   eventHostId?: string;
   streamId?: string;
   autoGoLive?: boolean;
-  generateToken: () => Promise<void>;
+  generateToken: () => Promise<string>;
 }
 
 export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
@@ -101,20 +101,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
 
   const [isChatVisible, setIsChatVisible] = useState(false);
 
-  // ===== Stream name: single source of truth in DB, LiveKit metadata synced from DB
-  const {
-    value: streamNameValue,
-    setValue: setStreamNameValue,
-    isEditing: isEditingStreamName,
-    isSaving: isSavingStreamName,
-    startEdit: handleEditStreamName,
-    cancelEdit: handleCancelStreamName,
-    save: handleSaveStreamName,
-  } = useStreamNameSync({
-    eventId,
-    userId,
-    participant: localParticipant ?? undefined,
-  });
+  // ===== Stream name: managed by StreamNameEditor component
 
   // Prevent accidental stop: lock stop button
   const [controlsLocked, setControlsLocked] = useState(false);
@@ -641,71 +628,12 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
           >
             <Card>
               <CardHeader className="p-3 sm:p-3">
-                <div className="flex items-center justify-between">
-                  {isEditingStreamName ? (
-                    <div className="flex items-center gap-2 flex-1">
-                      <Input
-                        value={streamNameValue}
-                        onChange={(e) => setStreamNameValue(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter")
-                            handleSaveStreamName().catch(() => {});
-                          if (e.key === "Escape") handleCancelStreamName();
-                        }}
-                        placeholder="Enter stream name (e.g., Camera 01)"
-                        className="text-sm h-8 flex-1"
-                        autoFocus
-                        disabled={isSavingStreamName}
-                      />
-                      <Button
-                        size={
-                          screenSize === "mobile" || screenSize === "tablet"
-                            ? "xs"
-                            : "sm"
-                        }
-                        onClick={() => handleSaveStreamName().catch(() => {})}
-                        disabled={isSavingStreamName}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Check className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size={
-                          screenSize === "mobile" || screenSize === "tablet"
-                            ? "xs"
-                            : "sm"
-                        }
-                        variant="outline"
-                        onClick={handleCancelStreamName}
-                        disabled={isSavingStreamName}
-                        className="h-8 w-8 p-0"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <CardTitle className="text-sm sm:text-base">
-                        {streamNameValue || "Unnamed Camera"}{" "}
-                        <span className="text-xs text-muted-foreground">
-                          (click to edit)
-                        </span>
-                      </CardTitle>
-                      <Button
-                        size={
-                          screenSize === "mobile" || screenSize === "tablet"
-                            ? "xs"
-                            : "sm"
-                        }
-                        variant="ghost"
-                        onClick={handleEditStreamName}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  )}
-                </div>
+                <StreamNameEditor
+                  eventId={eventId}
+                  userId={userId}
+                  participant={localParticipant ?? undefined}
+                  placeholder="Enter stream name (e.g., Camera 01)"
+                />
               </CardHeader>
 
               <CardContent className="p-3 sm:p-3">
@@ -726,7 +654,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
 
                   {/* In-Stream Chat Overlay */}
                   <InStreamChatOverlay
-                    camName={streamNameValue}
+                    camName="Stream" // Use generic name since we can't easily access the current stream name here
                     eventId={eventId}
                     isVisible={isChatVisible}
                     onVisibilityToggle={() => setIsChatVisible(!isChatVisible)}
