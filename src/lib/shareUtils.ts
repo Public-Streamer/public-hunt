@@ -14,7 +14,7 @@ export function getShareableEventUrl(eventId: string, slug?: string): string {
 }
 
 export function getDirectEventUrl(eventId: string, slug?: string): string {
-  const baseUrl = window.location.origin;
+  const baseUrl = brandUrl;
   const eventIdentifier = slug || eventId;
 
   // Return direct event page URL (for internal navigation)
