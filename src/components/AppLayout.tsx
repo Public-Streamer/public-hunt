@@ -1,14 +1,10 @@
 import React, { useState } from 'react';
-import { useAppContext } from '@/contexts/AppContext';
-import { useIsMobile } from '@/hooks/use-mobile';
 import Header from './Header';
 import Hero from './Hero';
 import EventGrid from './EventGrid';
 import StageView from './StageView';
 
 const AppLayout: React.FC = () => {
-  const { sidebarOpen, toggleSidebar } = useAppContext();
-  const isMobile = useIsMobile();
   const [currentView, setCurrentView] = useState<'home' | 'stage'>('home');
   const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
 

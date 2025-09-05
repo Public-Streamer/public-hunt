@@ -71,7 +71,7 @@ const BankingInfoForm: React.FC<BankingInfoFormProps> = ({
     setError('');
 
     try {
-      const { data, error } = await supabase.functions.invoke(
+      const { error: saveBankingError } = await supabase.functions.invoke(
         'save-banking-info',
         {
           body: {
@@ -86,7 +86,7 @@ const BankingInfoForm: React.FC<BankingInfoFormProps> = ({
         }
       );
 
-      if (error) throw error;
+      if (saveBankingError) throw saveBankingError;
 
       setSuccess(true);
       setTimeout(() => {
