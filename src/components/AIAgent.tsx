@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Bot, Sparkles, Clock } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import React, { useState, useEffect } from 'react';
+import { Bot, Sparkles, Clock } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/lib/supabase';
 
 interface AIAgentProps {
   onFAQUpdate: (faqs: any[]) => void;
@@ -10,11 +10,11 @@ interface AIAgentProps {
 
 const AIAgent: React.FC<AIAgentProps> = ({ onFAQUpdate }) => {
   const [isActive, setIsActive] = useState(true);
-  const [lastActivity, setLastActivity] = useState<string>("");
+  const [lastActivity, setLastActivity] = useState<string>('');
   const [answeredToday, setAnsweredToday] = useState(0);
   const [topTopics, setTopTopics] = useState<string[]>([]);
 
-  console.log("Added ui");
+  console.log('Added ui');
 
   useEffect(() => {
     // Simulate AI agent activity
@@ -27,8 +27,8 @@ const AIAgent: React.FC<AIAgentProps> = ({ onFAQUpdate }) => {
 
   const checkForNewQuestions = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke("ai-agent", {
-        body: { action: "CHECK_QUESTIONS" },
+      const { data, error } = await supabase.functions.invoke('ai-agent', {
+        body: { action: 'CHECK_QUESTIONS' },
       });
 
       if (error) throw error;
@@ -46,7 +46,7 @@ const AIAgent: React.FC<AIAgentProps> = ({ onFAQUpdate }) => {
         onFAQUpdate(data.updatedFAQs);
       }
     } catch (error) {
-      console.error("AI Agent error:", error);
+      console.error('AI Agent error:', error);
     }
   };
 
@@ -57,10 +57,10 @@ const AIAgent: React.FC<AIAgentProps> = ({ onFAQUpdate }) => {
           <Bot className="h-5 w-5 text-purple-600" />
           AI Assistant
           <Badge
-            variant={isActive ? "default" : "secondary"}
+            variant={isActive ? 'default' : 'secondary'}
             className="ml-auto"
           >
-            {isActive ? "Online" : "Offline"}
+            {isActive ? 'Online' : 'Offline'}
           </Badge>
         </CardTitle>
       </CardHeader>

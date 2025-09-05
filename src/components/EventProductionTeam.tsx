@@ -1,21 +1,21 @@
-import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Search, UserPlus, X, Lock, Edit, Users } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { useAppContext } from "@/contexts/AppContext";
-import EventRoleManager from "@/components/EventRoleManager";
+import React, { useState, useEffect } from 'react';
+import { Search, UserPlus, X, Lock, Edit, Users } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAppContext } from '@/contexts/AppContext';
+import EventRoleManager from '@/components/EventRoleManager';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from '@/components/ui/tooltip';
 
 interface Subscriber {
   id: string;
@@ -36,7 +36,7 @@ interface EventProductionTeamProps {
 const EventProductionTeam: React.FC<EventProductionTeamProps> = ({
   eventId,
 }) => {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const [selectedMembers, setSelectedMembers] = useState<SelectedMember[]>([]);
   const [isLocked, setIsLocked] = useState(false);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
@@ -44,11 +44,11 @@ const EventProductionTeam: React.FC<EventProductionTeamProps> = ({
   const { user } = useAppContext();
   const { toast } = useToast();
 
-  const userRole = "Event Manager";
+  const userRole = 'Event Manager';
   const canModifyRoles = [
-    "Event Manager",
-    "Event Admin",
-    "Event Master",
+    'Event Manager',
+    'Event Admin',
+    'Event Master',
   ].includes(userRole);
 
   // Load existing team members and available users
@@ -62,7 +62,7 @@ const EventProductionTeam: React.FC<EventProductionTeamProps> = ({
 
       // Load existing team members
       const { data: existingStreamers, error: streamersError } = await supabase
-        .from("event_streamers")
+        .from('event_streamers')
         .select(
           `
           streamer_id,
@@ -70,18 +70,18 @@ const EventProductionTeam: React.FC<EventProductionTeamProps> = ({
           role_type
         `
         )
-        .eq("event_id", eventId);
+        .eq('event_id', eventId);
 
       if (streamersError) throw streamersError;
 
       // Load user profiles for available team members
       const { data: profiles, error: profilesError } = await supabase
-        .from("user_profiles")
-        .select("id, username, display_name, profile_picture_url, user_id") // we need get all the profiles except the current user one
-        .neq("user_id", user?.id)
+        .from('user_profiles')
+        .select('id, username, display_name, profile_picture_url, user_id') // we need get all the profiles except the current user one
+        .neq('user_id', user?.id)
         .limit(100);
 
-      console.log("profiles", profiles?.length);
+      console.log('profiles', profiles?.length);
 
       if (profilesError) throw profilesError;
 
@@ -89,7 +89,7 @@ const EventProductionTeam: React.FC<EventProductionTeamProps> = ({
       const availableSubscribers: Subscriber[] =
         profiles?.map((profile) => ({
           id: profile.user_id,
-          name: profile.display_name || profile.username || "Unknown",
+          name: profile.display_name || profile.username || 'Unknown',
           email: profile.username,
           avatar: profile.profile_picture_url || undefined,
         })) || [];
@@ -105,8 +105,8 @@ const EventProductionTeam: React.FC<EventProductionTeamProps> = ({
             );
             return {
               id: streamer.streamer_id,
-              name: profile?.name || "Unknown",
-              email: profile?.email || "Unknown",
+              name: profile?.name || 'Unknown',
+              email: profile?.email || 'Unknown',
               avatar: profile?.avatar,
               permissions: streamer.permissions || [],
               confirmed: true,
@@ -118,11 +118,11 @@ const EventProductionTeam: React.FC<EventProductionTeamProps> = ({
         setIsLocked(teamMembers.length > 0);
       }
     } catch (error) {
-      console.error("Error loading team data:", error);
+      console.error('Error loading team data:', error);
       toast({
-        title: "Error",
-        description: "Failed to load team data",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to load team data',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -144,17 +144,17 @@ const EventProductionTeam: React.FC<EventProductionTeamProps> = ({
     };
     const updated = [...selectedMembers, newMember];
     setSelectedMembers(updated);
-    setSearchTerm("");
+    setSearchTerm('');
   };
 
   const removeMember = async (id: string) => {
     try {
       // Remove from database
       const { error } = await supabase
-        .from("event_streamers")
+        .from('event_streamers')
         .delete()
-        .eq("event_id", eventId)
-        .eq("streamer_id", id);
+        .eq('event_id', eventId)
+        .eq('streamer_id', id);
 
       if (error) throw error;
 
@@ -163,15 +163,15 @@ const EventProductionTeam: React.FC<EventProductionTeamProps> = ({
       setSelectedMembers(updated);
 
       toast({
-        title: "Member Removed",
-        description: "Team member has been removed successfully",
+        title: 'Member Removed',
+        description: 'Team member has been removed successfully',
       });
     } catch (error) {
-      console.error("Error removing member:", error);
+      console.error('Error removing member:', error);
       toast({
-        title: "Error",
-        description: "Failed to remove team member",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to remove team member',
+        variant: 'destructive',
       });
     }
   };
@@ -192,11 +192,11 @@ const EventProductionTeam: React.FC<EventProductionTeamProps> = ({
       if (!member) return;
 
       // Add to database
-      const { error } = await supabase.from("event_streamers").insert({
+      const { error } = await supabase.from('event_streamers').insert({
         event_id: eventId,
         streamer_id: memberId,
-        assigned_by: user?.id || "",
-        role_type: "Streamers",
+        assigned_by: user?.id || '',
+        role_type: 'Streamers',
         permissions: member.permissions,
       });
 
@@ -212,15 +212,15 @@ const EventProductionTeam: React.FC<EventProductionTeamProps> = ({
       setSelectedMembers(updated);
 
       toast({
-        title: "Member Confirmed",
-        description: "Team member has been added successfully",
+        title: 'Member Confirmed',
+        description: 'Team member has been added successfully',
       });
     } catch (error) {
-      console.error("Error confirming member:", error);
+      console.error('Error confirming member:', error);
       toast({
-        title: "Error",
-        description: "Failed to confirm team member",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to confirm team member',
+        variant: 'destructive',
       });
     }
   };
@@ -228,8 +228,8 @@ const EventProductionTeam: React.FC<EventProductionTeamProps> = ({
   const confirmRoles = () => {
     setIsLocked(true);
     toast({
-      title: "Roles Confirmed",
-      description: "Team roles and permissions have been locked",
+      title: 'Roles Confirmed',
+      description: 'Team roles and permissions have been locked',
     });
   };
 
@@ -237,8 +237,8 @@ const EventProductionTeam: React.FC<EventProductionTeamProps> = ({
     if (canModifyRoles) {
       setIsLocked(false);
       toast({
-        title: "Roles Unlocked",
-        description: "You can now modify team roles and permissions",
+        title: 'Roles Unlocked',
+        description: 'You can now modify team roles and permissions',
       });
     }
   };
@@ -398,7 +398,7 @@ const EventProductionTeam: React.FC<EventProductionTeamProps> = ({
         {selectedMembers.length > 0 && (
           <div className="flex justify-between items-center pt-4 border-t">
             <div className="text-sm text-gray-600">
-              {selectedMembers.filter((m) => m.confirmed).length} of{" "}
+              {selectedMembers.filter((m) => m.confirmed).length} of{' '}
               {selectedMembers.length} members confirmed
             </div>
 

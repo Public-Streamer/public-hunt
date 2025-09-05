@@ -1,8 +1,8 @@
 import React from 'react';
+import { Play, Star, Eye, DollarSign, Lock, Users } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Play, Star, Eye, DollarSign, Lock, Users } from 'lucide-react';
 import TooltipWrapper from '@/components/ui/tooltip-wrapper';
 import { SortOption } from '@/components/EventRankingControls';
 
@@ -33,7 +33,7 @@ const ChannelPastEventsGrid: React.FC<ChannelPastEventsGridProps> = ({
   events,
   searchTerm,
   memberSearch,
-  sortBy
+  sortBy,
 }) => {
   const sortEvents = (events: PastEvent[], sortOption: SortOption) => {
     return [...events].sort((a, b) => {
@@ -47,36 +47,44 @@ const ChannelPastEventsGrid: React.FC<ChannelPastEventsGridProps> = ({
         case 'least-revenue':
           return a.revenue - b.revenue;
         case 'most-popular':
-          return (b.views * b.rating) - (a.views * a.rating);
+          return b.views * b.rating - a.views * a.rating;
         case 'least-popular':
-          return (a.views * a.rating) - (b.views * b.rating);
+          return a.views * a.rating - b.views * b.rating;
         case 'newest':
-          return new Date(b.recordedDate).getTime() - new Date(a.recordedDate).getTime();
+          return (
+            new Date(b.recordedDate).getTime() -
+            new Date(a.recordedDate).getTime()
+          );
         case 'oldest':
-          return new Date(a.recordedDate).getTime() - new Date(b.recordedDate).getTime();
+          return (
+            new Date(a.recordedDate).getTime() -
+            new Date(b.recordedDate).getTime()
+          );
         default:
           return b.views - a.views;
       }
     });
   };
-  
+
   const filterEvents = (events: PastEvent[]) => {
-    return events.filter(event => {
-      const matchesKeyword = event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            event.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            event.channelName.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesMember = memberSearch === '' || 
-                           event.participants.some(participant => 
-                             participant.toLowerCase().includes(memberSearch.toLowerCase())
-                           );
-      
+    return events.filter((event) => {
+      const matchesKeyword =
+        event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        event.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        event.channelName.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesMember =
+        memberSearch === '' ||
+        event.participants.some((participant) =>
+          participant.toLowerCase().includes(memberSearch.toLowerCase())
+        );
+
       return matchesKeyword && matchesMember;
     });
   };
-  
+
   const filteredAndSortedEvents = sortEvents(filterEvents(events), sortBy);
-  
+
   const getVisibilityIcon = (visibility: string) => {
     switch (visibility) {
       case 'private':
@@ -87,7 +95,7 @@ const ChannelPastEventsGrid: React.FC<ChannelPastEventsGridProps> = ({
         return null;
     }
   };
-  
+
   const getVisibilityColor = (visibility: string) => {
     switch (visibility) {
       case 'private':
@@ -98,19 +106,24 @@ const ChannelPastEventsGrid: React.FC<ChannelPastEventsGridProps> = ({
         return 'bg-green-500';
     }
   };
-  
+
   if (filteredAndSortedEvents.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-500">No past events found matching your criteria</p>
+        <p className="text-gray-500">
+          No past events found matching your criteria
+        </p>
       </div>
     );
   }
-  
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {filteredAndSortedEvents.map(event => (
-        <TooltipWrapper key={event.id} content={`Watch ${event.title} - ${event.views.toLocaleString()} views`}>
+      {filteredAndSortedEvents.map((event) => (
+        <TooltipWrapper
+          key={event.id}
+          content={`Watch ${event.title} - ${event.views.toLocaleString()} views`}
+        >
           <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
             <CardHeader className="pb-2">
               <div className="relative">
@@ -119,9 +132,13 @@ const ChannelPastEventsGrid: React.FC<ChannelPastEventsGridProps> = ({
                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all" />
                 </div>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium truncate">{event.title}</CardTitle>
+                  <CardTitle className="text-sm font-medium truncate">
+                    {event.title}
+                  </CardTitle>
                   <TooltipWrapper content={`Visibility: ${event.visibility}`}>
-                    <Badge className={`${getVisibilityColor(event.visibility)} text-white text-xs px-1 py-0`}>
+                    <Badge
+                      className={`${getVisibilityColor(event.visibility)} text-white text-xs px-1 py-0`}
+                    >
                       {getVisibilityIcon(event.visibility)}
                     </Badge>
                   </TooltipWrapper>
@@ -136,8 +153,7 @@ const ChannelPastEventsGrid: React.FC<ChannelPastEventsGridProps> = ({
               <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
                 <TooltipWrapper content="Event price">
                   <span className="flex items-center">
-                    <DollarSign className="h-3 w-3 mr-1" />
-                    ${event.price}
+                    <DollarSign className="h-3 w-3 mr-1" />${event.price}
                   </span>
                 </TooltipWrapper>
                 <TooltipWrapper content="Event rating">

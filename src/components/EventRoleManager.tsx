@@ -1,9 +1,22 @@
 import React, { useState } from 'react';
+import {
+  ChevronDown,
+  ChevronUp,
+  User,
+  MoreHorizontal,
+  X,
+  Edit,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ChevronDown, ChevronUp, User, MoreHorizontal, X, Edit } from 'lucide-react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import EventPermissionCheckboxes from '@/components/EventPermissionCheckboxes';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -29,16 +42,15 @@ const EventRoleManager: React.FC<EventRoleManagerProps> = ({
   onPermissionsChange,
   onConfirm,
   onRemove,
-  disabled = false
+  disabled = false,
 }) => {
   const [isExpanded, setIsExpanded] = useState(!member.confirmed);
   const [isEditing, setIsEditing] = useState(false);
-  
+
   const roleLabels = {
     event_master: 'Streamer',
-    
   };
-  
+
   const getHighestRole = () => {
     const hierarchy = ['event_master'];
     for (const role of hierarchy) {
@@ -48,7 +60,7 @@ const EventRoleManager: React.FC<EventRoleManagerProps> = ({
     }
     return 'No Role';
   };
-  
+
   const handleConfirm = () => {
     onConfirm();
     setIsExpanded(false);
@@ -59,9 +71,11 @@ const EventRoleManager: React.FC<EventRoleManagerProps> = ({
     setIsEditing(true);
     setIsExpanded(true);
   };
-  
+
   return (
-    <Card className={`transition-all duration-200 ${member.confirmed ? 'border-green-200 bg-green-50/50' : 'border-gray-200 hover:border-gray-300'}`}>
+    <Card
+      className={`transition-all duration-200 ${member.confirmed ? 'border-green-200 bg-green-50/50' : 'border-gray-200 hover:border-gray-300'}`}
+    >
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3 flex-1 min-w-0">
@@ -69,9 +83,14 @@ const EventRoleManager: React.FC<EventRoleManagerProps> = ({
               <User className="h-4 w-4 text-gray-600" />
             </div>
             <div className="flex-1 min-w-0">
-              <span className="font-medium text-gray-900 truncate block">{member.name}</span>
+              <span className="font-medium text-gray-900 truncate block">
+                {member.name}
+              </span>
               {member.confirmed && (
-                <Badge variant="outline" className="text-xs mt-1 bg-white border-green-300 text-green-700">
+                <Badge
+                  variant="outline"
+                  className="text-xs mt-1 bg-white border-green-300 text-green-700"
+                >
                   Confirmed - {getHighestRole()}
                 </Badge>
               )}
@@ -106,7 +125,7 @@ const EventRoleManager: React.FC<EventRoleManagerProps> = ({
                   </DropdownMenuItem>
                 </>
               )}
-              
+
               {/* For confirmed members when team IS locked */}
               {member.confirmed && disabled && (
                 <DropdownMenuItem onClick={() => setIsExpanded(!isExpanded)}>
@@ -123,7 +142,7 @@ const EventRoleManager: React.FC<EventRoleManagerProps> = ({
                   )}
                 </DropdownMenuItem>
               )}
-              
+
               {/* For unconfirmed members when team is NOT locked */}
               {!member.confirmed && !disabled && (
                 <DropdownMenuItem onClick={() => setIsExpanded(!isExpanded)}>
@@ -131,12 +150,15 @@ const EventRoleManager: React.FC<EventRoleManagerProps> = ({
                   {isExpanded ? 'Collapse' : 'Edit'} Permissions
                 </DropdownMenuItem>
               )}
-              
+
               {/* Remove member option (only when team is NOT locked) */}
               {onRemove && !disabled && (
                 <>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={onRemove} className="text-destructive focus:text-destructive">
+                  <DropdownMenuItem
+                    onClick={onRemove}
+                    className="text-destructive focus:text-destructive"
+                  >
                     <X className="h-4 w-4 mr-2" />
                     Remove Member
                   </DropdownMenuItem>
@@ -145,7 +167,7 @@ const EventRoleManager: React.FC<EventRoleManagerProps> = ({
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        
+
         {isExpanded && (
           <div className="space-y-4">
             <EventPermissionCheckboxes
@@ -164,8 +186,15 @@ const EventRoleManager: React.FC<EventRoleManagerProps> = ({
                 onCheckedChange={(checked) => {
                   const isChecked = checked === true;
                   const next = isChecked
-                    ? Array.from(new Set([...(member.permissions || []), 'scorecard_judge']))
-                    : (member.permissions || []).filter((p) => p !== 'scorecard_judge');
+                    ? Array.from(
+                        new Set([
+                          ...(member.permissions || []),
+                          'scorecard_judge',
+                        ])
+                      )
+                    : (member.permissions || []).filter(
+                        (p) => p !== 'scorecard_judge'
+                      );
                   onPermissionsChange(next);
                 }}
               />
@@ -173,17 +202,19 @@ const EventRoleManager: React.FC<EventRoleManagerProps> = ({
                 Judge permissions
               </Label>
             </div>
-            
-            {(!member.confirmed || isEditing) && !disabled && member.permissions.length > 0 && (
-              <div className="flex justify-center mt-6">
-                <Button
-                  onClick={handleConfirm}
-                  className="bg-green-600 hover:bg-green-700 text-white px-6"
-                >
-                  {isEditing ? 'Save Changes' : 'Confirm Role'}
-                </Button>
-              </div>
-            )}
+
+            {(!member.confirmed || isEditing) &&
+              !disabled &&
+              member.permissions.length > 0 && (
+                <div className="flex justify-center mt-6">
+                  <Button
+                    onClick={handleConfirm}
+                    className="bg-green-600 hover:bg-green-700 text-white px-6"
+                  >
+                    {isEditing ? 'Save Changes' : 'Confirm Role'}
+                  </Button>
+                </div>
+              )}
           </div>
         )}
       </CardContent>

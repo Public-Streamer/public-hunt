@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Settings, Upload, Users, Crown, Calendar, MapPin } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
@@ -6,7 +7,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Settings, Upload, Users, Crown, Calendar, MapPin } from 'lucide-react';
 import MediaUploader from '@/components/MediaUploader';
 import EventRoleManager from '@/components/EventRoleManager';
 import EventMasterTransfer from '@/components/EventMasterTransfer';
@@ -18,30 +18,32 @@ const EventSetup: React.FC = () => {
     date: '2024-01-15',
     time: '19:00',
     location: 'Online',
-    category: 'Entertainment'
+    category: 'Entertainment',
   });
-  
-  const [currentUserRole] = useState<'event_master' | 'event_admin' | 'channel_admin'>('event_master');
-  
+
+  const [currentUserRole] = useState<
+    'event_master' | 'event_admin' | 'channel_admin'
+  >('event_master');
+
   const currentMaster = {
     id: '1',
     name: 'John Doe',
-    email: 'john@example.com'
+    email: 'john@example.com',
   };
-  
+
   const eventAdmins = [
     { id: '2', name: 'Jane Smith', email: 'jane@example.com' },
-    { id: '3', name: 'Bob Johnson', email: 'bob@example.com' }
+    { id: '3', name: 'Bob Johnson', email: 'bob@example.com' },
   ];
-  
+
   const handleInputChange = (field: string, value: string) => {
-    setEventData(prev => ({ ...prev, [field]: value }));
+    setEventData((prev) => ({ ...prev, [field]: value }));
   };
-  
+
   const handleSave = () => {
     console.log('Saving event data:', eventData);
   };
-  
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-6xl mx-auto">
@@ -53,12 +55,15 @@ const EventSetup: React.FC = () => {
           <div className="flex items-center space-x-2">
             <Badge variant="default" className="bg-yellow-500">
               <Crown className="h-3 w-3 mr-1" />
-              {currentUserRole === 'event_master' ? 'Event Master' : 
-               currentUserRole === 'event_admin' ? 'Event Admin' : 'Channel Admin'}
+              {currentUserRole === 'event_master'
+                ? 'Event Master'
+                : currentUserRole === 'event_admin'
+                  ? 'Event Admin'
+                  : 'Channel Admin'}
             </Badge>
           </div>
         </div>
-        
+
         <Tabs defaultValue="basic" className="w-full">
           <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="basic">Basic Info</TabsTrigger>
@@ -67,7 +72,7 @@ const EventSetup: React.FC = () => {
             <TabsTrigger value="master">Master Transfer</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="basic">
             <Card>
               <CardHeader>
@@ -83,7 +88,9 @@ const EventSetup: React.FC = () => {
                     <Input
                       id="eventName"
                       value={eventData.name}
-                      onChange={(e) => handleInputChange('name', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange('name', e.target.value)
+                      }
                     />
                   </div>
                   <div>
@@ -91,21 +98,25 @@ const EventSetup: React.FC = () => {
                     <Input
                       id="category"
                       value={eventData.category}
-                      onChange={(e) => handleInputChange('category', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange('category', e.target.value)
+                      }
                     />
                   </div>
                 </div>
-                
+
                 <div>
                   <Label htmlFor="description">Description</Label>
                   <Textarea
                     id="description"
                     value={eventData.description}
-                    onChange={(e) => handleInputChange('description', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange('description', e.target.value)
+                    }
                     rows={4}
                   />
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor="date">Date</Label>
@@ -113,7 +124,9 @@ const EventSetup: React.FC = () => {
                       id="date"
                       type="date"
                       value={eventData.date}
-                      onChange={(e) => handleInputChange('date', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange('date', e.target.value)
+                      }
                     />
                   </div>
                   <div>
@@ -122,7 +135,9 @@ const EventSetup: React.FC = () => {
                       id="time"
                       type="time"
                       value={eventData.time}
-                      onChange={(e) => handleInputChange('time', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange('time', e.target.value)
+                      }
                     />
                   </div>
                   <div>
@@ -130,29 +145,35 @@ const EventSetup: React.FC = () => {
                     <Input
                       id="location"
                       value={eventData.location}
-                      onChange={(e) => handleInputChange('location', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange('location', e.target.value)
+                      }
                     />
                   </div>
                 </div>
-                
+
                 <Button onClick={handleSave} className="w-full">
                   Save Changes
                 </Button>
               </CardContent>
             </Card>
           </TabsContent>
-          
+
           <TabsContent value="media">
-            <MediaUploader 
+            <MediaUploader
               acceptedTypes={[
-                'image/jpeg', 'image/png', 'image/gif',
+                'image/jpeg',
+                'image/png',
+                'image/gif',
                 'application/pdf',
-                'video/mp4', 'video/mpeg', 'video/quicktime'
+                'video/mp4',
+                'video/mpeg',
+                'video/quicktime',
               ]}
               onUpload={(files) => console.log('Uploaded files:', files)}
             />
           </TabsContent>
-          
+
           <TabsContent value="roles">
             <Card>
               <CardContent className="py-8">
@@ -162,10 +183,10 @@ const EventSetup: React.FC = () => {
               </CardContent>
             </Card>
           </TabsContent>
-          
+
           <TabsContent value="master">
             {currentUserRole === 'event_master' ? (
-              <EventMasterTransfer 
+              <EventMasterTransfer
                 eventId="event-1"
                 currentMaster={currentMaster}
                 eventAdmins={eventAdmins}
@@ -180,7 +201,7 @@ const EventSetup: React.FC = () => {
               </Card>
             )}
           </TabsContent>
-          
+
           <TabsContent value="settings">
             <Card>
               <CardHeader>
@@ -191,7 +212,8 @@ const EventSetup: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600">
-                  Additional event settings and configurations will be available here.
+                  Additional event settings and configurations will be available
+                  here.
                 </p>
               </CardContent>
             </Card>

@@ -1,9 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { Plus, Play, X } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Plus, Play, X } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 
 interface Story {
@@ -30,7 +36,10 @@ interface ProfileStoriesProps {
   isOwnProfile: boolean;
 }
 
-const ProfileStories: React.FC<ProfileStoriesProps> = ({ userId, isOwnProfile }) => {
+const ProfileStories: React.FC<ProfileStoriesProps> = ({
+  userId,
+  isOwnProfile,
+}) => {
   const [stories, setStories] = useState<Story[]>([]);
   const [highlights, setHighlights] = useState<StoryHighlight[]>([]);
   const [selectedStory, setSelectedStory] = useState<Story | null>(null);
@@ -52,7 +61,7 @@ const ProfileStories: React.FC<ProfileStoriesProps> = ({ userId, isOwnProfile })
         media_type: 'image',
         created_at: new Date().toISOString(),
         expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        is_highlight: false
+        is_highlight: false,
       },
       {
         id: '2',
@@ -62,8 +71,8 @@ const ProfileStories: React.FC<ProfileStoriesProps> = ({ userId, isOwnProfile })
         duration: 15,
         created_at: new Date(Date.now() - 3600000).toISOString(),
         expires_at: new Date(Date.now() + 20 * 60 * 60 * 1000).toISOString(),
-        is_highlight: false
-      }
+        is_highlight: false,
+      },
     ];
     setStories(mockStories);
   };
@@ -76,22 +85,22 @@ const ProfileStories: React.FC<ProfileStoriesProps> = ({ userId, isOwnProfile })
         title: 'Travel',
         cover_image: '/placeholder.svg',
         story_count: 8,
-        stories: []
+        stories: [],
       },
       {
         id: '2',
         title: 'Events',
         cover_image: '/placeholder.svg',
         story_count: 12,
-        stories: []
+        stories: [],
       },
       {
         id: '3',
         title: 'Behind the Scenes',
         cover_image: '/placeholder.svg',
         story_count: 5,
-        stories: []
-      }
+        stories: [],
+      },
     ];
     setHighlights(mockHighlights);
   };
@@ -99,7 +108,7 @@ const ProfileStories: React.FC<ProfileStoriesProps> = ({ userId, isOwnProfile })
   const handleAddStory = () => {
     toast({
       title: 'Add Story',
-      description: 'Story upload functionality coming soon!'
+      description: 'Story upload functionality coming soon!',
     });
   };
 
@@ -120,7 +129,7 @@ const ProfileStories: React.FC<ProfileStoriesProps> = ({ userId, isOwnProfile })
           >
             <X className="w-4 h-4" />
           </Button>
-          
+
           {selectedStory && (
             <div className="h-full flex items-center justify-center">
               {selectedStory.media_type === 'image' ? (
@@ -139,7 +148,7 @@ const ProfileStories: React.FC<ProfileStoriesProps> = ({ userId, isOwnProfile })
               )}
             </div>
           )}
-          
+
           <div className="absolute bottom-4 left-4 right-4 text-white">
             <div className="flex items-center space-x-2">
               <Avatar className="w-8 h-8">
@@ -172,10 +181,14 @@ const ProfileStories: React.FC<ProfileStoriesProps> = ({ userId, isOwnProfile })
               <p className="text-xs mt-1 text-muted-foreground">Add Story</p>
             </div>
           )}
-          
+
           {/* Active Stories */}
           {stories.map((story) => (
-            <div key={story.id} className="flex-shrink-0 text-center cursor-pointer" onClick={() => handleViewStory(story)}>
+            <div
+              key={story.id}
+              className="flex-shrink-0 text-center cursor-pointer"
+              onClick={() => handleViewStory(story)}
+            >
               <div className="relative">
                 <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-pink-500 to-purple-500 p-0.5">
                   <div className="w-full h-full rounded-full bg-background p-0.5">
@@ -195,10 +208,13 @@ const ProfileStories: React.FC<ProfileStoriesProps> = ({ userId, isOwnProfile })
               <p className="text-xs mt-1 text-muted-foreground">Your Story</p>
             </div>
           ))}
-          
+
           {/* Story Highlights */}
           {highlights.map((highlight) => (
-            <div key={highlight.id} className="flex-shrink-0 text-center cursor-pointer">
+            <div
+              key={highlight.id}
+              className="flex-shrink-0 text-center cursor-pointer"
+            >
               <div className="w-16 h-16 rounded-full bg-muted p-0.5">
                 <img
                   src={highlight.cover_image}
@@ -206,10 +222,12 @@ const ProfileStories: React.FC<ProfileStoriesProps> = ({ userId, isOwnProfile })
                   className="w-full h-full rounded-full object-cover"
                 />
               </div>
-              <p className="text-xs mt-1 text-muted-foreground max-w-16 truncate">{highlight.title}</p>
+              <p className="text-xs mt-1 text-muted-foreground max-w-16 truncate">
+                {highlight.title}
+              </p>
             </div>
           ))}
-          
+
           {/* Add Highlight Button */}
           {isOwnProfile && (
             <div className="flex-shrink-0 text-center">
@@ -217,7 +235,12 @@ const ProfileStories: React.FC<ProfileStoriesProps> = ({ userId, isOwnProfile })
                 variant="outline"
                 size="sm"
                 className="w-16 h-16 rounded-full border-2 border-dashed"
-                onClick={() => toast({ title: 'Add Highlight', description: 'Feature coming soon!' })}
+                onClick={() =>
+                  toast({
+                    title: 'Add Highlight',
+                    description: 'Feature coming soon!',
+                  })
+                }
               >
                 <Plus className="w-6 h-6" />
               </Button>
@@ -225,7 +248,7 @@ const ProfileStories: React.FC<ProfileStoriesProps> = ({ userId, isOwnProfile })
             </div>
           )}
         </div>
-        
+
         <StoryViewer />
       </CardContent>
     </Card>

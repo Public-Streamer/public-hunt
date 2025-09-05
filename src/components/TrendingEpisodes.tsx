@@ -1,7 +1,7 @@
 import React from 'react';
+import { Play, Eye, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Play, Eye, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface Episode {
   id: string;
@@ -23,7 +23,7 @@ const TrendingEpisodes: React.FC = () => {
       views: 125000,
       duration: '32:15',
       thumbnail: '/placeholder.svg',
-      category: 'Technology'
+      category: 'Technology',
     },
     {
       id: '2',
@@ -32,7 +32,7 @@ const TrendingEpisodes: React.FC = () => {
       views: 89000,
       duration: '28:42',
       thumbnail: '/placeholder.svg',
-      category: 'Gaming'
+      category: 'Gaming',
     },
     {
       id: '3',
@@ -41,7 +41,7 @@ const TrendingEpisodes: React.FC = () => {
       views: 67000,
       duration: '41:20',
       thumbnail: '/placeholder.svg',
-      category: 'Music'
+      category: 'Music',
     },
     {
       id: '4',
@@ -50,7 +50,7 @@ const TrendingEpisodes: React.FC = () => {
       views: 54000,
       duration: '35:08',
       thumbnail: '/placeholder.svg',
-      category: 'Business'
+      category: 'Business',
     },
     {
       id: '5',
@@ -59,15 +59,17 @@ const TrendingEpisodes: React.FC = () => {
       views: 43000,
       duration: '45:30',
       thumbnail: '/placeholder.svg',
-      category: 'Art'
-    }
+      category: 'Art',
+    },
   ];
 
   return (
     <div className="py-8 bg-muted/30">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold">🔥 This Week's Hottest Episodes</h2>
+          <h2 className="text-2xl font-bold">
+            🔥 This Week's Hottest Episodes
+          </h2>
           <div className="flex gap-2">
             <Button variant="outline" size="icon">
               <ChevronLeft className="h-4 w-4" />
@@ -77,13 +79,16 @@ const TrendingEpisodes: React.FC = () => {
             </Button>
           </div>
         </div>
-        
+
         <div className="flex gap-4 overflow-x-auto pb-4">
           {episodes.map((episode) => (
-            <div key={episode.id} className="flex-none w-80 bg-background rounded-lg overflow-hidden hover:shadow-md transition-shadow">
+            <div
+              key={episode.id}
+              className="flex-none w-80 bg-background rounded-lg overflow-hidden hover:shadow-md transition-shadow"
+            >
               <div className="aspect-video relative group cursor-pointer">
-                <img 
-                  src={episode.thumbnail} 
+                <img
+                  src={episode.thumbnail}
                   alt={episode.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
@@ -92,19 +97,25 @@ const TrendingEpisodes: React.FC = () => {
                     <Play className="h-6 w-6 ml-1" />
                   </Button>
                 </div>
-                
+
                 {/* Duration badge */}
                 <Badge className="absolute bottom-3 right-3 bg-black/80">
                   <Clock className="h-3 w-3 mr-1" />
                   {episode.duration}
                 </Badge>
               </div>
-              
+
               <div className="p-4">
-                <Badge variant="outline" className="mb-2">{episode.category}</Badge>
-                <h3 className="font-semibold mb-1 line-clamp-2">{episode.title}</h3>
-                <p className="text-sm text-muted-foreground mb-3">{episode.channel}</p>
-                
+                <Badge variant="outline" className="mb-2">
+                  {episode.category}
+                </Badge>
+                <h3 className="font-semibold mb-1 line-clamp-2">
+                  {episode.title}
+                </h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  {episode.channel}
+                </p>
+
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1 text-sm text-muted-foreground">
                     <Eye className="h-4 w-4" />

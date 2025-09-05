@@ -1,12 +1,12 @@
-import React from "react";
-import { Button } from "@/components/ui/button";
-import { Flashlight, FlashlightOff } from "lucide-react";
-import { useScreenSize } from "@/hooks/use-mobile";
+import React from 'react';
+import { Flashlight, FlashlightOff } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useScreenSize } from '@/hooks/use-mobile';
 
 interface TorchButtonProps {
   isTorchEnabled: boolean;
   isTorchSupported: boolean;
-  currentFacingMode: "user" | "environment";
+  currentFacingMode: 'user' | 'environment';
   isVideoEnabled: boolean;
   onToggleTorch: () => Promise<void>;
 }
@@ -23,12 +23,15 @@ const TorchButton: React.FC<TorchButtonProps> = ({
   // Enhanced torch button visibility logic
   // Show torch button if back camera is active and video is enabled
   // Don't hide immediately if torch support is uncertain - let the user try
-  if (currentFacingMode !== "environment" || !isVideoEnabled) {
-    console.log('[TorchButton] Hidden - not environment camera or video disabled:', {
-      currentFacingMode,
-      isVideoEnabled,
-      isTorchSupported,
-    });
+  if (currentFacingMode !== 'environment' || !isVideoEnabled) {
+    console.log(
+      '[TorchButton] Hidden - not environment camera or video disabled:',
+      {
+        currentFacingMode,
+        isVideoEnabled,
+        isTorchSupported,
+      }
+    );
     return null;
   }
 
@@ -43,19 +46,19 @@ const TorchButton: React.FC<TorchButtonProps> = ({
   return (
     <Button
       onClick={onToggleTorch}
-      variant={isTorchEnabled ? "default" : "secondary"}
+      variant={isTorchEnabled ? 'default' : 'secondary'}
       className="w-full text-xs sm:text-sm"
-      size={screenSize === "mobile" ? "sm" : "default"}
+      size={screenSize === 'mobile' ? 'sm' : 'default'}
     >
       {isTorchEnabled ? (
         <>
           <Flashlight className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-          {screenSize === "mobile" ? "Torch" : "Torch On"}
+          {screenSize === 'mobile' ? 'Torch' : 'Torch On'}
         </>
       ) : (
         <>
           <FlashlightOff className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-          {screenSize === "mobile" ? "Torch" : "Torch Off"}
+          {screenSize === 'mobile' ? 'Torch' : 'Torch Off'}
         </>
       )}
     </Button>

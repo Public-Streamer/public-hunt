@@ -314,7 +314,8 @@ const Channels: React.FC = () => {
       <div className="text-center">
         <h1 className="text-3xl font-bold mb-4">Channels Feature</h1>
         <p className="text-lg text-muted-foreground">
-          Channels functionality is temporarily disabled while we improve the system.
+          Channels functionality is temporarily disabled while we improve the
+          system.
         </p>
       </div>
     </div>

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { Plus, Minus, Edit3, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Minus, Edit3, Trash2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -30,7 +30,9 @@ const TEAM_COLORS = [
   '#ec4899', // pink
 ];
 
-export const ScoreboardControls: React.FC<ScoreboardControlsProps> = ({ eventId }) => {
+export const ScoreboardControls: React.FC<ScoreboardControlsProps> = ({
+  eventId,
+}) => {
   const [teams, setTeams] = useState<Team[]>([]);
   const [newTeamName, setNewTeamName] = useState('');
   const [loading, setLoading] = useState(false);
@@ -41,19 +43,22 @@ export const ScoreboardControls: React.FC<ScoreboardControlsProps> = ({ eventId 
 
   const fetchTeams = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke('scoreboard-operations', {
-        body: { action: 'fetch', eventId }
-      });
+      const { data, error } = await supabase.functions.invoke(
+        'scoreboard-operations',
+        {
+          body: { action: 'fetch', eventId },
+        }
+      );
 
       if (error) throw error;
-      
+
       setTeams(data || []);
     } catch (error) {
       console.error('Error fetching teams:', error);
       toast({
-        title: "Error",
-        description: "Failed to load scoreboard data",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to load scoreboard data',
+        variant: 'destructive',
       });
     }
   };
@@ -64,30 +69,33 @@ export const ScoreboardControls: React.FC<ScoreboardControlsProps> = ({ eventId 
     setLoading(true);
     try {
       const teamColor = TEAM_COLORS[teams.length % TEAM_COLORS.length];
-      
-      const { error } = await supabase.functions.invoke('scoreboard-operations', {
-        body: {
-          action: 'create',
-          eventId,
-          teamName: newTeamName.trim(),
-          teamColor
+
+      const { error } = await supabase.functions.invoke(
+        'scoreboard-operations',
+        {
+          body: {
+            action: 'create',
+            eventId,
+            teamName: newTeamName.trim(),
+            teamColor,
+          },
         }
-      });
+      );
 
       if (error) throw error;
 
       setNewTeamName('');
       fetchTeams(); // Refresh the list
       toast({
-        title: "Success",
+        title: 'Success',
         description: `Team "${newTeamName}" created!`,
       });
     } catch (error) {
       console.error('Error creating team:', error);
       toast({
-        title: "Error",
-        description: "Failed to create team",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to create team',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -96,52 +104,60 @@ export const ScoreboardControls: React.FC<ScoreboardControlsProps> = ({ eventId 
 
   const updateScore = async (teamId: string, newScore: number) => {
     try {
-      const { error } = await supabase.functions.invoke('scoreboard-operations', {
-        body: {
-          action: 'updateScore',
-          teamId,
-          score: Math.max(0, newScore)
+      const { error } = await supabase.functions.invoke(
+        'scoreboard-operations',
+        {
+          body: {
+            action: 'updateScore',
+            teamId,
+            score: Math.max(0, newScore),
+          },
         }
-      });
+      );
 
       if (error) throw error;
-      
+
       // Update local state immediately for better UX
-      setTeams(prev => prev.map(team => 
-        team.id === teamId ? { ...team, score: Math.max(0, newScore) } : team
-      ));
+      setTeams((prev) =>
+        prev.map((team) =>
+          team.id === teamId ? { ...team, score: Math.max(0, newScore) } : team
+        )
+      );
     } catch (error) {
       console.error('Error updating score:', error);
       toast({
-        title: "Error",
-        description: "Failed to update score",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to update score',
+        variant: 'destructive',
       });
     }
   };
 
   const deleteTeam = async (teamId: string) => {
     try {
-      const { error } = await supabase.functions.invoke('scoreboard-operations', {
-        body: {
-          action: 'delete',
-          teamId
+      const { error } = await supabase.functions.invoke(
+        'scoreboard-operations',
+        {
+          body: {
+            action: 'delete',
+            teamId,
+          },
         }
-      });
+      );
 
       if (error) throw error;
 
-      setTeams(prev => prev.filter(team => team.id !== teamId));
+      setTeams((prev) => prev.filter((team) => team.id !== teamId));
       toast({
-        title: "Success",
-        description: "Team deleted",
+        title: 'Success',
+        description: 'Team deleted',
       });
     } catch (error) {
       console.error('Error deleting team:', error);
       toast({
-        title: "Error",
-        description: "Failed to delete team",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to delete team',
+        variant: 'destructive',
       });
     }
   };
@@ -169,8 +185,8 @@ export const ScoreboardControls: React.FC<ScoreboardControlsProps> = ({ eventId 
             }}
             className="flex-1"
           />
-          <Button 
-            onClick={createTeam} 
+          <Button
+            onClick={createTeam}
             disabled={loading || !newTeamName.trim()}
             className="h-9 px-3 text-sm sm:h-10 sm:px-4 sm:text-base"
           >
@@ -186,15 +202,21 @@ export const ScoreboardControls: React.FC<ScoreboardControlsProps> = ({ eventId 
             <div
               key={team.id}
               className="flex  items-center gap-3 p-3 border rounded-lg"
-              style={{ borderLeftColor: team.team_color, borderLeftWidth: '4px' }}
+              style={{
+                borderLeftColor: team.team_color,
+                borderLeftWidth: '4px',
+              }}
             >
               <div className="flex-1">
                 <div className="font-medium">{team.team_name}</div>
-                <div className="text-2xl font-bold" style={{ color: team.team_color }}>
+                <div
+                  className="text-2xl font-bold"
+                  style={{ color: team.team_color }}
+                >
                   {team.score}
                 </div>
               </div>
-              
+
               <div className="flex items-center gap-1 sm:gap-2 flex-col md:flex-row">
                 <Button
                   size="sm"
@@ -204,15 +226,17 @@ export const ScoreboardControls: React.FC<ScoreboardControlsProps> = ({ eventId 
                 >
                   <Minus className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
-                
+
                 <Input
                   type="number"
                   value={team.score}
-                  onChange={(e) => updateScore(team.id, parseInt(e.target.value) || 0)}
+                  onChange={(e) =>
+                    updateScore(team.id, parseInt(e.target.value) || 0)
+                  }
                   className="w-16 sm:w-20 h-8 px-1 sm:px-3 text-center text-sm"
                   min="0"
                 />
-                
+
                 <Button
                   size="sm"
                   variant="outline"
@@ -221,7 +245,7 @@ export const ScoreboardControls: React.FC<ScoreboardControlsProps> = ({ eventId 
                 >
                   <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
-                
+
                 <Button
                   size="sm"
                   variant="destructive"

@@ -1,9 +1,16 @@
 import React, { useState, useEffect } from 'react';
+import {
+  Share2,
+  MessageCircle,
+  Facebook,
+  Copy,
+  Check,
+  ExternalLink,
+} from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Share2, MessageCircle, Facebook, Copy, Check, ExternalLink } from 'lucide-react';
-import { toast } from 'sonner';
 import { useScreenSize } from '@/hooks/use-mobile';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -13,12 +20,14 @@ interface StageShareMenuProps {
   eventDescription?: string;
 }
 
-const StageShareMenu: React.FC<StageShareMenuProps> = ({ 
-  eventId, 
-  eventTitle, 
-  eventDescription 
+const StageShareMenu: React.FC<StageShareMenuProps> = ({
+  eventId,
+  eventTitle,
+  eventDescription,
 }) => {
-  const [copiedStates, setCopiedStates] = useState<{ [key: string]: boolean }>({});
+  const [copiedStates, setCopiedStates] = useState<{ [key: string]: boolean }>(
+    {}
+  );
   const [isGeneratingToken, setIsGeneratingToken] = useState(false);
   const [eventSlug, setEventSlug] = useState<string>('');
   const screenSize = useScreenSize();
@@ -32,7 +41,7 @@ const StageShareMenu: React.FC<StageShareMenuProps> = ({
           .select('slug')
           .eq('id', eventId)
           .single();
-        
+
         if (data?.slug) {
           setEventSlug(data.slug);
         }
@@ -40,35 +49,47 @@ const StageShareMenu: React.FC<StageShareMenuProps> = ({
         console.log('Could not fetch event slug:', error);
       }
     };
-    
+
     fetchEventSlug();
   }, [eventId]);
 
   const generateSecureInviteLink = async (): Promise<string> => {
     try {
       setIsGeneratingToken(true);
-      
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
       if (sessionError || !session) {
         throw new Error('Please log in to generate invite links');
       }
 
-      const { data, error } = await supabase.functions.invoke('generate-streamer-invite-token', {
-        body: { eventId },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
+      const { data, error } = await supabase.functions.invoke(
+        'generate-streamer-invite-token',
+        {
+          body: { eventId },
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        }
+      );
 
       if (error) {
-        throw new Error(error.message || 'Failed to generate secure invite link');
+        throw new Error(
+          error.message || 'Failed to generate secure invite link'
+        );
       }
 
       const stageIdentifier = eventSlug || eventId;
       return `${window.location.origin}/stage/${stageIdentifier}?token=${data.token}`;
     } catch (error) {
       console.error('Error generating secure invite link:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to generate secure invite link');
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : 'Failed to generate secure invite link'
+      );
       // Fallback to basic URL
       const stageIdentifier = eventSlug || eventId;
       return `${window.location.origin}/stage/${stageIdentifier}`;
@@ -78,11 +99,11 @@ const StageShareMenu: React.FC<StageShareMenuProps> = ({
   };
 
   const stageUrl = `${window.location.origin}/stage/${eventSlug || eventId}`;
-  
+
   // Create secure share message function that generates token for each use
   const createSecureShareMessage = async (): Promise<string> => {
     const secureUrl = await generateSecureInviteLink();
-    return `Join me for a live streaming event: "${eventTitle}"\n\n${eventDescription ? eventDescription + '\n\n' : ''}Access the stage here: ${secureUrl}`;
+    return `Join me for a live streaming event: "${eventTitle}"\n\n${eventDescription ? `${eventDescription}\n\n` : ''}Access the stage here: ${secureUrl}`;
   };
 
   const shareOptions = [
@@ -96,7 +117,7 @@ const StageShareMenu: React.FC<StageShareMenuProps> = ({
         const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(secureMessage)}`;
         window.open(whatsappUrl, '_blank');
         toast.success('WhatsApp opened with secure stage invitation');
-      }
+      },
     },
     {
       id: 'facebook',
@@ -108,7 +129,7 @@ const StageShareMenu: React.FC<StageShareMenuProps> = ({
         const messengerUrl = `https://m.me/?text=${encodeURIComponent(secureMessage)}`;
         window.open(messengerUrl, '_blank');
         toast.success('Facebook Messenger opened with secure stage invitation');
-      }
+      },
     },
     {
       id: 'instagram',
@@ -119,9 +140,11 @@ const StageShareMenu: React.FC<StageShareMenuProps> = ({
         const secureMessage = await createSecureShareMessage();
         navigator.clipboard.writeText(secureMessage).then(() => {
           window.open('https://www.instagram.com/direct/inbox/', '_blank');
-          toast.success('Secure invitation message copied! Paste in Instagram DM');
+          toast.success(
+            'Secure invitation message copied! Paste in Instagram DM'
+          );
         });
-      }
+      },
     },
     {
       id: 'tiktok',
@@ -134,7 +157,7 @@ const StageShareMenu: React.FC<StageShareMenuProps> = ({
           window.open('https://www.tiktok.com/messages', '_blank');
           toast.success('Secure invitation message copied! Paste in TikTok DM');
         });
-      }
+      },
     },
     {
       id: 'twitter',
@@ -146,37 +169,40 @@ const StageShareMenu: React.FC<StageShareMenuProps> = ({
         const twitterUrl = `https://twitter.com/messages/compose?text=${encodeURIComponent(secureMessage)}`;
         window.open(twitterUrl, '_blank');
         toast.success('X opened with secure stage invitation');
-      }
+      },
     },
     {
       id: 'copy',
       name: 'Copy Secure Link',
-      icon: copiedStates['copy'] ? Check : Copy,
-      color: copiedStates['copy'] ? 'bg-green-600' : 'bg-gray-600',
+      icon: copiedStates.copy ? Check : Copy,
+      color: copiedStates.copy ? 'bg-green-600' : 'bg-gray-600',
       action: async () => {
         const secureUrl = await generateSecureInviteLink();
-        navigator.clipboard.writeText(secureUrl).then(() => {
-          setCopiedStates(prev => ({ ...prev, copy: true }));
-          toast.success('Secure invite link copied to clipboard');
-          setTimeout(() => {
-            setCopiedStates(prev => ({ ...prev, copy: false }));
-          }, 2000);
-        }).catch(() => {
-          // Fallback for older browsers
-          const textArea = document.createElement('textarea');
-          textArea.value = secureUrl;
-          document.body.appendChild(textArea);
-          textArea.select();
-          document.execCommand('copy');
-          document.body.removeChild(textArea);
-          
-          setCopiedStates(prev => ({ ...prev, copy: true }));
-          toast.success('Secure invite link copied to clipboard');
-          setTimeout(() => {
-            setCopiedStates(prev => ({ ...prev, copy: false }));
-          }, 2000);
-        });
-      }
+        navigator.clipboard
+          .writeText(secureUrl)
+          .then(() => {
+            setCopiedStates((prev) => ({ ...prev, copy: true }));
+            toast.success('Secure invite link copied to clipboard');
+            setTimeout(() => {
+              setCopiedStates((prev) => ({ ...prev, copy: false }));
+            }, 2000);
+          })
+          .catch(() => {
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = secureUrl;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+
+            setCopiedStates((prev) => ({ ...prev, copy: true }));
+            toast.success('Secure invite link copied to clipboard');
+            setTimeout(() => {
+              setCopiedStates((prev) => ({ ...prev, copy: false }));
+            }, 2000);
+          });
+      },
     },
     {
       id: 'copy-message',
@@ -185,29 +211,32 @@ const StageShareMenu: React.FC<StageShareMenuProps> = ({
       color: copiedStates['copy-message'] ? 'bg-green-600' : 'bg-purple-600',
       action: async () => {
         const secureMessage = await createSecureShareMessage();
-        navigator.clipboard.writeText(secureMessage).then(() => {
-          setCopiedStates(prev => ({ ...prev, 'copy-message': true }));
-          toast.success('Secure invitation message copied');
-          setTimeout(() => {
-            setCopiedStates(prev => ({ ...prev, 'copy-message': false }));
-          }, 2000);
-        }).catch(() => {
-          // Fallback for older browsers
-          const textArea = document.createElement('textarea');
-          textArea.value = secureMessage;
-          document.body.appendChild(textArea);
-          textArea.select();
-          document.execCommand('copy');
-          document.body.removeChild(textArea);
-          
-          setCopiedStates(prev => ({ ...prev, 'copy-message': true }));
-          toast.success('Secure invitation message copied');
-          setTimeout(() => {
-            setCopiedStates(prev => ({ ...prev, 'copy-message': false }));
-          }, 2000);
-        });
-      }
-    }
+        navigator.clipboard
+          .writeText(secureMessage)
+          .then(() => {
+            setCopiedStates((prev) => ({ ...prev, 'copy-message': true }));
+            toast.success('Secure invitation message copied');
+            setTimeout(() => {
+              setCopiedStates((prev) => ({ ...prev, 'copy-message': false }));
+            }, 2000);
+          })
+          .catch(() => {
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = secureMessage;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+
+            setCopiedStates((prev) => ({ ...prev, 'copy-message': true }));
+            toast.success('Secure invitation message copied');
+            setTimeout(() => {
+              setCopiedStates((prev) => ({ ...prev, 'copy-message': false }));
+            }, 2000);
+          });
+      },
+    },
   ];
 
   return (
@@ -215,21 +244,29 @@ const StageShareMenu: React.FC<StageShareMenuProps> = ({
       <CardHeader className="p-3 sm:p-3">
         <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
           <Share2 className="h-3 w-3 sm:h-4 sm:w-4" />
-          {screenSize === 'mobile' ? 'Invite Streamers' : 'Invite Other Streamers'}
+          {screenSize === 'mobile'
+            ? 'Invite Streamers'
+            : 'Invite Other Streamers'}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-3">
         <div className="space-y-2">
           <p className="text-xs sm:text-sm text-muted-foreground">
-            {screenSize === 'mobile' ? 'Share stage link:' : 'Share this stage link to invite other streamers to join your event:'}
+            {screenSize === 'mobile'
+              ? 'Share stage link:'
+              : 'Share this stage link to invite other streamers to join your event:'}
           </p>
           <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
             <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
-            <span className="text-xs sm:text-sm font-mono truncate flex-1">{stageUrl}</span>
+            <span className="text-xs sm:text-sm font-mono truncate flex-1">
+              {stageUrl}
+            </span>
           </div>
         </div>
 
-        <div className={`grid gap-2 ${screenSize === 'mobile' ? 'grid-cols-1' : 'grid-cols-2'}`}>
+        <div
+          className={`grid gap-2 ${screenSize === 'mobile' ? 'grid-cols-1' : 'grid-cols-2'}`}
+        >
           {shareOptions.map((option) => {
             const Icon = option.icon;
             return (
@@ -238,13 +275,18 @@ const StageShareMenu: React.FC<StageShareMenuProps> = ({
                 onClick={option.action}
                 variant="outline"
                 className={`flex items-center gap-2 h-auto p-2 sm:p-3 ${screenSize === 'mobile' ? 'justify-start' : ''}`}
-                disabled={copiedStates[option.id] || (option.id === 'copy' && isGeneratingToken)}
+                disabled={
+                  copiedStates[option.id] ||
+                  (option.id === 'copy' && isGeneratingToken)
+                }
                 size={screenSize === 'mobile' ? 'sm' : 'default'}
               >
                 <div className={`p-1 rounded ${option.color} flex-shrink-0`}>
                   <Icon className="h-3 w-3 text-white" />
                 </div>
-                <span className="text-xs sm:text-sm truncate">{option.name}</span>
+                <span className="text-xs sm:text-sm truncate">
+                  {option.name}
+                </span>
               </Button>
             );
           })}
@@ -255,7 +297,11 @@ const StageShareMenu: React.FC<StageShareMenuProps> = ({
             <Badge variant="secondary" className="text-xs">
               Host Only
             </Badge>
-            <span className="truncate">{screenSize === 'mobile' ? 'Private panel' : 'Only you can see this sharing panel'}</span>
+            <span className="truncate">
+              {screenSize === 'mobile'
+                ? 'Private panel'
+                : 'Only you can see this sharing panel'}
+            </span>
           </div>
         </div>
       </CardContent>

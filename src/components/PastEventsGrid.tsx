@@ -1,5 +1,5 @@
-import React from "react";
-import PastEventCard from "./PastEventCard";
+import React from 'react';
+import PastEventCard from './PastEventCard';
 
 interface Event {
   id: string;
@@ -45,7 +45,7 @@ const PastEventsGrid: React.FC<PastEventsGridProps> = ({
       event.channelName.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesMember =
-      memberSearch === "" ||
+      memberSearch === '' ||
       event.participants.some((participant) =>
         participant.toLowerCase().includes(memberSearch.toLowerCase())
       );
@@ -56,19 +56,19 @@ const PastEventsGrid: React.FC<PastEventsGridProps> = ({
   // Sort events based on selected option
   const sortedEvents = [...filteredEvents].sort((a, b) => {
     switch (sortBy) {
-      case "most-views":
+      case 'most-views':
         return b.views - a.views;
-      case "most-revenue":
+      case 'most-revenue':
         return b.ticketRevenue - a.ticketRevenue;
-      case "most-ticket-sales":
+      case 'most-ticket-sales':
         return (b.ticketSales || 0) - (a.ticketSales || 0);
-      case "most-popular":
+      case 'most-popular':
         return b.views * parseFloat(b.rating) - a.views * parseFloat(a.rating);
-      case "newest":
+      case 'newest':
         return b.startDateTime.getTime() - a.startDateTime.getTime();
-      case "oldest":
+      case 'oldest':
         return a.startDateTime.getTime() - b.startDateTime.getTime();
-      case "alphabetical":
+      case 'alphabetical':
         return a.title.localeCompare(b.title);
       default:
         return b.views - a.views; // Default to most views
@@ -81,8 +81,8 @@ const PastEventsGrid: React.FC<PastEventsGridProps> = ({
         <p className="text-gray-500 text-lg">No past events found</p>
         <p className="text-gray-400 text-sm mt-2">
           {searchTerm || memberSearch
-            ? "Try adjusting your search terms"
-            : "Check back later for upcoming events"}
+            ? 'Try adjusting your search terms'
+            : 'Check back later for upcoming events'}
         </p>
       </div>
     );

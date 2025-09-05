@@ -1,30 +1,31 @@
-import React, { useEffect, useMemo, useState, useCallback } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import { ChevronDown } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { TimerControl } from "./TimerControl";
-import { useCountdown, TimerStatus } from "@/hooks/useCountdown";
-import { DogCard, DogData, ScoreEntry } from "./DogCard";
-import { toast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { ScorecardSummary } from "./ScorecardSummary";
-import { ScorecardDetails } from "./ScorecardDetails";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { ChevronDown } from "lucide-react";
-import { useEventControlLock } from "@/hooks/useEventControlLock";
+} from '@/components/ui/collapsible';
+import { TimerControl } from './TimerControl';
+import { useCountdown, TimerStatus } from '@/hooks/useCountdown';
+import { DogCard, DogData, ScoreEntry } from './DogCard';
+import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { ScorecardSummary } from './ScorecardSummary';
+import { ScorecardDetails } from './ScorecardDetails';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useEventControlLock } from '@/hooks/useEventControlLock';
+
 interface Props {
   eventId: string;
   isHost: boolean;
@@ -39,16 +40,16 @@ function fromRow(row: any): DogData {
     name: row.team_name,
     color: row.team_color,
     entries,
-    handler: cf.handler_name || "",
-    dogName: cf.dog_name || "",
-    cityState: cf.city_state || "",
-    breed: cf.breed || "",
+    handler: cf.handler_name || '',
+    dogName: cf.dog_name || '',
+    cityState: cf.city_state || '',
+    breed: cf.breed || '',
     age:
-      typeof cf.age === "number" ? cf.age : cf.age ? Number(cf.age) : undefined,
-    judgeNotes: cf.judge_notes || "",
+      typeof cf.age === 'number' ? cf.age : cf.age ? Number(cf.age) : undefined,
+    judgeNotes: cf.judge_notes || '',
     disqualified: !!cf.disqualified,
-    dogPhotoUrl: cf.dog_photo_url || "",
-    pedigreeImageUrl: cf.pedigree_url || "",
+    dogPhotoUrl: cf.dog_photo_url || '',
+    pedigreeImageUrl: cf.pedigree_url || '',
   };
 }
 
@@ -76,7 +77,7 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
   const [dogs, setDogs] = useState<DogData[]>([]);
   const [loading, setLoading] = useState(false);
   const [huntMinutes, setHuntMinutes] = useState<number>(120);
-  const [customMinutes, setCustomMinutes] = useState<string>("");
+  const [customMinutes, setCustomMinutes] = useState<string>('');
   const [showCustomInput, setShowCustomInput] = useState<boolean>(false);
   const [timerOverview, setTimerOverview] = useState<Record<string, any>>({});
 
@@ -123,7 +124,7 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
     Record<
       string,
       {
-        variant: "success" | "danger" | "warning" | "info" | "pending";
+        variant: 'success' | 'danger' | 'warning' | 'info' | 'pending';
         until: number;
       }
     >
@@ -131,7 +132,7 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
   const triggerGlow = useCallback(
     (
       key: string,
-      variant: "success" | "danger" | "warning" | "info" | "pending",
+      variant: 'success' | 'danger' | 'warning' | 'info' | 'pending',
       ms = 5000
     ) => {
       setGlow((prev) => ({
@@ -160,7 +161,7 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
   // Realtime channel for scoreboard/timer sync
   const getClientId = () => {
     try {
-      const key = "ps-client-id";
+      const key = 'ps-client-id';
       let id = localStorage.getItem(key);
       if (!id) {
         id = crypto.randomUUID();
@@ -180,9 +181,9 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
   const fetchTimerOverview = async () => {
     try {
       const { data, error } = await supabase.functions.invoke(
-        "scoreboard-operations",
+        'scoreboard-operations',
         {
-          body: { action: "fetch", eventId, scoreboardType: "coon_hunt" },
+          body: { action: 'fetch', eventId, scoreboardType: 'coon_hunt' },
         }
       );
       if (error) throw error;
@@ -197,18 +198,18 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
           for (const [key, timer] of Object.entries(timers)) {
             if (
               timer &&
-              typeof timer === "object" &&
-              "status" in timer &&
-              "remaining" in timer
+              typeof timer === 'object' &&
+              'status' in timer &&
+              'remaining' in timer
             ) {
               const remaining = Math.max(0, (timer as any).remaining || 0);
               const minutes = Math.floor(remaining / 60);
               const seconds = remaining % 60;
               uiTimers[key] = {
-                formatted: `${minutes.toString().padStart(2, "0")}:${seconds
+                formatted: `${minutes.toString().padStart(2, '0')}:${seconds
                   .toString()
-                  .padStart(2, "0")}`,
-                status: (timer as any).status || "idle",
+                  .padStart(2, '0')}`,
+                status: (timer as any).status || 'idle',
               };
             }
           }
@@ -217,28 +218,28 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
       }
       setTimerOverview(overview);
     } catch (e) {
-      console.error("Failed to fetch timer overview:", e);
+      console.error('Failed to fetch timer overview:', e);
     }
   };
 
   const colorCls = (s: TimerStatus) =>
-    s === "running"
-      ? "bg-primary/10 text-primary"
-      : s === "paused"
-      ? "bg-accent/10 text-accent-foreground"
-      : s === "finished"
-      ? "bg-destructive/10 text-destructive"
-      : "bg-muted text-muted-foreground";
+    s === 'running'
+      ? 'bg-primary/10 text-primary'
+      : s === 'paused'
+        ? 'bg-accent/10 text-accent-foreground'
+        : s === 'finished'
+          ? 'bg-destructive/10 text-destructive'
+          : 'bg-muted text-muted-foreground';
 
   // Setup realtime channel defined below; syncCastTimers moved after timers
 
   const huntTimer = useCountdown(huntMinutes * 60, {
     onComplete: () => {
       toast({
-        title: "Hunt time finished",
-        description: "Main hunt timer ended",
+        title: 'Hunt time finished',
+        description: 'Main hunt timer ended',
       });
-      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
         try {
           (navigator as any).vibrate?.(200);
         } catch (e) {
@@ -250,10 +251,10 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
   const trackTimer = useCountdown(6 * 60, {
     onComplete: () => {
       toast({
-        title: "Track timer finished",
-        description: "Global track timer ended",
+        title: 'Track timer finished',
+        description: 'Global track timer ended',
       });
-      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
         try {
           (navigator as any).vibrate?.(200);
         } catch (e) {
@@ -265,10 +266,10 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
   const globalShineTimer = useCountdown(8 * 60, {
     onComplete: () => {
       toast({
-        title: "Global shine finished",
-        description: "Shine time ended",
+        title: 'Global shine finished',
+        description: 'Shine time ended',
       });
-      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
         try {
           (navigator as any).vibrate?.(200);
         } catch (e) {
@@ -280,10 +281,10 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
   const babbleMainTimer = useCountdown(1 * 60, {
     onComplete: () => {
       toast({
-        title: "Babbling timer finished",
-        description: "Main babbling 1-minute window ended",
+        title: 'Babbling timer finished',
+        description: 'Main babbling 1-minute window ended',
       });
-      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
         try {
           (navigator as any).vibrate?.(200);
         } catch (e) {
@@ -302,34 +303,34 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
     });
 
     channel
-      .on("broadcast", { event: "score_update" }, (p: any) => {
+      .on('broadcast', { event: 'score_update' }, (p: any) => {
         setOpenSummary(true);
         setOpenDetails(true);
         if (p?.teamId) setOpenDogIds((prev) => ({ ...prev, [p.teamId]: true }));
         const variant =
-          p?.updateKind === "+"
-            ? "success"
-            : p?.updateKind === "-"
-            ? "danger"
-            : p?.updateKind === "o"
-            ? "warning"
-            : p?.updateKind === "pending"
-            ? "info"
-            : "pending";
+          p?.updateKind === '+'
+            ? 'success'
+            : p?.updateKind === '-'
+              ? 'danger'
+              : p?.updateKind === 'o'
+                ? 'warning'
+                : p?.updateKind === 'pending'
+                  ? 'info'
+                  : 'pending';
         if (p?.teamId) triggerGlow(`dog:${p.teamId}`, variant);
-        triggerGlow("summary", variant);
-        triggerGlow("details", variant);
+        triggerGlow('summary', variant);
+        triggerGlow('details', variant);
         fetchTeams();
       })
-      .on("broadcast", { event: "dog_timer_update" }, (p: any) => {
+      .on('broadcast', { event: 'dog_timer_update' }, (p: any) => {
         if (p?.teamId) setOpenDogIds((prev) => ({ ...prev, [p.teamId]: true }));
-        if (p?.teamId) triggerGlow(`dog:${p.teamId}`, "warning");
+        if (p?.teamId) triggerGlow(`dog:${p.teamId}`, 'warning');
         // Refresh timer overview to sync across all viewers
         fetchTimerOverview();
       })
-      .on("broadcast", { event: "cast_timer_update" }, (p: any) => {
+      .on('broadcast', { event: 'cast_timer_update' }, (p: any) => {
         setOpenHunt(true);
-        triggerGlow("hunt", "warning");
+        triggerGlow('hunt', 'warning');
         const t = p?.timers;
         if (t) {
           huntTimer.syncTo(
@@ -350,9 +351,9 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
           );
         }
       })
-      .on("broadcast", { event: "dog_created" }, () => {
+      .on('broadcast', { event: 'dog_created' }, () => {
         setOpenDetails(true);
-        triggerGlow("details", "info");
+        triggerGlow('details', 'info');
         fetchTeams();
       });
 
@@ -377,9 +378,9 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
   const fetchTeams = async () => {
     try {
       const { data, error } = await supabase.functions.invoke(
-        "scoreboard-operations",
+        'scoreboard-operations',
         {
-          body: { action: "fetch", eventId, scoreboardType: "coon_hunt" },
+          body: { action: 'fetch', eventId, scoreboardType: 'coon_hunt' },
         }
       );
       if (error) throw error;
@@ -400,8 +401,8 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
     (async () => {
       try {
         const { data } = await supabase.functions.invoke(
-          "scoreboard-operations",
-          { body: { action: "getCastTimers", eventId } }
+          'scoreboard-operations',
+          { body: { action: 'getCastTimers', eventId } }
         );
         const t = (data as any)?.timers;
         if (t) {
@@ -431,9 +432,9 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
   const syncCastTimers = useCallback(async () => {
     if (!canEditScoreboard) {
       toast({
-        title: "Access Denied",
-        description: "You do not have permission to edit scores.",
-        variant: "destructive",
+        title: 'Access Denied',
+        description: 'You do not have permission to edit scores.',
+        variant: 'destructive',
       });
       return;
     }
@@ -451,16 +452,16 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
         },
         mainHuntMinutes: huntMinutes,
       };
-      await supabase.functions.invoke("scoreboard-operations", {
-        body: { action: "updateCastTimers", eventId, timers },
+      await supabase.functions.invoke('scoreboard-operations', {
+        body: { action: 'updateCastTimers', eventId, timers },
       });
       rtChannelRef.current?.send({
-        type: "broadcast",
-        event: "cast_timer_update",
+        type: 'broadcast',
+        event: 'cast_timer_update',
         payload: { eventId, timers },
       });
     } catch (e) {
-      console.warn("Failed to sync cast timers", e);
+      console.warn('Failed to sync cast timers', e);
     }
   }, [
     eventId,
@@ -480,9 +481,9 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
     // compute previous for diff
     if (!canEditScoreboard) {
       toast({
-        title: "Access Denied",
-        description: "You do not have permission to sync timers.",
-        variant: "destructive",
+        title: 'Access Denied',
+        description: 'You do not have permission to sync timers.',
+        variant: 'destructive',
       });
       return;
     }
@@ -491,34 +492,34 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
     try {
       const payload = toPayload(dog);
       const { error } = await supabase.functions.invoke(
-        "scoreboard-operations",
+        'scoreboard-operations',
         {
-          body: { action: "updateTeam", ...payload, score: newTotal },
+          body: { action: 'updateTeam', ...payload, score: newTotal },
         }
       );
       if (error) throw error;
 
       // Broadcast update for viewers (for auto-expand + glow)
       const detectKind = () => {
-        if (!prev) return "pending";
+        if (!prev) return 'pending';
         const before = new Map(prev.entries.map((e) => [e.id, e]));
         for (const e of dog.entries) {
           const old = before.get(e.id);
           if (old && old.outcome !== e.outcome) return e.outcome;
         }
-        return "pending";
+        return 'pending';
       };
       rtChannelRef.current?.send({
-        type: "broadcast",
-        event: "score_update",
+        type: 'broadcast',
+        event: 'score_update',
         payload: { eventId, teamId: dog.id, updateKind: detectKind() },
       });
     } catch (e) {
       console.error(e);
       toast({
-        title: "Error",
-        description: "Failed to save score",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to save score',
+        variant: 'destructive',
       });
     }
   };
@@ -529,23 +530,23 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
   ) => {
     if (!canEditScoreboard) {
       toast({
-        title: "Access Denied",
-        description: "You do not have permission to edit timers.",
-        variant: "destructive",
+        title: 'Access Denied',
+        description: 'You do not have permission to edit timers.',
+        variant: 'destructive',
       });
       return;
     }
     try {
-      await supabase.functions.invoke("scoreboard-operations", {
-        body: { action: "updateDogTimers", teamId: dogId, timers },
+      await supabase.functions.invoke('scoreboard-operations', {
+        body: { action: 'updateDogTimers', teamId: dogId, timers },
       });
       rtChannelRef.current?.send({
-        type: "broadcast",
-        event: "dog_timer_update",
+        type: 'broadcast',
+        event: 'dog_timer_update',
         payload: { eventId, teamId: dogId, timers },
       });
     } catch (e) {
-      console.warn("Failed to sync dog timers", e);
+      console.warn('Failed to sync dog timers', e);
     }
   };
 
@@ -553,7 +554,7 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
     () =>
       dogs.reduce(
         (acc, d) =>
-          acc + d.entries.filter((e) => e.outcome === "pending").length,
+          acc + d.entries.filter((e) => e.outcome === 'pending').length,
         0
       ),
     [dogs]
@@ -571,54 +572,54 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
   }, [dogs, isHost]);
 
   // Add dog
-  const [newDog, setNewDog] = useState("");
+  const [newDog, setNewDog] = useState('');
   const addDog = async () => {
     if (!newDog.trim()) return;
     if (!canEditScoreboard) {
       toast({
-        title: "Access Denied",
-        description: "You do not have permission to add dogs.",
-        variant: "destructive",
+        title: 'Access Denied',
+        description: 'You do not have permission to add dogs.',
+        variant: 'destructive',
       });
       return;
     }
     setLoading(true);
     try {
       const colorPalette = [
-        "#ef4444",
-        "#3b82f6",
-        "#10b981",
-        "#f59e0b",
-        "#8b5cf6",
+        '#ef4444',
+        '#3b82f6',
+        '#10b981',
+        '#f59e0b',
+        '#8b5cf6',
       ];
       const teamColor = colorPalette[dogs.length % colorPalette.length];
       const { error } = await supabase.functions.invoke(
-        "scoreboard-operations",
+        'scoreboard-operations',
         {
           body: {
-            action: "create",
+            action: 'create',
             eventId,
             teamName: newDog.trim(),
             teamColor,
-            customFields: { handler_name: "", entries: [] },
-            scoreboardType: "coon_hunt",
+            customFields: { handler_name: '', entries: [] },
+            scoreboardType: 'coon_hunt',
           },
         }
       );
       if (error) throw error;
-      setNewDog("");
+      setNewDog('');
       rtChannelRef.current?.send({
-        type: "broadcast",
-        event: "dog_created",
+        type: 'broadcast',
+        event: 'dog_created',
         payload: { eventId },
       });
       fetchTeams();
     } catch (e) {
       console.error(e);
       toast({
-        title: "Error",
-        description: "Failed to add dog",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to add dog',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -647,7 +648,7 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
       <Collapsible open={openHunt} onOpenChange={setOpenHunt}>
         <Card
           className={`relative overflow-hidden glow-surface ${
-            glow["hunt"] ? "glow-active glow-warning" : ""
+            glow.hunt ? 'glow-active glow-warning' : ''
           }`}
         >
           <CardHeader className="py-3">
@@ -662,7 +663,7 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
                   >
                     <ChevronDown
                       className={`h-4 w-4 transition-transform ${
-                        openHunt ? "rotate-180" : ""
+                        openHunt ? 'rotate-180' : ''
                       }`}
                     />
                   </Button>
@@ -672,10 +673,10 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
                     value={
                       [60, 90, 120].includes(huntMinutes)
                         ? String(huntMinutes)
-                        : "custom"
+                        : 'custom'
                     }
                     onValueChange={(v) => {
-                      if (v === "custom") {
+                      if (v === 'custom') {
                         setShowCustomInput(true);
                         setCustomMinutes(String(huntMinutes));
                       } else {
@@ -706,7 +707,7 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
                       value={customMinutes}
                       onChange={(e) => setCustomMinutes(e.target.value)}
                       onKeyDown={(e) => {
-                        if (e.key === "Enter") {
+                        if (e.key === 'Enter') {
                           const minutes = Number(customMinutes);
                           if (minutes > 0) {
                             setHuntMinutes(minutes);
@@ -714,7 +715,7 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
                             syncCastTimers();
                             setShowCustomInput(false);
                           }
-                        } else if (e.key === "Escape") {
+                        } else if (e.key === 'Escape') {
                           setShowCustomInput(false);
                         }
                       }}
@@ -869,33 +870,33 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
         timerOverview={timerOverview}
         castTimers={[
           {
-            key: "hunt",
+            key: 'hunt',
             label: `Main Hunt ${huntMinutes} minutes`,
             status: huntTimer.status,
             formatted: huntTimer.formatted,
           },
           {
-            key: "track",
-            label: "Track 6 minutes",
+            key: 'track',
+            label: 'Track 6 minutes',
             status: trackTimer.status,
             formatted: trackTimer.formatted,
           },
           {
-            key: "shine",
-            label: "Global Shine 8 minutes",
+            key: 'shine',
+            label: 'Global Shine 8 minutes',
             status: globalShineTimer.status,
             formatted: globalShineTimer.formatted,
           },
           {
-            key: "babbling",
-            label: "Babbling 1 Minute 1:00",
+            key: 'babbling',
+            label: 'Babbling 1 Minute 1:00',
             status: babbleMainTimer.status,
             formatted: babbleMainTimer.formatted,
           },
         ]}
         open={openSummary}
         onOpenChange={setOpenSummary}
-        glowClassName={glow["summary"] ? "glow-active glow-info" : ""}
+        glowClassName={glow.summary ? 'glow-active glow-info' : ''}
       />
 
       <ScorecardDetails
@@ -904,7 +905,7 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
         canEdit={canEditScoreboard}
         open={openDetails}
         onOpenChange={setOpenDetails}
-        glowClassName={glow["details"] ? "glow-active glow-info" : ""}
+        glowClassName={glow.details ? 'glow-active glow-info' : ''}
       />
 
       {/* Dogs */}
@@ -915,17 +916,17 @@ export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
             className={`glow-surface ${
               glow[`dog:${d.id}`]
                 ? `glow-active ${
-                    glow[`dog:${d.id}`]!.variant === "success"
-                      ? "glow-success"
-                      : glow[`dog:${d.id}`]!.variant === "danger"
-                      ? "glow-danger"
-                      : glow[`dog:${d.id}`]!.variant === "warning"
-                      ? "glow-warning"
-                      : glow[`dog:${d.id}`]!.variant === "info"
-                      ? "glow-info"
-                      : "glow-pending"
+                    glow[`dog:${d.id}`]!.variant === 'success'
+                      ? 'glow-success'
+                      : glow[`dog:${d.id}`]!.variant === 'danger'
+                        ? 'glow-danger'
+                        : glow[`dog:${d.id}`]!.variant === 'warning'
+                          ? 'glow-warning'
+                          : glow[`dog:${d.id}`]!.variant === 'info'
+                            ? 'glow-info'
+                            : 'glow-pending'
                   }`
-                : ""
+                : ''
             }`}
           >
             <DogCard

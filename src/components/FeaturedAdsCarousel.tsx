@@ -1,9 +1,17 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, ChevronRight, Play, Star, Trophy, TrendingUp, Plus } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Play,
+  Star,
+  Trophy,
+  TrendingUp,
+  Plus,
+} from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 interface FeaturedAd {
   id: string;
@@ -21,55 +29,60 @@ interface FeaturedAd {
 // Mock featured ads data
 const mockFeaturedAds: FeaturedAd[] = [
   {
-    id: "1",
-    title: "Summer Collection Launch",
-    advertiserName: "Fashion Forward",
-    thumbnail: "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400&h=300&fit=crop",
+    id: '1',
+    title: 'Summer Collection Launch',
+    advertiserName: 'Fashion Forward',
+    thumbnail:
+      'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400&h=300&fit=crop',
     rating: 4.8,
     views: 15420,
-    badges: ["Top Rated", "Most Viewed"],
-    category: "Fashion"
+    badges: ['Top Rated', 'Most Viewed'],
+    category: 'Fashion',
   },
   {
-    id: "2", 
-    title: "Cozy Home Essentials",
-    advertiserName: "Home & Garden Co",
-    thumbnail: "https://images.unsplash.com/photo-1721322800607-8c38375eef04?w=400&h=300&fit=crop",
+    id: '2',
+    title: 'Cozy Home Essentials',
+    advertiserName: 'Home & Garden Co',
+    thumbnail:
+      'https://images.unsplash.com/photo-1721322800607-8c38375eef04?w=400&h=300&fit=crop',
     rating: 4.9,
     views: 12890,
-    badges: ["Fan Favorite", "High Engagement"],
-    category: "Home"
+    badges: ['Fan Favorite', 'High Engagement'],
+    category: 'Home',
   },
   {
-    id: "3",
-    title: "Premium Pet Care",
-    advertiserName: "PetLove",
-    thumbnail: "https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=400&h=300&fit=crop",
+    id: '3',
+    title: 'Premium Pet Care',
+    advertiserName: 'PetLove',
+    thumbnail:
+      'https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=400&h=300&fit=crop',
     rating: 4.7,
     views: 9870,
-    badges: ["Top Rated", "Cost Effective"],
-    category: "Pets"
+    badges: ['Top Rated', 'Cost Effective'],
+    category: 'Pets',
   },
   {
-    id: "4",
-    title: "Nature Escape Getaway",
-    advertiserName: "Travel Dreams",
-    thumbnail: "https://images.unsplash.com/photo-1500673922987-e212871fec22?w=400&h=300&fit=crop",
+    id: '4',
+    title: 'Nature Escape Getaway',
+    advertiserName: 'Travel Dreams',
+    thumbnail:
+      'https://images.unsplash.com/photo-1500673922987-e212871fec22?w=400&h=300&fit=crop',
     rating: 4.6,
     views: 18900,
-    badges: ["Most Viewed", "High Completion"],
-    category: "Travel"
+    badges: ['Most Viewed', 'High Completion'],
+    category: 'Travel',
   },
   {
-    id: "5",
-    title: "Fresh Flower Delivery",
-    advertiserName: "Bloom & Co",
-    thumbnail: "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=400&h=300&fit=crop",
+    id: '5',
+    title: 'Fresh Flower Delivery',
+    advertiserName: 'Bloom & Co',
+    thumbnail:
+      'https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=400&h=300&fit=crop',
     rating: 4.8,
     views: 11200,
-    badges: ["Fan Favorite", "Positive Feedback"],
-    category: "Flowers"
-  }
+    badges: ['Fan Favorite', 'Positive Feedback'],
+    category: 'Flowers',
+  },
 ];
 
 const FeaturedAdsCarousel: React.FC = () => {
@@ -114,14 +127,15 @@ const FeaturedAdsCarousel: React.FC = () => {
       const scrollPosition = index * cardWidth;
       scrollContainerRef.current.scrollTo({
         left: scrollPosition,
-        behavior: 'smooth'
+        behavior: 'smooth',
       });
     }
     setCurrentIndex(index);
   };
 
   const handlePrevious = () => {
-    const newIndex = currentIndex > 0 ? currentIndex - 1 : mockFeaturedAds.length;
+    const newIndex =
+      currentIndex > 0 ? currentIndex - 1 : mockFeaturedAds.length;
     scrollToIndex(newIndex);
   };
 
@@ -133,27 +147,27 @@ const FeaturedAdsCarousel: React.FC = () => {
 
   const handleAdClick = (adId: string) => {
     // In a real app, this might open ad details or redirect to advertiser page
-    console.log("Ad clicked:", adId);
+    console.log('Ad clicked:', adId);
   };
 
   const getBadgeColor = (badge: string) => {
     switch (badge) {
-      case "Top Rated":
-        return "bg-yellow-500/90 text-white";
-      case "Most Viewed":
-        return "bg-blue-500/90 text-white";
-      case "Fan Favorite":
-        return "bg-pink-500/90 text-white";
-      case "High Engagement":
-        return "bg-green-500/90 text-white";
-      case "Cost Effective":
-        return "bg-purple-500/90 text-white";
-      case "High Completion":
-        return "bg-orange-500/90 text-white";
-      case "Positive Feedback":
-        return "bg-teal-500/90 text-white";
+      case 'Top Rated':
+        return 'bg-yellow-500/90 text-white';
+      case 'Most Viewed':
+        return 'bg-blue-500/90 text-white';
+      case 'Fan Favorite':
+        return 'bg-pink-500/90 text-white';
+      case 'High Engagement':
+        return 'bg-green-500/90 text-white';
+      case 'Cost Effective':
+        return 'bg-purple-500/90 text-white';
+      case 'High Completion':
+        return 'bg-orange-500/90 text-white';
+      case 'Positive Feedback':
+        return 'bg-teal-500/90 text-white';
       default:
-        return "bg-primary text-primary-foreground";
+        return 'bg-primary text-primary-foreground';
     }
   };
 
@@ -166,12 +180,13 @@ const FeaturedAdsCarousel: React.FC = () => {
             🔥 Featured Ads of the Week
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Discover the most engaging and successful ads on our platform. These creators are setting the standard for quality advertising.
+            Discover the most engaging and successful ads on our platform. These
+            creators are setting the standard for quality advertising.
           </p>
         </div>
 
         {/* Carousel Container */}
-        <div 
+        <div
           className="relative"
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
@@ -216,12 +231,17 @@ const FeaturedAdsCarousel: React.FC = () => {
                     alt={ad.title}
                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                   />
-                  
+
                   {/* Play Button Overlay */}
-                  <div className={`absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity duration-300 ${
-                    hoveredAd === ad.id ? 'opacity-100' : 'opacity-0'
-                  }`}>
-                    <Button size="lg" className="rounded-full bg-white/90 text-black hover:bg-white">
+                  <div
+                    className={`absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity duration-300 ${
+                      hoveredAd === ad.id ? 'opacity-100' : 'opacity-0'
+                    }`}
+                  >
+                    <Button
+                      size="lg"
+                      className="rounded-full bg-white/90 text-black hover:bg-white"
+                    >
                       <Play className="h-6 w-6 ml-1" />
                     </Button>
                   </div>
@@ -233,8 +253,12 @@ const FeaturedAdsCarousel: React.FC = () => {
                         key={badge}
                         className={`text-xs font-medium ${getBadgeColor(badge)}`}
                       >
-                        {badge === "Top Rated" && <Trophy className="h-3 w-3 mr-1" />}
-                        {badge === "Most Viewed" && <TrendingUp className="h-3 w-3 mr-1" />}
+                        {badge === 'Top Rated' && (
+                          <Trophy className="h-3 w-3 mr-1" />
+                        )}
+                        {badge === 'Most Viewed' && (
+                          <TrendingUp className="h-3 w-3 mr-1" />
+                        )}
                         {badge}
                       </Badge>
                     ))}
@@ -243,7 +267,9 @@ const FeaturedAdsCarousel: React.FC = () => {
                   {/* Rating */}
                   <div className="absolute top-3 right-3 bg-black/70 rounded-full px-2 py-1 flex items-center gap-1">
                     <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                    <span className="text-white text-xs font-medium">{ad.rating}</span>
+                    <span className="text-white text-xs font-medium">
+                      {ad.rating}
+                    </span>
                   </div>
                 </div>
 
@@ -272,19 +298,20 @@ const FeaturedAdsCarousel: React.FC = () => {
             {/* CTA Card */}
             <Card
               className="flex-shrink-0 w-80 hover:shadow-xl transition-all duration-300 cursor-pointer group border-dashed border-2 border-primary/30 hover:border-primary/60 bg-gradient-to-br from-primary/5 to-primary/10"
-              onClick={() => navigate("/create-ad")}
+              onClick={() => navigate('/create-ad')}
             >
               <CardContent className="p-6 h-full flex flex-col items-center justify-center text-center space-y-4">
                 <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
                   <Plus className="h-8 w-8 text-primary" />
                 </div>
-                
+
                 <div className="space-y-2">
                   <h3 className="font-semibold text-lg text-foreground">
                     Want to be featured here?
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    Create high-quality ads that viewers love and join our featured advertisers!
+                    Create high-quality ads that viewers love and join our
+                    featured advertisers!
                   </p>
                 </div>
 
@@ -314,16 +341,22 @@ const FeaturedAdsCarousel: React.FC = () => {
         {/* Stats Footer */}
         <div className="text-center mt-8 text-sm text-muted-foreground">
           <p>
-            Featuring {mockFeaturedAds.length} top-performing ads with an average rating of{' '}
+            Featuring {mockFeaturedAds.length} top-performing ads with an
+            average rating of{' '}
             <span className="font-medium text-foreground">
-              {(mockFeaturedAds.reduce((sum, ad) => sum + ad.rating, 0) / mockFeaturedAds.length).toFixed(1)} ⭐
+              {(
+                mockFeaturedAds.reduce((sum, ad) => sum + ad.rating, 0) /
+                mockFeaturedAds.length
+              ).toFixed(1)}{' '}
+              ⭐
             </span>
           </p>
         </div>
       </div>
 
-      <style dangerouslySetInnerHTML={{
-        __html: `
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
           .scrollbar-hide {
             -ms-overflow-style: none;
             scrollbar-width: none;
@@ -331,8 +364,9 @@ const FeaturedAdsCarousel: React.FC = () => {
           .scrollbar-hide::-webkit-scrollbar {
             display: none;
           }
-        `
-      }} />
+        `,
+        }}
+      />
     </section>
   );
 };

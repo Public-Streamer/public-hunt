@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { AlertTriangle, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { TooltipWrapper } from '@/components/ui/tooltip-wrapper';
-import { AlertTriangle, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAppContext } from '@/contexts/AppContext';
@@ -23,30 +23,38 @@ const LegalDocumentPage: React.FC = () => {
   const [documentSigned, setDocumentSigned] = useState(false);
 
   const currentDate = new Date().toLocaleDateString();
-  
+
   // Get user's full name from URL parameter or user metadata
   const urlParams = new URLSearchParams(window.location.search);
   const nameFromUrl = urlParams.get('name');
-  const userFullName = nameFromUrl ? decodeURIComponent(nameFromUrl) : 
-    (user?.user_metadata?.firstName && user?.user_metadata?.lastName
+  const userFullName = nameFromUrl
+    ? decodeURIComponent(nameFromUrl)
+    : user?.user_metadata?.firstName && user?.user_metadata?.lastName
       ? `${user.user_metadata.firstName} ${user.user_metadata.lastName}`
-      : null);
-  
+      : null;
+
   // Debug logging to understand the validation issue
   console.log('Debug signature validation:', {
-    signature: signature,
+    signature,
     signatureTrimmed: signature.trim(),
     signatureLower: signature.trim().toLowerCase(),
-    userFullName: userFullName,
+    userFullName,
     userFullNameLower: userFullName?.toLowerCase(),
-    match: userFullName ? signature.trim().toLowerCase() === userFullName.toLowerCase() : null
+    match: userFullName
+      ? signature.trim().toLowerCase() === userFullName.toLowerCase()
+      : null,
   });
-  
-  const isValidSignature = userFullName 
+
+  const isValidSignature = userFullName
     ? signature.trim().toLowerCase() === userFullName.toLowerCase().trim()
     : signature.trim().length >= 8; // Require at least 8 characters if no user name
-  
-  const canSubmit = isValidSignature && acknowledgedRisks && acknowledgedLiability && acknowledgedCompliance && acknowledgedProhibited;
+
+  const canSubmit =
+    isValidSignature &&
+    acknowledgedRisks &&
+    acknowledgedLiability &&
+    acknowledgedCompliance &&
+    acknowledgedProhibited;
 
   // Add mobile detection and force touch event handling
   useEffect(() => {
@@ -61,8 +69,14 @@ const LegalDocumentPage: React.FC = () => {
   }, []);
 
   const handleAccept = async () => {
-    console.log('Accept button clicked', { canSubmit, signature, acknowledgedRisks, acknowledgedLiability, acknowledgedCompliance });
-    
+    console.log('Accept button clicked', {
+      canSubmit,
+      signature,
+      acknowledgedRisks,
+      acknowledgedLiability,
+      acknowledgedCompliance,
+    });
+
     if (!canSubmit) {
       console.log('Form validation failed:', getValidationMessage());
       alert(getValidationMessage());
@@ -72,9 +86,9 @@ const LegalDocumentPage: React.FC = () => {
     try {
       console.log('Processing signature...');
       setDocumentSigned(true);
-      
+
       const signDate = new Date().toISOString();
-      
+
       // Save to database first
       try {
         const { data, error } = await supabase
@@ -82,11 +96,11 @@ const LegalDocumentPage: React.FC = () => {
           .insert({
             user_id: user?.id || null,
             email: user?.email || 'guest@example.com',
-            signature: signature,
+            signature,
             document_type: 'user_agreement',
             document_version: LEGAL_VERSION,
             ip_address: '127.0.0.1', // In production, get real IP
-            user_agent: navigator.userAgent
+            user_agent: navigator.userAgent,
           })
           .select()
           .single();
@@ -94,32 +108,32 @@ const LegalDocumentPage: React.FC = () => {
         if (error) {
           console.error('Error saving legal document:', error);
           toast({
-            title: "Error",
-            description: "Failed to save legal document. Please try again.",
-            variant: "destructive",
+            title: 'Error',
+            description: 'Failed to save legal document. Please try again.',
+            variant: 'destructive',
           });
           return;
         }
 
         console.log('Legal document saved:', data);
-        
+
         toast({
-          title: "Success",
-          description: "Legal document signed successfully!",
+          title: 'Success',
+          description: 'Legal document signed successfully!',
         });
       } catch (dbError) {
         console.error('Database error:', dbError);
         // Continue with messaging even if DB save fails
       }
-      
+
       // Always send message first - even if no opener is detected
       const messageData = {
         type: 'LEGAL_AGREEMENT_SIGNED',
         data: {
           signature,
           signDate: currentDate,
-          fullName: signature
-        }
+          fullName: signature,
+        },
       };
 
       // Try multiple messaging approaches for mobile compatibility
@@ -129,7 +143,7 @@ const LegalDocumentPage: React.FC = () => {
           console.log('Sending message to parent window...');
           window.parent.postMessage(messageData, '*');
         }
-        
+
         // Try opener if exists
         if (window.opener && !window.opener.closed) {
           console.log('Sending message to opener window...');
@@ -146,17 +160,22 @@ const LegalDocumentPage: React.FC = () => {
       }
 
       // For mobile: Show confirmation and allow manual close
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      
+      const isMobile =
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+          navigator.userAgent
+        );
+
       if (isMobile) {
-        alert('Legal document signed successfully! This window will now close. If it doesn\'t close automatically, please close it manually.');
+        alert(
+          "Legal document signed successfully! This window will now close. If it doesn't close automatically, please close it manually."
+        );
       }
-      
+
       // Try to close the window - focus on messaging parent window
       setTimeout(() => {
         try {
           console.log('Attempting to close window and notify parent...');
-          
+
           // Send completion message to parent window FIRST
           const completionMessage = {
             type: 'LEGAL_AGREEMENT_COMPLETED',
@@ -164,8 +183,8 @@ const LegalDocumentPage: React.FC = () => {
               signature,
               signDate: currentDate,
               fullName: signature,
-              completed: true
-            }
+              completed: true,
+            },
           };
 
           // Send to all possible parent windows
@@ -173,7 +192,7 @@ const LegalDocumentPage: React.FC = () => {
             console.log('Sending completion message to parent window...');
             window.parent.postMessage(completionMessage, '*');
           }
-          
+
           if (window.opener && !window.opener.closed) {
             console.log('Sending completion message to opener window...');
             window.opener.postMessage(completionMessage, '*');
@@ -184,34 +203,34 @@ const LegalDocumentPage: React.FC = () => {
             window.top.postMessage(completionMessage, '*');
           }
 
-      // Give time for message to be processed, then handle closing
-      setTimeout(() => {
-        // Check if this is mobile navigation first
-        const urlParams = new URLSearchParams(window.location.search);
-        const isMobileParam = urlParams.get('mobile') === 'true';
-        const returnTo = urlParams.get('return');
-        
-        if (isMobileParam && returnTo === 'signup') {
-          console.log('Mobile detected, saving completion status and redirecting back to signup form...');
-          sessionStorage.setItem('legalDocumentCompleted', 'true');
-          window.location.href = '/login?tab=signup';
-          return;
-        }
-        
-        // For popup windows, try to close
-        try {
-          console.log('Attempting window.close()...');
-          window.close();
-        } catch (e) {
-          console.log('window.close() failed:', e);
-        }
-      }, 500);
-          
+          // Give time for message to be processed, then handle closing
+          setTimeout(() => {
+            // Check if this is mobile navigation first
+            const urlParams = new URLSearchParams(window.location.search);
+            const isMobileParam = urlParams.get('mobile') === 'true';
+            const returnTo = urlParams.get('return');
+
+            if (isMobileParam && returnTo === 'signup') {
+              console.log(
+                'Mobile detected, saving completion status and redirecting back to signup form...'
+              );
+              sessionStorage.setItem('legalDocumentCompleted', 'true');
+              window.location.href = '/login?tab=signup';
+              return;
+            }
+
+            // For popup windows, try to close
+            try {
+              console.log('Attempting window.close()...');
+              window.close();
+            } catch (e) {
+              console.log('window.close() failed:', e);
+            }
+          }, 500);
         } catch (error) {
           console.log('Close attempt failed:', error);
         }
       }, 500);
-      
     } catch (error) {
       console.error('Error processing signature:', error);
       alert('Document signed successfully! Please close this window manually.');
@@ -219,41 +238,54 @@ const LegalDocumentPage: React.FC = () => {
   };
 
   const getValidationMessage = () => {
-    if (!signature.trim()) return 'Please enter your full legal name as your electronic signature';
-    if (signature.trim() && !isValidSignature && userFullName) return `Signature must match exactly: ${userFullName}`;
-    if (signature.trim() && !isValidSignature && !userFullName) return 'Please enter your full legal name (minimum 8 characters)';
-    if (!acknowledgedRisks) return 'Please acknowledge that you understand the risks of live streaming';
-    if (!acknowledgedLiability) return 'Please agree to release Public Streamer from liability and provide indemnification';
-    if (!acknowledgedCompliance) return 'Please agree to comply with all applicable laws and platform terms';
-    if (!acknowledgedProhibited) return 'Please confirm you have read and agree to the Terms of Service, including the prohibition on monetizing prohibited content categories listed above';
+    if (!signature.trim())
+      return 'Please enter your full legal name as your electronic signature';
+    if (signature.trim() && !isValidSignature && userFullName)
+      return `Signature must match exactly: ${userFullName}`;
+    if (signature.trim() && !isValidSignature && !userFullName)
+      return 'Please enter your full legal name (minimum 8 characters)';
+    if (!acknowledgedRisks)
+      return 'Please acknowledge that you understand the risks of live streaming';
+    if (!acknowledgedLiability)
+      return 'Please agree to release Public Streamer from liability and provide indemnification';
+    if (!acknowledgedCompliance)
+      return 'Please agree to comply with all applicable laws and platform terms';
+    if (!acknowledgedProhibited)
+      return 'Please confirm you have read and agree to the Terms of Service, including the prohibition on monetizing prohibited content categories listed above';
     return null;
   };
 
   const handleCancel = () => {
     console.log('Close Window button clicked');
-    
+
     try {
       // Enhanced mobile-specific close handling
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      
+      const isMobile =
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+          navigator.userAgent
+        );
+
       // Send success message to parent windows with specific instructions
-      const closeMessage = { 
+      const closeMessage = {
         type: 'LEGAL_DOCUMENT_CLOSE_REQUESTED',
         action: 'close-and-return',
         mobile: isMobile,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
-      
-      console.log('Sending close message to all possible parents...', closeMessage);
-      
+
+      console.log(
+        'Sending close message to all possible parents...',
+        closeMessage
+      );
+
       // Try all possible parent window references
       const windowTargets = [
         { name: 'parent', ref: window.parent },
         { name: 'opener', ref: window.opener },
-        { name: 'top', ref: window.top }
+        { name: 'top', ref: window.top },
       ];
-      
-      windowTargets.forEach(target => {
+
+      windowTargets.forEach((target) => {
         try {
           if (target.ref && target.ref !== window && !target.ref.closed) {
             console.log(`Sending close message to ${target.name}...`);
@@ -268,13 +300,15 @@ const LegalDocumentPage: React.FC = () => {
       const urlParams = new URLSearchParams(window.location.search);
       const isMobileParam = urlParams.get('mobile') === 'true';
       const returnTo = urlParams.get('return');
-      
+
       if (isMobileParam && returnTo === 'signup') {
-        console.log('Mobile detected, redirecting back to signup form immediately...');
+        console.log(
+          'Mobile detected, redirecting back to signup form immediately...'
+        );
         window.location.href = '/login?tab=signup';
         return;
       }
-      
+
       // For popup windows, try to close with a shorter delay
       setTimeout(() => {
         try {
@@ -283,7 +317,6 @@ const LegalDocumentPage: React.FC = () => {
           console.log('window.close() failed:', e);
         }
       }, 100);
-      
     } catch (error) {
       console.error('Error in handleCancel:', error);
       // Show success state with navigation fallback
@@ -295,7 +328,7 @@ const LegalDocumentPage: React.FC = () => {
           try {
             window.history.back();
           } catch (e2) {
-            window.location.href = window.location.origin + '/login?tab=signup';
+            window.location.href = `${window.location.origin}/login?tab=signup`;
           }
         }, 500);
       }
@@ -320,32 +353,40 @@ const LegalDocumentPage: React.FC = () => {
 
         <div className="space-y-4">
           <div className="flex items-center space-x-2">
-            <Checkbox 
-              id="acknowledge-risks" 
+            <Checkbox
+              id="acknowledge-risks"
               checked={acknowledgedRisks}
-              onCheckedChange={(checked) => setAcknowledgedRisks(checked === true)}
+              onCheckedChange={(checked) =>
+                setAcknowledgedRisks(checked === true)
+              }
             />
             <Label htmlFor="acknowledge-risks" className="text-sm">
-              I acknowledge and voluntarily assume all risks associated with live streaming
+              I acknowledge and voluntarily assume all risks associated with
+              live streaming
             </Label>
           </div>
 
           <div className="flex items-center space-x-2">
-            <Checkbox 
-              id="acknowledge-liability" 
+            <Checkbox
+              id="acknowledge-liability"
               checked={acknowledgedLiability}
-              onCheckedChange={(checked) => setAcknowledgedLiability(checked === true)}
+              onCheckedChange={(checked) =>
+                setAcknowledgedLiability(checked === true)
+              }
             />
             <Label htmlFor="acknowledge-liability" className="text-sm">
-              I release Public Streamer from all liability and agree to indemnify the platform
+              I release Public Streamer from all liability and agree to
+              indemnify the platform
             </Label>
           </div>
 
           <div className="flex items-center space-x-2">
-            <Checkbox 
-              id="acknowledge-compliance" 
+            <Checkbox
+              id="acknowledge-compliance"
               checked={acknowledgedCompliance}
-              onCheckedChange={(checked) => setAcknowledgedCompliance(checked === true)}
+              onCheckedChange={(checked) =>
+                setAcknowledgedCompliance(checked === true)
+              }
             />
             <Label htmlFor="acknowledge-compliance" className="text-sm">
               I agree to comply with all applicable laws and platform terms
@@ -354,7 +395,10 @@ const LegalDocumentPage: React.FC = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="signature" className="text-sm font-medium block mb-1">
+              <Label
+                htmlFor="signature"
+                className="text-sm font-medium block mb-1"
+              >
                 Electronic Signature (Type your full legal name)
               </Label>
               {userFullName && (
@@ -372,9 +416,15 @@ const LegalDocumentPage: React.FC = () => {
                 type="text"
                 value={signature}
                 onChange={(e) => setSignature(e.target.value)}
-                placeholder={userFullName ? `Type: ${userFullName}` : "Your full legal name"}
+                placeholder={
+                  userFullName
+                    ? `Type: ${userFullName}`
+                    : 'Your full legal name'
+                }
                 className={`w-full min-h-[48px] ${
-                  signature.trim() && !isValidSignature ? 'border-red-500 bg-red-50' : ''
+                  signature.trim() && !isValidSignature
+                    ? 'border-red-500 bg-red-50'
+                    : ''
                 }`}
               />
               {signature.trim() && !isValidSignature && userFullName && (
@@ -390,16 +440,17 @@ const LegalDocumentPage: React.FC = () => {
             </div>
             <div>
               <Label className="text-sm font-medium block mb-1">Date</Label>
-              <Input 
-                value={currentDate} 
-                disabled 
+              <Input
+                value={currentDate}
+                disabled
                 className="w-full bg-gray-100 min-h-[48px]"
               />
             </div>
           </div>
 
           <div className="text-xs text-gray-600">
-            By signing, you agree this electronic signature has the same legal effect as a handwritten signature.
+            By signing, you agree this electronic signature has the same legal
+            effect as a handwritten signature.
           </div>
 
           {/* Validation Error Message */}
@@ -409,7 +460,9 @@ const LegalDocumentPage: React.FC = () => {
                 <AlertTriangle className="h-4 w-4" />
                 <span className="text-sm font-medium">Unable to proceed:</span>
               </div>
-              <p className="text-sm text-yellow-700 mt-1">{getValidationMessage()}</p>
+              <p className="text-sm text-yellow-700 mt-1">
+                {getValidationMessage()}
+              </p>
             </div>
           )}
 
@@ -417,87 +470,97 @@ const LegalDocumentPage: React.FC = () => {
           <div className="flex flex-col items-center space-y-4 pt-8">
             {/* Main action buttons - side by side and centered */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-               <button 
-                 type="button"
-                 onClick={(e) => {
-                   e.preventDefault();
-                   e.stopPropagation();
-                   console.log('Cancel button clicked via onClick');
-                   handleCancel();
-                 }}
-                 onTouchEnd={(e) => {
-                   e.preventDefault();
-                   e.stopPropagation();
-                   console.log('Cancel button touched via onTouchEnd');
-                   setTimeout(() => handleCancel(), 100);
-                 }}
-                 className="w-48 px-6 py-3 min-h-[48px] text-base font-medium border-2 border-gray-400 rounded-lg bg-white hover:bg-gray-50 active:bg-gray-100 text-gray-700 transition-all duration-200 cursor-pointer shadow-lg hover:shadow-xl"
-                 style={{ 
-                   WebkitTapHighlightColor: 'rgba(0,0,0,0.1)',
-                   touchAction: 'manipulation',
-                   WebkitTouchCallout: 'none',
-                   WebkitUserSelect: 'none',
-                   userSelect: 'none'
-                 }}
-               >
-                 Cancel
-               </button>
-              
-               <TooltipWrapper 
-                 content={!canSubmit ? getValidationMessage() : "Sign the legal document electronically"}
-                 disabled={canSubmit}
-               >
-                 <button 
-                   type="button"
-                   onClick={(e) => {
-                     e.preventDefault();
-                     e.stopPropagation();
-                     console.log('Accept button clicked via onClick', { canSubmit });
-                     if (canSubmit) {
-                       handleAccept();
-                     } else {
-                       alert(getValidationMessage());
-                     }
-                   }}
-                   onTouchEnd={(e) => {
-                     e.preventDefault();
-                     e.stopPropagation();
-                     console.log('Accept button touched via onTouchEnd', { canSubmit });
-                     if (canSubmit) {
-                       setTimeout(() => handleAccept(), 100);
-                     } else {
-                       setTimeout(() => alert(getValidationMessage()), 100);
-                     }
-                   }}
-                   disabled={!canSubmit}
-                   className={`w-48 px-6 py-3 min-h-[48px] text-base font-medium rounded-lg transition-all duration-200 cursor-pointer ${
-                     canSubmit 
-                       ? 'bg-green-600 hover:bg-green-700 active:bg-green-800 text-white border-2 border-green-600 shadow-lg hover:shadow-xl shadow-green-600/30' 
-                       : 'bg-gray-300 cursor-not-allowed text-gray-500 border-2 border-gray-300 shadow-lg'
-                   }`}
-                style={{ 
-                  WebkitTapHighlightColor: canSubmit ? 'rgba(0,255,0,0.2)' : 'rgba(0,0,0,0.1)',
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('Cancel button clicked via onClick');
+                  handleCancel();
+                }}
+                onTouchEnd={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('Cancel button touched via onTouchEnd');
+                  setTimeout(() => handleCancel(), 100);
+                }}
+                className="w-48 px-6 py-3 min-h-[48px] text-base font-medium border-2 border-gray-400 rounded-lg bg-white hover:bg-gray-50 active:bg-gray-100 text-gray-700 transition-all duration-200 cursor-pointer shadow-lg hover:shadow-xl"
+                style={{
+                  WebkitTapHighlightColor: 'rgba(0,0,0,0.1)',
                   touchAction: 'manipulation',
                   WebkitTouchCallout: 'none',
                   WebkitUserSelect: 'none',
-                  userSelect: 'none'
+                  userSelect: 'none',
                 }}
               >
-                {canSubmit ? (
-                  <div className="flex items-center justify-center gap-2">
-                    <CheckCircle className="h-4 w-4" />
-                    Accept and Sign
-                  </div>
-                ) : (
-                  'Accept and Sign'
-                )}
-               </button>
-                 </TooltipWrapper>
-             </div>
+                Cancel
+              </button>
+
+              <TooltipWrapper
+                content={
+                  !canSubmit
+                    ? getValidationMessage()
+                    : 'Sign the legal document electronically'
+                }
+                disabled={canSubmit}
+              >
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Accept button clicked via onClick', {
+                      canSubmit,
+                    });
+                    if (canSubmit) {
+                      handleAccept();
+                    } else {
+                      alert(getValidationMessage());
+                    }
+                  }}
+                  onTouchEnd={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Accept button touched via onTouchEnd', {
+                      canSubmit,
+                    });
+                    if (canSubmit) {
+                      setTimeout(() => handleAccept(), 100);
+                    } else {
+                      setTimeout(() => alert(getValidationMessage()), 100);
+                    }
+                  }}
+                  disabled={!canSubmit}
+                  className={`w-48 px-6 py-3 min-h-[48px] text-base font-medium rounded-lg transition-all duration-200 cursor-pointer ${
+                    canSubmit
+                      ? 'bg-green-600 hover:bg-green-700 active:bg-green-800 text-white border-2 border-green-600 shadow-lg hover:shadow-xl shadow-green-600/30'
+                      : 'bg-gray-300 cursor-not-allowed text-gray-500 border-2 border-gray-300 shadow-lg'
+                  }`}
+                  style={{
+                    WebkitTapHighlightColor: canSubmit
+                      ? 'rgba(0,255,0,0.2)'
+                      : 'rgba(0,0,0,0.1)',
+                    touchAction: 'manipulation',
+                    WebkitTouchCallout: 'none',
+                    WebkitUserSelect: 'none',
+                    userSelect: 'none',
+                  }}
+                >
+                  {canSubmit ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <CheckCircle className="h-4 w-4" />
+                      Accept and Sign
+                    </div>
+                  ) : (
+                    'Accept and Sign'
+                  )}
+                </button>
+              </TooltipWrapper>
+            </div>
 
             {/* Close Window Button - only visible after document is signed */}
             {documentSigned && (
-              <button 
+              <button
                 type="button"
                 onClick={(e) => {
                   e.preventDefault();
@@ -512,12 +575,12 @@ const LegalDocumentPage: React.FC = () => {
                   setTimeout(() => handleCancel(), 100);
                 }}
                 className="w-48 px-6 py-3 min-h-[48px] text-base font-medium rounded-lg bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white border-2 border-blue-600 shadow-md transition-colors duration-200 cursor-pointer"
-                style={{ 
+                style={{
                   WebkitTapHighlightColor: 'rgba(0,123,255,0.2)',
                   touchAction: 'manipulation',
                   WebkitTouchCallout: 'none',
                   WebkitUserSelect: 'none',
-                  userSelect: 'none'
+                  userSelect: 'none',
                 }}
               >
                 Close Window

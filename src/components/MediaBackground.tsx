@@ -1,21 +1,21 @@
-import React, { useEffect, useMemo, useState, useCallback } from "react";
-import { cn, getMediaType, filterImageUrls } from "@/lib/utils";
-import { ImageModal } from "./ImageModal";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "./ui/carousel";
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import {
   ChevronLeft,
   ChevronRight,
   Image,
   MonitorPlay,
   Video,
-} from "lucide-react";
-import { Button } from "./ui/button";
+} from 'lucide-react';
+import { cn, getMediaType, filterImageUrls } from '@/lib/utils';
+import { ImageModal } from './ImageModal';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from './ui/carousel';
+import { Button } from './ui/button';
 
 interface MediaBackgroundProps {
   mediaUrls?: string[];
@@ -37,8 +37,8 @@ const MediaBackground: React.FC<MediaBackgroundProps> = ({
   src,
   fallback,
 
-  className = "",
-  alt = "Media background",
+  className = '',
+  alt = 'Media background',
   autoIntervalMs,
   onClick,
   enableModal = false,
@@ -48,13 +48,13 @@ const MediaBackground: React.FC<MediaBackgroundProps> = ({
 }) => {
   const slides = useMemo(() => {
     if (Array.isArray(mediaUrls) && mediaUrls.length)
-      console.log("Media URLs:", mediaUrls);
+      console.log('Media URLs:', mediaUrls);
     return mediaUrls.filter(Boolean);
     const single = src || fallback;
     return single ? [single] : [];
   }, [mediaUrls, src, fallback]);
 
-  console.log("Slides:", slides);
+  console.log('Slides:', slides);
 
   // Filter to only show images in modal
   const imageSlides = useMemo(() => filterImageUrls(slides), [slides]);
@@ -89,11 +89,11 @@ const MediaBackground: React.FC<MediaBackgroundProps> = ({
       onSlideChange?.(newIndex);
     };
 
-    api.on("select", onSelect);
+    api.on('select', onSelect);
     onSelect(); // Set initial index
 
     return () => {
-      api.off("select", onSelect);
+      api.off('select', onSelect);
     };
   }, [api, onSlideChange]);
 
@@ -107,10 +107,10 @@ const MediaBackground: React.FC<MediaBackgroundProps> = ({
         return;
       }
 
-      if (enableModal && mediaType === "image") {
+      if (enableModal && mediaType === 'image') {
         // Find the current image index in the imageSlides array
         const imageIndex = imageSlides.findIndex((img) => img === mediaUrl);
-        console.log("Image index:", imageIndex);
+        console.log('Image index:', imageIndex);
         if (imageIndex >= 0) {
           setClickedIndex(imageIndex);
           setIsModalOpen(true);
@@ -130,10 +130,10 @@ const MediaBackground: React.FC<MediaBackgroundProps> = ({
     (e: React.KeyboardEvent) => {
       if (!api) return;
 
-      if (e.key === "ArrowLeft") {
+      if (e.key === 'ArrowLeft') {
         e.preventDefault();
         api.scrollPrev();
-      } else if (e.key === "ArrowRight") {
+      } else if (e.key === 'ArrowRight') {
         e.preventDefault();
         api.scrollNext();
       }
@@ -146,7 +146,7 @@ const MediaBackground: React.FC<MediaBackgroundProps> = ({
     return (
       <div
         className={cn(
-          "relative aspect-video overflow-hidden bg-muted",
+          'relative aspect-video overflow-hidden bg-muted',
           className
         )}
       >
@@ -163,18 +163,18 @@ const MediaBackground: React.FC<MediaBackgroundProps> = ({
     const mediaType = getMediaType(mediaUrl);
 
     return (
-      <div className={cn("relative aspect-video overflow-hidden", className)}>
+      <div className={cn('relative aspect-video overflow-hidden', className)}>
         <div
           className="absolute inset-0 w-full h-full cursor-pointer"
           onClick={() => handleMediaClick(0)}
         >
-          {mediaType === "video" ? (
+          {mediaType === 'video' ? (
             <video
               src={mediaUrl}
               className="w-full h-full object-cover"
               controls
               playsInline
-              poster={mediaUrl.replace(/\.[^/.]+$/, "") + ".jpg"} // Try to find poster
+              poster={`${mediaUrl.replace(/\.[^/.]+$/, '')}.jpg`} // Try to find poster
             />
           ) : (
             <img
@@ -200,7 +200,7 @@ const MediaBackground: React.FC<MediaBackgroundProps> = ({
 
   return (
     <div
-      className={cn("relative aspect-video overflow-hidden group", className)}
+      className={cn('relative aspect-video overflow-hidden group', className)}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onKeyDown={handleKeyDown}
@@ -212,7 +212,7 @@ const MediaBackground: React.FC<MediaBackgroundProps> = ({
         setApi={setApi}
         className="w-full h-full"
         opts={{
-          align: "center",
+          align: 'center',
           loop: true,
           skipSnaps: false,
           dragFree: false,
@@ -228,13 +228,13 @@ const MediaBackground: React.FC<MediaBackgroundProps> = ({
                   className="relative w-full h-full cursor-pointer"
                   onClick={() => handleMediaClick(index)}
                 >
-                  {mediaType === "video" ? (
+                  {mediaType === 'video' ? (
                     <video
                       src={mediaUrl}
                       className="w-full h-full object-cover"
                       controls
                       playsInline
-                      poster={mediaUrl.replace(/\.[^/.]+$/, "") + ".jpg"}
+                      poster={`${mediaUrl.replace(/\.[^/.]+$/, '')}.jpg`}
                     />
                   ) : (
                     <img
@@ -243,7 +243,7 @@ const MediaBackground: React.FC<MediaBackgroundProps> = ({
                       className="w-full h-full object-cover object-center aspect-video"
                       draggable={false}
                       loading={
-                        Math.abs(index - currentIndex) <= 1 ? "eager" : "lazy"
+                        Math.abs(index - currentIndex) <= 1 ? 'eager' : 'lazy'
                       }
                     />
                   )}
@@ -288,10 +288,10 @@ const MediaBackground: React.FC<MediaBackgroundProps> = ({
             <div
               key={index}
               className={cn(
-                "w-2 h-2 rounded-full transition-all duration-200",
+                'w-2 h-2 rounded-full transition-all duration-200',
                 index === currentIndex
-                  ? "bg-primary scale-110"
-                  : "bg-background/60 backdrop-blur-sm"
+                  ? 'bg-primary scale-110'
+                  : 'bg-background/60 backdrop-blur-sm'
               )}
               aria-label={`Slide ${index + 1} of ${slides.length}`}
             />

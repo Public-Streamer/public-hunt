@@ -1,8 +1,16 @@
 import React, { useState, useEffect } from 'react';
+import {
+  Lock,
+  Ticket,
+  CreditCard,
+  Eye,
+  Users,
+  Clock,
+  DollarSign,
+} from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Lock, Ticket, CreditCard, Eye, Users, Clock, DollarSign } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 interface TicketVerificationProps {
@@ -24,7 +32,7 @@ interface EventInfo {
 const TicketVerification: React.FC<TicketVerificationProps> = ({
   eventId,
   onUpgrade,
-  showUpgradePrompt = true
+  showUpgradePrompt = true,
 }) => {
   const [eventInfo, setEventInfo] = useState<EventInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -56,8 +64,10 @@ const TicketVerification: React.FC<TicketVerificationProps> = ({
   const checkTicketStatus = async () => {
     try {
       setCheckingTicket(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       if (!user) {
         setHasTicket(false);
         return;
@@ -85,9 +95,9 @@ const TicketVerification: React.FC<TicketVerificationProps> = ({
       <Card className="mb-6">
         <CardContent className="p-8">
           <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded mb-2"></div>
-            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+            <div className="h-8 bg-gray-200 rounded mb-4" />
+            <div className="h-4 bg-gray-200 rounded mb-2" />
+            <div className="h-4 bg-gray-200 rounded w-3/4" />
           </div>
         </CardContent>
       </Card>
@@ -131,18 +141,25 @@ const TicketVerification: React.FC<TicketVerificationProps> = ({
             </Badge>
           </div>
 
-          <h2 className="text-2xl font-bold mb-4">Premium Event Access Required</h2>
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">{eventInfo.name}</h3>
-          
+          <h2 className="text-2xl font-bold mb-4">
+            Premium Event Access Required
+          </h2>
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">
+            {eventInfo.name}
+          </h3>
+
           <p className="text-gray-600 mb-6 max-w-md mx-auto">
-            {eventInfo.description || "This is a premium live streaming event. Purchase a ticket to access the full experience with multiple camera angles and high-quality streams."}
+            {eventInfo.description ||
+              'This is a premium live streaming event. Purchase a ticket to access the full experience with multiple camera angles and high-quality streams.'}
           </p>
 
           {/* Event Details */}
           <div className="grid grid-cols-2 gap-4 mb-6 max-w-md mx-auto">
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <Clock className="h-4 w-4" />
-              <span>{eventInfo.date} at {eventInfo.time}</span>
+              <span>
+                {eventInfo.date} at {eventInfo.time}
+              </span>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <Users className="h-4 w-4" />
@@ -158,7 +175,9 @@ const TicketVerification: React.FC<TicketVerificationProps> = ({
                 ${eventInfo.ticket_price}
               </span>
             </div>
-            <p className="text-sm text-gray-600">One-time purchase for full access</p>
+            <p className="text-sm text-gray-600">
+              One-time purchase for full access
+            </p>
           </div>
 
           {/* Features */}
@@ -192,7 +211,7 @@ const TicketVerification: React.FC<TicketVerificationProps> = ({
                 <Ticket className="h-5 w-5 mr-2" />
                 Purchase Ticket - ${eventInfo.ticket_price}
               </Button>
-              
+
               <Button
                 variant="outline"
                 onClick={checkTicketStatus}
@@ -207,8 +226,9 @@ const TicketVerification: React.FC<TicketVerificationProps> = ({
           {/* Preview Message */}
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
             <p className="text-sm text-gray-600">
-              <strong>Preview Mode:</strong> You're seeing a preview of this event. 
-              Purchase a ticket to access the full live streaming experience.
+              <strong>Preview Mode:</strong> You're seeing a preview of this
+              event. Purchase a ticket to access the full live streaming
+              experience.
             </p>
           </div>
         </div>

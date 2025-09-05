@@ -9,11 +9,11 @@ export function generateSlug(eventName: string): string {
   return (
     eventName
       .toLowerCase()
-      .replace(/[^a-zA-Z0-9\s]/g, "") // Remove special characters
-      .replace(/\s+/g, "-") // Replace spaces with hyphens
-      .replace(/^-+|-+$/g, "") // Remove leading/trailing hyphens
+      .replace(/[^a-zA-Z0-9\s]/g, '') // Remove special characters
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
       .substring(0, 50) || // Limit length
-    "event"
+    'event'
   ); // Fallback if empty
 }
 

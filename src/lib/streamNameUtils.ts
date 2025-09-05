@@ -1,4 +1,4 @@
-import type { Participant } from "livekit-client";
+import type { Participant } from 'livekit-client';
 
 /**
  * Stream name utilities for consistent metadata parsing and validation
@@ -13,21 +13,21 @@ export interface StreamNameMetadata {
  * Safely parse participant metadata for stream name
  */
 export function parseStreamName(participant?: Participant | null): string {
-  if (!participant) return "";
+  if (!participant) return '';
 
   try {
     if (!participant.metadata) {
-      return participant.name || participant.identity || "";
+      return participant.name || participant.identity || '';
     }
 
     const metadata: StreamNameMetadata = JSON.parse(participant.metadata);
-    console.log("Parsed metadata:", metadata);
+    console.log('Parsed metadata:', metadata);
     return (
-      metadata.streamName ?? participant.name ?? participant.identity ??""
+      metadata.streamName ?? participant.name ?? participant.identity ?? ''
     );
   } catch (error) {
-    console.warn("Failed to parse participant metadata:", error);
-    return participant.name || participant.identity || "";
+    console.warn('Failed to parse participant metadata:', error);
+    return participant.name || participant.identity || '';
   }
 }
 
@@ -48,7 +48,7 @@ export function createStreamNameMetadata(
       streamName: newStreamName || undefined,
     });
   } catch (error) {
-    console.warn("Failed to parse current metadata, creating new:", error);
+    console.warn('Failed to parse current metadata, creating new:', error);
     return JSON.stringify({ streamName: newStreamName || undefined });
   }
 }
@@ -69,14 +69,14 @@ export function validateStreamName(name: string): {
   if (trimmed.length > 64) {
     return {
       isValid: false,
-      error: "Stream name too long (max 64 characters)",
+      error: 'Stream name too long (max 64 characters)',
     };
   }
 
   // Check for invalid characters (optional - adjust as needed)
   const invalidChars = /[<>"'&]/;
   if (invalidChars.test(trimmed)) {
-    return { isValid: false, error: "Stream name contains invalid characters" };
+    return { isValid: false, error: 'Stream name contains invalid characters' };
   }
 
   return { isValid: true };

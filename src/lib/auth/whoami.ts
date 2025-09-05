@@ -1,26 +1,29 @@
-import { supabaseBrowser } from '@/lib/supabase/browser'
+import { supabaseBrowser } from '@/lib/supabase/browser';
 
 export interface CurrentUser {
-  id: string
-  email: string
+  id: string;
+  email: string;
 }
 
 export async function getCurrentUser(): Promise<CurrentUser | null> {
-  const supabase = supabaseBrowser()
-  
+  const supabase = supabaseBrowser();
+
   try {
-    const { data: { user }, error } = await supabase.auth.getUser()
-    
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
+
     if (error || !user) {
-      return null
+      return null;
     }
-    
+
     return {
       id: user.id,
-      email: user.email || ''
-    }
+      email: user.email || '',
+    };
   } catch (error) {
-    console.error('Error getting current user:', error)
-    return null
+    console.error('Error getting current user:', error);
+    return null;
   }
 }

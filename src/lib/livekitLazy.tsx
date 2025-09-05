@@ -1,12 +1,12 @@
-import React, { lazy, Suspense, useEffect, useMemo, useState } from "react";
-import type { TrackReference } from "@livekit/components-react";
+import React, { lazy, Suspense, useEffect, useMemo, useState } from 'react';
+import type { TrackReference } from '@livekit/components-react';
 
 export const LiveKitRoomLazy = lazy(() =>
-  import("@livekit/components-react").then((m) => ({ default: m.LiveKitRoom }))
+  import('@livekit/components-react').then((m) => ({ default: m.LiveKitRoom }))
 );
 
 /** Lazy wrapper for @livekit/components-react.VideoTrack */
-export function VideoTrackLazy({
+export const VideoTrackLazy = ({
   trackRef,
   className,
   fallback,
@@ -14,11 +14,11 @@ export function VideoTrackLazy({
   trackRef: TrackReference;
   className?: string;
   fallback?: React.ReactNode;
-}) {
+}) => {
   const Comp = useMemo(
     () =>
       lazy(() =>
-        import("@livekit/components-react").then((m) => ({
+        import('@livekit/components-react').then((m) => ({
           default: m.VideoTrack,
         }))
       ),
@@ -29,10 +29,10 @@ export function VideoTrackLazy({
       <Comp trackRef={trackRef} className={className} />
     </Suspense>
   );
-}
+};
 
 /** Lazy wrapper for @livekit/components-react.AudioTrack – use this for per‑track audio */
-export function AudioTrackLazy({
+export const AudioTrackLazy = ({
   trackRef,
   muted,
   volume,
@@ -42,11 +42,11 @@ export function AudioTrackLazy({
   muted?: boolean;
   volume?: number;
   fallback?: React.ReactNode;
-}) {
+}) => {
   const Comp = useMemo(
     () =>
       lazy(() =>
-        import("@livekit/components-react").then((m) => ({
+        import('@livekit/components-react').then((m) => ({
           default: m.AudioTrack,
         }))
       ),
@@ -57,10 +57,10 @@ export function AudioTrackLazy({
       <Comp trackRef={trackRef} muted={muted} volume={volume} />
     </Suspense>
   );
-}
+};
 
 /** Lazy wrapper for @livekit/components-react.RoomAudioRenderer – plays all room audio */
-export function RoomAudioRendererLazy({
+export const RoomAudioRendererLazy = ({
   muted,
   volume,
   fallback,
@@ -68,11 +68,11 @@ export function RoomAudioRendererLazy({
   muted?: boolean;
   volume?: number;
   fallback?: React.ReactNode;
-}) {
+}) => {
   const Comp = useMemo(
     () =>
       lazy(() =>
-        import("@livekit/components-react").then((m) => ({
+        import('@livekit/components-react').then((m) => ({
           default: m.RoomAudioRenderer,
         }))
       ),
@@ -83,22 +83,22 @@ export function RoomAudioRendererLazy({
       <Comp muted={muted} volume={volume} />
     </Suspense>
   );
-}
+};
 
 /** Hook that loads livekit-client after mount and returns the Track enum */
 export function useLiveKitTrackEnum() {
   const [TrackEnum, setTrackEnum] = useState<any>(null);
   useEffect(() => {
     let mounted = true;
-    if (typeof window === "undefined") return;
-    import("livekit-client").then((m) => {
+    if (typeof window === 'undefined') return;
+    import('livekit-client').then((m) => {
       if (mounted) setTrackEnum(m.Track);
     });
     return () => {
       mounted = false;
     };
   }, []);
-  return TrackEnum as typeof import("livekit-client").Track | null;
+  return TrackEnum as typeof import('livekit-client').Track | null;
 }
 
 /** Hook that returns only Track.Source to avoid class-constructor issues */
@@ -106,8 +106,8 @@ export function useLiveKitTrackSource() {
   const [Source, setSource] = useState<any>(null);
   useEffect(() => {
     let mounted = true;
-    if (typeof window === "undefined") return;
-    import("livekit-client").then((m) => {
+    if (typeof window === 'undefined') return;
+    import('livekit-client').then((m) => {
       if (mounted) setSource(m.Track?.Source ?? null);
     });
     return () => {

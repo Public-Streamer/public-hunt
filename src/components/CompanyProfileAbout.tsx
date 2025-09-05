@@ -1,7 +1,16 @@
 import React from 'react';
+import {
+  MapPin,
+  Calendar,
+  Users,
+  Globe,
+  Mail,
+  Phone,
+  Building,
+  Clock,
+} from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Calendar, Users, Globe, Mail, Phone, Building, Clock } from 'lucide-react';
 
 interface CompanyProfileAboutProps {
   profile: {
@@ -18,12 +27,14 @@ interface CompanyProfileAboutProps {
   };
 }
 
-const CompanyProfileAbout: React.FC<CompanyProfileAboutProps> = ({ profile }) => {
+const CompanyProfileAbout: React.FC<CompanyProfileAboutProps> = ({
+  profile,
+}) => {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
     });
   };
 
@@ -40,10 +51,12 @@ const CompanyProfileAbout: React.FC<CompanyProfileAboutProps> = ({ profile }) =>
           {profile.description && (
             <div>
               <h4 className="font-semibold mb-2">Company Description</h4>
-              <p className="text-muted-foreground leading-relaxed">{profile.description}</p>
+              <p className="text-muted-foreground leading-relaxed">
+                {profile.description}
+              </p>
             </div>
           )}
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {profile.industry && (
               <div className="flex items-center space-x-2">
@@ -53,21 +66,25 @@ const CompanyProfileAbout: React.FC<CompanyProfileAboutProps> = ({ profile }) =>
                 <span className="text-sm text-muted-foreground">Industry</span>
               </div>
             )}
-            
+
             {profile.employee_count && (
               <div className="flex items-center space-x-2">
                 <Users className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm">{profile.employee_count} employees</span>
+                <span className="text-sm">
+                  {profile.employee_count} employees
+                </span>
               </div>
             )}
-            
+
             {profile.founded_year && (
               <div className="flex items-center space-x-2">
                 <Calendar className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm">Founded in {profile.founded_year}</span>
+                <span className="text-sm">
+                  Founded in {profile.founded_year}
+                </span>
               </div>
             )}
-            
+
             {profile.headquarters && (
               <div className="flex items-center space-x-2">
                 <MapPin className="w-4 h-4 text-muted-foreground" />
@@ -86,9 +103,9 @@ const CompanyProfileAbout: React.FC<CompanyProfileAboutProps> = ({ profile }) =>
           {profile.website && (
             <div className="flex items-center space-x-3">
               <Globe className="w-4 h-4 text-muted-foreground" />
-              <a 
-                href={profile.website} 
-                target="_blank" 
+              <a
+                href={profile.website}
+                target="_blank"
                 rel="noopener noreferrer"
                 className="text-primary hover:underline"
               >
@@ -96,11 +113,11 @@ const CompanyProfileAbout: React.FC<CompanyProfileAboutProps> = ({ profile }) =>
               </a>
             </div>
           )}
-          
+
           {profile.contact_email && (
             <div className="flex items-center space-x-3">
               <Mail className="w-4 h-4 text-muted-foreground" />
-              <a 
+              <a
                 href={`mailto:${profile.contact_email}`}
                 className="text-primary hover:underline"
               >
@@ -108,11 +125,11 @@ const CompanyProfileAbout: React.FC<CompanyProfileAboutProps> = ({ profile }) =>
               </a>
             </div>
           )}
-          
+
           {profile.contact_phone && (
             <div className="flex items-center space-x-3">
               <Phone className="w-4 h-4 text-muted-foreground" />
-              <a 
+              <a
                 href={`tel:${profile.contact_phone}`}
                 className="text-primary hover:underline"
               >
@@ -134,7 +151,7 @@ const CompanyProfileAbout: React.FC<CompanyProfileAboutProps> = ({ profile }) =>
               Joined on {formatDate(profile.created_at)}
             </span>
           </div>
-          
+
           <div className="flex items-center space-x-3">
             <Building className="w-4 h-4 text-muted-foreground" />
             <span className="text-sm">Company Profile</span>

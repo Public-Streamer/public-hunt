@@ -1,10 +1,27 @@
 import React, { useState } from 'react';
+import {
+  Upload,
+  Play,
+  Target,
+  Calendar,
+  CreditCard,
+  Eye,
+  Clock,
+  DollarSign,
+  CheckCircle,
+  Info,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-import { Upload, Play, Target, Calendar, CreditCard, Eye, Clock, DollarSign, CheckCircle, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import AdvertisingCampaignForm from '@/components/CreateAdForm';
 
@@ -24,7 +41,7 @@ const Advertisers = () => {
     ageRange: [18, 65] as [number, number],
     interests: [] as string[],
     targetChannels: [] as string[],
-    targetEvents: [] as string[]
+    targetEvents: [] as string[],
   });
   const { toast } = useToast();
 
@@ -55,10 +72,11 @@ const Advertisers = () => {
     try {
       // This would integrate with your existing payment system
       toast({
-        title: "Campaign Launched!",
-        description: "Your advertising campaign is now live and reaching your target audience.",
+        title: 'Campaign Launched!',
+        description:
+          'Your advertising campaign is now live and reaching your target audience.',
       });
-      
+
       // Reset form
       setStep(1);
       setCampaignData({
@@ -75,13 +93,13 @@ const Advertisers = () => {
         ageRange: [18, 65],
         interests: [],
         targetChannels: [],
-        targetEvents: []
+        targetEvents: [],
       });
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to launch campaign. Please try again.",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to launch campaign. Please try again.',
+        variant: 'destructive',
       });
     }
   };
@@ -91,9 +109,12 @@ const Advertisers = () => {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Create Advertising Campaign</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            Create Advertising Campaign
+          </h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Reach thousands of viewers across our streaming platform. Simple setup, real results.
+            Reach thousands of viewers across our streaming platform. Simple
+            setup, real results.
           </p>
         </div>
 
@@ -101,8 +122,12 @@ const Advertisers = () => {
         <Card className="mb-8">
           <CardContent className="p-6">
             <div className="flex justify-between items-center mb-4">
-              <span className="text-sm font-medium text-gray-600">Step {step} of {totalSteps}</span>
-              <span className="text-sm font-medium text-gray-600">{Math.round(progress)}% Complete</span>
+              <span className="text-sm font-medium text-gray-600">
+                Step {step} of {totalSteps}
+              </span>
+              <span className="text-sm font-medium text-gray-600">
+                {Math.round(progress)}% Complete
+              </span>
             </div>
             <Progress value={progress} className="w-full" />
             <div className="flex justify-between mt-2 text-xs text-gray-500">
@@ -117,7 +142,7 @@ const Advertisers = () => {
         </Card>
 
         {/* Main Form */}
-        <AdvertisingCampaignForm 
+        <AdvertisingCampaignForm
           step={step}
           campaignData={campaignData}
           setCampaignData={setCampaignData}
@@ -139,7 +164,9 @@ const Advertisers = () => {
           <CardContent>
             <div className="grid md:grid-cols-2 gap-6 text-sm">
               <div>
-                <h4 className="font-semibold text-blue-900 mb-2">Campaign Tips</h4>
+                <h4 className="font-semibold text-blue-900 mb-2">
+                  Campaign Tips
+                </h4>
                 <ul className="space-y-1 text-blue-700">
                   <li>• Upload high-quality videos for better engagement</li>
                   <li>• Start with a small budget to test performance</li>
@@ -148,7 +175,9 @@ const Advertisers = () => {
                 </ul>
               </div>
               <div>
-                <h4 className="font-semibold text-blue-900 mb-2">Pricing Guide</h4>
+                <h4 className="font-semibold text-blue-900 mb-2">
+                  Pricing Guide
+                </h4>
                 <ul className="space-y-1 text-blue-700">
                   <li>• Video ads: $10 CPM (per 1,000 views)</li>
                   <li>• Minimum budget: $25</li>

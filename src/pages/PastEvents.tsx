@@ -1,8 +1,8 @@
-import React, { useState } from "react";
-import PastEventsGrid from "@/components/PastEventsGrid";
+import React, { useState } from 'react';
+import PastEventsGrid from '@/components/PastEventsGrid';
 import EventRankingControls, {
   SortOption,
-} from "@/components/EventRankingControls";
+} from '@/components/EventRankingControls';
 
 interface PastEvent {
   id: string;
@@ -24,7 +24,7 @@ interface PastEvent {
   media_urls?: string[];
   duration?: number;
   recorded_at?: string;
-  visibility: "public" | "private" | "selected";
+  visibility: 'public' | 'private' | 'selected';
   viewer_count?: number;
   tags: string[];
   category: string;
@@ -37,9 +37,9 @@ interface PastEventsProps {
 }
 
 const PastEvents: React.FC<PastEventsProps> = ({ events = [] }) => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [memberSearch, setMemberSearch] = useState("");
-  const [pastSortBy, setPastSortBy] = useState<SortOption>("newest");
+  const [searchTerm, setSearchTerm] = useState('');
+  const [memberSearch, setMemberSearch] = useState('');
+  const [pastSortBy, setPastSortBy] = useState<SortOption>('newest');
 
   return (
     <div className="container mx-auto p-4">

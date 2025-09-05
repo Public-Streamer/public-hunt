@@ -1,16 +1,33 @@
 import React, { useState } from 'react';
+import {
+  Upload,
+  Image as ImageIcon,
+  Video,
+  Music,
+  File,
+  X,
+  Plus,
+  Camera,
+  Mic,
+  Film,
+  Play,
+  Pause,
+  Download,
+} from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Upload, Image as ImageIcon, Video, Music, File, 
-  X, Plus, Camera, Mic, Film, Play, Pause, Download
-} from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface MediaFile {
@@ -29,7 +46,10 @@ interface ProfileMediaUploadProps {
   isOwnProfile: boolean;
 }
 
-const ProfileMediaUpload: React.FC<ProfileMediaUploadProps> = ({ userId, isOwnProfile }) => {
+const ProfileMediaUpload: React.FC<ProfileMediaUploadProps> = ({
+  userId,
+  isOwnProfile,
+}) => {
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -55,7 +75,7 @@ const ProfileMediaUpload: React.FC<ProfileMediaUploadProps> = ({ userId, isOwnPr
 
     // Simulate upload progress
     const uploadInterval = setInterval(() => {
-      setUploadProgress(prev => {
+      setUploadProgress((prev) => {
         if (prev >= 100) {
           clearInterval(uploadInterval);
           return 100;
@@ -70,17 +90,24 @@ const ProfileMediaUpload: React.FC<ProfileMediaUploadProps> = ({ userId, isOwnPr
         const newMediaFile: MediaFile = {
           id: Date.now().toString(),
           name: selectedFile.name,
-          type: selectedFile.type.startsWith('image/') ? 'image' : 
-                selectedFile.type.startsWith('video/') ? 'video' : 
-                selectedFile.type.startsWith('audio/') ? 'audio' : 'document',
+          type: selectedFile.type.startsWith('image/')
+            ? 'image'
+            : selectedFile.type.startsWith('video/')
+              ? 'video'
+              : selectedFile.type.startsWith('audio/')
+                ? 'audio'
+                : 'document',
           url: URL.createObjectURL(selectedFile),
           size: selectedFile.size,
           uploaded_at: new Date().toISOString(),
           caption,
-          tags: tags.split(',').map(tag => tag.trim()).filter(Boolean)
+          tags: tags
+            .split(',')
+            .map((tag) => tag.trim())
+            .filter(Boolean),
         };
 
-        setMediaFiles(prev => [newMediaFile, ...prev]);
+        setMediaFiles((prev) => [newMediaFile, ...prev]);
         setShowUploadDialog(false);
         setSelectedFile(null);
         setCaption('');
@@ -90,7 +117,7 @@ const ProfileMediaUpload: React.FC<ProfileMediaUploadProps> = ({ userId, isOwnPr
 
         toast({
           title: 'Success',
-          description: 'Media uploaded successfully!'
+          description: 'Media uploaded successfully!',
         });
       }, 2000);
     } catch (error) {
@@ -100,16 +127,16 @@ const ProfileMediaUpload: React.FC<ProfileMediaUploadProps> = ({ userId, isOwnPr
       toast({
         title: 'Error',
         description: 'Failed to upload media',
-        variant: 'destructive'
+        variant: 'destructive',
       });
     }
   };
 
   const handleDeleteMedia = (mediaId: string) => {
-    setMediaFiles(prev => prev.filter(media => media.id !== mediaId));
+    setMediaFiles((prev) => prev.filter((media) => media.id !== mediaId));
     toast({
       title: 'Success',
-      description: 'Media deleted successfully'
+      description: 'Media deleted successfully',
     });
   };
 
@@ -117,24 +144,32 @@ const ProfileMediaUpload: React.FC<ProfileMediaUploadProps> = ({ userId, isOwnPr
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     if (bytes === 0) return '0 Bytes';
     const i = Math.floor(Math.log(bytes) / Math.log(1024));
-    return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
+    return `${Math.round((bytes / 1024 ** i) * 100) / 100} ${sizes[i]}`;
   };
 
   const getFileIcon = (type: string) => {
     switch (type) {
-      case 'image': return <ImageIcon className="w-5 h-5" />;
-      case 'video': return <Video className="w-5 h-5" />;
-      case 'audio': return <Music className="w-5 h-5" />;
-      default: return <File className="w-5 h-5" />;
+      case 'image':
+        return <ImageIcon className="w-5 h-5" />;
+      case 'video':
+        return <Video className="w-5 h-5" />;
+      case 'audio':
+        return <Music className="w-5 h-5" />;
+      default:
+        return <File className="w-5 h-5" />;
     }
   };
 
   const getFileColor = (type: string) => {
     switch (type) {
-      case 'image': return 'bg-green-500';
-      case 'video': return 'bg-blue-500';
-      case 'audio': return 'bg-purple-500';
-      default: return 'bg-gray-500';
+      case 'image':
+        return 'bg-green-500';
+      case 'video':
+        return 'bg-blue-500';
+      case 'audio':
+        return 'bg-purple-500';
+      default:
+        return 'bg-gray-500';
     }
   };
 
@@ -172,13 +207,15 @@ const ProfileMediaUpload: React.FC<ProfileMediaUploadProps> = ({ userId, isOwnPr
                       <Button
                         variant="outline"
                         className="w-full h-20 flex flex-col items-center justify-center"
-                        onClick={() => document.getElementById('image-upload')?.click()}
+                        onClick={() =>
+                          document.getElementById('image-upload')?.click()
+                        }
                       >
                         <Camera className="w-6 h-6 mb-2" />
                         <span className="text-sm">Photos</span>
                       </Button>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="video-upload">Videos</Label>
                       <Input
@@ -191,13 +228,15 @@ const ProfileMediaUpload: React.FC<ProfileMediaUploadProps> = ({ userId, isOwnPr
                       <Button
                         variant="outline"
                         className="w-full h-20 flex flex-col items-center justify-center"
-                        onClick={() => document.getElementById('video-upload')?.click()}
+                        onClick={() =>
+                          document.getElementById('video-upload')?.click()
+                        }
                       >
                         <Film className="w-6 h-6 mb-2" />
                         <span className="text-sm">Videos</span>
                       </Button>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="audio-upload">Audio</Label>
                       <Input
@@ -210,13 +249,15 @@ const ProfileMediaUpload: React.FC<ProfileMediaUploadProps> = ({ userId, isOwnPr
                       <Button
                         variant="outline"
                         className="w-full h-20 flex flex-col items-center justify-center"
-                        onClick={() => document.getElementById('audio-upload')?.click()}
+                        onClick={() =>
+                          document.getElementById('audio-upload')?.click()
+                        }
                       >
                         <Mic className="w-6 h-6 mb-2" />
                         <span className="text-sm">Audio</span>
                       </Button>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="file-upload">Documents</Label>
                       <Input
@@ -229,7 +270,9 @@ const ProfileMediaUpload: React.FC<ProfileMediaUploadProps> = ({ userId, isOwnPr
                       <Button
                         variant="outline"
                         className="w-full h-20 flex flex-col items-center justify-center"
-                        onClick={() => document.getElementById('file-upload')?.click()}
+                        onClick={() =>
+                          document.getElementById('file-upload')?.click()
+                        }
                       >
                         <File className="w-6 h-6 mb-2" />
                         <span className="text-sm">Files</span>
@@ -240,7 +283,9 @@ const ProfileMediaUpload: React.FC<ProfileMediaUploadProps> = ({ userId, isOwnPr
                   <div className="space-y-4">
                     <div className="p-4 border rounded-lg">
                       <div className="flex items-center space-x-3">
-                        <div className={`w-10 h-10 rounded-full ${getFileColor(selectedFile.type.split('/')[0])} flex items-center justify-center text-white`}>
+                        <div
+                          className={`w-10 h-10 rounded-full ${getFileColor(selectedFile.type.split('/')[0])} flex items-center justify-center text-white`}
+                        >
                           {getFileIcon(selectedFile.type.split('/')[0])}
                         </div>
                         <div className="flex-1">
@@ -251,7 +296,7 @@ const ProfileMediaUpload: React.FC<ProfileMediaUploadProps> = ({ userId, isOwnPr
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="caption">Caption</Label>
                       <Textarea
@@ -262,7 +307,7 @@ const ProfileMediaUpload: React.FC<ProfileMediaUploadProps> = ({ userId, isOwnPr
                         className="min-h-[80px]"
                       />
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="tags">Tags</Label>
                       <Input
@@ -272,7 +317,7 @@ const ProfileMediaUpload: React.FC<ProfileMediaUploadProps> = ({ userId, isOwnPr
                         onChange={(e) => setTags(e.target.value)}
                       />
                     </div>
-                    
+
                     {isUploading && (
                       <div className="space-y-2">
                         <Label>Upload Progress</Label>
@@ -282,7 +327,7 @@ const ProfileMediaUpload: React.FC<ProfileMediaUploadProps> = ({ userId, isOwnPr
                         </p>
                       </div>
                     )}
-                    
+
                     <div className="flex justify-end space-x-2">
                       <Button
                         variant="outline"
@@ -295,10 +340,7 @@ const ProfileMediaUpload: React.FC<ProfileMediaUploadProps> = ({ userId, isOwnPr
                       >
                         Cancel
                       </Button>
-                      <Button
-                        onClick={handleUpload}
-                        disabled={isUploading}
-                      >
+                      <Button onClick={handleUpload} disabled={isUploading}>
                         {isUploading ? 'Uploading...' : 'Upload'}
                       </Button>
                     </div>
@@ -309,21 +351,28 @@ const ProfileMediaUpload: React.FC<ProfileMediaUploadProps> = ({ userId, isOwnPr
           </Dialog>
         )}
       </CardHeader>
-      
+
       <CardContent>
         {mediaFiles.length === 0 ? (
           <div className="text-center py-8">
             <Upload className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
             <p className="text-muted-foreground">
-              {isOwnProfile ? 'No media uploaded yet. Start by uploading your first file!' : 'No media files to display'}
+              {isOwnProfile
+                ? 'No media uploaded yet. Start by uploading your first file!'
+                : 'No media files to display'}
             </p>
           </div>
         ) : (
           <div className="space-y-3">
             {mediaFiles.map((media) => (
-              <div key={media.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+              <div
+                key={media.id}
+                className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+              >
                 <div className="flex items-center space-x-3">
-                  <div className={`w-10 h-10 rounded-full ${getFileColor(media.type)} flex items-center justify-center text-white`}>
+                  <div
+                    className={`w-10 h-10 rounded-full ${getFileColor(media.type)} flex items-center justify-center text-white`}
+                  >
                     {getFileIcon(media.type)}
                   </div>
                   <div className="flex-1">
@@ -331,15 +380,23 @@ const ProfileMediaUpload: React.FC<ProfileMediaUploadProps> = ({ userId, isOwnPr
                     <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                       <span>{formatFileSize(media.size)}</span>
                       <span>•</span>
-                      <span>{new Date(media.uploaded_at).toLocaleDateString()}</span>
+                      <span>
+                        {new Date(media.uploaded_at).toLocaleDateString()}
+                      </span>
                     </div>
                     {media.caption && (
-                      <p className="text-sm text-muted-foreground mt-1 line-clamp-1">{media.caption}</p>
+                      <p className="text-sm text-muted-foreground mt-1 line-clamp-1">
+                        {media.caption}
+                      </p>
                     )}
                     {media.tags && media.tags.length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-1">
                         {media.tags.map((tag, index) => (
-                          <Badge key={index} variant="secondary" className="text-xs">
+                          <Badge
+                            key={index}
+                            variant="secondary"
+                            className="text-xs"
+                          >
                             {tag}
                           </Badge>
                         ))}

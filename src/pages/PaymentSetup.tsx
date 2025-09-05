@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CheckCircle, AlertCircle, Loader2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { useAppContext } from "@/contexts/AppContext";
-import StripeAccountForm from "@/components/StripeAccountForm";
-import { supabase } from "@/lib/supabase";
+import React, { useEffect, useState } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useToast } from '@/hooks/use-toast';
+import { useAppContext } from '@/contexts/AppContext';
+import StripeAccountForm from '@/components/StripeAccountForm';
+import { supabase } from '@/lib/supabase';
 
 const PaymentSetup: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -22,33 +22,33 @@ const PaymentSetup: React.FC = () => {
     // }
 
     // Handle Stripe redirect responses
-    const success = searchParams.get("success");
-    const refresh = searchParams.get("refresh");
-    const error = searchParams.get("error");
+    const success = searchParams.get('success');
+    const refresh = searchParams.get('refresh');
+    const error = searchParams.get('error');
 
-    if (success === "true") {
+    if (success === 'true') {
       toast({
-        title: "Account Setup Successful",
-        description: "Your Stripe account has been set up successfully!",
+        title: 'Account Setup Successful',
+        description: 'Your Stripe account has been set up successfully!',
       });
       // Clear URL parameters
-      window.history.replaceState({}, "", "/payments");
-    } else if (refresh === "true") {
+      window.history.replaceState({}, '', '/payments');
+    } else if (refresh === 'true') {
       toast({
-        title: "Setup Incomplete",
-        description: "Please complete your Stripe account setup to continue.",
-        variant: "destructive",
+        title: 'Setup Incomplete',
+        description: 'Please complete your Stripe account setup to continue.',
+        variant: 'destructive',
       });
       // Clear URL parameters
-      window.history.replaceState({}, "", "/payments");
+      window.history.replaceState({}, '', '/payments');
     } else if (error) {
       toast({
-        title: "Setup Error",
+        title: 'Setup Error',
         description: `There was an error setting up your account: ${error}`,
-        variant: "destructive",
+        variant: 'destructive',
       });
       // Clear URL parameters
-      window.history.replaceState({}, "", "/payments");
+      window.history.replaceState({}, '', '/payments');
     }
   }, [searchParams, navigate, toast, isAuthenticated]);
 

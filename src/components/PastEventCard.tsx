@@ -1,12 +1,12 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Play, Eye, Clock, DollarSign, Calendar } from "lucide-react";
-import TooltipWrapper from "@/components/ui/tooltip-wrapper";
-import TicketPurchaseModal from "./TicketPurchaseModal";
-import MediaBackground from "./MediaBackground";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Play, Eye, Clock, DollarSign, Calendar } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import TooltipWrapper from '@/components/ui/tooltip-wrapper';
+import TicketPurchaseModal from './TicketPurchaseModal';
+import MediaBackground from './MediaBackground';
 
 interface PastEvent {
   id: string;
@@ -49,7 +49,7 @@ const PastEventCard: React.FC<PastEventCardProps> = ({
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     return hours > 0
-      ? `${hours}:${minutes.toString().padStart(2, "0")}:00`
+      ? `${hours}:${minutes.toString().padStart(2, '0')}:00`
       : `${minutes}:00`;
   };
 
@@ -72,7 +72,7 @@ const PastEventCard: React.FC<PastEventCardProps> = ({
     <>
       <TooltipWrapper
         content={`${event.title}${
-          event.startDate ? ` - Recorded on ${formatDate(event.startDate)}` : ""
+          event.startDate ? ` - Recorded on ${formatDate(event.startDate)}` : ''
         }`}
       >
         <Card
@@ -82,7 +82,7 @@ const PastEventCard: React.FC<PastEventCardProps> = ({
           <MediaBackground
             mediaUrls={event.media_urls || []}
             className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100"
-          ></MediaBackground>
+          />
           <CardHeader>
             <div className="flex justify-between gap-2">
               <CardTitle className="text-lg">{event.title}</CardTitle>
@@ -93,7 +93,7 @@ const PastEventCard: React.FC<PastEventCardProps> = ({
                   </Badge>
                 )}
                 <Badge variant="outline" className="bg-red-50 text-purple-600">
-                  {event.is_live ? "LIVE" : "PAST"}
+                  {event.is_live ? 'LIVE' : 'PAST'}
                 </Badge>
               </div>
             </div>

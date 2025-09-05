@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Play, Pause } from "lucide-react";
-import AdFeedbackPopup from "./AdFeedbackPopup";
-import { useAdFeedback } from "@/hooks/useAdFeedback";
+import React, { useState, useEffect } from 'react';
+import { Play, Pause } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import AdFeedbackPopup from './AdFeedbackPopup';
+import { useAdFeedback } from '@/hooks/useAdFeedback';
 
 interface AdWithFeedbackProps {
   adId: string;
   adName: string;
-  adType: "video" | "banner" | "image";
+  adType: 'video' | 'banner' | 'image';
   adDuration?: number;
   thumbnailUrl: string;
   className?: string;
@@ -20,24 +20,20 @@ const AdWithFeedback: React.FC<AdWithFeedbackProps> = ({
   adType,
   adDuration = 30,
   thumbnailUrl,
-  className = ""
+  className = '',
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
-  
-  const {
-    shouldShowFeedback,
-    handleAdWatched,
-    handleAdSkipped,
-    hideFeedback
-  } = useAdFeedback({ adId, adDuration, adType });
+
+  const { shouldShowFeedback, handleAdWatched, handleAdSkipped, hideFeedback } =
+    useAdFeedback({ adId, adDuration, adType });
 
   // Simulate video playback
   useEffect(() => {
     if (!isPlaying) return;
 
     const interval = setInterval(() => {
-      setCurrentTime(prev => {
+      setCurrentTime((prev) => {
         if (prev >= adDuration) {
           setIsPlaying(false);
           handleAdWatched(); // Trigger feedback popup
@@ -66,7 +62,7 @@ const AdWithFeedback: React.FC<AdWithFeedbackProps> = ({
 
   const handleFeedbackSubmit = () => {
     // Optional: Track that feedback was submitted
-    console.log("Feedback submitted for ad:", adId);
+    console.log('Feedback submitted for ad:', adId);
   };
 
   return (
@@ -75,32 +71,36 @@ const AdWithFeedback: React.FC<AdWithFeedbackProps> = ({
         <CardContent className="p-0">
           {/* Ad Display Area */}
           <div className="relative aspect-video bg-muted">
-            <img 
-              src={thumbnailUrl} 
+            <img
+              src={thumbnailUrl}
               alt={adName}
               className="w-full h-full object-cover"
             />
-            
+
             {/* Play/Pause Overlay */}
-            {adType === "video" && (
+            {adType === 'video' && (
               <div className="absolute inset-0 flex items-center justify-center">
                 <Button
                   size="lg"
                   onClick={isPlaying ? handlePause : handlePlay}
                   className="bg-black/50 hover:bg-black/70 text-white"
                 >
-                  {isPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
+                  {isPlaying ? (
+                    <Pause className="h-6 w-6" />
+                  ) : (
+                    <Play className="h-6 w-6" />
+                  )}
                 </Button>
               </div>
             )}
 
             {/* Progress Bar for Video */}
-            {adType === "video" && (
+            {adType === 'video' && (
               <div className="absolute bottom-0 left-0 right-0 bg-black/50 p-2">
                 <div className="flex items-center gap-2 text-white text-sm">
                   <span>{Math.floor(currentTime)}s</span>
                   <div className="flex-1 bg-white/30 rounded-full h-1">
-                    <div 
+                    <div
                       className="bg-white h-1 rounded-full transition-all duration-300"
                       style={{ width: `${(currentTime / adDuration) * 100}%` }}
                     />
@@ -128,7 +128,7 @@ const AdWithFeedback: React.FC<AdWithFeedbackProps> = ({
           <div className="p-4">
             <h4 className="font-semibold text-sm truncate">{adName}</h4>
             <p className="text-xs text-muted-foreground mt-1">
-              {adType === "video" ? `${adDuration}s video` : adType}
+              {adType === 'video' ? `${adDuration}s video` : adType}
             </p>
           </div>
         </CardContent>

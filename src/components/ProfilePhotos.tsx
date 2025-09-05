@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { Plus, Image as ImageIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Image as ImageIcon } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 interface ProfilePhotosProps {
@@ -16,7 +16,10 @@ interface Photo {
   created_at: string;
 }
 
-const ProfilePhotos: React.FC<ProfilePhotosProps> = ({ userId, isOwnProfile }) => {
+const ProfilePhotos: React.FC<ProfilePhotosProps> = ({
+  userId,
+  isOwnProfile,
+}) => {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -37,12 +40,13 @@ const ProfilePhotos: React.FC<ProfilePhotosProps> = ({ userId, isOwnProfile }) =
 
       if (error) throw error;
 
-      const photoData = data?.map(post => ({
-        id: post.id,
-        url: post.media_url,
-        caption: post.content,
-        created_at: post.created_at
-      })) || [];
+      const photoData =
+        data?.map((post) => ({
+          id: post.id,
+          url: post.media_url,
+          caption: post.content,
+          created_at: post.created_at,
+        })) || [];
 
       setPhotos(photoData);
     } catch (error) {
@@ -53,14 +57,14 @@ const ProfilePhotos: React.FC<ProfilePhotosProps> = ({ userId, isOwnProfile }) =
           id: '1',
           url: '/placeholder.svg',
           caption: 'Beautiful sunset',
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
         },
         {
           id: '2',
           url: '/placeholder.svg',
           caption: 'Great event!',
-          created_at: new Date().toISOString()
-        }
+          created_at: new Date().toISOString(),
+        },
       ]);
     } finally {
       setLoading(false);
@@ -95,13 +99,18 @@ const ProfilePhotos: React.FC<ProfilePhotosProps> = ({ userId, isOwnProfile }) =
             <div className="text-center py-12">
               <ImageIcon className="w-12 h-12 mx-auto text-gray-400 mb-4" />
               <p className="text-gray-500">
-                {isOwnProfile ? 'No photos yet. Share your first photo!' : 'No photos to show'}
+                {isOwnProfile
+                  ? 'No photos yet. Share your first photo!'
+                  : 'No photos to show'}
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {photos.map((photo) => (
-                <div key={photo.id} className="aspect-square relative group cursor-pointer">
+                <div
+                  key={photo.id}
+                  className="aspect-square relative group cursor-pointer"
+                >
                   <img
                     src={photo.url}
                     alt={photo.caption || 'Photo'}

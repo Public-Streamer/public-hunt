@@ -1,11 +1,11 @@
-import React, { useState, useRef, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MessageCircle, Plane } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { useSupabaseChatMessages } from "@/hooks/useSupabaseChatMessages";
+import React, { useState, useRef, useEffect } from 'react';
+import { MessageCircle, Plane } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useSupabaseChatMessages } from '@/hooks/useSupabaseChatMessages';
 
 interface LiveChatSectionProps {
   className?: string;
@@ -23,14 +23,14 @@ const LiveChatSection: React.FC<LiveChatSectionProps> = ({
     canSend,
   } = useSupabaseChatMessages(eventId);
   console.log(messages);
-  const [newMessage, setNewMessage] = useState("");
+  const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (messagesEndRef.current) {
       const scrollContainer = messagesEndRef.current.closest(
-        "[data-radix-scroll-area-viewport]"
+        '[data-radix-scroll-area-viewport]'
       );
       if (scrollContainer) {
         scrollContainer.scrollTop = scrollContainer.scrollHeight;
@@ -47,16 +47,16 @@ const LiveChatSection: React.FC<LiveChatSectionProps> = ({
 
     try {
       await sendMessage(messageContent);
-      setNewMessage("");
+      setNewMessage('');
     } catch (error) {
-      console.error("Failed to send message:", error);
+      console.error('Failed to send message:', error);
     } finally {
       setLoading(false);
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmitMessage(e);
     }
@@ -64,9 +64,9 @@ const LiveChatSection: React.FC<LiveChatSectionProps> = ({
 
   const getInitials = (name: string) => {
     return name
-      .split(" ")
+      .split(' ')
       .map((n) => n[0])
-      .join("")
+      .join('')
       .substring(0, 2)
       .toUpperCase();
   };

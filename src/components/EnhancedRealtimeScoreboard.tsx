@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Trophy, Medal, Award } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 
 interface Team {
@@ -20,15 +20,20 @@ interface EnhancedRealtimeScoreboardProps {
   eventId: string;
 }
 
-export const EnhancedRealtimeScoreboard: React.FC<EnhancedRealtimeScoreboardProps> = ({ eventId }) => {
+export const EnhancedRealtimeScoreboard: React.FC<
+  EnhancedRealtimeScoreboardProps
+> = ({ eventId }) => {
   const [teams, setTeams] = useState<Team[]>([]);
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    console.log('[Enhanced Scoreboard] Setting up realtime for event:', eventId);
-    
+    console.log(
+      '[Enhanced Scoreboard] Setting up realtime for event:',
+      eventId
+    );
+
     fetchTeams();
-    
+
     const channel = supabase
       .channel(`enhanced-scoreboard-${eventId}`)
       .on(
@@ -37,17 +42,20 @@ export const EnhancedRealtimeScoreboard: React.FC<EnhancedRealtimeScoreboardProp
           event: '*',
           schema: 'public',
           table: 'event_scoreboard',
-          filter: `event_id=eq.${eventId}`
+          filter: `event_id=eq.${eventId}`,
         },
         (payload) => {
-          console.log('[Enhanced Scoreboard] Realtime update received:', payload);
+          console.log(
+            '[Enhanced Scoreboard] Realtime update received:',
+            payload
+          );
           console.log('[Enhanced Scoreboard] Event type:', payload.eventType);
           console.log('[Enhanced Scoreboard] New data:', payload.new);
-          
+
           // Only process custom scoreboard updates
           const newRecord = payload.new as any;
           const oldRecord = payload.old as any;
-          
+
           if (payload.eventType === 'DELETE') {
             // For DELETE events, we only have limited data in 'old' record
             // Since we're filtering by event_id in the subscription, we can assume these are relevant
@@ -56,31 +64,39 @@ export const EnhancedRealtimeScoreboard: React.FC<EnhancedRealtimeScoreboardProp
             // For INSERT/UPDATE, check scoreboard_type
             const isCustomUpdate = newRecord?.scoreboard_type === 'custom';
             if (!isCustomUpdate) {
-              console.log('[Enhanced Scoreboard] Ignoring non-custom scoreboard update');
+              console.log(
+                '[Enhanced Scoreboard] Ignoring non-custom scoreboard update'
+              );
               return;
             }
           }
-          
+
           if (payload.eventType === 'INSERT') {
             console.log('[Enhanced Scoreboard] Adding new team:', payload.new);
-            setTeams(prev => {
+            setTeams((prev) => {
               const newTeam = payload.new as Team;
               // Check if team already exists to prevent duplicates
-              const exists = prev.find(t => t.id === newTeam.id);
+              const exists = prev.find((t) => t.id === newTeam.id);
               if (exists) {
-                console.log('[Enhanced Scoreboard] Team already exists, skipping insert');
+                console.log(
+                  '[Enhanced Scoreboard] Team already exists, skipping insert'
+                );
                 return prev;
               }
               return [...prev, newTeam];
             });
           } else if (payload.eventType === 'UPDATE') {
             console.log('[Enhanced Scoreboard] Updating team:', payload.new.id);
-            setTeams(prev => prev.map(team => 
-              team.id === payload.new.id ? payload.new as Team : team
-            ));
+            setTeams((prev) =>
+              prev.map((team) =>
+                team.id === payload.new.id ? (payload.new as Team) : team
+              )
+            );
           } else if (payload.eventType === 'DELETE') {
             console.log('[Enhanced Scoreboard] Deleting team:', payload.old.id);
-            setTeams(prev => prev.filter(team => team.id !== payload.old.id));
+            setTeams((prev) =>
+              prev.filter((team) => team.id !== payload.old.id)
+            );
           }
         }
       )
@@ -97,9 +113,12 @@ export const EnhancedRealtimeScoreboard: React.FC<EnhancedRealtimeScoreboardProp
 
   const fetchTeams = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke('scoreboard-operations', {
-        body: { action: 'fetch', eventId, scoreboardType: 'custom' }
-      });
+      const { data, error } = await supabase.functions.invoke(
+        'scoreboard-operations',
+        {
+          body: { action: 'fetch', eventId, scoreboardType: 'custom' },
+        }
+      );
 
       if (error) throw error;
       setTeams(data || []);
@@ -146,50 +165,61 @@ export const EnhancedRealtimeScoreboard: React.FC<EnhancedRealtimeScoreboardProp
               className={`flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-3 sm:p-3 rounded-lg border transition-all duration-300 ${
                 index === 0 ? 'bg-accent/20 border-l-4' : 'border-l-4'
               }`}
-              style={{ 
+              style={{
                 borderLeftColor: team.team_color,
-                backgroundColor: index === 0 ? 'hsl(var(--accent) / 0.1)' : 'transparent'
+                backgroundColor:
+                  index === 0 ? 'hsl(var(--accent) / 0.1)' : 'transparent',
               }}
             >
               <div className="flex items-center gap-2 sm:gap-3">
                 <div className="flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-muted text-xs sm:text-sm font-bold">
                   {index + 1}
                 </div>
-                
+
                 <div className="flex-1 min-w-0">
                   <div className="font-medium flex items-center gap-2 text-sm sm:text-base">
                     <span className="truncate">{team.team_name}</span>
                     {getRankIcon(index)}
                   </div>
                 </div>
-                
-                <div 
+
+                <div
                   className="text-lg sm:text-xl font-bold"
                   style={{ color: team.team_color }}
                 >
                   {team.score}
                 </div>
               </div>
-              
+
               {/* Custom Fields Display */}
-              {team.custom_fields && Object.keys(team.custom_fields).length > 0 && (
-                <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 mt-2 sm:mt-0 sm:ml-11 text-xs">
-                  {Object.entries(team.custom_fields).map(([key, value]) => (
-                    <div key={key} className="flex flex-col xs:flex-row xs:items-center gap-1">
-                      <span className="font-medium text-muted-foreground">
-                        {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}:
-                      </span>
-                      <span className="font-medium" style={{ color: team.team_color }}>
-                        {value}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
+              {team.custom_fields &&
+                Object.keys(team.custom_fields).length > 0 && (
+                  <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 mt-2 sm:mt-0 sm:ml-11 text-xs">
+                    {Object.entries(team.custom_fields).map(([key, value]) => (
+                      <div
+                        key={key}
+                        className="flex flex-col xs:flex-row xs:items-center gap-1"
+                      >
+                        <span className="font-medium text-muted-foreground">
+                          {key
+                            .replace(/_/g, ' ')
+                            .replace(/\b\w/g, (l) => l.toUpperCase())}
+                          :
+                        </span>
+                        <span
+                          className="font-medium"
+                          style={{ color: team.team_color }}
+                        >
+                          {value}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
             </div>
           ))}
         </div>
-        
+
         {!isConnected && (
           <div className="text-center mt-4 text-sm text-muted-foreground">
             Connecting to live updates...

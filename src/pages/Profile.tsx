@@ -1,26 +1,26 @@
-import React, { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useParams } from "react-router-dom";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useAppContext } from "@/contexts/AppContext";
-import ProfileCover from "@/components/ProfileCover";
-import ProfileNewsfeedTab from "@/components/ProfileNewsfeedTab";
-import ProfileAbout from "@/components/ProfileAbout";
-import ProfilePhotos from "@/components/ProfilePhotos";
-import ProfileVideos from "@/components/ProfileVideos";
-import UserChannelsList from "@/components/UserChannelsList";
-import UserEventsList from "@/components/UserEventsList";
-import ProfileStories from "@/components/ProfileStories";
-import ProfileFriends from "@/components/ProfileFriends";
-import ProfileTimeline from "@/components/ProfileTimeline";
-import ProfileMediaUpload from "@/components/ProfileMediaUpload";
-import Messages from "@/components/Messages";
-import Notifications from "@/components/Notifications";
-import BottomSlidePanel from "@/components/BottomSlidePanel";
-import { supabase } from "@/lib/supabase";
-import type { Database } from "@/integrations/supabase/types";
+import React, { useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAppContext } from '@/contexts/AppContext';
+import ProfileCover from '@/components/ProfileCover';
+import ProfileNewsfeedTab from '@/components/ProfileNewsfeedTab';
+import ProfileAbout from '@/components/ProfileAbout';
+import ProfilePhotos from '@/components/ProfilePhotos';
+import ProfileVideos from '@/components/ProfileVideos';
+import UserChannelsList from '@/components/UserChannelsList';
+import UserEventsList from '@/components/UserEventsList';
+import ProfileStories from '@/components/ProfileStories';
+import ProfileFriends from '@/components/ProfileFriends';
+import ProfileTimeline from '@/components/ProfileTimeline';
+import ProfileMediaUpload from '@/components/ProfileMediaUpload';
+import Messages from '@/components/Messages';
+import Notifications from '@/components/Notifications';
+import BottomSlidePanel from '@/components/BottomSlidePanel';
+import { supabase } from '@/lib/supabase';
+import type { Database } from '@/integrations/supabase/types';
 
-type currentUserProfile = Database["public"]["Tables"]["user_profiles"]["Row"];
+type CurrentUserProfile = Database['public']['Tables']['user_profiles']['Row'];
 
 const Profile: React.FC = () => {
   const { userId } = useParams<{ userId?: string }>();
@@ -29,7 +29,7 @@ const Profile: React.FC = () => {
   const { user, isAuthenticated, authLoaded } = useAppContext();
   const queryClient = useQueryClient();
 
-  console.log("from profile: user", user);
+  console.log('from profile: user', user);
 
   // React Query to fetch profile data
   const {
@@ -37,15 +37,15 @@ const Profile: React.FC = () => {
     isLoading: loading,
     refetch,
   } = useQuery({
-    queryKey: ["profile", userId || user?.id],
+    queryKey: ['profile', userId || user?.id],
     queryFn: async () => {
       const targetUserId = userId || user?.id;
       if (!targetUserId) return null;
 
       const { data, error } = await supabase
-        .from("user_profiles")
-        .select("*")
-        .eq("user_id", targetUserId)
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', targetUserId)
         .maybeSingle();
 
       return data;
@@ -56,11 +56,11 @@ const Profile: React.FC = () => {
     retry: 1,
   });
 
-  const handleProfileUpdate = (updatedProfile: currentUserProfile) => {
+  const handleProfileUpdate = (updatedProfile: CurrentUserProfile) => {
     // Update the query cache with new profile data
-    queryClient.setQueryData(["profile", userId || user?.id], updatedProfile);
+    queryClient.setQueryData(['profile', userId || user?.id], updatedProfile);
     queryClient.invalidateQueries({
-      queryKey: ["profile", userId || user?.id],
+      queryKey: ['profile', userId || user?.id],
     });
   };
 
@@ -76,13 +76,13 @@ const Profile: React.FC = () => {
   if (!authLoaded) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
       </div>
     );
   }
 
   if (!isAuthenticated) {
-    window.location.href = "/login";
+    window.location.href = '/login';
     return null;
   }
 
@@ -192,7 +192,7 @@ const Profile: React.FC = () => {
                 <h3 className="text-2xl font-bold">Advertiser Dashboard</h3>
                 <button
                   onClick={() =>
-                    (window.location.href = "/advertiser-dashboard")
+                    (window.location.href = '/advertiser-dashboard')
                   }
                   className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
                 >
@@ -211,7 +211,7 @@ const Profile: React.FC = () => {
                   </p>
                   <button
                     onClick={() =>
-                      (window.location.href = "/advertiser-dashboard")
+                      (window.location.href = '/advertiser-dashboard')
                     }
                     className="text-primary hover:underline text-sm"
                   >
@@ -225,7 +225,7 @@ const Profile: React.FC = () => {
                   </p>
                   <button
                     onClick={() =>
-                      (window.location.href = "/advertiser-dashboard")
+                      (window.location.href = '/advertiser-dashboard')
                     }
                     className="text-primary hover:underline text-sm"
                   >
@@ -238,7 +238,7 @@ const Profile: React.FC = () => {
                     Start advertising on Public Streamer
                   </p>
                   <button
-                    onClick={() => (window.location.href = "/create-ad")}
+                    onClick={() => (window.location.href = '/create-ad')}
                     className="text-primary hover:underline text-sm"
                   >
                     Create Ad →
@@ -261,7 +261,7 @@ const Profile: React.FC = () => {
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-2xl font-bold">My Ad Campaigns</h3>
                 <button
-                  onClick={() => (window.location.href = "/my-ads")}
+                  onClick={() => (window.location.href = '/my-ads')}
                   className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
                 >
                   View All Ads
@@ -277,7 +277,7 @@ const Profile: React.FC = () => {
                     Start a new advertising campaign
                   </p>
                   <button
-                    onClick={() => (window.location.href = "/create?tab=ad")}
+                    onClick={() => (window.location.href = '/create?tab=ad')}
                     className="text-primary hover:underline text-sm"
                   >
                     Create Ad Campaign →
@@ -289,7 +289,7 @@ const Profile: React.FC = () => {
                     View detailed performance metrics
                   </p>
                   <button
-                    onClick={() => (window.location.href = "/my-ads")}
+                    onClick={() => (window.location.href = '/my-ads')}
                     className="text-primary hover:underline text-sm"
                   >
                     View Analytics →

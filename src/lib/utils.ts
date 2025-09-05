@@ -1,8 +1,8 @@
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
 /**
@@ -10,13 +10,22 @@ export function cn(...inputs: ClassValue[]) {
  */
 export function isImageUrl(url: string): boolean {
   if (!url) return false;
-  
+
   const imageExtensions = [
-    '.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg', '.ico', '.tiff', '.tif'
+    '.jpg',
+    '.jpeg',
+    '.png',
+    '.gif',
+    '.webp',
+    '.bmp',
+    '.svg',
+    '.ico',
+    '.tiff',
+    '.tif',
   ];
-  
+
   const urlPath = url.toLowerCase().split('?')[0]; // Remove query params
-  return imageExtensions.some(ext => urlPath.endsWith(ext));
+  return imageExtensions.some((ext) => urlPath.endsWith(ext));
 }
 
 /**
@@ -31,13 +40,21 @@ export function filterImageUrls(urls: string[]): string[] {
  */
 export function isVideoUrl(url: string): boolean {
   if (!url) return false;
-  
+
   const videoExtensions = [
-    '.mp4', '.webm', '.ogg', '.mov', '.avi', '.mkv', '.m4v', '.flv', '.wmv'
+    '.mp4',
+    '.webm',
+    '.ogg',
+    '.mov',
+    '.avi',
+    '.mkv',
+    '.m4v',
+    '.flv',
+    '.wmv',
   ];
-  
+
   const urlPath = url.toLowerCase().split('?')[0]; // Remove query params
-  return videoExtensions.some(ext => urlPath.endsWith(ext));
+  return videoExtensions.some((ext) => urlPath.endsWith(ext));
 }
 
 /**

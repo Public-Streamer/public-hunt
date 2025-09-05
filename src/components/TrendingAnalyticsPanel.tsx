@@ -1,7 +1,7 @@
 import React from 'react';
+import { Star, TrendingUp, Clock, Eye, DollarSign } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Star, TrendingUp, Clock, Eye, DollarSign } from 'lucide-react';
 
 interface TrendingAd {
   id: string;
@@ -29,7 +29,8 @@ const TrendingAnalyticsPanel: React.FC = () => {
       adDuration: '30s',
       topViewerTag: 'Great Product',
       cpv: '$0.004',
-      insight: 'Kept it under 30 seconds with a punchy call to action — great for mobile viewers.'
+      insight:
+        'Kept it under 30 seconds with a punchy call to action — great for mobile viewers.',
     },
     {
       id: '2',
@@ -41,7 +42,8 @@ const TrendingAnalyticsPanel: React.FC = () => {
       adDuration: '25s',
       topViewerTag: 'Funny',
       cpv: '$0.003',
-      insight: 'Paired upbeat music with clear product showcase — resonated with lifestyle channels.'
+      insight:
+        'Paired upbeat music with clear product showcase — resonated with lifestyle channels.',
     },
     {
       id: '3',
@@ -53,18 +55,21 @@ const TrendingAnalyticsPanel: React.FC = () => {
       adDuration: '30s',
       topViewerTag: 'Informative',
       cpv: '$0.005',
-      insight: 'Strong opening hook with health benefits led to high completion rates.'
-    }
+      insight:
+        'Strong opening hook with health benefits led to high completion rates.',
+    },
   ];
 
   const topViewerTags = [
     { tag: 'Great Product', percentage: 35 },
     { tag: 'Funny', percentage: 28 },
     { tag: 'Informative', percentage: 22 },
-    { tag: 'Creative', percentage: 15 }
+    { tag: 'Creative', percentage: 15 },
   ];
 
-  const averageRating = trendingAds.reduce((acc, ad) => acc + ad.starRating, 0) / trendingAds.length;
+  const averageRating =
+    trendingAds.reduce((acc, ad) => acc + ad.starRating, 0) /
+    trendingAds.length;
 
   return (
     <div className="bg-gradient-to-br from-background to-secondary/10 py-12">
@@ -85,9 +90,13 @@ const TrendingAnalyticsPanel: React.FC = () => {
             <CardContent className="p-4 text-center">
               <div className="flex items-center justify-center gap-2 mb-2">
                 <Star className="h-5 w-5 text-yellow-500" />
-                <span className="text-2xl font-bold">{averageRating.toFixed(1)}</span>
+                <span className="text-2xl font-bold">
+                  {averageRating.toFixed(1)}
+                </span>
               </div>
-              <p className="text-sm text-muted-foreground">Average Star Rating</p>
+              <p className="text-sm text-muted-foreground">
+                Average Star Rating
+              </p>
             </CardContent>
           </Card>
 
@@ -97,7 +106,9 @@ const TrendingAnalyticsPanel: React.FC = () => {
                 <Clock className="h-5 w-5 text-primary" />
                 <span className="text-2xl font-bold">≤30s</span>
               </div>
-              <p className="text-sm text-muted-foreground">Optimal Ad Duration</p>
+              <p className="text-sm text-muted-foreground">
+                Optimal Ad Duration
+              </p>
             </CardContent>
           </Card>
 
@@ -107,7 +118,9 @@ const TrendingAnalyticsPanel: React.FC = () => {
                 <Eye className="h-5 w-5 text-green-500" />
                 <span className="text-2xl font-bold">82%</span>
               </div>
-              <p className="text-sm text-muted-foreground">Avg View-Through Rate</p>
+              <p className="text-sm text-muted-foreground">
+                Avg View-Through Rate
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -123,12 +136,14 @@ const TrendingAnalyticsPanel: React.FC = () => {
                 <div key={index} className="flex items-center gap-3">
                   <span className="text-sm font-medium w-20">{item.tag}</span>
                   <div className="flex-1 bg-secondary/30 rounded-full h-2">
-                    <div 
+                    <div
                       className="bg-primary h-2 rounded-full transition-all duration-500"
                       style={{ width: `${item.percentage}%` }}
                     />
                   </div>
-                  <span className="text-sm text-muted-foreground w-10">{item.percentage}%</span>
+                  <span className="text-sm text-muted-foreground w-10">
+                    {item.percentage}%
+                  </span>
                 </div>
               ))}
             </div>
@@ -137,18 +152,23 @@ const TrendingAnalyticsPanel: React.FC = () => {
 
         {/* Trending Ads List */}
         <div className="space-y-6">
-          <h3 className="text-xl font-semibold">Top Performing Ads This Week</h3>
-          
+          <h3 className="text-xl font-semibold">
+            Top Performing Ads This Week
+          </h3>
+
           <div className="grid gap-6">
             {trendingAds.map((ad, index) => (
-              <Card key={ad.id} className="overflow-hidden hover:shadow-lg transition-all duration-300">
+              <Card
+                key={ad.id}
+                className="overflow-hidden hover:shadow-lg transition-all duration-300"
+              >
                 <CardContent className="p-6">
                   <div className="flex flex-col lg:flex-row gap-6">
                     {/* Ad Preview */}
                     <div className="lg:w-1/4">
                       <div className="relative aspect-video rounded-lg overflow-hidden bg-gray-100">
-                        <img 
-                          src={ad.thumbnail} 
+                        <img
+                          src={ad.thumbnail}
                           alt={ad.title}
                           className="w-full h-full object-cover"
                         />
@@ -163,13 +183,19 @@ const TrendingAnalyticsPanel: React.FC = () => {
                     {/* Ad Details */}
                     <div className="lg:w-3/4 space-y-4">
                       <div>
-                        <h4 className="text-lg font-semibold mb-2">{ad.title}</h4>
+                        <h4 className="text-lg font-semibold mb-2">
+                          {ad.title}
+                        </h4>
                         <div className="flex items-center gap-2 mb-3">
                           <div className="flex items-center gap-1">
                             <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                            <span className="text-sm font-medium">{ad.starRating}</span>
+                            <span className="text-sm font-medium">
+                              {ad.starRating}
+                            </span>
                           </div>
-                          <Badge variant="info" className="text-xs">{ad.topViewerTag}</Badge>
+                          <Badge variant="info" className="text-xs">
+                            {ad.topViewerTag}
+                          </Badge>
                         </div>
                       </div>
 
@@ -178,16 +204,24 @@ const TrendingAnalyticsPanel: React.FC = () => {
                         <div className="flex items-center gap-2">
                           <Eye className="h-4 w-4 text-primary" />
                           <div>
-                            <p className="text-sm font-medium">{ad.viewThroughRate}%</p>
-                            <p className="text-xs text-muted-foreground">View-through</p>
+                            <p className="text-sm font-medium">
+                              {ad.viewThroughRate}%
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              View-through
+                            </p>
                           </div>
                         </div>
 
                         <div className="flex items-center gap-2">
                           <Clock className="h-4 w-4 text-primary" />
                           <div>
-                            <p className="text-sm font-medium">{ad.avgViewTime}</p>
-                            <p className="text-xs text-muted-foreground">Avg. view time</p>
+                            <p className="text-sm font-medium">
+                              {ad.avgViewTime}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              Avg. view time
+                            </p>
                           </div>
                         </div>
 
@@ -195,15 +229,21 @@ const TrendingAnalyticsPanel: React.FC = () => {
                           <DollarSign className="h-4 w-4 text-green-500" />
                           <div>
                             <p className="text-sm font-medium">{ad.cpv}</p>
-                            <p className="text-xs text-muted-foreground">Cost per view</p>
+                            <p className="text-xs text-muted-foreground">
+                              Cost per view
+                            </p>
                           </div>
                         </div>
 
                         <div className="flex items-center gap-2">
                           <TrendingUp className="h-4 w-4 text-primary" />
                           <div>
-                            <p className="text-sm font-medium">{ad.adDuration}</p>
-                            <p className="text-xs text-muted-foreground">Duration</p>
+                            <p className="text-sm font-medium">
+                              {ad.adDuration}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              Duration
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -225,9 +265,12 @@ const TrendingAnalyticsPanel: React.FC = () => {
         {/* CTA for Advertisers */}
         <Card className="mt-8 bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">
           <CardContent className="p-6 text-center">
-            <h3 className="text-xl font-semibold mb-2">Ready to Create Your Trending Ad?</h3>
+            <h3 className="text-xl font-semibold mb-2">
+              Ready to Create Your Trending Ad?
+            </h3>
             <p className="text-muted-foreground mb-4">
-              Apply these insights to your next campaign and join the trending list!
+              Apply these insights to your next campaign and join the trending
+              list!
             </p>
             <button className="bg-primary text-primary-foreground px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors">
               Create Your Ad Now

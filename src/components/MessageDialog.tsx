@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Send, X } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Send, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface MessageDialogProps {
@@ -28,7 +33,7 @@ const MessageDialog: React.FC<MessageDialogProps> = ({
   onClose,
   recipientId,
   recipientName,
-  recipientAvatar
+  recipientAvatar,
 }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -49,15 +54,15 @@ const MessageDialog: React.FC<MessageDialogProps> = ({
         content: 'Hello! How are you?',
         sender_id: recipientId,
         created_at: new Date(Date.now() - 3600000).toISOString(),
-        is_read: true
+        is_read: true,
       },
       {
-        id: '2', 
-        content: 'I\'m doing great, thanks for asking!',
+        id: '2',
+        content: "I'm doing great, thanks for asking!",
         sender_id: 'current-user',
         created_at: new Date(Date.now() - 1800000).toISOString(),
-        is_read: true
-      }
+        is_read: true,
+      },
     ];
     setMessages(mockMessages);
   };
@@ -72,22 +77,22 @@ const MessageDialog: React.FC<MessageDialogProps> = ({
         content: newMessage,
         sender_id: 'current-user',
         created_at: new Date().toISOString(),
-        is_read: false
+        is_read: false,
       };
 
-      setMessages(prev => [...prev, message]);
+      setMessages((prev) => [...prev, message]);
       setNewMessage('');
-      
+
       toast({
         title: 'Message sent',
-        description: 'Your message has been delivered successfully'
+        description: 'Your message has been delivered successfully',
       });
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
         title: 'Error',
         description: 'Failed to send message',
-        variant: 'destructive'
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -118,7 +123,7 @@ const MessageDialog: React.FC<MessageDialogProps> = ({
             </Button>
           </div>
         </DialogHeader>
-        
+
         <ScrollArea className="flex-1 p-4">
           <div className="space-y-4">
             {messages.map((message) => (
@@ -137,7 +142,7 @@ const MessageDialog: React.FC<MessageDialogProps> = ({
                   <p className="text-xs opacity-70 mt-1">
                     {new Date(message.created_at).toLocaleTimeString([], {
                       hour: '2-digit',
-                      minute: '2-digit'
+                      minute: '2-digit',
                     })}
                   </p>
                 </div>
@@ -145,7 +150,7 @@ const MessageDialog: React.FC<MessageDialogProps> = ({
             ))}
           </div>
         </ScrollArea>
-        
+
         <div className="flex-shrink-0 p-4 border-t">
           <div className="flex gap-2">
             <Input

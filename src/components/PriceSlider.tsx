@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
+import { DollarSign } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { DollarSign } from 'lucide-react';
 
 interface PriceSliderProps {
   value: number;
@@ -14,20 +14,20 @@ interface PriceSliderProps {
 const PriceSlider: React.FC<PriceSliderProps> = ({ value, onChange }) => {
   const [isCustom, setIsCustom] = useState(false);
   const [customValue, setCustomValue] = useState(value.toString());
-  
+
   const dollars = Math.floor(value);
   const cents = Math.round((value - dollars) * 100);
 
   const handleDollarsChange = (newDollars: number[]) => {
     if (!isCustom) {
-      const newValue = newDollars[0] + (cents / 100);
+      const newValue = newDollars[0] + cents / 100;
       onChange(Math.min(newValue, 10));
     }
   };
 
   const handleCentsChange = (newCents: number[]) => {
     if (!isCustom) {
-      const newValue = dollars + (newCents[0] / 100);
+      const newValue = dollars + newCents[0] / 100;
       onChange(Math.min(newValue, 10));
     }
   };
@@ -65,14 +65,19 @@ const PriceSlider: React.FC<PriceSliderProps> = ({ value, onChange }) => {
               Ticket Price
             </Label>
             <div className="text-3xl font-bold text-green-600">
-              ${isCustom ? parseFloat(customValue || '0').toFixed(2) : `${dollars.toLocaleString()}.${cents.toString().padStart(2, '0')}`}
+              $
+              {isCustom
+                ? parseFloat(customValue || '0').toFixed(2)
+                : `${dollars.toLocaleString()}.${cents.toString().padStart(2, '0')}`}
             </div>
           </div>
-          
+
           {!isCustom && (
             <div className="space-y-4">
               <div>
-                <Label className="text-base font-semibold mb-3 block">Dollars: ${dollars.toLocaleString()}</Label>
+                <Label className="text-base font-semibold mb-3 block">
+                  Dollars: ${dollars.toLocaleString()}
+                </Label>
                 <Slider
                   value={[dollars]}
                   onValueChange={handleDollarsChange}
@@ -86,9 +91,11 @@ const PriceSlider: React.FC<PriceSliderProps> = ({ value, onChange }) => {
                   <span>$10</span>
                 </div>
               </div>
-              
+
               <div>
-                <Label className="text-base font-semibold mb-3 block">Cents: {cents}¢</Label>
+                <Label className="text-base font-semibold mb-3 block">
+                  Cents: {cents}¢
+                </Label>
                 <Slider
                   value={[cents]}
                   onValueChange={handleCentsChange}
@@ -103,7 +110,7 @@ const PriceSlider: React.FC<PriceSliderProps> = ({ value, onChange }) => {
                   <span>99¢</span>
                 </div>
               </div>
-              
+
               <div className="flex justify-center gap-3">
                 <Button
                   type="button"
@@ -115,7 +122,7 @@ const PriceSlider: React.FC<PriceSliderProps> = ({ value, onChange }) => {
                 </Button>
                 <Button
                   type="button"
-                  variant={isCustom ? "default" : "outline"}
+                  variant={isCustom ? 'default' : 'outline'}
                   onClick={handleCustomToggle}
                   className="min-h-[48px] px-8 text-lg font-semibold"
                 >
@@ -124,7 +131,7 @@ const PriceSlider: React.FC<PriceSliderProps> = ({ value, onChange }) => {
               </div>
             </div>
           )}
-          
+
           {isCustom && (
             <div className="space-y-4">
               <div className="flex justify-center gap-3">
@@ -138,14 +145,16 @@ const PriceSlider: React.FC<PriceSliderProps> = ({ value, onChange }) => {
                 </Button>
                 <Button
                   type="button"
-                  variant={isCustom ? "default" : "outline"}
+                  variant={isCustom ? 'default' : 'outline'}
                   onClick={handleCustomToggle}
                   className="min-h-[48px] px-8 text-lg font-semibold"
                 >
                   Back to Sliders
                 </Button>
               </div>
-              <Label className="text-base font-semibold mb-3 block text-center">Enter Custom Price</Label>
+              <Label className="text-base font-semibold mb-3 block text-center">
+                Enter Custom Price
+              </Label>
               <Input
                 type="number"
                 value={customValue}

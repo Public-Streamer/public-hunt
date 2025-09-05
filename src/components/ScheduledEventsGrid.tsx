@@ -1,5 +1,5 @@
-import React from "react";
-import ScheduledEventCard from "./ScheduledEventCard";
+import React from 'react';
+import ScheduledEventCard from './ScheduledEventCard';
 
 interface ScheduledEvent {
   id: string;
@@ -42,7 +42,7 @@ const ScheduledEventsGrid: React.FC<ScheduledEventsGridProps> = ({
       event.channelName.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesMember =
-      memberSearch === "" ||
+      memberSearch === '' ||
       event.participants.some((participant) =>
         participant.toLowerCase().includes(memberSearch.toLowerCase())
       );
@@ -53,37 +53,37 @@ const ScheduledEventsGrid: React.FC<ScheduledEventsGridProps> = ({
   // Sort events based on selected option
   const sortedEvents = [...filteredEvents].sort((a, b) => {
     switch (sortBy) {
-      case "most-views":
+      case 'most-views':
         return b.views - a.views;
-      case "least-views":
+      case 'least-views':
         return a.views - b.views;
-      case "most-revenue":
+      case 'most-revenue':
         return b.ticketRevenue - a.ticketRevenue;
-      case "least-revenue":
+      case 'least-revenue':
         return a.ticketRevenue - b.ticketRevenue;
-      case "most-ticket-sales":
+      case 'most-ticket-sales':
         return (b.ticketSales || 0) - (a.ticketSales || 0);
-      case "least-ticket-sales":
+      case 'least-ticket-sales':
         return (a.ticketSales || 0) - (b.ticketSales || 0);
-      case "most-ticket-revenue":
+      case 'most-ticket-revenue':
         return (b.ticketRevenue || 0) - (a.ticketRevenue || 0);
-      case "least-ticket-revenue":
+      case 'least-ticket-revenue':
         return (a.ticketRevenue || 0) - (b.ticketRevenue || 0);
-      case "most-subscribers":
+      case 'most-subscribers':
         return (b.subscribers || 0) - (a.subscribers || 0);
-      case "least-subscribers":
+      case 'least-subscribers':
         return (a.subscribers || 0) - (b.subscribers || 0);
-      case "most-popular":
+      case 'most-popular':
         return b.views * parseFloat(b.rating) - a.views * parseFloat(a.rating);
-      case "least-popular":
+      case 'least-popular':
         return a.views * parseFloat(a.rating) - b.views * parseFloat(b.rating);
-      case "newest":
+      case 'newest':
         return b.startDateTime.getTime() - a.startDateTime.getTime();
-      case "oldest":
+      case 'oldest':
         return a.startDateTime.getTime() - b.startDateTime.getTime();
-      case "alphabetical":
+      case 'alphabetical':
         return a.title.localeCompare(b.title);
-      case "starts-soon":
+      case 'starts-soon':
         return a.startDateTime.getTime() - b.startDateTime.getTime();
       default:
         // Default: starts soon
@@ -97,8 +97,8 @@ const ScheduledEventsGrid: React.FC<ScheduledEventsGridProps> = ({
         <p className="text-gray-500 text-lg">No scheduled events found</p>
         <p className="text-gray-400 text-sm mt-2">
           {searchTerm || memberSearch
-            ? "Try adjusting your search terms"
-            : "Check back later for upcoming events"}
+            ? 'Try adjusting your search terms'
+            : 'Check back later for upcoming events'}
         </p>
       </div>
     );

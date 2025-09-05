@@ -1,11 +1,11 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { supabaseBrowser } from "@/lib/supabase/browser";
-import { User } from "@supabase/supabase-js";
-import { toast } from "@/hooks/use-toast";
-import type { Database } from "@/integrations/supabase/types";
-import { useQuery } from "@tanstack/react-query";
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { User } from '@supabase/supabase-js';
+import { useQuery } from '@tanstack/react-query';
+import { supabaseBrowser } from '@/lib/supabase/browser';
+import { toast } from '@/hooks/use-toast';
+import type { Database } from '@/integrations/supabase/types';
 
-type currentUserProfile = Database["public"]["Tables"]["user_profiles"]["Row"];
+type currentUserProfile = Database['public']['Tables']['user_profiles']['Row'];
 
 interface AppContextType {
   sidebarOpen: boolean;
@@ -20,7 +20,7 @@ interface AppContextType {
   signUp: (
     email: string,
     password: string,
-    userData: Omit<currentUserProfile, "id" | "email">
+    userData: Omit<currentUserProfile, 'id' | 'email'>
   ) => Promise<{ error?: string }>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
@@ -37,8 +37,8 @@ const defaultAppContext: AppContextType = {
   toggleSidebar: () => {},
   user: null,
   currentUserProfile: null,
-  signIn: async () => ({ error: "Not implemented" }),
-  signUp: async () => ({ error: "Not implemented" }),
+  signIn: async () => ({ error: 'Not implemented' }),
+  signUp: async () => ({ error: 'Not implemented' }),
   logout: async () => {},
   isAuthenticated: false,
   isAdminUser: false,
@@ -75,14 +75,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       setLoading(true);
       const supabase = supabaseBrowser();
-      
+
       // Clean up existing auth state first
       Object.keys(localStorage).forEach((key) => {
-        if (key.startsWith("supabase.auth.") || key.includes("sb-")) {
+        if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
           localStorage.removeItem(key);
         }
       });
-      
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -93,8 +93,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       }
 
       toast({
-        title: "Welcome back!",
-        description: "You have successfully signed in.",
+        title: 'Welcome back!',
+        description: 'You have successfully signed in.',
       });
 
       // Handle redirect after successful login
@@ -107,14 +107,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       return {};
     } catch (error) {
       setLoading(false);
-      return { error: "An unexpected error occurred" };
+      return { error: 'An unexpected error occurred' };
     }
   };
 
   const signUp = async (
     email: string,
     password: string,
-    userData: Omit<currentUserProfile, "id" | "email">
+    userData: Omit<currentUserProfile, 'id' | 'email'>
   ) => {
     try {
       setLoading(true);
@@ -130,8 +130,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
       if (error) {
         // Special handling for email exists error
-        if (error.message.toLowerCase().includes("already registered")) {
-          return { error: "Email already exists" };
+        if (error.message.toLowerCase().includes('already registered')) {
+          return { error: 'Email already exists' };
         }
         return { error: error.message };
       }
@@ -141,10 +141,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         try {
           // Create or update the user profile with company information
           const { error: profileError } = await supabase
-            .from("user_profiles")
+            .from('user_profiles')
             .upsert({
               user_id: data.user.id,
-              username: email.split("@")[0],
+              username: email.split('@')[0],
               display_name: userData.display_name,
               bio: userData.bio,
               location: userData.location,
@@ -154,25 +154,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
             });
 
           if (profileError) {
-            console.error("Error creating user profile:", profileError);
+            console.error('Error creating user profile:', profileError);
             setLoading(false);
           }
 
           // Create company profile
           const { error: companyProfileError } = await supabase
-            .from("company_profiles")
+            .from('company_profiles')
             .insert({
               company_id: data.user.id, // Use the new user's ID as company ID
               company_name: userData.company_name,
               description:
                 userData.bio ||
                 `Welcome to ${userData.company_name}! We're excited to share our journey with you.`,
-              industry: "Technology", // Default, can be updated later
+              industry: 'Technology', // Default, can be updated later
             });
 
           if (companyProfileError) {
             console.error(
-              "Error creating company profile:",
+              'Error creating company profile:',
               companyProfileError
             );
             setLoading(false);
@@ -180,36 +180,36 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
           // Create company role for the designated master
           const { error: roleError } = await supabase
-            .from("company_roles")
+            .from('company_roles')
             .insert({
               company_id: data.user.id, // Use the new user's ID as company ID
               user_id: userData.company_id,
-              role: "company_master",
-              permissions: ["*"], // All permissions
+              role: 'company_master',
+              permissions: ['*'], // All permissions
               assigned_by: data.user.id,
             });
 
           if (roleError) {
-            console.error("Error creating company master role:", roleError);
+            console.error('Error creating company master role:', roleError);
             setLoading(false);
           }
         } catch (companyError) {
-          console.error("Error setting up company structure:", companyError);
+          console.error('Error setting up company structure:', companyError);
           setLoading(false);
         }
       }
 
       toast({
-        title: "Account created!",
+        title: 'Account created!',
         description: userData.is_company_account
-          ? "Account created! The designated Account Master has been granted full permissions."
-          : "Please check your email to verify your account.",
+          ? 'Account created! The designated Account Master has been granted full permissions.'
+          : 'Please check your email to verify your account.',
       });
 
       return {};
     } catch (error) {
       setLoading(false);
-      return { error: "An unexpected error occurred" };
+      return { error: 'An unexpected error occurred' };
     }
   };
 
@@ -217,33 +217,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       // Clean up auth state first
       Object.keys(localStorage).forEach((key) => {
-        if (key.startsWith("supabase.auth.") || key.includes("sb-")) {
+        if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
           localStorage.removeItem(key);
         }
       });
 
       // Attempt global sign out
       const supabase = supabaseBrowser();
-      await supabase.auth.signOut({ scope: "global" });
+      await supabase.auth.signOut({ scope: 'global' });
 
       // Clear state immediately
       setUser(null);
 
       toast({
-        title: "Logged out",
-        description: "You have been successfully logged out.",
+        title: 'Logged out',
+        description: 'You have been successfully logged out.',
       });
 
       // Force page reload for clean state
       setTimeout(() => {
-        window.location.href = "/";
+        window.location.href = '/';
       }, 500);
     } catch (error) {
-      console.error("Error logging out:", error);
+      console.error('Error logging out:', error);
       // Even if signOut fails, clear local state
       setUser(null);
 
-      window.location.href = "/";
+      window.location.href = '/';
     }
   };
 
@@ -252,13 +252,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       const supabase = supabaseBrowser();
       const { data, error } = await supabase
-        .from("admin_user_assignments")
-        .select("role")
-        .eq("user_id", userId)
+        .from('admin_user_assignments')
+        .select('role')
+        .eq('user_id', userId)
         .single();
 
-      if (error && error.code !== "PGRST116") {
-        console.error("Error checking admin role:", error);
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking admin role:', error);
         return;
       }
 
@@ -277,14 +277,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         setAdminRole(null);
       }
     } catch (error) {
-      console.error("Error checking admin role:", error);
+      console.error('Error checking admin role:', error);
     }
   };
 
   useEffect(() => {
     let initialSessionChecked = false;
     const supabase = supabaseBrowser();
-    
+
     // Set up auth state listener
     const {
       data: { subscription },
@@ -313,7 +313,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
         // Check admin role after a delay to ensure user is fully loaded
         setTimeout(() => {
-          checkAdminRole(session.user.id, session.user.email || "");
+          checkAdminRole(session.user.id, session.user.email || '');
         }, 500);
       } else {
         setIsAdminUser(false);
@@ -332,7 +332,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       if (session?.user) {
         // Check admin role
         setTimeout(() => {
-          checkAdminRole(session.user.id, session.user.email || "");
+          checkAdminRole(session.user.id, session.user.email || '');
         }, 500);
       }
       if (initialSessionChecked) {
@@ -350,7 +350,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     isLoading: profileLoading,
     refetch: refetchProfile,
   } = useQuery({
-    queryKey: ["currentUser-profile", user?.id],
+    queryKey: ['currentUser-profile', user?.id],
     queryFn: async () => {
       const targetUserId = user?.id;
       if (!targetUserId) return null;
@@ -358,13 +358,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       // First, try to get the user profile by user_id
       const supabase = supabaseBrowser();
       const { data, error } = await supabase
-        .from("user_profiles")
-        .select("*")
-        .eq("user_id", targetUserId)
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', targetUserId)
         .maybeSingle(); // Use maybeSingle instead of single to handle no rows
 
       if (error) {
-        console.error("Error loading profile:", error);
+        console.error('Error loading profile:', error);
         throw error;
       }
 
@@ -393,8 +393,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   //   }
   // }, [user]);
 
-  console.log("AppContext - Current User Profile", currentUserProfile);
-  console.log("AppContext - Current User", user?.email);
+  console.log('AppContext - Current User Profile', currentUserProfile);
+  console.log('AppContext - Current User', user?.email);
 
   return (
     <AppContext.Provider

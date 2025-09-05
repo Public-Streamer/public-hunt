@@ -1,8 +1,14 @@
 import React, { useState } from 'react';
+import { Target, Trophy, Plus } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Target, Trophy, Plus } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 
 interface ScoreboardGameSelectorProps {
   onGameSelect: (gameType: string) => void;
@@ -20,27 +26,32 @@ const GAME_TYPES: GameType[] = [
   {
     id: 'coon_hunt',
     name: 'Coon Dog Hunt',
-    description: 'OMCBA compliant scoreboard with Strike, Tree, Circle, and Minus points',
+    description:
+      'OMCBA compliant scoreboard with Strike, Tree, Circle, and Minus points',
     icon: <Target className="h-8 w-8" />,
     available: true,
   },
   {
     id: 'general_competition',
     name: 'General Competition',
-    description: 'Flexible scoreboard for various competitive events (Coming Soon)',
+    description:
+      'Flexible scoreboard for various competitive events (Coming Soon)',
     icon: <Trophy className="h-8 w-8" />,
     available: false,
   },
   {
     id: 'custom',
     name: 'Custom',
-    description: 'Build your own custom scoreboard template with flexible field types',
+    description:
+      'Build your own custom scoreboard template with flexible field types',
     icon: <Plus className="h-8 w-8" />,
     available: true,
   },
 ];
 
-export const ScoreboardGameSelector: React.FC<ScoreboardGameSelectorProps> = ({ onGameSelect }) => {
+export const ScoreboardGameSelector: React.FC<ScoreboardGameSelectorProps> = ({
+  onGameSelect,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleGameSelect = (gameId: string) => {
@@ -65,9 +76,10 @@ export const ScoreboardGameSelector: React.FC<ScoreboardGameSelectorProps> = ({ 
         </DialogHeader>
         <div className="space-y-4 py-4">
           <p className="text-muted-foreground text-sm">
-            Choose the type of competition to create a specialized scoreboard with the appropriate fields and rules.
+            Choose the type of competition to create a specialized scoreboard
+            with the appropriate fields and rules.
           </p>
-          
+
           <div className="grid gap-4">
             {GAME_TYPES.map((game) => (
               <Card
@@ -81,7 +93,9 @@ export const ScoreboardGameSelector: React.FC<ScoreboardGameSelectorProps> = ({ 
               >
                 <CardContent className="p-4">
                   <div className="flex items-start gap-4">
-                    <div className={`p-2 rounded-lg ${game.available ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
+                    <div
+                      className={`p-2 rounded-lg ${game.available ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}
+                    >
                       {game.icon}
                     </div>
                     <div className="flex-1 space-y-1">
@@ -107,10 +121,11 @@ export const ScoreboardGameSelector: React.FC<ScoreboardGameSelectorProps> = ({ 
               </Card>
             ))}
           </div>
-          
+
           <div className="pt-4 border-t">
             <p className="text-xs text-muted-foreground">
-              More game types and custom templates will be available in future updates.
+              More game types and custom templates will be available in future
+              updates.
             </p>
           </div>
         </div>

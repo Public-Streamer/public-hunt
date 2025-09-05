@@ -1,41 +1,4 @@
-import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import React, { useState, useEffect } from 'react';
 import {
   Heart,
   MessageCircle,
@@ -56,13 +19,50 @@ import {
   Trash2,
   AtSign,
   Zap,
-} from "lucide-react";
-import { supabase } from "@/lib/supabase";
-import { useToast } from "@/hooks/use-toast";
-import { useAppContext } from "@/contexts/AppContext";
-import SocialPost from "./SocialPost";
-import MultiSelectTags from "./MultiSelectTags";
-import LiveStreamLogo from "@/components/ui/live-stream-logo";
+} from 'lucide-react';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { supabase } from '@/lib/supabase';
+import { useToast } from '@/hooks/use-toast';
+import { useAppContext } from '@/contexts/AppContext';
+import SocialPost from './SocialPost';
+import MultiSelectTags from './MultiSelectTags';
+import LiveStreamLogo from '@/components/ui/live-stream-logo';
 
 interface currentUserProfile {
   id: string;
@@ -75,7 +75,7 @@ interface TimelinePost {
   id: string;
   content: string;
   media_url?: string;
-  media_type?: "image" | "video";
+  media_type?: 'image' | 'video';
   created_at: string;
   user_id: string;
   user_profile: currentUserProfile;
@@ -84,7 +84,7 @@ interface TimelinePost {
   shares_count: number;
   is_liked: boolean;
   is_bookmarked: boolean;
-  type: "post" | "event" | "channel" | "milestone";
+  type: 'post' | 'event' | 'channel' | 'milestone';
   metadata?: {
     event_id?: string;
     channel_id?: string;
@@ -127,18 +127,18 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
   currentUserProfile,
 }) => {
   const [posts, setPosts] = useState<TimelinePost[]>([]);
-  const [newPost, setNewPost] = useState("");
+  const [newPost, setNewPost] = useState('');
   const [selectedMedia, setSelectedMedia] = useState<File | null>(null);
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
-  const [selectedLocation, setSelectedLocation] = useState<string>("");
+  const [selectedLocation, setSelectedLocation] = useState<string>('');
   const [locationOpen, setLocationOpen] = useState(false);
-  const [locationInput, setLocationInput] = useState<string>("");
+  const [locationInput, setLocationInput] = useState<string>('');
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedPost, setSelectedPost] = useState<TimelinePost | null>(null);
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState<Comment[]>([]);
-  const [newComment, setNewComment] = useState("");
+  const [newComment, setNewComment] = useState('');
   const [expandedPost, setExpandedPost] = useState(false);
   const [userChannels, setUserChannels] = useState<any[]>([]);
   const [userEvents, setUserEvents] = useState<any[]>([]);
@@ -148,10 +148,10 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
   const [selectedEvents, setSelectedEvents] = useState<any[]>([]);
   const [channelOpen, setChannelOpen] = useState(false);
   const [eventOpen, setEventOpen] = useState(false);
-  const [channelInput, setChannelInput] = useState<string>("");
-  const [eventInput, setEventInput] = useState<string>("");
+  const [channelInput, setChannelInput] = useState<string>('');
+  const [eventInput, setEventInput] = useState<string>('');
   const [taggedUsers, setTaggedUsers] = useState<any[]>([]);
-  const [userSearchTerm, setUserSearchTerm] = useState("");
+  const [userSearchTerm, setUserSearchTerm] = useState('');
   const [userSearchResults, setUserSearchResults] = useState<any[]>([]);
   const [showUserSearch, setShowUserSearch] = useState(false);
   const [showGoLivePopover, setShowGoLivePopover] = useState(false);
@@ -162,28 +162,29 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
   // Get the appropriate user profile data
   const profileData: currentUserProfile = currentUserProfile || {
     id: userId,
-    username: user?.email?.split("@")[0] || "user",
-    display_name: currentUserProfile?.display_name || "User",
-    profile_picture_url: currentUserProfile?.profile_picture_url || "/placeholder.svg",
+    username: user?.email?.split('@')[0] || 'user',
+    display_name: currentUserProfile?.display_name || 'User',
+    profile_picture_url:
+      currentUserProfile?.profile_picture_url || '/placeholder.svg',
   };
 
   // Common locations for autocomplete
   const commonLocations = [
-    "San Francisco, CA",
-    "New York, NY",
-    "Los Angeles, CA",
-    "Chicago, IL",
-    "Houston, TX",
-    "Phoenix, AZ",
-    "Philadelphia, PA",
-    "San Antonio, TX",
-    "San Diego, CA",
-    "Dallas, TX",
-    "Miami, FL",
-    "Atlanta, GA",
-    "Seattle, WA",
-    "Denver, CO",
-    "Boston, MA",
+    'San Francisco, CA',
+    'New York, NY',
+    'Los Angeles, CA',
+    'Chicago, IL',
+    'Houston, TX',
+    'Phoenix, AZ',
+    'Philadelphia, PA',
+    'San Antonio, TX',
+    'San Diego, CA',
+    'Dallas, TX',
+    'Miami, FL',
+    'Atlanta, GA',
+    'Seattle, WA',
+    'Denver, CO',
+    'Boston, MA',
   ];
 
   useEffect(() => {
@@ -204,8 +205,8 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
 
     try {
       const { data, error } = await supabase
-        .from("user_profiles")
-        .select("id, user_id, username, display_name, profile_picture_url")
+        .from('user_profiles')
+        .select('id, user_id, username, display_name, profile_picture_url')
         .or(`username.ilike.%${query}%,display_name.ilike.%${query}%`)
         .limit(10);
 
@@ -225,7 +226,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
 
       setUserSearchResults(results);
     } catch (error) {
-      console.error("Error searching users:", error);
+      console.error('Error searching users:', error);
     }
   };
 
@@ -234,7 +235,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
       setTaggedUsers((prev) => [...prev, user]);
     }
     setShowUserSearch(false);
-    setUserSearchTerm("");
+    setUserSearchTerm('');
     setUserSearchResults([]);
   };
 
@@ -245,56 +246,56 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
   const fetchUserChannels = async () => {
     try {
       const { data, error } = await supabase
-        .from("channels")
-        .select("*")
-        .eq("user_id", userId);
+        .from('channels')
+        .select('*')
+        .eq('user_id', userId);
 
       if (error) throw error;
       setUserChannels(data || []);
     } catch (error) {
-      console.error("Error fetching user channels:", error);
+      console.error('Error fetching user channels:', error);
     }
   };
 
   const fetchAllChannels = async () => {
     try {
       const { data, error } = await supabase
-        .from("channels")
-        .select("*")
+        .from('channels')
+        .select('*')
         .limit(20);
 
       if (error) throw error;
       setAllChannels(data || []);
     } catch (error) {
-      console.error("Error fetching all channels:", error);
+      console.error('Error fetching all channels:', error);
     }
   };
 
   const fetchUserEvents = async () => {
     try {
       const { data, error } = await supabase
-        .from("events")
-        .select("*")
-        .eq("created_by", userId);
+        .from('events')
+        .select('*')
+        .eq('created_by', userId);
 
       if (error) throw error;
       setUserEvents(data || []);
     } catch (error) {
-      console.error("Error fetching user events:", error);
+      console.error('Error fetching user events:', error);
     }
   };
 
   const fetchAllEvents = async () => {
     try {
       const { data, error } = await supabase
-        .from("events")
-        .select("*")
+        .from('events')
+        .select('*')
         .limit(20);
 
       if (error) throw error;
       setAllEvents(data || []);
     } catch (error) {
-      console.error("Error fetching all events:", error);
+      console.error('Error fetching all events:', error);
     }
   };
 
@@ -304,15 +305,15 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
 
       // Fetch posts from the database with user profiles and additional data
       const { data: postsData, error: postsError } = await supabase
-        .from("user_posts")
+        .from('user_posts')
         .select(
           `
           *,
           user_profiles!inner(id, user_id, username, display_name, profile_picture_url)
         `
         )
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false });
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
 
       if (postsError) throw postsError;
 
@@ -321,22 +322,22 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
         (postsData || []).map(async (post) => {
           // Get tagged users for this post
           const { data: taggedData } = await supabase
-            .from("user_post_tags")
+            .from('user_post_tags')
             .select(
               `
               tagged_user_id,
               user_profiles!tagged_user_id(username, display_name)
             `
             )
-            .eq("post_id", post.id);
+            .eq('post_id', post.id);
 
           // Get channel info if linked
           let channelData = null;
           if (post.channel_id) {
             const { data: channel } = await supabase
-              .from("channels")
-              .select("id, name")
-              .eq("id", post.channel_id)
+              .from('channels')
+              .select('id, name')
+              .eq('id', post.channel_id)
               .single();
             channelData = channel;
           }
@@ -345,9 +346,9 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
           let eventData = null;
           if (post.event_id) {
             const { data: event } = await supabase
-              .from("events")
-              .select("id, name, slug")
-              .eq("id", post.event_id)
+              .from('events')
+              .select('id, name, slug')
+              .eq('id', post.event_id)
               .single();
             eventData = event;
           }
@@ -356,7 +357,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
             id: post.id,
             content: post.content,
             media_url: post.media_url,
-            media_type: post.media_type as "image" | "video" | undefined,
+            media_type: post.media_type as 'image' | 'video' | undefined,
             created_at: post.created_at,
             user_id: post.user_id,
             user_profile: {
@@ -364,7 +365,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
               username: post.user_profiles.username,
               display_name: post.user_profiles.display_name,
               profile_picture_url:
-                post.user_profiles.profile_picture_url || "/placeholder.svg",
+                post.user_profiles.profile_picture_url || '/placeholder.svg',
             },
             likes_count: post.likes || 0,
             comments_count: post.comments || 0,
@@ -372,8 +373,8 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
             is_liked: false, // TODO: Implement user interactions
             is_bookmarked: false, // TODO: Implement bookmarking
             type:
-              (post.post_type as "post" | "event" | "channel" | "milestone") ||
-              "post",
+              (post.post_type as 'post' | 'event' | 'channel' | 'milestone') ||
+              'post',
             metadata: {
               ...(post.location && { location: post.location }),
               ...(post.channel_id && { channel_id: post.channel_id }),
@@ -384,8 +385,8 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
             event: eventData,
             taggedUsers: (taggedData || []).map((tag: any) => ({
               id: tag.tagged_user_id,
-              name: tag.user_profiles?.display_name || "",
-              username: tag.user_profiles?.username || "",
+              name: tag.user_profiles?.display_name || '',
+              username: tag.user_profiles?.username || '',
             })),
           };
         })
@@ -393,11 +394,11 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
 
       setPosts(transformedPosts);
     } catch (error) {
-      console.error("Error fetching posts:", error);
+      console.error('Error fetching posts:', error);
       toast({
-        title: "Error",
-        description: "Failed to load timeline posts",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to load timeline posts',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -407,15 +408,15 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
   const fetchComments = async (postId: string) => {
     try {
       const { data: commentsData, error } = await supabase
-        .from("comments")
+        .from('comments')
         .select(
           `
           *,
           user_profiles!user_profile_id(id, username, display_name, profile_picture_url)
         `
         )
-        .eq("post_id", postId)
-        .order("created_at", { ascending: false });
+        .eq('post_id', postId)
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
 
@@ -424,11 +425,11 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
           id: comment.id,
           content: comment.content,
           user_profile: {
-            id: comment.user_profiles?.id || "",
-            username: comment.user_profiles?.username || "",
-            display_name: comment.user_profiles?.display_name || "",
+            id: comment.user_profiles?.id || '',
+            username: comment.user_profiles?.username || '',
+            display_name: comment.user_profiles?.display_name || '',
             profile_picture_url:
-              comment.user_profiles?.profile_picture_url || "/placeholder.svg",
+              comment.user_profiles?.profile_picture_url || '/placeholder.svg',
           },
           created_at: comment.created_at,
           likes_count: comment.likes_count || 0,
@@ -438,7 +439,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
 
       setComments(transformedComments);
     } catch (error) {
-      console.error("Error fetching comments:", error);
+      console.error('Error fetching comments:', error);
       setComments([]);
     }
   };
@@ -449,16 +450,16 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
     setUploading(true);
     try {
       let mediaUrl: string | undefined;
-      let mediaType: "image" | "video" | undefined;
+      let mediaType: 'image' | 'video' | undefined;
 
       // Upload media to Supabase storage if provided
       if (selectedMedia) {
-        const fileExt = selectedMedia.name.split(".").pop();
+        const fileExt = selectedMedia.name.split('.').pop();
         const fileName = `${Math.random()}.${fileExt}`;
         const filePath = `posts/${userId}/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
-          .from("media")
+          .from('media')
           .upload(filePath, selectedMedia);
 
         if (uploadError) throw uploadError;
@@ -466,36 +467,40 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
         // Get public URL
         const {
           data: { publicUrl },
-        } = supabase.storage.from("media").getPublicUrl(filePath);
+        } = supabase.storage.from('media').getPublicUrl(filePath);
 
         mediaUrl = publicUrl;
-        mediaType = selectedMedia.type.startsWith("image/") ? "image" : "video";
+        mediaType = selectedMedia.type.startsWith('image/') ? 'image' : 'video';
       }
 
       // Determine post type
       const postType =
         selectedChannels && selectedChannels.length > 0
-          ? "channel"
+          ? 'channel'
           : selectedEvents && selectedEvents.length > 0
-          ? "event"
-          : "post";
+            ? 'event'
+            : 'post';
 
       // Create post in database
       // First get current user's profile data for accurate display
       const { data: currentUserProfile } = await supabase
-        .from("user_profiles")
-        .select("id, username, display_name, profile_picture_url")
-        .eq("user_id", userId)
+        .from('user_profiles')
+        .select('id, username, display_name, profile_picture_url')
+        .eq('user_id', userId)
         .single();
 
       const { data: postData, error: postError } = await supabase
-        .from("user_posts")
+        .from('user_posts')
         .insert({
           content: newPost,
           user_id: userId,
-          user_name: currentUserProfile?.display_name || profileData.display_name,
-          author_name: currentUserProfile?.display_name || profileData.display_name,
-          author_avatar: currentUserProfile?.profile_picture_url || profileData.profile_picture_url,
+          user_name:
+            currentUserProfile?.display_name || profileData.display_name,
+          author_name:
+            currentUserProfile?.display_name || profileData.display_name,
+          author_avatar:
+            currentUserProfile?.profile_picture_url ||
+            profileData.profile_picture_url,
           media_url: mediaUrl,
           media_type: mediaType,
           location: selectedLocation || null,
@@ -527,10 +532,10 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
         }));
 
         const { error: tagError } = await supabase
-          .from("user_post_tags")
+          .from('user_post_tags')
           .insert(tagInserts);
 
-        if (tagError) console.error("Error creating tags:", tagError);
+        if (tagError) console.error('Error creating tags:', tagError);
       }
 
       // Get channel and event data for display
@@ -551,14 +556,17 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
         id: postData.id,
         content: postData.content,
         media_url: postData.media_url,
-        media_type: postData.media_type as "image" | "video" | undefined,
+        media_type: postData.media_type as 'image' | 'video' | undefined,
         created_at: postData.created_at,
         user_id: postData.user_id,
         user_profile: {
           id: currentUserProfile?.id || profileData.id,
-          display_name: currentUserProfile?.display_name || profileData.display_name,
+          display_name:
+            currentUserProfile?.display_name || profileData.display_name,
           username: currentUserProfile?.username || profileData.username,
-          profile_picture_url: currentUserProfile?.profile_picture_url || profileData.profile_picture_url,
+          profile_picture_url:
+            currentUserProfile?.profile_picture_url ||
+            profileData.profile_picture_url,
         },
         likes_count: 0,
         comments_count: 0,
@@ -566,8 +574,8 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
         is_liked: false,
         is_bookmarked: false,
         type:
-          (postData.post_type as "post" | "event" | "channel" | "milestone") ||
-          "post",
+          (postData.post_type as 'post' | 'event' | 'channel' | 'milestone') ||
+          'post',
         metadata: postData.metadata,
         channel: selectedChannelData
           ? {
@@ -592,37 +600,37 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
       setPosts((prev) => [newPostData, ...prev]);
 
       // Reset form
-      setNewPost("");
+      setNewPost('');
       setSelectedMedia(null);
       setMediaPreview(null);
-      setSelectedLocation("");
+      setSelectedLocation('');
       setSelectedChannels([]);
       setSelectedEvents([]);
       setTaggedUsers([]);
       setExpandedPost(false);
 
       toast({
-        title: "Success",
-        description: "Post created successfully!",
+        title: 'Success',
+        description: 'Post created successfully!',
       });
     } catch (error) {
-      console.error("Error creating post:", error);
+      console.error('Error creating post:', error);
       toast({
-        title: "Error",
-        description: "Failed to create post",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to create post',
+        variant: 'destructive',
       });
     } finally {
       setUploading(false);
     }
   };
 
-  const handleMediaUpload = (file: File, type: "image" | "video") => {
+  const handleMediaUpload = (file: File, type: 'image' | 'video') => {
     if (file) {
       setSelectedMedia(file);
       setMediaPreview(URL.createObjectURL(file));
       toast({
-        title: "Media selected",
+        title: 'Media selected',
         description: `${type} ready to upload`,
       });
     }
@@ -643,15 +651,15 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
                 `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${position.coords.latitude}&longitude=${position.coords.longitude}&localityLanguage=en`
               );
               const data = await response.json();
-              resolve(data.city || data.locality || "Live Online");
+              resolve(data.city || data.locality || 'Live Online');
             } catch (error) {
-              resolve("Live Online");
+              resolve('Live Online');
             }
           },
-          () => resolve("Live Online")
+          () => resolve('Live Online')
         );
       } else {
-        resolve("Live Online");
+        resolve('Live Online');
       }
     });
   };
@@ -662,29 +670,29 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
         await supabase.auth.getUser();
       if (userError || !userData.user) {
         toast({
-          title: "Authentication Required",
-          description: "You must be logged in to go live.",
-          variant: "destructive",
+          title: 'Authentication Required',
+          description: 'You must be logged in to go live.',
+          variant: 'destructive',
         });
         return;
       }
 
       const now = new Date();
-      const today = now.toISOString().split("T")[0];
+      const today = now.toISOString().split('T')[0];
       const currentTime = now.toTimeString().slice(0, 5);
       const location = selectedLocation || (await getCurrentLocation());
 
       let mediaUrl: string | undefined;
-      let mediaType: "image" | "video" | undefined;
+      let mediaType: 'image' | 'video' | undefined;
 
       // Upload media to Supabase storage if provided
       if (selectedMedia) {
-        const fileExt = selectedMedia.name.split(".").pop();
+        const fileExt = selectedMedia.name.split('.').pop();
         const fileName = `${Math.random()}.${fileExt}`;
         const filePath = `posts/${userId}/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
-          .from("media")
+          .from('media')
           .upload(filePath, selectedMedia);
 
         if (uploadError) throw uploadError;
@@ -692,10 +700,10 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
         // Get public URL
         const {
           data: { publicUrl },
-        } = supabase.storage.from("media").getPublicUrl(filePath);
+        } = supabase.storage.from('media').getPublicUrl(filePath);
 
         mediaUrl = publicUrl;
-        mediaType = selectedMedia.type.startsWith("image/") ? "image" : "video";
+        mediaType = selectedMedia.type.startsWith('image/') ? 'image' : 'video';
       }
 
       // Auto-populate event data
@@ -706,8 +714,8 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
           `Join ${profileData.display_name} for an exclusive live streaming session!`,
         date: today,
         time: currentTime,
-        location: location,
-        category: "Live Stream",
+        location,
+        category: 'Live Stream',
         ticket_price: ticketPrice,
         media_urls: mediaUrl ? [mediaUrl] : [],
         is_live: false, // TODO: this should not be true until we start streaming with the token
@@ -720,7 +728,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
 
       // Create the event
       const { data: eventResult, error: eventError } = await supabase
-        .from("events")
+        .from('events')
         .insert(eventData)
         .select()
         .single();
@@ -730,25 +738,29 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
       // Create post in database
       // First get current user's profile data for accurate display
       const { data: currentUserProfile } = await supabase
-        .from("user_profiles")
-        .select("id, username, display_name, profile_picture_url")
-        .eq("user_id", userId)
+        .from('user_profiles')
+        .select('id, username, display_name, profile_picture_url')
+        .eq('user_id', userId)
         .single();
 
       const { data: postData, error: postError } = await supabase
-        .from("user_posts")
+        .from('user_posts')
         .insert({
           content: newPost
             ? `🔴 LIVE NOW: ${newPost}`
             : `🔴 LIVE NOW: ${eventData.name}`,
           user_id: userId,
-          user_name: currentUserProfile?.display_name || profileData.display_name,
-          author_name: currentUserProfile?.display_name || profileData.display_name,
-          author_avatar: currentUserProfile?.profile_picture_url || profileData.profile_picture_url,
+          user_name:
+            currentUserProfile?.display_name || profileData.display_name,
+          author_name:
+            currentUserProfile?.display_name || profileData.display_name,
+          author_avatar:
+            currentUserProfile?.profile_picture_url ||
+            profileData.profile_picture_url,
           media_url: mediaUrl,
           media_type: mediaType,
-          location: location,
-          post_type: "event",
+          location,
+          post_type: 'event',
           channel_id:
             selectedChannels && selectedChannels[0]
               ? selectedChannels[0].id
@@ -756,7 +768,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
           event_id: eventResult.id,
           metadata: {
             event_id: eventResult.id,
-            location: location,
+            location,
             ...(selectedChannels &&
               selectedChannels[0] && { channel_id: selectedChannels[0].id }),
           },
@@ -775,10 +787,10 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
         }));
 
         const { error: tagError } = await supabase
-          .from("user_post_tags")
+          .from('user_post_tags')
           .insert(tagInserts);
 
-        if (tagError) console.error("Error creating tags:", tagError);
+        if (tagError) console.error('Error creating tags:', tagError);
       }
 
       // Get channel data for display
@@ -793,21 +805,24 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
         id: postData.id,
         content: postData.content,
         media_url: postData.media_url,
-        media_type: postData.media_type as "image" | "video" | undefined,
+        media_type: postData.media_type as 'image' | 'video' | undefined,
         created_at: postData.created_at,
         user_id: postData.user_id,
         user_profile: {
           id: currentUserProfile?.id || profileData.id,
-          display_name: currentUserProfile?.display_name || profileData.display_name,
+          display_name:
+            currentUserProfile?.display_name || profileData.display_name,
           username: currentUserProfile?.username || profileData.username,
-          profile_picture_url: currentUserProfile?.profile_picture_url || profileData.profile_picture_url,
+          profile_picture_url:
+            currentUserProfile?.profile_picture_url ||
+            profileData.profile_picture_url,
         },
         likes_count: 0,
         comments_count: 0,
         shares_count: 0,
         is_liked: false,
         is_bookmarked: false,
-        type: "event" as const,
+        type: 'event' as const,
         metadata: postData.metadata,
         channel: selectedChannelData
           ? {
@@ -830,10 +845,10 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
       setPosts((prev) => [newPostData, ...prev]);
 
       // Clear the post form
-      setNewPost("");
+      setNewPost('');
       setSelectedMedia(null);
       setMediaPreview(null);
-      setSelectedLocation("");
+      setSelectedLocation('');
       setSelectedChannels([]);
       setSelectedEvents([]);
       setTaggedUsers([]);
@@ -844,21 +859,23 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
       toast({
         title: "You're Live!",
         description:
-          "Your solo livestream is now active and visible across all feeds.",
+          'Your solo livestream is now active and visible across all feeds.',
         duration: 5000,
       });
 
       // Navigate to the event page after a short delay
       setTimeout(() => {
-        const stageUrl = eventResult.slug ? `/stage/${eventResult.slug}` : `/stage/${eventResult.id}`;
-        window.open(stageUrl, "_blank");
+        const stageUrl = eventResult.slug
+          ? `/stage/${eventResult.slug}`
+          : `/stage/${eventResult.id}`;
+        window.open(stageUrl, '_blank');
       }, 2000);
     } catch (error) {
-      console.error("Error creating solo live stream:", error);
+      console.error('Error creating solo live stream:', error);
       toast({
-        title: "Error",
-        description: "Failed to start live stream. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to start live stream. Please try again.',
+        variant: 'destructive',
       });
     }
   };
@@ -904,21 +921,22 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
     try {
       // Get current user's profile info
       const { data: currentUserProfileData } = await supabase
-        .from("user_profiles")
-        .select("id, username, display_name, profile_picture_url")
-        .eq("user_id", userId)
+        .from('user_profiles')
+        .select('id, username, display_name, profile_picture_url')
+        .eq('user_id', userId)
         .single();
 
       // Create comment in database
       const { data: commentData, error: commentError } = await supabase
-        .from("comments")
+        .from('comments')
         .insert({
           content: newComment,
           post_id: selectedPost.id,
           user_profile_id: currentUserProfileData?.id,
           author_name:
             currentUserProfileData?.display_name || profileData.display_name,
-          author_username: currentUserProfileData?.username || profileData.username,
+          author_username:
+            currentUserProfileData?.username || profileData.username,
           author_avatar:
             currentUserProfileData?.profile_picture_url ||
             profileData.profile_picture_url,
@@ -947,7 +965,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
       };
 
       setComments((prev) => [...prev, comment]);
-      setNewComment("");
+      setNewComment('');
 
       // Update comment count in posts
       setPosts((prev) =>
@@ -960,15 +978,15 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
 
       // Update the comment count in the database
       await supabase
-        .from("user_posts")
+        .from('user_posts')
         .update({ comments_count: selectedPost.comments_count + 1 })
-        .eq("id", selectedPost.id);
+        .eq('id', selectedPost.id);
     } catch (error) {
-      console.error("Error adding comment:", error);
+      console.error('Error adding comment:', error);
       toast({
-        title: "Error",
-        description: "Failed to add comment",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to add comment',
+        variant: 'destructive',
       });
     }
   };
@@ -977,10 +995,10 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
     try {
       // Delete the post from the database
       const { error } = await supabase
-        .from("user_posts")
+        .from('user_posts')
         .delete()
-        .eq("id", postId)
-        .eq("user_id", userId); // Only allow deletion of own posts
+        .eq('id', postId)
+        .eq('user_id', userId); // Only allow deletion of own posts
 
       if (error) throw error;
 
@@ -988,15 +1006,15 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
       setPosts((prev) => prev.filter((post) => post.id !== postId));
 
       toast({
-        title: "Success",
-        description: "Post deleted successfully",
+        title: 'Success',
+        description: 'Post deleted successfully',
       });
     } catch (error) {
-      console.error("Error deleting post:", error);
+      console.error('Error deleting post:', error);
       toast({
-        title: "Error",
-        description: "Failed to delete post",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to delete post',
+        variant: 'destructive',
       });
     }
   };
@@ -1011,16 +1029,16 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
       const newShareCount = (post.shares_count || 0) + 1;
 
       const { error } = await supabase
-        .from("user_posts")
+        .from('user_posts')
         .update({ shares: newShareCount })
-        .eq("id", post.id);
+        .eq('id', post.id);
 
       if (error) {
-        console.error("Error updating shares count:", error);
+        console.error('Error updating shares count:', error);
         toast({
-          title: "Share failed",
-          description: "Could not update share count.",
-          variant: "destructive",
+          title: 'Share failed',
+          description: 'Could not update share count.',
+          variant: 'destructive',
         });
         return;
       }
@@ -1033,15 +1051,15 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
       );
 
       toast({
-        title: "Link copied",
-        description: "Post link copied to clipboard!",
+        title: 'Link copied',
+        description: 'Post link copied to clipboard!',
       });
     } catch (error) {
-      console.error("Error sharing:", error);
+      console.error('Error sharing:', error);
       toast({
-        title: "Share failed",
-        description: "Could not copy link to clipboard.",
-        variant: "destructive",
+        title: 'Share failed',
+        description: 'Could not copy link to clipboard.',
+        variant: 'destructive',
       });
     }
   };
@@ -1052,7 +1070,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
     mediaFile?: File | null
   ) => {
     try {
-      let mediaUrl: string | undefined = undefined;
+      let mediaUrl: string | undefined;
 
       // Handle media file if provided (for real uploads in actual app)
       if (mediaFile) {
@@ -1076,10 +1094,10 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
                   mediaFile === null
                     ? undefined
                     : mediaFile
-                    ? mediaFile.type.startsWith("image/")
-                      ? "image"
-                      : "video"
-                    : post.media_type,
+                      ? mediaFile.type.startsWith('image/')
+                        ? 'image'
+                        : 'video'
+                      : post.media_type,
               }
             : post
         );
@@ -1087,26 +1105,26 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
       setPosts(updatePost);
 
       toast({
-        title: "Success",
-        description: "Post updated successfully",
+        title: 'Success',
+        description: 'Post updated successfully',
       });
     } catch (error) {
-      console.error("Error updating post:", error);
+      console.error('Error updating post:', error);
       toast({
-        title: "Error",
-        description: "Failed to update post",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to update post',
+        variant: 'destructive',
       });
     }
   };
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case "event":
+      case 'event':
         return <Calendar className="w-4 h-4" />;
-      case "channel":
+      case 'channel':
         return <Play className="w-4 h-4" />;
-      case "milestone":
+      case 'milestone':
         return <Users className="w-4 h-4" />;
       default:
         return null;
@@ -1115,14 +1133,14 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case "event":
-        return "bg-blue-500";
-      case "channel":
-        return "bg-purple-500";
-      case "milestone":
-        return "bg-green-500";
+      case 'event':
+        return 'bg-blue-500';
+      case 'channel':
+        return 'bg-purple-500';
+      case 'milestone':
+        return 'bg-green-500';
       default:
-        return "bg-gray-500";
+        return 'bg-gray-500';
     }
   };
 
@@ -1157,7 +1175,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
                     >
                       <X className="w-4 h-4" />
                     </Button>
-                    {selectedMedia?.type.startsWith("image/") ? (
+                    {selectedMedia?.type.startsWith('image/') ? (
                       <img
                         src={mediaPreview}
                         alt="Preview"
@@ -1179,7 +1197,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
                   onChange={(e) => setNewPost(e.target.value)}
                   onFocus={() => setExpandedPost(true)}
                   className={`resize-none border-0 focus:ring-0 text-lg transition-all duration-300 w-full max-w-full ${
-                    expandedPost ? "min-h-[120px]" : "min-h-[60px]"
+                    expandedPost ? 'min-h-[120px]' : 'min-h-[60px]'
                   }`}
                 />
 
@@ -1195,7 +1213,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => setSelectedLocation("")}
+                            onClick={() => setSelectedLocation('')}
                             className="ml-auto h-6 w-6 p-0"
                           >
                             <X className="w-3 h-3" />
@@ -1296,9 +1314,9 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
                           onChange={(e) => {
                             const file = e.target.files?.[0];
                             if (file) {
-                              const type = file.type.startsWith("image/")
-                                ? "image"
-                                : "video";
+                              const type = file.type.startsWith('image/')
+                                ? 'image'
+                                : 'video';
                               handleMediaUpload(file, type);
                             }
                           }}
@@ -1344,7 +1362,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
                                       onClick={() => {
                                         setSelectedLocation(locationInput);
                                         setLocationOpen(false);
-                                        setLocationInput("");
+                                        setLocationInput('');
                                       }}
                                     >
                                       <MapPin className="w-4 h-4 mr-2" />
@@ -1367,14 +1385,14 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
                                       onSelect={() => {
                                         setSelectedLocation(location);
                                         setLocationOpen(false);
-                                        setLocationInput("");
+                                        setLocationInput('');
                                       }}
                                     >
                                       <Check
                                         className={`mr-2 h-4 w-4 ${
                                           selectedLocation === location
-                                            ? "opacity-100"
-                                            : "opacity-0"
+                                            ? 'opacity-100'
+                                            : 'opacity-0'
                                         }`}
                                       />
                                       {location}
@@ -1410,10 +1428,10 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
                                       className="w-full justify-start"
                                       onClick={() => {
                                         setSelectedEvents([
-                                          { id: "new", name: eventInput },
+                                          { id: 'new', name: eventInput },
                                         ]);
                                         setEventOpen(false);
-                                        setEventInput("");
+                                        setEventInput('');
                                       }}
                                     >
                                       <Calendar className="w-4 h-4 mr-2" />
@@ -1439,7 +1457,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
                                             { id: event.id, name: event.name },
                                           ]);
                                           setEventOpen(false);
-                                          setEventInput("");
+                                          setEventInput('');
                                         }}
                                       >
                                         <Check
@@ -1447,8 +1465,8 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
                                             selectedEvents?.some(
                                               (e) => e.id === event.id
                                             )
-                                              ? "opacity-100"
-                                              : "opacity-0"
+                                              ? 'opacity-100'
+                                              : 'opacity-0'
                                           }`}
                                         />
                                         {event.name}
@@ -1456,7 +1474,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
                                           variant="outline"
                                           className="ml-2"
                                         >
-                                          {event.is_live ? "Live" : "Scheduled"}
+                                          {event.is_live ? 'Live' : 'Scheduled'}
                                         </Badge>
                                       </CommandItem>
                                     ))}
@@ -1483,7 +1501,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
                                             { id: event.id, name: event.name },
                                           ]);
                                           setEventOpen(false);
-                                          setEventInput("");
+                                          setEventInput('');
                                         }}
                                       >
                                         <Check
@@ -1491,8 +1509,8 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
                                             selectedEvents?.some(
                                               (e) => e.id === event.id
                                             )
-                                              ? "opacity-100"
-                                              : "opacity-0"
+                                              ? 'opacity-100'
+                                              : 'opacity-0'
                                           }`}
                                         />
                                         {event.name}
@@ -1500,7 +1518,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
                                           variant="outline"
                                           className="ml-2"
                                         >
-                                          {event.is_live ? "Live" : "Scheduled"}
+                                          {event.is_live ? 'Live' : 'Scheduled'}
                                         </Badge>
                                       </CommandItem>
                                     ))}
@@ -1535,10 +1553,10 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
                                       className="w-full justify-start"
                                       onClick={() => {
                                         setSelectedChannels([
-                                          { id: "new", name: channelInput },
+                                          { id: 'new', name: channelInput },
                                         ]);
                                         setChannelOpen(false);
-                                        setChannelInput("");
+                                        setChannelInput('');
                                       }}
                                     >
                                       <Play className="w-4 h-4 mr-2" />
@@ -1567,7 +1585,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
                                             },
                                           ]);
                                           setChannelOpen(false);
-                                          setChannelInput("");
+                                          setChannelInput('');
                                         }}
                                       >
                                         <Check
@@ -1575,8 +1593,8 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
                                             selectedChannels?.some(
                                               (c) => c.id === channel.id
                                             )
-                                              ? "opacity-100"
-                                              : "opacity-0"
+                                              ? 'opacity-100'
+                                              : 'opacity-0'
                                           }`}
                                         />
                                         {channel.name}
@@ -1610,7 +1628,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
                                             },
                                           ]);
                                           setChannelOpen(false);
-                                          setChannelInput("");
+                                          setChannelInput('');
                                         }}
                                       >
                                         <Check
@@ -1618,8 +1636,8 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
                                             selectedChannels?.some(
                                               (c) => c.id === channel.id
                                             )
-                                              ? "opacity-100"
-                                              : "opacity-0"
+                                              ? 'opacity-100'
+                                              : 'opacity-0'
                                           }`}
                                         />
                                         {channel.name}
@@ -1656,8 +1674,8 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
                             <CommandList>
                               <CommandEmpty>
                                 {userSearchTerm
-                                  ? "No users found"
-                                  : "Start typing to search for people"}
+                                  ? 'No users found'
+                                  : 'Start typing to search for people'}
                               </CommandEmpty>
                               <CommandGroup>
                                 {userSearchResults.map((user) => (
@@ -1795,15 +1813,15 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
                       size="sm"
                       onClick={() => {
                         setExpandedPost(false);
-                        setNewPost("");
+                        setNewPost('');
                         setSelectedMedia(null);
                         setMediaPreview(null);
-                        setSelectedLocation("");
+                        setSelectedLocation('');
                         setSelectedChannels([]);
                         setSelectedEvents([]);
-                        setLocationInput("");
-                        setChannelInput("");
-                        setEventInput("");
+                        setLocationInput('');
+                        setChannelInput('');
+                        setEventInput('');
                       }}
                     >
                       Cancel
@@ -1819,7 +1837,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
                     ) : (
                       <Send className="w-4 h-4 mr-2" />
                     )}
-                    {uploading ? "Posting..." : "Post"}
+                    {uploading ? 'Posting...' : 'Post'}
                   </Button>
                 </div>
               </div>
@@ -1830,48 +1848,48 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
 
       {/* Timeline Posts */}
       <div className="flex flex-col gap-4 w-full">
-      {posts.map((post) => (
-        <SocialPost
-          key={post.id}
-          postId={post.id}
-          author={{
-            name: post.user_profile.display_name,
-            avatar: post.user_profile.profile_picture_url,
-            username: post.user_profile.username,
-          }}
-          content={post.content}
-          timestamp={
-            new Date(post.created_at).toLocaleDateString() +
-            " · " +
-            new Date(post.created_at).toLocaleTimeString()
-          }
-          likes={post.likes_count}
-          comments={post.comments_count}
-          shares={post.shares_count}
-          media_url={post.media_url}
-          media_type={post.media_type}
-          channels={post.channel ? [post.channel] : []}
-          events={post.event ? [post.event] : []}
-          taggedUsers={post.taggedUsers}
-          isLiked={post.is_liked}
-          isOwnPost={post.user_id === user?.id}
-          onLike={handleLike}
-          onComment={(postId, comment) => {
-            // Set the selected post and comment, then call handleAddComment
-            setSelectedPost(post);
-            setNewComment(comment);
-            handleAddComment();
-          }}
-          onShare={(postId) => {
-            // Find the post and call handleShare
-            const foundPost = posts.find((p) => p.id === postId);
-            if (foundPost) handleShare(foundPost);
-          }}
-          onEdit={handleEditPost}
-          onDelete={handleDeletePost}
-        />
-      ))}
-    </div>
+        {posts.map((post) => (
+          <SocialPost
+            key={post.id}
+            postId={post.id}
+            author={{
+              name: post.user_profile.display_name,
+              avatar: post.user_profile.profile_picture_url,
+              username: post.user_profile.username,
+            }}
+            content={post.content}
+            timestamp={`${new Date(
+              post.created_at
+            ).toLocaleDateString()} · ${new Date(
+              post.created_at
+            ).toLocaleTimeString()}`}
+            likes={post.likes_count}
+            comments={post.comments_count}
+            shares={post.shares_count}
+            media_url={post.media_url}
+            media_type={post.media_type}
+            channels={post.channel ? [post.channel] : []}
+            events={post.event ? [post.event] : []}
+            taggedUsers={post.taggedUsers}
+            isLiked={post.is_liked}
+            isOwnPost={post.user_id === user?.id}
+            onLike={handleLike}
+            onComment={(postId, comment) => {
+              // Set the selected post and comment, then call handleAddComment
+              setSelectedPost(post);
+              setNewComment(comment);
+              handleAddComment();
+            }}
+            onShare={(postId) => {
+              // Find the post and call handleShare
+              const foundPost = posts.find((p) => p.id === postId);
+              if (foundPost) handleShare(foundPost);
+            }}
+            onEdit={handleEditPost}
+            onDelete={handleDeletePost}
+          />
+        ))}
+      </div>
 
       {/* Comments Dialog */}
       <Dialog open={showComments} onOpenChange={setShowComments}>
@@ -1895,7 +1913,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
                     <AvatarFallback>
                       {comment.user_profile.display_name?.[0] ||
                         comment.user_profile.username?.[0] ||
-                        "?"}
+                        '?'}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">

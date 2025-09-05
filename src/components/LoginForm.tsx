@@ -1,24 +1,24 @@
-import React, { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { useAppContext } from "@/contexts/AppContext";
-import { useNavigate, useLocation } from "react-router-dom";
-import SignupForm from "./SignupForm";
-import { ScrollArea } from "./ui/scroll-area";
-import CompanyAccountSelector from "./CompanyAccountSelector";
-import ResetPasswordForm from "./ResetPasswordForm";
-import { supabase } from "@/integrations/supabase/client";
-import TooltipWrapper from "@/components/ui/tooltip-wrapper";
-import { brandMode, brandName } from "@/lib/brand";
-import { X } from "lucide-react";
+} from '@/components/ui/card';
+import { useAppContext } from '@/contexts/AppContext';
+import { supabase } from '@/integrations/supabase/client';
+import TooltipWrapper from '@/components/ui/tooltip-wrapper';
+import { brandMode, brandName } from '@/lib/brand';
+import SignupForm from './SignupForm';
+import { ScrollArea } from './ui/scroll-area';
+import CompanyAccountSelector from './CompanyAccountSelector';
+import ResetPasswordForm from './ResetPasswordForm';
 
 interface LoginFormProps {
   onClose: () => void;
@@ -29,19 +29,19 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose, redirectUrl }) => {
   const { signIn } = useAppContext();
   const navigate = useNavigate();
   const location = useLocation();
-  const [loginData, setLoginData] = useState({ email: "", password: "" });
+  const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [showSignup, setShowSignup] = useState(false);
   const [showAccountSelector, setShowAccountSelector] = useState(false);
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [pendingUser, setPendingUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-  const isDoghuntMode = brandMode === "doghunt";
+  const [error, setError] = useState('');
+  const isDoghuntMode = brandMode === 'doghunt';
 
   // Check URL parameters to show signup form automatically
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
-    if (urlParams.get("tab") === "signup") {
+    if (urlParams.get('tab') === 'signup') {
       setShowSignup(true);
     }
   }, [location.search]);
@@ -49,7 +49,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose, redirectUrl }) => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError("");
+    setError('');
 
     try {
       // First authenticate the user
@@ -66,13 +66,13 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose, redirectUrl }) => {
 
       // Check if user is a company master
       const { data: companyRoles, error: roleError } = await supabase
-        .from("company_roles")
-        .select("company_id")
-        .eq("user_id", data.user.id)
-        .eq("role", "company_master");
+        .from('company_roles')
+        .select('company_id')
+        .eq('user_id', data.user.id)
+        .eq('role', 'company_master');
 
       if (roleError) {
-        console.error("Error checking company roles:", roleError);
+        console.error('Error checking company roles:', roleError);
       }
 
       // If user has company master roles, show account selector
@@ -84,11 +84,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose, redirectUrl }) => {
         // Regular individual login
         onClose();
         const targetUrl =
-          redirectUrl && redirectUrl.startsWith("/") ? redirectUrl : "/";
+          redirectUrl && redirectUrl.startsWith('/') ? redirectUrl : '/';
         navigate(targetUrl);
       }
     } catch (error) {
-      setError("An unexpected error occurred");
+      setError('An unexpected error occurred');
       setIsLoading(false);
     }
   };
@@ -96,28 +96,28 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose, redirectUrl }) => {
   const handleSignupSuccess = () => {
     onClose();
     const targetUrl =
-      redirectUrl && redirectUrl.startsWith("/") ? redirectUrl : "/";
+      redirectUrl && redirectUrl.startsWith('/') ? redirectUrl : '/';
     navigate(targetUrl);
   };
 
   const handleAccountSelection = async (
-    type: "individual" | "company",
+    type: 'individual' | 'company',
     companyId?: string
   ) => {
     // Set session context based on selection
-    if (type === "company" && companyId) {
+    if (type === 'company' && companyId) {
       // Could store company context in localStorage or session storage
-      sessionStorage.setItem("activeCompanyId", companyId);
-      sessionStorage.setItem("loginType", "company");
+      sessionStorage.setItem('activeCompanyId', companyId);
+      sessionStorage.setItem('loginType', 'company');
     } else {
-      sessionStorage.setItem("loginType", "individual");
-      sessionStorage.removeItem("activeCompanyId");
+      sessionStorage.setItem('loginType', 'individual');
+      sessionStorage.removeItem('activeCompanyId');
     }
 
     setShowAccountSelector(false);
     onClose();
     const targetUrl =
-      redirectUrl && redirectUrl.startsWith("/") ? redirectUrl : "/";
+      redirectUrl && redirectUrl.startsWith('/') ? redirectUrl : '/';
     navigate(targetUrl);
   };
 
@@ -156,8 +156,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose, redirectUrl }) => {
             </CardTitle>
             <CardDescription className="text-lg sm:text-xl font-semibold">
               {isDoghuntMode
-                ? "Join Doghunt today"
-                : "Join Public Streamer today"}
+                ? 'Join Doghunt today'
+                : 'Join Public Streamer today'}
             </CardDescription>
           </CardHeader>
           <CardContent className="h-[70vh] sm:h-[75vh] p-0  auth-template ">
@@ -247,7 +247,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose, redirectUrl }) => {
                   className="w-full h-10 sm:h-11"
                   disabled={isLoading}
                 >
-                  {isLoading ? "Signing in..." : "Login"}
+                  {isLoading ? 'Signing in...' : 'Login'}
                 </Button>
               </TooltipWrapper>
               <TooltipWrapper content="Close login form">

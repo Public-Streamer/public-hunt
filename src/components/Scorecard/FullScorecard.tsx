@@ -1,9 +1,15 @@
 import React from 'react';
+import { FileText, Image } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { FileText, Image } from 'lucide-react';
 import { FullScorecardDTO } from '@/lib/types';
 import { strikeColor, treeColor, getStatusBadgeClass } from '@/lib/scoreColor';
 
@@ -24,7 +30,7 @@ export const FullScorecard: React.FC<FullScorecardProps> = ({ scorecard }) => {
     tree,
     judgesNotes,
     pedigreeImageUrl,
-    photoImageUrl
+    photoImageUrl,
   } = scorecard;
 
   // Calculate display values
@@ -39,17 +45,21 @@ export const FullScorecard: React.FC<FullScorecardProps> = ({ scorecard }) => {
         {/* Team and Dog Info */}
         <div className="mb-3">
           <div className="flex items-center gap-2 mb-1">
-            <h4 className="font-extrabold text-base text-foreground">{teamName}</h4>
+            <h4 className="font-extrabold text-base text-foreground">
+              {teamName}
+            </h4>
           </div>
-          
+
           <div className="text-sm font-semibold text-foreground space-y-1">
             <div>Dog: {dogName || '—'}</div>
             <div>Handler: {handlerName || '—'}</div>
           </div>
-          
+
           <div className="text-sm text-foreground mt-1 space-y-1">
             <div>{cityState}</div>
-            <div>{breed || '—'} • {age != null ? `${age} yr` : '—'}</div>
+            <div>
+              {breed || '—'} • {age != null ? `${age} yr` : '—'}
+            </div>
           </div>
         </div>
 
@@ -86,7 +96,7 @@ export const FullScorecard: React.FC<FullScorecardProps> = ({ scorecard }) => {
                 </DialogContent>
               </Dialog>
             )}
-            
+
             {pedigreeImageUrl && (
               <Dialog>
                 <DialogTrigger asChild>
@@ -114,33 +124,47 @@ export const FullScorecard: React.FC<FullScorecardProps> = ({ scorecard }) => {
               </Dialog>
             )}
           </div>
-          
+
           {/* Score Summary */}
           <div className="flex flex-wrap items-center gap-2 text-xs">
-            <div className={`flex items-center gap-1 border rounded px-2 py-1 ${strikeColor(strike)}`}>
+            <div
+              className={`flex items-center gap-1 border rounded px-2 py-1 ${strikeColor(strike)}`}
+            >
               <span className="font-medium">Strikes:</span>
               <span className="font-bold">{strikeDisplay}</span>
               {strike.status && (
-                <Badge variant="outline" className={getStatusBadgeClass(strike.status)}>
+                <Badge
+                  variant="outline"
+                  className={getStatusBadgeClass(strike.status)}
+                >
                   {strike.status}
                 </Badge>
               )}
             </div>
-            
-            <div className={`flex items-center gap-1 border rounded px-2 py-1 ${treeColor(tree)}`}>
+
+            <div
+              className={`flex items-center gap-1 border rounded px-2 py-1 ${treeColor(tree)}`}
+            >
               <span className="font-medium">Trees:</span>
               <span className="font-bold">{treeDisplay}</span>
               {tree.status && (
-                <Badge variant="outline" className={getStatusBadgeClass(tree.status)}>
+                <Badge
+                  variant="outline"
+                  className={getStatusBadgeClass(tree.status)}
+                >
                   {tree.status}
                 </Badge>
               )}
             </div>
-            
+
             <div className="flex items-center gap-1 bg-background/50 rounded px-2 py-1 border">
               <span className="font-bold">Total: {total}</span>
-              {total > 0 && <span className="font-bold text-lg text-green-600">+</span>}
-              {total < 0 && <span className="font-bold text-lg text-red-600">–</span>}
+              {total > 0 && (
+                <span className="font-bold text-lg text-green-600">+</span>
+              )}
+              {total < 0 && (
+                <span className="font-bold text-lg text-red-600">–</span>
+              )}
             </div>
           </div>
         </div>

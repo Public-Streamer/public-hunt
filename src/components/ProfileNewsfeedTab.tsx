@@ -1,9 +1,17 @@
 import React, { useState, useEffect } from 'react';
+import {
+  Heart,
+  MessageCircle,
+  Share2,
+  Image as ImageIcon,
+  Video,
+  Send,
+  TrendingUp,
+} from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Heart, MessageCircle, Share2, Image as ImageIcon, Video, Send, TrendingUp } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 
@@ -30,7 +38,10 @@ interface ProfileNewsfeedTabProps {
   isOwnProfile: boolean;
 }
 
-const ProfileNewsfeedTab: React.FC<ProfileNewsfeedTabProps> = ({ userId, isOwnProfile }) => {
+const ProfileNewsfeedTab: React.FC<ProfileNewsfeedTabProps> = ({
+  userId,
+  isOwnProfile,
+}) => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [newPost, setNewPost] = useState('');
   const [loading, setLoading] = useState(true);
@@ -43,7 +54,9 @@ const ProfileNewsfeedTab: React.FC<ProfileNewsfeedTabProps> = ({ userId, isOwnPr
   }, [userId]);
 
   const getCurrentUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     setCurrentUser(user);
   };
 
@@ -52,14 +65,16 @@ const ProfileNewsfeedTab: React.FC<ProfileNewsfeedTabProps> = ({ userId, isOwnPr
       // Get user's own posts
       const { data: userPosts, error: userError } = await supabase
         .from('user_posts')
-        .select(`
+        .select(
+          `
           *,
           user_profiles!inner(
             display_name,
             username,
             profile_picture_url
           )
-        `)
+        `
+        )
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .limit(10);
@@ -80,19 +95,20 @@ const ProfileNewsfeedTab: React.FC<ProfileNewsfeedTabProps> = ({ userId, isOwnPr
             followedContent = [
               {
                 id: 'trending-1',
-                content: 'Amazing livestream happening now! Join us for exclusive content.',
+                content:
+                  'Amazing livestream happening now! Join us for exclusive content.',
                 created_at: new Date(Date.now() - 3600000).toISOString(),
                 user_id: 'system',
                 user_profile: {
                   display_name: 'Gaming Channel',
                   username: 'gaming',
-                  profile_picture_url: '/placeholder.svg'
+                  profile_picture_url: '/placeholder.svg',
                 },
                 likes_count: 150,
                 comments_count: 45,
                 is_liked: false,
                 type: 'channel',
-                source_name: 'Gaming Channel'
+                source_name: 'Gaming Channel',
               },
               {
                 id: 'trending-2',
@@ -102,14 +118,14 @@ const ProfileNewsfeedTab: React.FC<ProfileNewsfeedTabProps> = ({ userId, isOwnPr
                 user_profile: {
                   display_name: 'Tech Events',
                   username: 'techevents',
-                  profile_picture_url: '/placeholder.svg'
+                  profile_picture_url: '/placeholder.svg',
                 },
                 likes_count: 89,
                 comments_count: 23,
                 is_liked: false,
                 type: 'event',
-                source_name: 'Tech Conference'
-              }
+                source_name: 'Tech Conference',
+              },
             ];
           }
         } catch (error) {
@@ -117,18 +133,21 @@ const ProfileNewsfeedTab: React.FC<ProfileNewsfeedTabProps> = ({ userId, isOwnPr
         }
       }
 
-      const postsData = userPosts?.map(post => ({
-        ...post,
-        user_profile: post.user_profiles,
-        likes_count: Math.floor(Math.random() * 50),
-        comments_count: Math.floor(Math.random() * 20),
-        is_liked: false,
-        type: 'post' as const
-      })) || [];
+      const postsData =
+        userPosts?.map((post) => ({
+          ...post,
+          user_profile: post.user_profiles,
+          likes_count: Math.floor(Math.random() * 50),
+          comments_count: Math.floor(Math.random() * 20),
+          is_liked: false,
+          type: 'post' as const,
+        })) || [];
 
       // Combine and sort all posts
-      const allPosts = [...postsData, ...followedContent]
-        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      const allPosts = [...postsData, ...followedContent].sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
 
       setPosts(allPosts);
     } catch (error) {
@@ -136,7 +155,7 @@ const ProfileNewsfeedTab: React.FC<ProfileNewsfeedTabProps> = ({ userId, isOwnPr
       toast({
         title: 'Error',
         description: 'Failed to load posts',
-        variant: 'destructive'
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -147,13 +166,11 @@ const ProfileNewsfeedTab: React.FC<ProfileNewsfeedTabProps> = ({ userId, isOwnPr
     if (!newPost.trim() || !currentUser) return;
 
     try {
-      const { error } = await supabase
-        .from('user_posts')
-        .insert({
-          user_id: currentUser.id,
-          content: newPost,
-          created_at: new Date().toISOString()
-        });
+      const { error } = await supabase.from('user_posts').insert({
+        user_id: currentUser.id,
+        content: newPost,
+        created_at: new Date().toISOString(),
+      });
 
       if (error) throw error;
 
@@ -161,14 +178,14 @@ const ProfileNewsfeedTab: React.FC<ProfileNewsfeedTabProps> = ({ userId, isOwnPr
       fetchPosts();
       toast({
         title: 'Success',
-        description: 'Post created successfully'
+        description: 'Post created successfully',
       });
     } catch (error) {
       console.error('Error creating post:', error);
       toast({
         title: 'Error',
         description: 'Failed to create post',
-        variant: 'destructive'
+        variant: 'destructive',
       });
     }
   };
@@ -234,7 +251,9 @@ const ProfileNewsfeedTab: React.FC<ProfileNewsfeedTabProps> = ({ userId, isOwnPr
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <h4 className="font-semibold">{post.user_profile?.display_name}</h4>
+                  <h4 className="font-semibold">
+                    {post.user_profile?.display_name}
+                  </h4>
                   <p className="text-sm text-gray-500">
                     {new Date(post.created_at).toLocaleDateString()}
                   </p>

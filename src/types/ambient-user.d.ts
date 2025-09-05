@@ -1,4 +1,3 @@
-
 /**
  * Ambient declaration to satisfy references to a global `user` identifier
  * in legacy components we cannot modify here.

@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, CreditCard, Lock, AlertTriangle } from "lucide-react";
-import { supabase } from "@/lib/supabase";
-import { useToast } from "@/hooks/use-toast";
-import { loadStripe } from "@stripe/stripe-js";
+import React, { useState, useEffect } from 'react';
+import { Loader2, CreditCard, Lock, AlertTriangle } from 'lucide-react';
+import { loadStripe } from '@stripe/stripe-js';
 import {
   Elements,
   CardElement,
   useStripe,
   useElements,
-} from "@stripe/react-stripe-js";
+} from '@stripe/react-stripe-js';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { supabase } from '@/lib/supabase';
+import { useToast } from '@/hooks/use-toast';
 
 interface StripeCheckoutProps {
   eventId: string;
@@ -23,7 +23,7 @@ interface StripeCheckoutProps {
 
 // Read Stripe publishable key from environment (Vite convention)
 const stripePromise = loadStripe(
-  "pk_live_51KOPkUE32NQ2lR8eywxU7YPxpdGQa6CxJtc718SMEWyjwBJfC4RZNsf3tbdJuXxEKBq9NljScc3RNUt2MPJ7fH1h00akWpbExQ"
+  'pk_live_51KOPkUE32NQ2lR8eywxU7YPxpdGQa6CxJtc718SMEWyjwBJfC4RZNsf3tbdJuXxEKBq9NljScc3RNUt2MPJ7fH1h00akWpbExQ'
 );
 
 const CheckoutForm: React.FC<StripeCheckoutProps> = ({
@@ -37,7 +37,7 @@ const CheckoutForm: React.FC<StripeCheckoutProps> = ({
   const stripe = useStripe();
   const elements = useElements();
   const [loading, setLoading] = useState(false);
-  const [clientSecret, setClientSecret] = useState<string>("");
+  const [clientSecret, setClientSecret] = useState<string>('');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -47,7 +47,7 @@ const CheckoutForm: React.FC<StripeCheckoutProps> = ({
       try {
         const { data: user } = await supabase.auth.getUser();
         if (!user.user) {
-          throw new Error("Please log in to purchase tickets");
+          throw new Error('Please log in to purchase tickets');
         }
 
         // Check if user already has a ticket
@@ -70,7 +70,7 @@ const CheckoutForm: React.FC<StripeCheckoutProps> = ({
         // }
 
         const { data, error } = await supabase.functions.invoke(
-          "process-ticket-payment",
+          'process-ticket-payment',
           {
             body: {
               eventId,
@@ -79,7 +79,7 @@ const CheckoutForm: React.FC<StripeCheckoutProps> = ({
               customerEmail: user.user.email,
               customerName:
                 user.user.user_metadata?.full_name ||
-                user.user.email?.split("@")[0],
+                user.user.email?.split('@')[0],
             },
           }
         );
@@ -89,10 +89,10 @@ const CheckoutForm: React.FC<StripeCheckoutProps> = ({
         if (data?.clientSecret) {
           setClientSecret(data.clientSecret);
         } else {
-          throw new Error("Failed to initialize payment");
+          throw new Error('Failed to initialize payment');
         }
       } catch (error) {
-        console.error("Payment initialization error:", error);
+        console.error('Payment initialization error:', error);
         // toast({
         //   title: "Payment Setup Failed",
         //   description:
@@ -132,28 +132,28 @@ const CheckoutForm: React.FC<StripeCheckoutProps> = ({
 
       if (error) {
         toast({
-          title: "Payment Failed",
-          description: error.message || "Please try again.",
-          variant: "destructive",
+          title: 'Payment Failed',
+          description: error.message || 'Please try again.',
+          variant: 'destructive',
         });
       }
       // if (paymentIntent?.status === "processing") {
       //   setPaymentProcessing(true);
       // }
-      if (paymentIntent?.status === "succeeded") {
+      if (paymentIntent?.status === 'succeeded') {
         toast({
-          title: "Payment Successful",
-          description: "Your payment has been processed successfully.",
-          variant: "default",
+          title: 'Payment Successful',
+          description: 'Your payment has been processed successfully.',
+          variant: 'default',
         });
         onSuccess();
       }
     } catch (error) {
-      console.error("Payment error:", error);
+      console.error('Payment error:', error);
       toast({
-        title: "Payment Failed",
-        description: "An unexpected error occurred. Please try again.",
-        variant: "destructive",
+        title: 'Payment Failed',
+        description: 'An unexpected error occurred. Please try again.',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -206,14 +206,14 @@ const CheckoutForm: React.FC<StripeCheckoutProps> = ({
                     options={{
                       style: {
                         base: {
-                          fontSize: "16px",
-                          color: "#424770",
-                          "::placeholder": {
-                            color: "#aab7c4",
+                          fontSize: '16px',
+                          color: '#424770',
+                          '::placeholder': {
+                            color: '#aab7c4',
                           },
                         },
                         invalid: {
-                          color: "#9e2146",
+                          color: '#9e2146',
                         },
                       },
                     }}

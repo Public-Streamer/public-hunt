@@ -1,22 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { supabase } from "@/integrations/supabase/client";
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Plus,
   Target,
@@ -27,9 +9,27 @@ import {
   ChevronDown,
   ChevronUp,
   Dot,
-} from "lucide-react";
-import { toast } from "@/hooks/use-toast";
-import { useScreenSize } from "@/hooks/use-mobile";
+} from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
+import { useScreenSize } from '@/hooks/use-mobile';
 
 // OMCBA Coon Hunt Team Interface - Based on Official Rules
 interface CoonHuntTeam {
@@ -68,21 +68,21 @@ interface CoonHuntScoreboardProps {
 }
 
 const TEAM_COLORS = [
-  "#ef4444",
-  "#3b82f6",
-  "#10b981",
-  "#f59e0b",
-  "#8b5cf6",
-  "#ec4899",
-  "#14b8a6",
-  "#f97316",
-  "#84cc16",
-  "#6366f1",
-  "#d946ef",
-  "#06b6d4",
+  '#ef4444',
+  '#3b82f6',
+  '#10b981',
+  '#f59e0b',
+  '#8b5cf6',
+  '#ec4899',
+  '#14b8a6',
+  '#f97316',
+  '#84cc16',
+  '#6366f1',
+  '#d946ef',
+  '#06b6d4',
 ];
 
-type Sign = "plus" | "minus";
+type Sign = 'plus' | 'minus';
 
 export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
   eventId,
@@ -91,7 +91,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
   const [teams, setTeams] = useState<CoonHuntTeam[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [newTeamName, setNewTeamName] = useState("");
+  const [newTeamName, setNewTeamName] = useState('');
 
   // Edit dialog
   const [editingTeam, setEditingTeam] = useState<CoonHuntTeam | null>(null);
@@ -105,7 +105,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
   >({});
 
   // Scoreboard naming
-  const [scoreboardName, setScoreboardName] = useState("Coonhound Scoreboard");
+  const [scoreboardName, setScoreboardName] = useState('Coonhound Scoreboard');
   const [editingTitle, setEditingTitle] = useState(false);
 
   // Viewer collapses
@@ -122,42 +122,42 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
     const channel = supabase
       .channel(channelName)
       .on(
-        "postgres_changes",
+        'postgres_changes',
         {
-          event: "*",
-          schema: "public",
-          table: "event_scoreboard",
+          event: '*',
+          schema: 'public',
+          table: 'event_scoreboard',
           filter: `event_id=eq.${eventId}`,
         },
         (payload) => {
           const n = payload.new as any;
           const o = payload.old as any;
-          if (payload.eventType !== "DELETE") {
+          if (payload.eventType !== 'DELETE') {
             const isCoonHunt =
-              n?.scoreboard_type === "coon_hunt" ||
-              o?.scoreboard_type === "coon_hunt";
+              n?.scoreboard_type === 'coon_hunt' ||
+              o?.scoreboard_type === 'coon_hunt';
             if (!isCoonHunt) return;
           }
-          if (payload.eventType === "INSERT") {
+          if (payload.eventType === 'INSERT') {
             setTeams((prev) =>
               prev.find((t) => t.id === n.id) ? prev : [...prev, n]
             );
-          } else if (payload.eventType === "UPDATE") {
+          } else if (payload.eventType === 'UPDATE') {
             setTeams((prev) =>
               prev.map((t) => (t.id === n.id ? { ...t, ...n } : t))
             );
             setLocalInputValues((prev) => ({ ...prev, [n.id]: {} })); // clear pending for this team
-          } else if (payload.eventType === "DELETE") {
+          } else if (payload.eventType === 'DELETE') {
             setTeams((prev) => prev.filter((t) => t.id !== o.id));
           }
         }
       )
       .on(
-        "postgres_changes",
+        'postgres_changes',
         {
-          event: "UPDATE",
-          schema: "public",
-          table: "events",
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'events',
           filter: `id=eq.${eventId}`,
         },
         (payload) => {
@@ -169,7 +169,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
             setScoreboardName(newTitle);
         }
       )
-      .subscribe((status) => setIsConnected(status === "SUBSCRIBED"));
+      .subscribe((status) => setIsConnected(status === 'SUBSCRIBED'));
 
     return () => {
       supabase.removeChannel(channel);
@@ -179,40 +179,40 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
   const fetchTeams = async () => {
     try {
       const { data, error } = await supabase.functions.invoke(
-        "scoreboard-operations",
+        'scoreboard-operations',
         {
-          body: { action: "fetch", eventId, scoreboardType: "coon_hunt" },
+          body: { action: 'fetch', eventId, scoreboardType: 'coon_hunt' },
         }
       );
       if (error) throw error;
       setTeams(Array.isArray(data) ? data : data?.teams || []);
     } catch (error) {
-      console.error("Error fetching Coon Hunt teams:", error);
+      console.error('Error fetching Coon Hunt teams:', error);
     }
   };
 
   const fetchScoreboardTitle = async () => {
     try {
       const { data: event } = await supabase
-        .from("events")
-        .select("metadata")
-        .eq("id", eventId)
+        .from('events')
+        .select('metadata')
+        .eq('id', eventId)
         .maybeSingle();
       const metadata = event?.metadata as Record<string, any> | null;
       setScoreboardName(
-        metadata?.coonHuntScoreboardName || "Coonhound Scoreboard"
+        metadata?.coonHuntScoreboardName || 'Coonhound Scoreboard'
       );
     } catch (error) {
-      console.error("Error fetching scoreboard title:", error);
+      console.error('Error fetching scoreboard title:', error);
     }
   };
 
   const updateScoreboardTitle = async (newTitle: string) => {
     try {
       const { data: eventData, error: fetchError } = await supabase
-        .from("events")
-        .select("metadata")
-        .eq("id", eventId)
+        .from('events')
+        .select('metadata')
+        .eq('id', eventId)
         .maybeSingle();
       if (fetchError) throw fetchError;
 
@@ -224,26 +224,26 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
       };
 
       const { error } = await supabase
-        .from("events")
+        .from('events')
         .update({ metadata: updatedMetadata as any })
-        .eq("id", eventId);
+        .eq('id', eventId);
       if (error) throw error;
 
       setScoreboardName(newTitle);
-      toast({ title: "Success", description: "Scoreboard title updated" });
+      toast({ title: 'Success', description: 'Scoreboard title updated' });
     } catch (error) {
-      console.error("Error updating scoreboard title:", error);
+      console.error('Error updating scoreboard title:', error);
       toast({
-        title: "Error",
-        description: "Failed to update scoreboard title",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to update scoreboard title',
+        variant: 'destructive',
       });
     }
   };
 
   // Total = oldScore + (±strike) + (±tree) - minus
   const calculateTotalScore = (
-    cf: CoonHuntTeam["custom_fields"],
+    cf: CoonHuntTeam['custom_fields'],
     currentScore: number = 0
   ) => {
     const strike = Number(cf?.strike_points || 0);
@@ -258,42 +258,42 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
     try {
       const teamColor = TEAM_COLORS[teams.length % TEAM_COLORS.length];
       const initialCustomFields = {
-        handler_name: "",
-        dog_name: "",
-        registration_number: "",
+        handler_name: '',
+        dog_name: '',
+        registration_number: '',
         strike_points: 0,
         tree_points: 0,
         circle_points: 0,
         minus_points: 0,
-        warnings_notes: "",
-        judge_comments: "",
+        warnings_notes: '',
+        judge_comments: '',
         disqualified: false,
       };
 
       const { error } = await supabase.functions.invoke(
-        "scoreboard-operations",
+        'scoreboard-operations',
         {
           body: {
-            action: "create",
+            action: 'create',
             eventId,
             teamName: newTeamName,
             teamColor,
             customFields: initialCustomFields,
-            scoreboardType: "coon_hunt",
+            scoreboardType: 'coon_hunt',
           },
         }
       );
       if (error) throw error;
 
-      setNewTeamName("");
+      setNewTeamName('');
       await fetchTeams();
-      toast({ title: "Success", description: `Team "${newTeamName}" added` });
+      toast({ title: 'Success', description: `Team "${newTeamName}" added` });
     } catch (error) {
-      console.error("Error creating Coon Hunt team:", error);
+      console.error('Error creating Coon Hunt team:', error);
       toast({
-        title: "Error",
-        description: "Failed to add team",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to add team',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -303,19 +303,19 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
   const deleteTeam = async (teamId: string) => {
     try {
       const { error } = await supabase.functions.invoke(
-        "scoreboard-operations",
+        'scoreboard-operations',
         {
-          body: { action: "delete", teamId },
+          body: { action: 'delete', teamId },
         }
       );
       if (error) throw error;
-      toast({ title: "Success", description: "Team deleted" });
+      toast({ title: 'Success', description: 'Team deleted' });
     } catch (error) {
-      console.error("Error deleting Coon Hunt team:", error);
+      console.error('Error deleting Coon Hunt team:', error);
       toast({
-        title: "Error",
-        description: "Failed to delete team",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to delete team',
+        variant: 'destructive',
       });
     }
   };
@@ -323,7 +323,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
   // ---------- Helpers for +/- logic (strike & tree) ----------
   const getSignedDisplay = (
     team: CoonHuntTeam,
-    field: "strike_points" | "tree_points"
+    field: 'strike_points' | 'tree_points'
   ) => {
     const tId = team.id;
     const pending = localInputValues[tId] || {};
@@ -337,13 +337,13 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
       // Use local pending
       const rawMag = Number(pending[valKey] ?? 0);
       const rawSign =
-        (pending[signKey] as Sign) || (rawMag < 0 ? "minus" : "plus");
+        (pending[signKey] as Sign) || (rawMag < 0 ? 'minus' : 'plus');
       sign = rawSign;
       magnitude = Math.abs(rawMag);
     } else {
       // Derive from DB
       const dbVal = Number(team.custom_fields?.[field] || 0);
-      sign = dbVal < 0 ? "minus" : "plus";
+      sign = dbVal < 0 ? 'minus' : 'plus';
       magnitude = Math.abs(dbVal);
     }
     return { magnitude, sign };
@@ -351,7 +351,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
 
   const setSignedMagnitude = (
     teamId: string,
-    field: "strike_points" | "tree_points",
+    field: 'strike_points' | 'tree_points',
     magnitude: number
   ) => {
     const valKey = `${field}_value`;
@@ -363,7 +363,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
 
   const setSignedSign = (
     teamId: string,
-    field: "strike_points" | "tree_points",
+    field: 'strike_points' | 'tree_points',
     sign: Sign
   ) => {
     const signKey = `${field}_sign`;
@@ -395,34 +395,34 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
 
     // STRIKE
     if (
-      pending["strike_points_value"] !== undefined ||
-      pending["strike_points_sign"] !== undefined
+      pending.strike_points_value !== undefined ||
+      pending.strike_points_sign !== undefined
     ) {
-      if (pending["strike_points_value"] === undefined) {
-        throw new Error("Enter a Strike Points value.");
+      if (pending.strike_points_value === undefined) {
+        throw new Error('Enter a Strike Points value.');
       }
-      const s: "plus" | "minus" = pending["strike_points_sign"] ?? "plus";
-      const mag = Number(pending["strike_points_value"] || 0);
-      cf.strike_points = (s === "minus" ? -1 : 1) * mag;
+      const s: 'plus' | 'minus' = pending.strike_points_sign ?? 'plus';
+      const mag = Number(pending.strike_points_value || 0);
+      cf.strike_points = (s === 'minus' ? -1 : 1) * mag;
     }
 
     // TREE
     if (
-      pending["tree_points_value"] !== undefined ||
-      pending["tree_points_sign"] !== undefined
+      pending.tree_points_value !== undefined ||
+      pending.tree_points_sign !== undefined
     ) {
-      if (pending["tree_points_value"] === undefined) {
-        throw new Error("Enter a Tree Points value.");
+      if (pending.tree_points_value === undefined) {
+        throw new Error('Enter a Tree Points value.');
       }
-      const s: "plus" | "minus" = pending["tree_points_sign"] ?? "plus";
-      const mag = Number(pending["tree_points_value"] || 0);
-      cf.tree_points = (s === "minus" ? -1 : 1) * mag;
+      const s: 'plus' | 'minus' = pending.tree_points_sign ?? 'plus';
+      const mag = Number(pending.tree_points_value || 0);
+      cf.tree_points = (s === 'minus' ? -1 : 1) * mag;
     }
 
     // Other simple fields (circle/minus/notes/judge/disqualified/etc.)
     Object.entries(pending).forEach(([k, v]) => {
-      if (k.endsWith("_value") || k.endsWith("_sign")) return; // handled above
-      if (k === "minus_points" || k === "circle_points") {
+      if (k.endsWith('_value') || k.endsWith('_sign')) return; // handled above
+      if (k === 'minus_points' || k === 'circle_points') {
         cf[k] = Number(v || 0);
       } else {
         (cf as any)[k] = v;
@@ -440,14 +440,14 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
     const pending = localInputValues[teamId] || {};
     if (Object.keys(pending).length === 0) return;
 
-    let updatedFields: CoonHuntTeam["custom_fields"];
+    let updatedFields: CoonHuntTeam['custom_fields'];
     try {
       updatedFields = buildUpdatedFields(team, pending);
     } catch (e: any) {
       toast({
-        title: "Missing sign",
+        title: 'Missing sign',
         description: e.message,
-        variant: "destructive",
+        variant: 'destructive',
       });
       return;
     }
@@ -456,10 +456,10 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
 
     try {
       const { error } = await supabase.functions.invoke(
-        "scoreboard-operations",
+        'scoreboard-operations',
         {
           body: {
-            action: "updateTeam",
+            action: 'updateTeam',
             teamId: team.id,
             custom_fields: updatedFields,
             team_name: team.team_name,
@@ -479,15 +479,15 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
       );
       setLocalInputValues((prev) => ({ ...prev, [teamId]: {} }));
       toast({
-        title: "Saved",
+        title: 'Saved',
         description: `Saved changes for "${team.team_name}"`,
       });
     } catch (error) {
-      console.error("Error saving team changes:", error);
+      console.error('Error saving team changes:', error);
       toast({
-        title: "Error",
-        description: "Failed to save changes",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to save changes',
+        variant: 'destructive',
       });
     }
   };
@@ -512,24 +512,24 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
         const team = teams.find((t) => t.id === teamId);
         if (!team) continue;
 
-        let updatedFields: CoonHuntTeam["custom_fields"];
+        let updatedFields: CoonHuntTeam['custom_fields'];
         try {
           updatedFields = buildUpdatedFields(team, changes);
         } catch (e: any) {
           toast({
-            title: "Missing sign",
+            title: 'Missing sign',
             description: `Team "${team?.team_name}": ${e.message}`,
-            variant: "destructive",
+            variant: 'destructive',
           });
           return; // stop batch to let host fix
         }
 
         const newScore = calculateTotalScore(updatedFields, team.score);
         const { error } = await supabase.functions.invoke(
-          "scoreboard-operations",
+          'scoreboard-operations',
           {
             body: {
-              action: "updateTeam",
+              action: 'updateTeam',
               teamId,
               custom_fields: updatedFields,
               team_name: team.team_name,
@@ -551,17 +551,17 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
 
       setLocalInputValues({});
       toast({
-        title: "Saved",
+        title: 'Saved',
         description: `Saved ${entries.length} team${
-          entries.length > 1 ? "s" : ""
+          entries.length > 1 ? 's' : ''
         }`,
       });
     } catch (error) {
-      console.error("Error saving all changes:", error);
+      console.error('Error saving all changes:', error);
       toast({
-        title: "Error",
-        description: "Failed to save all changes",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to save all changes',
+        variant: 'destructive',
       });
     }
   };
@@ -593,10 +593,10 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
 
     try {
       const { error } = await supabase.functions.invoke(
-        "scoreboard-operations",
+        'scoreboard-operations',
         {
           body: {
-            action: "updateTeam",
+            action: 'updateTeam',
             teamId: editingDraft.id,
             custom_fields: cf,
             team_name: editingDraft.team_name,
@@ -614,14 +614,14 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
             : t
         )
       );
-      toast({ title: "Success", description: "Team updated successfully" });
+      toast({ title: 'Success', description: 'Team updated successfully' });
       closeEditDialog();
     } catch (error) {
-      console.error("Error updating Coon Hunt team:", error);
+      console.error('Error updating Coon Hunt team:', error);
       toast({
-        title: "Error",
-        description: "Failed to update team",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to update team',
+        variant: 'destructive',
       });
     }
   };
@@ -652,7 +652,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
                 value={scoreboardName}
                 onChange={(e) => setScoreboardName(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") {
+                  if (e.key === 'Enter') {
                     e.preventDefault();
                     updateScoreboardTitle(scoreboardName);
                     setEditingTitle(false);
@@ -668,9 +668,9 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
               />
             ) : (
               <span
-                className={isHost ? "cursor-pointer hover:text-primary" : ""}
+                className={isHost ? 'cursor-pointer hover:text-primary' : ''}
                 onClick={() => isHost && setEditingTitle(true)}
-                title={isHost ? "Click to edit scoreboard name" : undefined}
+                title={isHost ? 'Click to edit scoreboard name' : undefined}
               >
                 {scoreboardName}
               </span>
@@ -685,17 +685,17 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
             )}
           </CardTitle>
           <Badge
-            variant={isConnected ? "default" : "destructive"}
+            variant={isConnected ? 'default' : 'destructive'}
             className="ml-2"
           >
-            {isConnected ? "Live" : "Connecting..."}
+            {isConnected ? 'Live' : 'Connecting...'}
           </Badge>
         </div>
 
         {isHost && hasAnyPending && (
           <Button
             size={
-              screenSize === "mobile" || screenSize === "tablet" ? "xs" : "sm"
+              screenSize === 'mobile' || screenSize === 'tablet' ? 'xs' : 'sm'
             }
             onClick={saveAllPending}
             className="gap-2"
@@ -720,7 +720,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
                   value={newTeamName}
                   onChange={(e) => setNewTeamName(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") {
+                    if (e.key === 'Enter') {
                       e.preventDefault();
                       createTeam();
                     }
@@ -730,9 +730,9 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
                 />
                 <Button
                   size={
-                    screenSize === "mobile" || screenSize === "tablet"
-                      ? "xs"
-                      : "sm"
+                    screenSize === 'mobile' || screenSize === 'tablet'
+                      ? 'xs'
+                      : 'sm'
                   }
                   onClick={createTeam}
                   disabled={loading || !newTeamName.trim()}
@@ -750,8 +750,8 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
         {teams.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             {isHost
-              ? "No teams added yet. Add a team to start scoring."
-              : "No teams in this hunt yet."}
+              ? 'No teams added yet. Add a team to start scoring.'
+              : 'No teams in this hunt yet.'}
           </div>
         ) : (
           <div className="space-y-4">
@@ -759,8 +759,8 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
               const pending = localInputValues[team.id] || {};
               const hasPending = Object.keys(pending).length > 0;
 
-              const strikeUI = getSignedDisplay(team, "strike_points");
-              const treeUI = getSignedDisplay(team, "tree_points");
+              const strikeUI = getSignedDisplay(team, 'strike_points');
+              const treeUI = getSignedDisplay(team, 'tree_points');
 
               return (
                 <Collapsible
@@ -775,8 +775,8 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
                         <div
                           className={`flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 space-y-3 sm:space-y-0 ${
                             !isHost
-                              ? "cursor-pointer hover:bg-muted/30 -m-1 p-1 rounded"
-                              : ""
+                              ? 'cursor-pointer hover:bg-muted/30 -m-1 p-1 rounded'
+                              : ''
                           }`}
                         >
                           <div className="flex items-start gap-3">
@@ -821,7 +821,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
                                     </span>
                                     <span className="font-medium">
                                       {team.custom_fields?.handler_name ||
-                                        "Not set"}
+                                        'Not set'}
                                     </span>
                                   </div>
                                   <div className="flex items-center gap-2">
@@ -856,7 +856,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
                                     </span>
                                     <span className="font-medium text-xs sm:text-sm break-words">
                                       {team.custom_fields?.handler_name ||
-                                        "Not set"}
+                                        'Not set'}
                                     </span>
                                   </div>
                                   <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
@@ -865,7 +865,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
                                     </span>
                                     <span className="font-medium text-xs sm:text-sm break-words">
                                       {team.custom_fields?.dog_name ||
-                                        "Not set"}
+                                        'Not set'}
                                     </span>
                                   </div>
                                   {team.custom_fields?.registration_number && (
@@ -899,10 +899,10 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
                                   <Button
                                     variant="default"
                                     size={
-                                      screenSize === "mobile" ||
-                                      screenSize === "tablet"
-                                        ? "xs"
-                                        : "sm"
+                                      screenSize === 'mobile' ||
+                                      screenSize === 'tablet'
+                                        ? 'xs'
+                                        : 'sm'
                                     }
                                     onClick={(e) => {
                                       e.stopPropagation();
@@ -918,10 +918,10 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
                                 <Button
                                   variant="outline"
                                   size={
-                                    screenSize === "mobile" ||
-                                    screenSize === "tablet"
-                                      ? "xs"
-                                      : "sm"
+                                    screenSize === 'mobile' ||
+                                    screenSize === 'tablet'
+                                      ? 'xs'
+                                      : 'sm'
                                   }
                                   onClick={(e) => {
                                     e.stopPropagation();
@@ -935,10 +935,10 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
                                 <Button
                                   variant="outline"
                                   size={
-                                    screenSize === "mobile" ||
-                                    screenSize === "tablet"
-                                      ? "xs"
-                                      : "sm"
+                                    screenSize === 'mobile' ||
+                                    screenSize === 'tablet'
+                                      ? 'xs'
+                                      : 'sm'
                                   }
                                   onClick={(e) => {
                                     e.stopPropagation();
@@ -969,22 +969,22 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
                                   <Button
                                     type="button"
                                     variant={
-                                      strikeUI.sign === "plus"
-                                        ? "default"
-                                        : "outline"
+                                      strikeUI.sign === 'plus'
+                                        ? 'default'
+                                        : 'outline'
                                     }
                                     size={
-                                      screenSize === "mobile" ||
-                                      screenSize === "tablet"
-                                        ? "xs"
-                                        : "sm"
+                                      screenSize === 'mobile' ||
+                                      screenSize === 'tablet'
+                                        ? 'xs'
+                                        : 'sm'
                                     }
                                     className="h-10 sm:h-11 rounded-none"
                                     onClick={() =>
                                       setSignedSign(
                                         team.id,
-                                        "strike_points",
-                                        "plus"
+                                        'strike_points',
+                                        'plus'
                                       )
                                     }
                                   >
@@ -993,22 +993,22 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
                                   <Button
                                     type="button"
                                     variant={
-                                      strikeUI.sign === "minus"
-                                        ? "default"
-                                        : "outline"
+                                      strikeUI.sign === 'minus'
+                                        ? 'default'
+                                        : 'outline'
                                     }
                                     size={
-                                      screenSize === "mobile" ||
-                                      screenSize === "tablet"
-                                        ? "xs"
-                                        : "sm"
+                                      screenSize === 'mobile' ||
+                                      screenSize === 'tablet'
+                                        ? 'xs'
+                                        : 'sm'
                                     }
                                     className="h-10 sm:h-11 rounded-none"
                                     onClick={() =>
                                       setSignedSign(
                                         team.id,
-                                        "strike_points",
-                                        "minus"
+                                        'strike_points',
+                                        'minus'
                                       )
                                     }
                                   >
@@ -1021,10 +1021,10 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
                                   onChange={(e) =>
                                     setSignedMagnitude(
                                       team.id,
-                                      "strike_points",
+                                      'strike_points',
                                       Math.max(
                                         0,
-                                        parseInt(e.target.value || "0") || 0
+                                        parseInt(e.target.value || '0') || 0
                                       )
                                     )
                                   }
@@ -1050,22 +1050,22 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
                                   <Button
                                     type="button"
                                     variant={
-                                      treeUI.sign === "plus"
-                                        ? "default"
-                                        : "outline"
+                                      treeUI.sign === 'plus'
+                                        ? 'default'
+                                        : 'outline'
                                     }
                                     size={
-                                      screenSize === "mobile" ||
-                                      screenSize === "tablet"
-                                        ? "xs"
-                                        : "sm"
+                                      screenSize === 'mobile' ||
+                                      screenSize === 'tablet'
+                                        ? 'xs'
+                                        : 'sm'
                                     }
                                     className="h-10 sm:h-11 rounded-none"
                                     onClick={() =>
                                       setSignedSign(
                                         team.id,
-                                        "tree_points",
-                                        "plus"
+                                        'tree_points',
+                                        'plus'
                                       )
                                     }
                                   >
@@ -1074,22 +1074,22 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
                                   <Button
                                     type="button"
                                     variant={
-                                      treeUI.sign === "minus"
-                                        ? "default"
-                                        : "outline"
+                                      treeUI.sign === 'minus'
+                                        ? 'default'
+                                        : 'outline'
                                     }
                                     size={
-                                      screenSize === "mobile" ||
-                                      screenSize === "tablet"
-                                        ? "xs"
-                                        : "sm"
+                                      screenSize === 'mobile' ||
+                                      screenSize === 'tablet'
+                                        ? 'xs'
+                                        : 'sm'
                                     }
                                     className="h-10 sm:h-11 rounded-none"
                                     onClick={() =>
                                       setSignedSign(
                                         team.id,
-                                        "tree_points",
-                                        "minus"
+                                        'tree_points',
+                                        'minus'
                                       )
                                     }
                                   >
@@ -1102,10 +1102,10 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
                                   onChange={(e) =>
                                     setSignedMagnitude(
                                       team.id,
-                                      "tree_points",
+                                      'tree_points',
                                       Math.max(
                                         0,
-                                        parseInt(e.target.value || "0") || 0
+                                        parseInt(e.target.value || '0') || 0
                                       )
                                     )
                                   }
@@ -1129,17 +1129,15 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
                               <Input
                                 inputMode="numeric"
                                 value={
-                                  localInputValues[team.id]?.[
-                                    "circle_points"
-                                  ] ??
+                                  localInputValues[team.id]?.circle_points ??
                                   team.custom_fields?.circle_points ??
                                   0
                                 }
                                 onChange={(e) =>
                                   handleFieldChange(
                                     team.id,
-                                    "circle_points",
-                                    parseInt(e.target.value || "0") || 0
+                                    'circle_points',
+                                    parseInt(e.target.value || '0') || 0
                                   )
                                 }
                                 className="text-center font-bold text-sm sm:text-base h-10 sm:h-11"
@@ -1161,15 +1159,15 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
                               <Input
                                 inputMode="numeric"
                                 value={
-                                  localInputValues[team.id]?.["minus_points"] ??
+                                  localInputValues[team.id]?.minus_points ??
                                   team.custom_fields?.minus_points ??
                                   0
                                 }
                                 onChange={(e) =>
                                   handleFieldChange(
                                     team.id,
-                                    "minus_points",
-                                    parseInt(e.target.value || "0") || 0
+                                    'minus_points',
+                                    parseInt(e.target.value || '0') || 0
                                   )
                                 }
                                 className="text-center font-bold border-destructive text-sm sm:text-base h-10 sm:h-11"
@@ -1272,8 +1270,8 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
                           key={color}
                           className={`w-8 h-8 rounded cursor-pointer border-2 ${
                             editingDraft.team_color === color
-                              ? "border-foreground"
-                              : "border-transparent"
+                              ? 'border-foreground'
+                              : 'border-transparent'
                           }`}
                           style={{ backgroundColor: color }}
                           onClick={() =>
@@ -1295,7 +1293,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
                       Warnings/Notes
                     </Label>
                     <Textarea
-                      value={editingDraft.custom_fields?.warnings_notes || ""}
+                      value={editingDraft.custom_fields?.warnings_notes || ''}
                       onChange={(e) =>
                         setEditingDraft({
                           ...editingDraft,
@@ -1315,7 +1313,7 @@ export const CoonHuntScoreboard: React.FC<CoonHuntScoreboardProps> = ({
                       Judge Comments
                     </Label>
                     <Textarea
-                      value={editingDraft.custom_fields?.judge_comments || ""}
+                      value={editingDraft.custom_fields?.judge_comments || ''}
                       onChange={(e) =>
                         setEditingDraft({
                           ...editingDraft,

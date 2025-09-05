@@ -1,20 +1,26 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 
 interface UseAdFeedbackProps {
   adId: string;
   adDuration?: number; // in seconds
-  adType: "video" | "banner" | "image";
+  adType: 'video' | 'banner' | 'image';
 }
 
-export const useAdFeedback = ({ adId, adDuration, adType }: UseAdFeedbackProps) => {
+export const useAdFeedback = ({
+  adId,
+  adDuration,
+  adType,
+}: UseAdFeedbackProps) => {
   const [shouldShowFeedback, setShouldShowFeedback] = useState(false);
   const [adStartTime, setAdStartTime] = useState<number | null>(null);
 
   useEffect(() => {
     // Check if user has already rated or skipped this ad
-    const ratedAds = JSON.parse(localStorage.getItem("rated_ads") || "[]");
-    const skippedAds = JSON.parse(localStorage.getItem("skipped_ad_feedback") || "[]");
-    
+    const ratedAds = JSON.parse(localStorage.getItem('rated_ads') || '[]');
+    const skippedAds = JSON.parse(
+      localStorage.getItem('skipped_ad_feedback') || '[]'
+    );
+
     if (ratedAds.includes(adId) || skippedAds.includes(adId)) {
       return;
     }
@@ -32,11 +38,13 @@ export const useAdFeedback = ({ adId, adDuration, adType }: UseAdFeedbackProps) 
     if (!adStartTime) return;
 
     const viewDuration = (Date.now() - adStartTime) / 1000; // in seconds
-    
+
     // Check if user has already rated or skipped this ad
-    const ratedAds = JSON.parse(localStorage.getItem("rated_ads") || "[]");
-    const skippedAds = JSON.parse(localStorage.getItem("skipped_ad_feedback") || "[]");
-    
+    const ratedAds = JSON.parse(localStorage.getItem('rated_ads') || '[]');
+    const skippedAds = JSON.parse(
+      localStorage.getItem('skipped_ad_feedback') || '[]'
+    );
+
     if (ratedAds.includes(adId) || skippedAds.includes(adId)) {
       return;
     }
@@ -44,14 +52,14 @@ export const useAdFeedback = ({ adId, adDuration, adType }: UseAdFeedbackProps) 
     // Determine if feedback should be shown based on ad type and duration
     let shouldShow = false;
 
-    if (adType === "video" && adDuration) {
+    if (adType === 'video' && adDuration) {
       // For videos, show feedback if watched at least 70% or minimum 10 seconds
       const watchPercentage = viewDuration / adDuration;
       shouldShow = watchPercentage >= 0.7 || viewDuration >= 10;
-    } else if (adType === "banner") {
+    } else if (adType === 'banner') {
       // For banners, show feedback if viewed for at least 3 seconds
       shouldShow = viewDuration >= 3;
-    } else if (adType === "image") {
+    } else if (adType === 'image') {
       // For images, show feedback if viewed for at least 2 seconds
       shouldShow = viewDuration >= 2;
     }
@@ -77,6 +85,6 @@ export const useAdFeedback = ({ adId, adDuration, adType }: UseAdFeedbackProps) 
     shouldShowFeedback,
     handleAdWatched,
     handleAdSkipped,
-    hideFeedback
+    hideFeedback,
   };
 };

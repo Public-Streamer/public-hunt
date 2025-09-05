@@ -17,7 +17,7 @@ export interface FullScorecardDTO {
   judgesNotes: string | null;
 
   pedigreeImageUrl: string | null; // resolved, signed if needed
-  photoImageUrl: string | null;    // resolved, signed if needed
+  photoImageUrl: string | null; // resolved, signed if needed
 
   updatedAt: string;
 }

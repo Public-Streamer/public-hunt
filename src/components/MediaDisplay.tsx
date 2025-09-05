@@ -1,6 +1,6 @@
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Play, Image as ImageIcon } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface MediaItem {
   id: string;

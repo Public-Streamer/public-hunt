@@ -1,20 +1,14 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Progress } from "@/components/ui/progress";
-import { toast } from "sonner";
-import { 
-  Upload, 
-  PlayCircle, 
-  Music, 
-  Wand2, 
-  Download, 
-  Save, 
-  ArrowRight, 
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import {
+  Upload,
+  PlayCircle,
+  Music,
+  Wand2,
+  Download,
+  Save,
+  ArrowRight,
   Info,
   Video,
   Image as ImageIcon,
@@ -24,9 +18,15 @@ import {
   Eye,
   Settings,
   Zap,
-  MessageSquare
-} from "lucide-react";
-import AdWithFeedback from "@/components/AdWithFeedback";
+  MessageSquare,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Progress } from '@/components/ui/progress';
+import AdWithFeedback from '@/components/AdWithFeedback';
 
 interface MediaFile {
   id: string;
@@ -48,9 +48,10 @@ interface MusicTrack {
 const CreateAd: React.FC = () => {
   const navigate = useNavigate();
   const [uploadedMedia, setUploadedMedia] = useState<MediaFile[]>([]);
-  const [adDescription, setAdDescription] = useState("");
-  const [selectedMusicTrack, setSelectedMusicTrack] = useState<MusicTrack | null>(null);
-  const [selectedStyle, setSelectedStyle] = useState("");
+  const [adDescription, setAdDescription] = useState('');
+  const [selectedMusicTrack, setSelectedMusicTrack] =
+    useState<MusicTrack | null>(null);
+  const [selectedStyle, setSelectedStyle] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationProgress, setGenerationProgress] = useState(0);
   const [generatedAdUrl, setGeneratedAdUrl] = useState<string | null>(null);
@@ -58,28 +59,85 @@ const CreateAd: React.FC = () => {
 
   // Sample music tracks
   const musicTracks: MusicTrack[] = [
-    { id: "1", name: "Upbeat Energy", mood: "upbeat", duration: "2:30", previewUrl: "#" },
-    { id: "2", name: "Professional Focus", mood: "professional", duration: "3:00", previewUrl: "#" },
-    { id: "3", name: "Chill Vibes", mood: "chill", duration: "2:45", previewUrl: "#" },
-    { id: "4", name: "Dramatic Impact", mood: "dramatic", duration: "2:15", previewUrl: "#" },
-    { id: "5", name: "Modern Tech", mood: "tech", duration: "2:50", previewUrl: "#" }
+    {
+      id: '1',
+      name: 'Upbeat Energy',
+      mood: 'upbeat',
+      duration: '2:30',
+      previewUrl: '#',
+    },
+    {
+      id: '2',
+      name: 'Professional Focus',
+      mood: 'professional',
+      duration: '3:00',
+      previewUrl: '#',
+    },
+    {
+      id: '3',
+      name: 'Chill Vibes',
+      mood: 'chill',
+      duration: '2:45',
+      previewUrl: '#',
+    },
+    {
+      id: '4',
+      name: 'Dramatic Impact',
+      mood: 'dramatic',
+      duration: '2:15',
+      previewUrl: '#',
+    },
+    {
+      id: '5',
+      name: 'Modern Tech',
+      mood: 'tech',
+      duration: '2:50',
+      previewUrl: '#',
+    },
   ];
 
   const stylePresets = [
-    { id: "upbeat", name: "Upbeat & Energetic", description: "Fast transitions, bright colors" },
-    { id: "professional", name: "Clean & Professional", description: "Smooth transitions, minimal text" },
-    { id: "dramatic", name: "Bold & Dramatic", description: "Strong effects, impactful music" },
-    { id: "chill", name: "Calm & Relaxed", description: "Gentle transitions, soft tones" },
-    { id: "modern", name: "Modern & Tech", description: "Sharp cuts, dynamic effects" }
+    {
+      id: 'upbeat',
+      name: 'Upbeat & Energetic',
+      description: 'Fast transitions, bright colors',
+    },
+    {
+      id: 'professional',
+      name: 'Clean & Professional',
+      description: 'Smooth transitions, minimal text',
+    },
+    {
+      id: 'dramatic',
+      name: 'Bold & Dramatic',
+      description: 'Strong effects, impactful music',
+    },
+    {
+      id: 'chill',
+      name: 'Calm & Relaxed',
+      description: 'Gentle transitions, soft tones',
+    },
+    {
+      id: 'modern',
+      name: 'Modern & Tech',
+      description: 'Sharp cuts, dynamic effects',
+    },
   ];
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
+    const { files } = event.target;
     if (!files) return;
 
     Array.from(files).forEach((file) => {
       // Validate file type
-      const validTypes = ['video/mp4', 'video/mov', 'image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+      const validTypes = [
+        'video/mp4',
+        'video/mov',
+        'image/jpeg',
+        'image/jpg',
+        'image/png',
+        'image/gif',
+      ];
       if (!validTypes.includes(file.type)) {
         toast.error(`${file.name} is not a supported file type`);
         return;
@@ -97,16 +155,16 @@ const CreateAd: React.FC = () => {
         type: file.type,
         size: file.size,
         url: URL.createObjectURL(file),
-        file
+        file,
       };
 
-      setUploadedMedia(prev => [...prev, mediaFile]);
+      setUploadedMedia((prev) => [...prev, mediaFile]);
       toast.success(`${file.name} uploaded successfully!`);
     });
   };
 
   const removeMedia = (id: string) => {
-    setUploadedMedia(prev => prev.filter(media => media.id !== id));
+    setUploadedMedia((prev) => prev.filter((media) => media.id !== id));
   };
 
   const formatFileSize = (bytes: number): string => {
@@ -114,20 +172,20 @@ const CreateAd: React.FC = () => {
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return `${parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`;
   };
 
   const generateAdPreview = async () => {
     if (uploadedMedia.length === 0) {
-      toast.error("Please upload at least one media file first");
+      toast.error('Please upload at least one media file first');
       return;
     }
     if (!adDescription.trim()) {
-      toast.error("Please tell us what your ad is about");
+      toast.error('Please tell us what your ad is about');
       return;
     }
     if (!selectedStyle) {
-      toast.error("Please select a style preset");
+      toast.error('Please select a style preset');
       return;
     }
 
@@ -136,36 +194,36 @@ const CreateAd: React.FC = () => {
 
     // Simulate AI generation process
     const steps = [
-      "Analyzing your media...",
-      "Applying style preset...",
-      "Adding transitions...",
-      "Syncing background music...",
-      "Finalizing your ad..."
+      'Analyzing your media...',
+      'Applying style preset...',
+      'Adding transitions...',
+      'Syncing background music...',
+      'Finalizing your ad...',
     ];
 
     for (let i = 0; i < steps.length; i++) {
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise((resolve) => setTimeout(resolve, 1500));
       setGenerationProgress((i + 1) * 20);
       toast.info(steps[i]);
     }
 
     // Mock generated ad URL
-    setGeneratedAdUrl("/mock-generated-ad.mp4");
+    setGeneratedAdUrl('/mock-generated-ad.mp4');
     setIsGenerating(false);
     setCurrentStep(4);
-    toast.success("Your ad has been generated successfully!");
+    toast.success('Your ad has been generated successfully!');
   };
 
   const saveAd = () => {
-    toast.success("Ad saved to your profile!");
+    toast.success('Ad saved to your profile!');
   };
 
   const downloadAd = () => {
-    toast.success("Ad download started!");
+    toast.success('Ad download started!');
   };
 
   const goToRunAd = () => {
-    navigate("/advertisers");
+    navigate('/advertisers');
   };
 
   return (
@@ -181,7 +239,7 @@ const CreateAd: React.FC = () => {
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
             Create Your Ad
           </h1>
-          
+
           {/* Introduction Message */}
           <Card className="bg-white/10 backdrop-blur-sm border-white/20 mb-8">
             <CardContent className="p-6">
@@ -189,9 +247,14 @@ const CreateAd: React.FC = () => {
                 <Info className="text-blue-300 h-6 w-6 mt-1 flex-shrink-0" />
                 <div className="text-white/90 text-left">
                   <p className="text-lg leading-relaxed">
-                    <strong>Not sure how to advertise or where to start? Need help creating an ad?</strong> That's what this page is for! 
-                    Just upload your media, tell us what your ad is about, and we'll help you create a professional-looking ad 
-                    you can run immediately on Public Streamer channels and events — and even save for future use.
+                    <strong>
+                      Not sure how to advertise or where to start? Need help
+                      creating an ad?
+                    </strong>{' '}
+                    That's what this page is for! Just upload your media, tell
+                    us what your ad is about, and we'll help you create a
+                    professional-looking ad you can run immediately on Public
+                    Streamer channels and events — and even save for future use.
                   </p>
                 </div>
               </div>
@@ -203,22 +266,26 @@ const CreateAd: React.FC = () => {
         <div className="flex justify-center mb-8">
           <div className="flex items-center space-x-4">
             {[
-              { step: 1, label: "Upload Media", icon: Upload },
-              { step: 2, label: "Describe Ad", icon: FileImage },
-              { step: 3, label: "Customize", icon: Settings },
-              { step: 4, label: "Preview & Save", icon: Eye }
+              { step: 1, label: 'Upload Media', icon: Upload },
+              { step: 2, label: 'Describe Ad', icon: FileImage },
+              { step: 3, label: 'Customize', icon: Settings },
+              { step: 4, label: 'Preview & Save', icon: Eye },
             ].map(({ step, label, icon: Icon }, index) => (
               <div key={step} className="flex items-center">
-                <div className={`flex items-center justify-center w-10 h-10 rounded-full ${
-                  currentStep >= step 
-                    ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white' 
-                    : 'bg-white/20 text-white/60'
-                }`}>
+                <div
+                  className={`flex items-center justify-center w-10 h-10 rounded-full ${
+                    currentStep >= step
+                      ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white'
+                      : 'bg-white/20 text-white/60'
+                  }`}
+                >
                   <Icon className="h-5 w-5" />
                 </div>
-                <span className={`ml-2 text-sm ${
-                  currentStep >= step ? 'text-white' : 'text-white/60'
-                }`}>
+                <span
+                  className={`ml-2 text-sm ${
+                    currentStep >= step ? 'text-white' : 'text-white/60'
+                  }`}
+                >
                   {label}
                 </span>
                 {index < 3 && (
@@ -258,8 +325,12 @@ const CreateAd: React.FC = () => {
                         </div>
                       </div>
                       <div>
-                        <p className="text-white font-medium">Click to upload or drag and drop</p>
-                        <p className="text-white/60 text-sm">MP4, MOV, JPG, PNG, GIF (max 50MB)</p>
+                        <p className="text-white font-medium">
+                          Click to upload or drag and drop
+                        </p>
+                        <p className="text-white/60 text-sm">
+                          MP4, MOV, JPG, PNG, GIF (max 50MB)
+                        </p>
                       </div>
                     </div>
                   </label>
@@ -268,9 +339,14 @@ const CreateAd: React.FC = () => {
                 {/* Uploaded Files */}
                 {uploadedMedia.length > 0 && (
                   <div className="space-y-3">
-                    <h4 className="text-white font-medium">Uploaded Media ({uploadedMedia.length})</h4>
+                    <h4 className="text-white font-medium">
+                      Uploaded Media ({uploadedMedia.length})
+                    </h4>
                     {uploadedMedia.map((media) => (
-                      <div key={media.id} className="flex items-center space-x-3 bg-white/5 rounded-lg p-3">
+                      <div
+                        key={media.id}
+                        className="flex items-center space-x-3 bg-white/5 rounded-lg p-3"
+                      >
                         <div className="flex-shrink-0">
                           {media.type.startsWith('video/') ? (
                             <Video className="h-8 w-8 text-blue-300" />
@@ -279,8 +355,12 @@ const CreateAd: React.FC = () => {
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-white text-sm font-medium truncate">{media.name}</p>
-                          <p className="text-white/60 text-xs">{formatFileSize(media.size)}</p>
+                          <p className="text-white text-sm font-medium truncate">
+                            {media.name}
+                          </p>
+                          <p className="text-white/60 text-xs">
+                            {formatFileSize(media.size)}
+                          </p>
                         </div>
                         <Button
                           variant="ghost"
@@ -311,7 +391,8 @@ const CreateAd: React.FC = () => {
                   value={adDescription}
                   onChange={(e) => {
                     setAdDescription(e.target.value);
-                    if (e.target.value.trim() && currentStep < 2) setCurrentStep(2);
+                    if (e.target.value.trim() && currentStep < 2)
+                      setCurrentStep(2);
                   }}
                   className="min-h-[120px] bg-white/10 border-white/20 text-white placeholder:text-white/50 resize-none"
                 />
@@ -332,7 +413,9 @@ const CreateAd: React.FC = () => {
               <CardContent className="space-y-6">
                 {/* Style Presets */}
                 <div>
-                  <h4 className="text-white font-medium mb-3">Choose a Style</h4>
+                  <h4 className="text-white font-medium mb-3">
+                    Choose a Style
+                  </h4>
                   <div className="grid grid-cols-1 gap-3">
                     {stylePresets.map((preset) => (
                       <div
@@ -349,12 +432,20 @@ const CreateAd: React.FC = () => {
                       >
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-white font-medium">{preset.name}</p>
-                            <p className="text-white/60 text-sm">{preset.description}</p>
+                            <p className="text-white font-medium">
+                              {preset.name}
+                            </p>
+                            <p className="text-white/60 text-sm">
+                              {preset.description}
+                            </p>
                           </div>
-                          <Sparkles className={`h-5 w-5 ${
-                            selectedStyle === preset.id ? 'text-blue-300' : 'text-white/40'
-                          }`} />
+                          <Sparkles
+                            className={`h-5 w-5 ${
+                              selectedStyle === preset.id
+                                ? 'text-blue-300'
+                                : 'text-white/40'
+                            }`}
+                          />
                         </div>
                       </div>
                     ))}
@@ -379,8 +470,12 @@ const CreateAd: React.FC = () => {
                       <div className="flex items-center space-x-3">
                         <Wand2 className="h-5 w-5 text-purple-300" />
                         <div>
-                          <p className="text-white font-medium">Auto-match music for me</p>
-                          <p className="text-white/60 text-sm">We'll pick the perfect track</p>
+                          <p className="text-white font-medium">
+                            Auto-match music for me
+                          </p>
+                          <p className="text-white/60 text-sm">
+                            We'll pick the perfect track
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -398,14 +493,24 @@ const CreateAd: React.FC = () => {
                           <div className="flex items-center space-x-3">
                             <Volume2 className="h-4 w-4 text-green-300" />
                             <div>
-                              <p className="text-white text-sm font-medium">{track.name}</p>
+                              <p className="text-white text-sm font-medium">
+                                {track.name}
+                              </p>
                               <div className="flex items-center space-x-2">
-                                <Badge variant="secondary" className="text-xs">{track.mood}</Badge>
-                                <span className="text-white/60 text-xs">{track.duration}</span>
+                                <Badge variant="secondary" className="text-xs">
+                                  {track.mood}
+                                </Badge>
+                                <span className="text-white/60 text-xs">
+                                  {track.duration}
+                                </span>
                               </div>
                             </div>
                           </div>
-                          <Button variant="ghost" size="sm" className="text-white/60 hover:text-white">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-white/60 hover:text-white"
+                          >
                             <PlayCircle className="h-4 w-4" />
                           </Button>
                         </div>
@@ -427,16 +532,23 @@ const CreateAd: React.FC = () => {
                     <Wand2 className="h-8 w-8 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-white text-xl font-bold mb-2">Ready to Create Magic?</h3>
+                    <h3 className="text-white text-xl font-bold mb-2">
+                      Ready to Create Magic?
+                    </h3>
                     <p className="text-white/70 mb-4">
-                      We'll combine your media with professional effects and create an amazing ad in seconds!
+                      We'll combine your media with professional effects and
+                      create an amazing ad in seconds!
                     </p>
                   </div>
-                  
+
                   {!isGenerating && !generatedAdUrl && (
                     <Button
                       onClick={generateAdPreview}
-                      disabled={uploadedMedia.length === 0 || !adDescription.trim() || !selectedStyle}
+                      disabled={
+                        uploadedMedia.length === 0 ||
+                        !adDescription.trim() ||
+                        !selectedStyle
+                      }
                       className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 text-lg font-bold shadow-lg hover:shadow-xl transition-all duration-200"
                     >
                       <Sparkles className="h-5 w-5 mr-2" />
@@ -475,7 +587,9 @@ const CreateAd: React.FC = () => {
                     <div className="aspect-video flex items-center justify-center text-white">
                       <div className="text-center">
                         <PlayCircle className="h-16 w-16 mx-auto mb-3 text-white/60" />
-                        <p className="text-white/80">Your Generated Ad Preview</p>
+                        <p className="text-white/80">
+                          Your Generated Ad Preview
+                        </p>
                         <p className="text-white/60 text-sm">Click to play</p>
                       </div>
                     </div>
@@ -484,15 +598,15 @@ const CreateAd: React.FC = () => {
                   {/* Action Buttons */}
                   <div className="space-y-3">
                     <Button
-                      onClick={() => toast.info("Playing your ad preview...")}
+                      onClick={() => toast.info('Playing your ad preview...')}
                       className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold py-3"
                     >
                       <PlayCircle className="h-5 w-5 mr-2" />
                       Preview My Ad
                     </Button>
-                    
+
                     <Separator className="bg-white/20" />
-                    
+
                     <div className="grid grid-cols-2 gap-3">
                       <Button
                         onClick={saveAd}
@@ -511,7 +625,7 @@ const CreateAd: React.FC = () => {
                         Download
                       </Button>
                     </div>
-                    
+
                     <Button
                       onClick={goToRunAd}
                       className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-bold py-3"
@@ -533,14 +647,15 @@ const CreateAd: React.FC = () => {
                     Preview: How Viewers Will See Your Ad
                   </CardTitle>
                   <p className="text-white/80 text-sm">
-                    This shows how your ad will appear to viewers with the feedback system
+                    This shows how your ad will appear to viewers with the
+                    feedback system
                   </p>
                 </CardHeader>
                 <CardContent>
                   <div className="max-w-sm mx-auto">
                     <AdWithFeedback
                       adId={`demo-${Date.now()}`}
-                      adName={adDescription || "Your Amazing Ad"}
+                      adName={adDescription || 'Your Amazing Ad'}
                       adType="video"
                       adDuration={30}
                       thumbnailUrl={generatedAdUrl}
@@ -548,7 +663,8 @@ const CreateAd: React.FC = () => {
                   </div>
                   <div className="mt-4 p-3 bg-black/20 rounded-lg">
                     <p className="text-white/80 text-xs text-center">
-                      📝 Try watching the full ad to see the feedback popup in action!
+                      📝 Try watching the full ad to see the feedback popup in
+                      action!
                       <br />
                       Viewer feedback helps you improve future ads.
                     </p>
@@ -560,7 +676,9 @@ const CreateAd: React.FC = () => {
             {/* Helper Tips */}
             <Card className="bg-white/10 backdrop-blur-sm border-white/20 relative z-0">
               <CardHeader>
-                <CardTitle className="text-white text-lg">💡 Pro Tips</CardTitle>
+                <CardTitle className="text-white text-lg">
+                  💡 Pro Tips
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <ul className="text-white/80 text-sm space-y-2">

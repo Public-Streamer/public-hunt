@@ -1,20 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from 'react';
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import {
   Eye,
   History,
@@ -25,19 +10,34 @@ import {
   Loader,
   Play,
   Plus,
-} from "lucide-react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import TooltipWrapper from "@/components/ui/tooltip-wrapper";
+} from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import TooltipWrapper from '@/components/ui/tooltip-wrapper';
 import EventRankingControls, {
   SortOption,
-} from "@/components/EventRankingControls";
-import ScheduledEventsGrid from "@/components/ScheduledEventsGrid";
-import { supabase } from "@/integrations/supabase/client";
-import { useAppContext } from "@/contexts/AppContext";
-import EditEventModal from "@/components/EditEventModal";
-import { useToast } from "@/hooks/use-toast";
-import MediaBackground from "@/components/MediaBackground";
-import PastEvents from "./PastEvents";
+} from '@/components/EventRankingControls';
+import ScheduledEventsGrid from '@/components/ScheduledEventsGrid';
+import { supabase } from '@/integrations/supabase/client';
+import { useAppContext } from '@/contexts/AppContext';
+import EditEventModal from '@/components/EditEventModal';
+import { useToast } from '@/hooks/use-toast';
+import MediaBackground from '@/components/MediaBackground';
+import PastEvents from './PastEvents';
 
 interface Event {
   id: string;
@@ -58,14 +58,14 @@ interface Event {
 }
 
 const Events: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [memberSearch, setMemberSearch] = useState("");
-  const [sortBy, setSortBy] = useState<SortOption>("most-live-viewers");
+  const [searchTerm, setSearchTerm] = useState('');
+  const [memberSearch, setMemberSearch] = useState('');
+  const [sortBy, setSortBy] = useState<SortOption>('most-live-viewers');
   const [scheduledSortBy, setScheduledSortBy] =
-    useState<SortOption>("starts-soon");
-  const [mySortBy, setMySortBy] = useState<SortOption>("starts-soon");
-  const [pastSortBy, setPastSortBy] = useState<SortOption>("newest");
-  const [activeTab, setActiveTab] = useState("live");
+    useState<SortOption>('starts-soon');
+  const [mySortBy, setMySortBy] = useState<SortOption>('starts-soon');
+  const [pastSortBy, setPastSortBy] = useState<SortOption>('newest');
+  const [activeTab, setActiveTab] = useState('live');
   const [liveEvents, setLiveEvents] = useState<Event[]>([]);
   const [scheduledEvents, setScheduledEvents] = useState<Event[]>([]);
   const [myEvents, setMyEvents] = useState<Event[]>([]);
@@ -82,34 +82,34 @@ const Events: React.FC = () => {
   // Ensure sort options are valid per tab and set defaults
   useEffect(() => {
     const liveAllowed: SortOption[] = [
-      "most-live-viewers",
-      "newest",
-      "oldest",
-      "alphabetical",
+      'most-live-viewers',
+      'newest',
+      'oldest',
+      'alphabetical',
     ];
-    const scheduledAllowed: SortOption[] = ["starts-soon", "alphabetical"];
-    const myAllowed: SortOption[] = ["newest", "oldest", "alphabetical"];
+    const scheduledAllowed: SortOption[] = ['starts-soon', 'alphabetical'];
+    const myAllowed: SortOption[] = ['newest', 'oldest', 'alphabetical'];
     const pastAllowed: SortOption[] = [
-      "newest",
-      "oldest",
-      "alphabetical",
-      "most-views",
+      'newest',
+      'oldest',
+      'alphabetical',
+      'most-views',
     ];
 
-    if (activeTab === "live" && !liveAllowed.includes(sortBy)) {
-      setSortBy("most-live-viewers");
+    if (activeTab === 'live' && !liveAllowed.includes(sortBy)) {
+      setSortBy('most-live-viewers');
     }
     if (
-      activeTab === "scheduled" &&
+      activeTab === 'scheduled' &&
       !scheduledAllowed.includes(scheduledSortBy)
     ) {
-      setScheduledSortBy("starts-soon");
+      setScheduledSortBy('starts-soon');
     }
-    if (activeTab === "my-events" && !myAllowed.includes(mySortBy)) {
-      setMySortBy("alphabetical");
+    if (activeTab === 'my-events' && !myAllowed.includes(mySortBy)) {
+      setMySortBy('alphabetical');
     }
-    if (activeTab === "past" && !pastAllowed.includes(pastSortBy)) {
-      setPastSortBy("newest");
+    if (activeTab === 'past' && !pastAllowed.includes(pastSortBy)) {
+      setPastSortBy('newest');
     }
   }, [activeTab]);
 
@@ -119,18 +119,18 @@ const Events: React.FC = () => {
 
       // Fetch live events
       const { data: liveEventsData, error: liveError } = await supabase
-        .from("events")
-        .select("*")
-        .eq("is_live", true)
-        .order("viewer_count", { ascending: false });
+        .from('events')
+        .select('*')
+        .eq('is_live', true)
+        .order('viewer_count', { ascending: false });
 
       if (liveError) {
-        console.error("Error fetching live events:", liveError);
+        console.error('Error fetching live events:', liveError);
         throw liveError;
       }
 
       // Fetch scheduled events (not live, including events with null created_by)
-      const pad = (n: number) => String(n).padStart(2, "0");
+      const pad = (n: number) => String(n).padStart(2, '0');
 
       // Use *local* date/time (toISOString() is UTC and can be off for Asia/Dhaka)
       const now = new Date();
@@ -143,34 +143,34 @@ const Events: React.FC = () => {
 
       const { data: scheduledEventsData, error: scheduledError } =
         await supabase
-          .from("events")
-          .select("*")
+          .from('events')
+          .select('*')
           // date > today  OR  (date = today AND time >= now)
           .or(
             `date.gt.${todayLocal},and(date.eq.${todayLocal},time.gte.${currentTimeLocal})`
           )
-          .order("date", { ascending: true })
-          .order("time", { ascending: true, nullsFirst: false });
+          .order('date', { ascending: true })
+          .order('time', { ascending: true, nullsFirst: false });
 
       if (scheduledError) {
-        console.error("Error fetching scheduled events:", scheduledError);
+        console.error('Error fetching scheduled events:', scheduledError);
         throw scheduledError;
       }
 
       // Fetch past events (not live, events that have already occurred)
       const { data: pastEventsData, error: pastEventsError } = await supabase
-        .from("events")
-        .select("*")
-        .eq("is_live", false)
+        .from('events')
+        .select('*')
+        .eq('is_live', false)
         // date < today OR (date = today AND time < now)
         .or(
           `date.lt.${todayLocal},and(date.eq.${todayLocal},time.lt.${currentTimeLocal})`
         )
-        .order("date", { ascending: false })
-        .order("time", { ascending: false });
+        .order('date', { ascending: false })
+        .order('time', { ascending: false });
 
       if (pastEventsError) {
-        console.error("Error fetching past events:", pastEventsError);
+        console.error('Error fetching past events:', pastEventsError);
         throw pastEventsError;
       }
 
@@ -178,13 +178,13 @@ const Events: React.FC = () => {
       let myEventsData = [];
       if (currentUserProfile?.user_id) {
         const { data, error: myEventsError } = await supabase
-          .from("events")
-          .select("*")
-          .eq("created_by", currentUserProfile.user_id)
-          .order("created_at", { ascending: false });
+          .from('events')
+          .select('*')
+          .eq('created_by', currentUserProfile.user_id)
+          .order('created_at', { ascending: false });
 
         if (myEventsError) {
-          console.error("Error fetching my events:", myEventsError);
+          console.error('Error fetching my events:', myEventsError);
         } else {
           myEventsData = data || [];
         }
@@ -195,7 +195,7 @@ const Events: React.FC = () => {
       setPastEvents(pastEventsData || []);
       setMyEvents(myEventsData);
     } catch (error) {
-      console.error("Error fetching events:", error);
+      console.error('Error fetching events:', error);
     } finally {
       setLoading(false);
     }
@@ -216,7 +216,7 @@ const Events: React.FC = () => {
   }, []);
 
   const isScheduledEvent = useCallback((e: Event) => {
-    const today = new Date().toISOString().split("T")[0];
+    const today = new Date().toISOString().split('T')[0];
     const nowTime = new Date().toISOString().slice(11, 19);
     return !e.is_live && e.date >= today && e.time >= nowTime;
   }, []);
@@ -256,7 +256,7 @@ const Events: React.FC = () => {
     fetchEvents();
 
     // Check if there's an event parameter in URL to highlight
-    const eventParam = searchParams.get("event");
+    const eventParam = searchParams.get('event');
     if (eventParam) {
       setHighlightedEvent(eventParam);
       // Clear highlight after 3 seconds
@@ -266,19 +266,19 @@ const Events: React.FC = () => {
     // Set up real-time subscription for events
     // Local type to avoid using 'any' for realtime payload
     type PostgresChangeEvent<T> = {
-      eventType: "INSERT" | "UPDATE" | "DELETE";
+      eventType: 'INSERT' | 'UPDATE' | 'DELETE';
       new: T | null;
       old: Partial<T> | null;
     };
 
     const subscription = supabase
-      .channel("events-changes")
+      .channel('events-changes')
       .on(
-        "postgres_changes",
+        'postgres_changes',
         {
-          event: "*",
-          schema: "public",
-          table: "events",
+          event: '*',
+          schema: 'public',
+          table: 'events',
         },
         (payload) => {
           const {
@@ -287,17 +287,17 @@ const Events: React.FC = () => {
             old: oldRow,
           } = payload as unknown as PostgresChangeEvent<Event>;
           try {
-            if (eventType === "INSERT" || eventType === "UPDATE") {
+            if (eventType === 'INSERT' || eventType === 'UPDATE') {
               if (newRow) {
                 handleUpsertEvent(newRow);
               }
-            } else if (eventType === "DELETE") {
+            } else if (eventType === 'DELETE') {
               if (oldRow?.id) {
                 handleDeleteEventRt(oldRow.id as string);
               }
             }
           } catch (err) {
-            console.error("Realtime events handler error:", err);
+            console.error('Realtime events handler error:', err);
           }
         }
       )
@@ -314,9 +314,9 @@ const Events: React.FC = () => {
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 
-    if (days > 0) return `in ${days} day${days > 1 ? "s" : ""}`;
-    if (hours > 0) return `in ${hours} hour${hours > 1 ? "s" : ""}`;
-    return "starting soon";
+    if (days > 0) return `in ${days} day${days > 1 ? 's' : ''}`;
+    if (hours > 0) return `in ${hours} hour${hours > 1 ? 's' : ''}`;
+    return 'starting soon';
   }
 
   const sortEvents = (events: Event[], sortOption: SortOption) => {
@@ -347,58 +347,58 @@ const Events: React.FC = () => {
       const getValue = (event: Event, key: keyof Event) => {
         const val = event[key];
         if (val === null || val === undefined) return 0;
-        if (typeof val === "number") return val;
-        if (typeof val === "string" && !isNaN(Number(val))) return Number(val);
+        if (typeof val === 'number') return val;
+        if (typeof val === 'string' && !isNaN(Number(val))) return Number(val);
         return 0;
       };
 
       // Main sorting logic
       switch (sortOption) {
         // View-based sorting
-        case "most-views":
-        case "most-live-viewers":
-          return getValue(b, "viewer_count") - getValue(a, "viewer_count");
+        case 'most-views':
+        case 'most-live-viewers':
+          return getValue(b, 'viewer_count') - getValue(a, 'viewer_count');
 
-        case "least-views":
-        case "least-live-viewers":
-          return getValue(a, "viewer_count") - getValue(b, "viewer_count");
+        case 'least-views':
+        case 'least-live-viewers':
+          return getValue(a, 'viewer_count') - getValue(b, 'viewer_count');
 
         // Date-based sorting
-        case "newest":
+        case 'newest':
           return (
             new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
           );
 
-        case "oldest":
+        case 'oldest':
           return (
             new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
           );
 
-        case "starts-soon":
+        case 'starts-soon':
           return timeUntilStartA - timeUntilStartB;
 
         // Alphabetical sorting
-        case "alphabetical":
-          return (a.name || "").localeCompare(b.name || "");
+        case 'alphabetical':
+          return (a.name || '').localeCompare(b.name || '');
 
         // Revenue/sales sorting
-        case "most-revenue":
+        case 'most-revenue':
           return (
-            (getValue(b, "ticket_price") || 0) -
-            (getValue(a, "ticket_price") || 0)
+            (getValue(b, 'ticket_price') || 0) -
+            (getValue(a, 'ticket_price') || 0)
           );
 
-        case "least-revenue":
+        case 'least-revenue':
           return (
-            (getValue(a, "ticket_price") || 0) -
-            (getValue(b, "ticket_price") || 0)
+            (getValue(a, 'ticket_price') || 0) -
+            (getValue(b, 'ticket_price') || 0)
           );
 
         // Popularity/engagement
-        case "most-popular":
+        case 'most-popular':
           return (b.viewer_count || 0) - (a.viewer_count || 0);
 
-        case "least-popular":
+        case 'least-popular':
           return (a.viewer_count || 0) - (b.viewer_count || 0);
 
         // Default to most viewers if sort option is not recognized
@@ -427,9 +427,9 @@ const Events: React.FC = () => {
       const searchText = [
         event.name,
         // event.description || "",
-        event.category || "",
+        event.category || '',
       ]
-        .join(" ")
+        .join(' ')
         .toLowerCase();
 
       const matchesKeyword =
@@ -437,8 +437,8 @@ const Events: React.FC = () => {
         searchTerms.every((term) => {
           // Create a regex pattern that matches whole words only
           const wordPattern = new RegExp(
-            `\\b${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
-            "i"
+            `\\b${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`,
+            'i'
           );
 
           // Check for exact word matches in the search text
@@ -447,8 +447,8 @@ const Events: React.FC = () => {
           // Also check for word starts if no exact match found
           if (!hasExactWord) {
             const wordStartsPattern = new RegExp(
-              `\\b${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`,
-              "i"
+              `\\b${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`,
+              'i'
             );
             return searchText
               .split(/\s+/)
@@ -491,10 +491,10 @@ const Events: React.FC = () => {
   const handleDeleteEvent = async (eventId: string) => {
     try {
       const { error } = await supabase
-        .from("events")
+        .from('events')
         .delete()
-        .eq("id", eventId)
-        .eq("created_by", currentUserProfile?.user_id);
+        .eq('id', eventId)
+        .eq('created_by', currentUserProfile?.user_id);
 
       if (error) throw error;
 
@@ -502,15 +502,15 @@ const Events: React.FC = () => {
       setMyEvents(myEvents.filter((event) => event.id !== eventId));
 
       toast({
-        title: "Event deleted",
-        description: "The event has been successfully deleted.",
+        title: 'Event deleted',
+        description: 'The event has been successfully deleted.',
       });
     } catch (error) {
-      console.error("Error deleting event:", error);
+      console.error('Error deleting event:', error);
       toast({
-        title: "Error",
-        description: "Failed to delete the event. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to delete the event. Please try again.',
+        variant: 'destructive',
       });
     }
   };
@@ -527,7 +527,7 @@ const Events: React.FC = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList
             className={`grid w-full ${
-              isAuthenticated ? "grid-cols-4" : "grid-cols-3"
+              isAuthenticated ? 'grid-cols-4' : 'grid-cols-3'
             } gap-2 sm:gap-4 p-2 bg-transparent`}
           >
             <TooltipWrapper content="View all currently live streaming events happening right now">
@@ -536,7 +536,7 @@ const Events: React.FC = () => {
                 className="flex items-center justify-center px-2 sm:px-6 py-3 sm:py-4 text-xs sm:text-base font-bold min-h-[60px] sm:min-h-[70px] rounded-xl transition-all duration-200 border-2 border-red-300 bg-gradient-to-r from-red-50 to-red-100 text-red-800 shadow-lg hover:shadow-xl hover:scale-105 hover:from-red-100 hover:to-red-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:to-red-600 data-[state=active]:text-white data-[state=active]:border-red-500 data-[state=active]:shadow-red-300"
               >
                 <div className="flex flex-col sm:flex-row items-center space-y-1 sm:space-y-0 sm:space-x-3 text-center">
-                  <div className="w-3 h-3 sm:w-4 sm:h-4 bg-red-500 rounded-full animate-pulse data-[state=active]:bg-white flex-shrink-0"></div>
+                  <div className="w-3 h-3 sm:w-4 sm:h-4 bg-red-500 rounded-full animate-pulse data-[state=active]:bg-white flex-shrink-0" />
                   <div className="flex flex-col sm:flex-row sm:space-x-1">
                     <span className="text-xs sm:text-base font-bold leading-tight">
                       Live
@@ -642,15 +642,15 @@ const Events: React.FC = () => {
                     <Card
                       className={`hover:shadow-lg transition-all cursor-pointer relative ${
                         highlightedEvent === event.id
-                          ? "ring-4 ring-purple-500 ring-opacity-50 shadow-xl"
-                          : ""
+                          ? 'ring-4 ring-purple-500 ring-opacity-50 shadow-xl'
+                          : ''
                       }`}
                       onClick={() => handleEventClick(event)}
                     >
                       <MediaBackground
                         mediaUrls={event?.media_urls || []}
                         className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100"
-                      ></MediaBackground>
+                      />
                       <div className="absolute top-2 left-2 bg-purple-500 text-white text-xs px-2 py-1 rounded-full font-bold">
                         #{index + 1}
                       </div>
@@ -698,10 +698,10 @@ const Events: React.FC = () => {
                             onClick={() => handleEventClick(event)}
                             className="w-full mb-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
                           >
-                            <Play className="h-4 w-4 ml-2" /> Watch Now{" "}
+                            <Play className="h-4 w-4 ml-2" /> Watch Now{' '}
                             {event?.ticket_price > 0
-                              ? "- $" + event.ticket_price
-                              : ""}
+                              ? `- $${event.ticket_price}`
+                              : ''}
                           </Button>
                         </div>
                       </CardContent>
@@ -745,13 +745,13 @@ const Events: React.FC = () => {
                 events={scheduledEvents.map((event) => ({
                   id: event.id,
                   title: event.name,
-                  channelName: event.category || "General",
+                  channelName: event.category || 'General',
                   startDate: event.date,
                   startTime: event.time,
                   startDateTime: new Date(`${event.date}T${event.time}`),
                   views: event.viewer_count || 0,
                   liveViews: 0,
-                  rating: "4.5",
+                  rating: '4.5',
                   price: event.ticket_price || 0,
                   ticketRevenue: 0,
                   ticketSales: 0,
@@ -759,7 +759,7 @@ const Events: React.FC = () => {
                     new Date(`${event.date}T${event.time}`)
                   ),
                   participants: [],
-                  description: event.description || "",
+                  description: event.description || '',
                   subscribers: 0,
                   slug: event.slug,
                   media_urls: event?.media_urls,
@@ -777,11 +777,11 @@ const Events: React.FC = () => {
               events={filteredPastEvents.map((event) => ({
                 id: event.id,
                 title: event.name,
-                channelName: event.category || "General",
+                channelName: event.category || 'General',
                 startDate: event.date,
                 startTime: event.time,
                 views: event.viewer_count || 0,
-                rating: "0", // Default rating
+                rating: '0', // Default rating
                 price: event.ticket_price || 0,
                 ticketRevenue: 0, // Default value
                 timeUntilStart: getTimeUntilStart(
@@ -789,16 +789,16 @@ const Events: React.FC = () => {
                 ),
                 startDateTime: new Date(`${event.date}T${event.time}`),
                 participants: [],
-                description: event.description || "",
+                description: event.description || '',
                 subscribers: 0, // Default value
                 slug: event.slug,
                 media_urls: event.media_urls,
-                channel_id: "", // Add required field
+                channel_id: '', // Add required field
                 is_live: event.is_live,
-                 category: event.category,
-                 ticketSales: 0, // Default value
-                 visibility: "public" as const, // Default visibility
-                 tags: [], // Default empty tags
+                category: event.category,
+                ticketSales: 0, // Default value
+                visibility: 'public' as const, // Default visibility
+                tags: [], // Default empty tags
               }))}
             />
           </TabsContent>
@@ -806,7 +806,7 @@ const Events: React.FC = () => {
           {isAuthenticated && (
             <TabsContent value="my-events" className="space-y-6">
               <Button
-                onClick={() => navigate("/create?tab=event")}
+                onClick={() => navigate('/create?tab=event')}
                 className="mb-4 w-full md:w-auto bg-gradient-to-r from-green-500 to-emerald-500 text-white border-none hover:from-green-600 hover:to-emerald-600"
               >
                 <Plus className="h-4 w-4 mr-2" />
@@ -839,8 +839,8 @@ const Events: React.FC = () => {
                       <Card
                         className={`hover:shadow-lg transition-all cursor-pointer relative h-full ${
                           highlightedEvent === event.id
-                            ? "ring-4 ring-green-500 ring-opacity-50 shadow-xl"
-                            : ""
+                            ? 'ring-4 ring-green-500 ring-opacity-50 shadow-xl'
+                            : ''
                         }`}
                       >
                         <MediaBackground
@@ -972,7 +972,7 @@ const Events: React.FC = () => {
                         Create your first event to get started!
                       </p>
                       <Button
-                        onClick={() => navigate("/create?tab=event")}
+                        onClick={() => navigate('/create?tab=event')}
                         className="mt-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white"
                       >
                         <Plus className="h-4 w-4 mr-2" />

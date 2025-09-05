@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAppContext } from "@/contexts/AppContext";
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAppContext } from '@/contexts/AppContext';
 
 interface ChatMessage {
   id: string;
@@ -17,10 +17,10 @@ export const useSupabaseChatMessages = (eventId: string, camName?: string) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [connectionStatus, setConnectionStatus] = useState<
-    "connecting" | "connected" | "disconnected" | "error"
-  >("connecting");
+    'connecting' | 'connected' | 'disconnected' | 'error'
+  >('connecting');
   const { currentUserProfile, isAuthenticated, user } = useAppContext();
-  
+
   // Always use authenticated user's identity, never contaminate with camName email addresses
 
   // Fetch existing messages
@@ -29,35 +29,32 @@ export const useSupabaseChatMessages = (eventId: string, camName?: string) => {
 
     try {
       const { data, error } = await supabase
-        .from("event_chat_messages")
-        .select("*")
-        .eq("event_id", eventId)
-        .order("created_at", { ascending: true });
+        .from('event_chat_messages')
+        .select('*')
+        .eq('event_id', eventId)
+        .order('created_at', { ascending: true });
 
       if (error) {
-        console.error("Error fetching messages:", error);
+        console.error('Error fetching messages:', error);
         return;
       }
 
       setMessages(data || []);
     } catch (error) {
-      console.error("Error fetching messages:", error);
+      console.error('Error fetching messages:', error);
     } finally {
       setLoading(false);
     }
   }, [eventId]);
 
-  console.log(messages)
+  console.log(messages);
 
   let streamerName;
-  if(camName == user?.email || ""){
+  if (camName == user?.email || '') {
     streamerName = currentUserProfile?.display_name;
-  }
-  else{
+  } else {
     streamerName = camName;
   }
-
-  
 
   // Send message function
   const sendMessage = useCallback(
@@ -68,28 +65,28 @@ export const useSupabaseChatMessages = (eventId: string, camName?: string) => {
         !eventId ||
         !isAuthenticated
       ) {
-        throw new Error("Cannot send message: missing required data");
+        throw new Error('Cannot send message: missing required data');
       }
 
       try {
-        const { error } = await supabase.from("event_chat_messages").insert([
+        const { error } = await supabase.from('event_chat_messages').insert([
           {
             event_id: eventId,
             user_id: currentUserProfile.user_id,
-            username: currentUserProfile.username || "unknown",
-            display_name: streamerName ? streamerName : currentUserProfile.display_name,
+            username: currentUserProfile.username || 'unknown',
+            display_name: streamerName || currentUserProfile.display_name,
             profile_picture_url: currentUserProfile.profile_picture_url || null,
             message: messageContent,
-            message_type: "user",
+            message_type: 'user',
           },
         ]);
 
         if (error) {
-          console.error("Error sending message:", error);
+          console.error('Error sending message:', error);
           throw error;
         }
       } catch (error) {
-        console.error("Failed to send message:", error);
+        console.error('Failed to send message:', error);
         throw error;
       }
     },
@@ -101,7 +98,7 @@ export const useSupabaseChatMessages = (eventId: string, camName?: string) => {
     async (messageId: string) => {
       console.log(messageId);
       if (!messageId || !isAuthenticated) {
-        throw new Error("Cannot delete message: missing required data");
+        throw new Error('Cannot delete message: missing required data');
       }
 
       // Optimistic update - remove message from local state
@@ -111,15 +108,15 @@ export const useSupabaseChatMessages = (eventId: string, camName?: string) => {
       setMessages((prev) => prev.filter((msg) => msg.id !== messageId));
 
       try {
-        console.log("Message deleting...");
+        console.log('Message deleting...');
         const { error } = await supabase
-          .from("event_chat_messages")
+          .from('event_chat_messages')
           .delete()
-          .eq("id", messageId);
+          .eq('id', messageId);
 
-        console.log("Message deleted...");
+        console.log('Message deleted...');
         if (error) {
-          console.error("Error deleting message:", error);
+          console.error('Error deleting message:', error);
           // Rollback optimistic update
           // setMessages((prev) => {
           //   const updated = [...prev, messageToDelete].sort(
@@ -132,7 +129,7 @@ export const useSupabaseChatMessages = (eventId: string, camName?: string) => {
           throw error;
         }
       } catch (error) {
-        console.error("Failed to delete message:", error);
+        console.error('Failed to delete message:', error);
         throw error;
       }
     },
@@ -147,7 +144,7 @@ export const useSupabaseChatMessages = (eventId: string, camName?: string) => {
       `🚀 [Chat-${eventId}] Setting up real-time subscription for event:`,
       eventId
     );
-    setConnectionStatus("connecting");
+    setConnectionStatus('connecting');
 
     fetchMessages();
 
@@ -158,11 +155,11 @@ export const useSupabaseChatMessages = (eventId: string, camName?: string) => {
     const channel = supabase
       .channel(channelName)
       .on(
-        "postgres_changes",
+        'postgres_changes',
         {
-          event: "INSERT",
-          schema: "public",
-          table: "event_chat_messages",
+          event: 'INSERT',
+          schema: 'public',
+          table: 'event_chat_messages',
           filter: `event_id=eq.${eventId}`,
         },
         (payload) => {
@@ -175,11 +172,11 @@ export const useSupabaseChatMessages = (eventId: string, camName?: string) => {
         }
       )
       .on(
-        "postgres_changes",
+        'postgres_changes',
         {
-          event: "DELETE",
-          schema: "public",
-          table: "event_chat_messages",
+          event: 'DELETE',
+          schema: 'public',
+          table: 'event_chat_messages',
           // filter: `event_id=eq.${eventId}`,
         },
         (payload) => {
@@ -191,20 +188,20 @@ export const useSupabaseChatMessages = (eventId: string, camName?: string) => {
         }
       )
       .subscribe((status) => {
-        if (status === "SUBSCRIBED") {
-          setConnectionStatus("connected");
-        } else if (status === "CHANNEL_ERROR") {
-          setConnectionStatus("error");
-        } else if (status === "TIMED_OUT") {
-          setConnectionStatus("error");
-        } else if (status === "CLOSED") {
-          setConnectionStatus("disconnected");
+        if (status === 'SUBSCRIBED') {
+          setConnectionStatus('connected');
+        } else if (status === 'CHANNEL_ERROR') {
+          setConnectionStatus('error');
+        } else if (status === 'TIMED_OUT') {
+          setConnectionStatus('error');
+        } else if (status === 'CLOSED') {
+          setConnectionStatus('disconnected');
         }
       });
 
     return () => {
       supabase.removeChannel(channel);
-      setConnectionStatus("disconnected");
+      setConnectionStatus('disconnected');
     };
   }, [eventId, fetchMessages]);
 

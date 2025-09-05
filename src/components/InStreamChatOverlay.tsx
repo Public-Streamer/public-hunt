@@ -1,5 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
-import { Badge } from "@/components/ui/badge";
+import React, { useState, useRef, useEffect } from 'react';
 import {
   MessageCircle,
   X,
@@ -7,9 +6,11 @@ import {
   Maximize,
   Minimize,
   Trash2,
-} from "lucide-react";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
+} from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+import { Badge } from '@/components/ui/badge';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,13 +21,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { useSupabaseChatMessages } from "@/hooks/useSupabaseChatMessages";
-import { useAppContext } from "@/contexts/AppContext";
-import { useToast } from "@/hooks/use-toast";
-import { useScreenSize } from "@/hooks/use-mobile";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { formatDistanceToNow } from "date-fns";
+} from '@/components/ui/alert-dialog';
+import { useSupabaseChatMessages } from '@/hooks/useSupabaseChatMessages';
+import { useAppContext } from '@/contexts/AppContext';
+import { useToast } from '@/hooks/use-toast';
+import { useScreenSize } from '@/hooks/use-mobile';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
 interface InStreamChatOverlayProps {
   eventId: string;
@@ -50,7 +50,7 @@ const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
   showFullscreenToggle = false,
   onFullscreenToggle,
   camName,
-  className = "",
+  className = '',
   eventHostId,
 }) => {
   const { messages, sendMessage, deleteMessage } = useSupabaseChatMessages(
@@ -61,7 +61,7 @@ const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
   const screenSize = useScreenSize();
   const { toast } = useToast();
   const chatContainerRef = useRef<HTMLDivElement>(null);
-  const [chatMessage, setChatMessage] = useState("");
+  const [chatMessage, setChatMessage] = useState('');
   const [isScrolledToBottom, setIsScrolledToBottom] = useState(true);
   const [initialRender, setInitialRender] = useState(true);
   const [showScrollDown, setShowScrollDown] = useState(false);
@@ -71,7 +71,7 @@ const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
 
   // Debug: log current user identity
   console.log(
-    "Chat user identity:",
+    'Chat user identity:',
     currentUserProfile?.display_name,
     currentUserProfile?.user_id
   );
@@ -126,15 +126,15 @@ const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
 
       try {
         await sendMessage(messageContent);
-        setChatMessage("");
+        setChatMessage('');
       } catch (error) {
-        console.error("Failed to send chat message:", error);
+        console.error('Failed to send chat message:', error);
       }
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
+    if (e.key === 'Enter') {
       e.preventDefault();
       handleSendMessage();
     }
@@ -145,15 +145,15 @@ const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
     try {
       await deleteMessage(messageId);
       toast({
-        title: "Message deleted",
-        description: "The message has been removed from the chat.",
+        title: 'Message deleted',
+        description: 'The message has been removed from the chat.',
       });
     } catch (error) {
-      console.error("Failed to delete message:", error);
+      console.error('Failed to delete message:', error);
       toast({
-        title: "Failed to delete message",
-        description: "Please try again.",
-        variant: "destructive",
+        title: 'Failed to delete message',
+        description: 'Please try again.',
+        variant: 'destructive',
       });
     } finally {
       setDeletingMessageId(null);
@@ -170,12 +170,12 @@ const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
           ref={chatContainerRef}
           onScroll={handleChatScroll}
           className={`absolute bottom-0 left-0 h-full w-2/4 overflow-y-auto pointer-events-auto transition-opacity duration-300 bg-[linear-gradient(90deg,_rgba(0,60,84,0.8)_0%,_rgba(87,199,133,0)_99%)] ${
-            isFullscreen && !showControls ? "opacity-0" : "opacity-100 z-0"
+            isFullscreen && !showControls ? 'opacity-0' : 'opacity-100 z-0'
           }`}
           style={{
-            scrollBehavior: "smooth",
-            scrollbarWidth: "thin",
-            scrollbarColor: "rgba(255, 255, 255, 0.3) transparent",
+            scrollBehavior: 'smooth',
+            scrollbarWidth: 'thin',
+            scrollbarColor: 'rgba(255, 255, 255, 0.3) transparent',
           }}
         >
           {/* Scroll indicator for more messages above */}
@@ -201,8 +201,8 @@ const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
                     key={`${message.id}-${index}`}
                     className="py-1.5 px-2 sm:px-3 text-white rounded-lg max-w-[45vw] sm:max-w-xs md:max-w-sm shadow-lg animate-fade-in transition-all duration-300 hover:bg-black/20 group"
                     style={{
-                      wordWrap: "break-word",
-                      hyphens: "auto",
+                      wordWrap: 'break-word',
+                      hyphens: 'auto',
                       opacity: baseOpacity,
                     }}
                   >
@@ -215,7 +215,7 @@ const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
                       </Avatar>
                       <div className="flex flex-col flex-1 min-w-0">
                         <span className="flex items-baseline gap-2 font-semibold text-blue-200 text-xs sm:text-sm leading-tight truncate max-w-full">
-                          {message.display_name || "Anonymous"}{" "}
+                          {message.display_name || 'Anonymous'}{' '}
                           <span className="text-white/60 text-xs sm:text-sm">
                             {formatDistanceToNow(new Date(message.created_at))}
                           </span>
@@ -290,7 +290,7 @@ const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
       {isVisible && !isScrolledToBottom && messages.length > 0 && (
         <div
           className={`absolute bottom-12 left-2 bg-black/60 backdrop-blur-sm text-white rounded-full p-2 cursor-pointer hover:bg-black/80 transition-all duration-200 shadow-lg z-30 ${
-            isFullscreen && !showControls ? "opacity-0" : "opacity-100"
+            isFullscreen && !showControls ? 'opacity-0' : 'opacity-100'
           }`}
           onClick={() => {
             if (chatContainerRef.current) {
@@ -306,7 +306,7 @@ const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
       {/* Unified Bottom Control Bar */}
       <div
         className={`absolute bottom-0 left-0 right-0 transition-opacity duration-300 mt-3 z-20 ${
-          isFullscreen && !showControls ? "opacity-0" : "opacity-100"
+          isFullscreen && !showControls ? 'opacity-0' : 'opacity-100'
         }`}
       >
         <div className="flex items-center gap-4 rounded-lg p-2 shadow-lg">
@@ -334,13 +334,13 @@ const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
           {/* Control Buttons - Right Side with more spacing */}
           <div
             className={`flex items-center gap-4 ${
-              !isVisible ? "flex-1 justify-start" : ""
+              !isVisible ? 'flex-1 justify-start' : ''
             }`}
           >
             {/* Chat Toggle Button */}
             <Button
               onClick={onVisibilityToggle}
-              size={screenSize === "mobile" ? "sm" : "default"}
+              size={screenSize === 'mobile' ? 'sm' : 'default'}
               variant="outline"
               className="bg-black/60 border-white/40 text-white hover:bg-black/80 h-8 md:h-10 px-4 shadow-lg backdrop-blur-sm"
             >
@@ -350,7 +350,7 @@ const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
                 <MessageCircle className="h-4 w-4 mr-2" />
               )}
               <span className="text-sm hidden sm:inline">
-                {isVisible ? "Hide Chat" : "Show Chat"}
+                {isVisible ? 'Hide Chat' : 'Show Chat'}
               </span>
             </Button>
 
@@ -358,7 +358,7 @@ const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
             {showFullscreenToggle && onFullscreenToggle && (
               <Button
                 onClick={onFullscreenToggle}
-                size={screenSize === "mobile" ? "sm" : "default"}
+                size={screenSize === 'mobile' ? 'sm' : 'default'}
                 variant="outline"
                 className="bg-black/60 border-white/40 text-white hover:bg-black/80 h-8 md:h-10 px-4 shadow-lg backdrop-blur-sm"
               >

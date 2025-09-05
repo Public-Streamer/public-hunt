@@ -1,9 +1,9 @@
-import React from "react";
-import { VideoTrackLazy } from "@/lib/livekitLazy";
-import type { TrackReference } from "@livekit/components-core";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Mic, MicOff } from "lucide-react";
+import React from 'react';
+import type { TrackReference } from '@livekit/components-core';
+import { Mic, MicOff } from 'lucide-react';
+import { VideoTrackLazy } from '@/lib/livekitLazy';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 interface StreamerPreviewProps {
   track: TrackReference;
@@ -16,22 +16,25 @@ const StreamerPreview: React.FC<StreamerPreviewProps> = ({
   track,
   isSelected = false,
   onClick,
-  className = "",
+  className = '',
 }) => {
-  const participant = track.participant;
+  const { participant } = track;
   const isAudioEnabled = participant?.isMicrophoneEnabled ?? false;
 
   return (
     <Card
       className={`relative overflow-hidden cursor-pointer transition-all duration-200 ${
         isSelected
-          ? "ring-2 ring-primary shadow-lg scale-105"
-          : "hover:shadow-md hover:scale-102"
+          ? 'ring-2 ring-primary shadow-lg scale-105'
+          : 'hover:shadow-md hover:scale-102'
       } ${className}`}
       onClick={onClick}
     >
       <div className="aspect-video relative">
-        <VideoTrackLazy trackRef={track} className="w-full h-full object-cover" />
+        <VideoTrackLazy
+          trackRef={track}
+          className="w-full h-full object-cover"
+        />
 
         {/* Live badge */}
         <Badge className="absolute top-2 left-2 bg-red-600 text-white text-xs">

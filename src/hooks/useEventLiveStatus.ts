@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface UseEventLiveStatusProps {
   eventId: string;
@@ -17,7 +17,7 @@ export const useEventLiveStatus = ({
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       // Invalidate event query to refetch latest status
-      queryClient.invalidateQueries({ queryKey: ["event", eventId] });
+      queryClient.invalidateQueries({ queryKey: ['event', eventId] });
     }, 1000);
 
     return () => clearTimeout(timeoutId);

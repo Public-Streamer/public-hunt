@@ -1,20 +1,4 @@
-import React, { useState } from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import React, { useState } from 'react';
 import {
   Heart,
   MessageCircle,
@@ -30,12 +14,28 @@ import {
   X,
   Upload,
   Image as ImageIcon,
-} from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { useAppContext } from "@/contexts/AppContext";
-import CommentSection from "./CommentSection";
+} from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAppContext } from '@/contexts/AppContext';
+import CommentSection from './CommentSection';
 
 interface SocialPostProps {
   postId: string;
@@ -50,7 +50,7 @@ interface SocialPostProps {
   comments: number;
   shares: number;
   media_url?: string;
-  media_type?: "image" | "video";
+  media_type?: 'image' | 'video';
   channels?: {
     id: string;
     name: string;
@@ -100,7 +100,7 @@ const SocialPost: React.FC<SocialPostProps> = ({
   onDelete,
 }) => {
   const [showComments, setShowComments] = useState(false);
-  const [newComment, setNewComment] = useState("");
+  const [newComment, setNewComment] = useState('');
   const [liked, setLiked] = useState(isLiked);
   const [likeCount, setLikeCount] = useState(likes);
   const [shareCount, setShareCount] = useState(shares);
@@ -122,7 +122,9 @@ const SocialPost: React.FC<SocialPostProps> = ({
     }
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       // Check if user has already liked this post
@@ -147,7 +149,7 @@ const SocialPost: React.FC<SocialPostProps> = ({
 
         // Update UI
         setLiked(false);
-        setLikeCount(prev => prev - 1);
+        setLikeCount((prev) => prev - 1);
 
         // Update database post count
         await supabase
@@ -156,19 +158,17 @@ const SocialPost: React.FC<SocialPostProps> = ({
           .eq('id', postId);
       } else {
         // Like the post
-        const { error } = await supabase
-          .from('post_interactions')
-          .insert({
-            post_id: postId,
-            user_id: user.id,
-            interaction_type: 'like'
-          });
+        const { error } = await supabase.from('post_interactions').insert({
+          post_id: postId,
+          user_id: user.id,
+          interaction_type: 'like',
+        });
 
         if (error) throw error;
 
         // Update UI
         setLiked(true);
-        setLikeCount(prev => prev + 1);
+        setLikeCount((prev) => prev + 1);
 
         // Update database post count
         await supabase
@@ -181,9 +181,9 @@ const SocialPost: React.FC<SocialPostProps> = ({
     } catch (error) {
       console.error('Error handling like:', error);
       toast({
-        title: "Error",
-        description: "Failed to update like status.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to update like status.',
+        variant: 'destructive',
       });
     }
   };
@@ -199,7 +199,7 @@ const SocialPost: React.FC<SocialPostProps> = ({
     if (comment.trim()) {
       // Update comments count locally for immediate feedback
       setCommentCount((prev) => prev + 1);
-      
+
       // Call the parent component's comment handler if provided
       onComment?.(postId, comment);
     }
@@ -216,19 +216,19 @@ const SocialPost: React.FC<SocialPostProps> = ({
 
     try {
       await navigator.clipboard.writeText(postUrl);
-      
+
       // Update database with incremented share count
       const { error } = await supabase
-        .from("user_posts")
+        .from('user_posts')
         .update({ shares: shareCount + 1 })
-        .eq("id", postId);
+        .eq('id', postId);
 
       if (error) {
-        console.error("Error updating shares count:", error);
+        console.error('Error updating shares count:', error);
         toast({
-          title: "Share failed",
-          description: "Could not update share count.",
-          variant: "destructive",
+          title: 'Share failed',
+          description: 'Could not update share count.',
+          variant: 'destructive',
         });
         return;
       }
@@ -236,16 +236,16 @@ const SocialPost: React.FC<SocialPostProps> = ({
       // Update local share count after successful database update
       setShareCount((prev) => prev + 1);
       onShare?.(postId);
-      
+
       toast({
-        title: "Link copied",
-        description: "Post link copied to clipboard!",
+        title: 'Link copied',
+        description: 'Post link copied to clipboard!',
       });
     } catch (err) {
       toast({
-        title: "Share failed",
-        description: "Could not copy link to clipboard.",
-        variant: "destructive",
+        title: 'Share failed',
+        description: 'Could not copy link to clipboard.',
+        variant: 'destructive',
       });
     }
   };
@@ -256,7 +256,7 @@ const SocialPost: React.FC<SocialPostProps> = ({
       const shareData = {
         url: postUrl,
         title: `Check out this post from ${author.name}`,
-        text: content.substring(0, 100) + (content.length > 100 ? "..." : ""),
+        text: content.substring(0, 100) + (content.length > 100 ? '...' : ''),
       };
 
       if (navigator.canShare(shareData)) {
@@ -266,30 +266,30 @@ const SocialPost: React.FC<SocialPostProps> = ({
             setShareCount((prev) => prev + 1);
             onShare?.(postId);
           })
-          .catch((err) => console.error("Error sharing:", err));
+          .catch((err) => console.error('Error sharing:', err));
         return;
       }
     }
 
     // Final fallback - create temporary textarea for copy
-    const textArea = document.createElement("textarea");
+    const textArea = document.createElement('textarea');
     textArea.value = postUrl;
     document.body.appendChild(textArea);
     textArea.select();
 
     try {
-      document.execCommand("copy");
+      document.execCommand('copy');
       setShareCount((prev) => prev + 1);
       onShare?.(postId);
       toast({
-        title: "Link copied to clipboard",
-        description: "Post link has been copied successfully!",
+        title: 'Link copied to clipboard',
+        description: 'Post link has been copied successfully!',
       });
     } catch (err) {
       toast({
-        title: "Share failed",
-        description: "Could not copy link. Please copy manually.",
-        variant: "destructive",
+        title: 'Share failed',
+        description: 'Could not copy link. Please copy manually.',
+        variant: 'destructive',
       });
     } finally {
       document.body.removeChild(textArea);
@@ -408,7 +408,7 @@ const SocialPost: React.FC<SocialPostProps> = ({
           <div className="mb-4 space-y-3">
             {(mediaPreview || (media_url && !showDeleteMedia)) && (
               <div className="relative">
-                {media_type === "video" ? (
+                {media_type === 'video' ? (
                   <video
                     src={mediaPreview || media_url}
                     controls
@@ -471,7 +471,7 @@ const SocialPost: React.FC<SocialPostProps> = ({
           <div className="mb-4">
             {(mediaPreview || (media_url && !showDeleteMedia)) && (
               <div className="mb-4 rounded-lg overflow-hidden">
-                {media_type === "video" ? (
+                {media_type === 'video' ? (
                   <video
                     src={media_url}
                     controls
@@ -505,7 +505,7 @@ const SocialPost: React.FC<SocialPostProps> = ({
                     e.preventDefault();
                     e.stopPropagation();
                     // Open in new tab to preserve post visibility
-                    window.open(`/channel/${channel.id}`, "_blank");
+                    window.open(`/channel/${channel.id}`, '_blank');
                   }}
                 >
                   <Hash className="h-3 w-3" />
@@ -522,8 +522,10 @@ const SocialPost: React.FC<SocialPostProps> = ({
                     e.preventDefault();
                     e.stopPropagation();
                     // Open in new tab to preserve post visibility
-                    const eventUrl = event.slug ? `/event/${event.slug}` : `/event/${event.id}`;
-                    window.open(eventUrl, "_blank");
+                    const eventUrl = event.slug
+                      ? `/event/${event.slug}`
+                      : `/event/${event.id}`;
+                    window.open(eventUrl, '_blank');
                   }}
                 >
                   <Calendar className="h-3 w-3" />
@@ -541,7 +543,7 @@ const SocialPost: React.FC<SocialPostProps> = ({
                       e.preventDefault();
                       e.stopPropagation();
                       // Open in new tab to preserve post visibility
-                      window.open(`/profile/${user.id}`, "_blank");
+                      window.open(`/profile/${user.id}`, '_blank');
                     }}
                   >
                     <Users className="h-3 w-3" />@{user.username}
@@ -558,10 +560,10 @@ const SocialPost: React.FC<SocialPostProps> = ({
             size="sm"
             onClick={handleLike}
             className={`flex items-center space-x-2 ${
-              liked ? "text-red-500" : "text-gray-500"
+              liked ? 'text-red-500' : 'text-gray-500'
             }`}
           >
-            <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} />
+            <Heart className={`h-4 w-4 ${liked ? 'fill-current' : ''}`} />
             <span>{likeCount}</span>
           </Button>
 
@@ -588,10 +590,10 @@ const SocialPost: React.FC<SocialPostProps> = ({
 
         {showComments && (
           <div className="mt-4 border-t pt-4">
-            <CommentSection 
-              entityId={postId} 
-              entityType="post" 
-              onCommentAdded={() => setCommentCount(prev => prev + 1)}
+            <CommentSection
+              entityId={postId}
+              entityType="post"
+              onCommentAdded={() => setCommentCount((prev) => prev + 1)}
             />
           </div>
         )}

@@ -1,34 +1,34 @@
-import React from "react";
+import React from 'react';
+import { Search, Filter, SortAsc, SortDesc } from 'lucide-react';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Search, Filter, SortAsc, SortDesc } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 
 export type SortOption =
-  | "most-views"
-  | "least-views"
-  | "most-revenue"
-  | "least-revenue"
-  | "most-live-viewers"
-  | "least-live-viewers"
-  | "most-subscribers"
-  | "least-subscribers"
-  | "most-popular"
-  | "least-popular"
-  | "most-ticket-sales"
-  | "least-ticket-sales"
-  | "most-ticket-revenue"
-  | "least-ticket-revenue"
-  | "newest"
-  | "oldest"
-  | "alphabetical"
-  | "starts-soon";
+  | 'most-views'
+  | 'least-views'
+  | 'most-revenue'
+  | 'least-revenue'
+  | 'most-live-viewers'
+  | 'least-live-viewers'
+  | 'most-subscribers'
+  | 'least-subscribers'
+  | 'most-popular'
+  | 'least-popular'
+  | 'most-ticket-sales'
+  | 'least-ticket-sales'
+  | 'most-ticket-revenue'
+  | 'least-ticket-revenue'
+  | 'newest'
+  | 'oldest'
+  | 'alphabetical'
+  | 'starts-soon';
 
 interface EventRankingControlsProps {
   searchTerm: string;
@@ -49,24 +49,24 @@ const EventRankingControls: React.FC<EventRankingControlsProps> = ({
 }) => {
   const getSortLabel = (option: SortOption): string => {
     const labels: Record<SortOption, string> = {
-      "most-views": "Most Views",
-      "least-views": "Least Views",
-      "most-revenue": "Most Revenue",
-      "least-revenue": "Least Revenue",
-      "most-live-viewers": "Most Live Viewers",
-      "least-live-viewers": "Least Live Viewers",
-      "most-subscribers": "Most Subscribers",
-      "least-subscribers": "Least Subscribers",
-      "most-popular": "Most Popular",
-      "least-popular": "Least Popular",
-      "most-ticket-sales": "Most Ticket Sales",
-      "least-ticket-sales": "Least Ticket Sales",
-      "most-ticket-revenue": "Most Ticket Revenue",
-      "least-ticket-revenue": "Least Ticket Revenue",
-      newest: "Newest First",
-      oldest: "Oldest First",
-      alphabetical: "Alphabetical (A–Z)",
-      "starts-soon": "Starts Soon",
+      'most-views': 'Most Views',
+      'least-views': 'Least Views',
+      'most-revenue': 'Most Revenue',
+      'least-revenue': 'Least Revenue',
+      'most-live-viewers': 'Most Live Viewers',
+      'least-live-viewers': 'Least Live Viewers',
+      'most-subscribers': 'Most Subscribers',
+      'least-subscribers': 'Least Subscribers',
+      'most-popular': 'Most Popular',
+      'least-popular': 'Least Popular',
+      'most-ticket-sales': 'Most Ticket Sales',
+      'least-ticket-sales': 'Least Ticket Sales',
+      'most-ticket-revenue': 'Most Ticket Revenue',
+      'least-ticket-revenue': 'Least Ticket Revenue',
+      newest: 'Newest First',
+      oldest: 'Oldest First',
+      alphabetical: 'Alphabetical (A–Z)',
+      'starts-soon': 'Starts Soon',
     };
     return labels[option];
   };
@@ -96,7 +96,7 @@ const EventRankingControls: React.FC<EventRankingControlsProps> = ({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {activeTab === "live" && (
+            {activeTab === 'live' && (
               <>
                 <SelectItem value="most-live-viewers">
                   Most Live Viewers
@@ -106,19 +106,19 @@ const EventRankingControls: React.FC<EventRankingControlsProps> = ({
                 <SelectItem value="alphabetical">Alphabetical (A–Z)</SelectItem>
               </>
             )}
-            {activeTab === "scheduled" && (
+            {activeTab === 'scheduled' && (
               <>
                 <SelectItem value="starts-soon">Starts Soon</SelectItem>
                 <SelectItem value="alphabetical">Alphabetical (A–Z)</SelectItem>
               </>
             )}
-            {activeTab === "my-events" && (
+            {activeTab === 'my-events' && (
               <>
                 <SelectItem value="starts-soon">Starts Soon</SelectItem>
                 <SelectItem value="alphabetical">Alphabetical (A–Z)</SelectItem>
               </>
             )}
-            {activeTab === "past" && (
+            {activeTab === 'past' && (
               <>
                 <SelectItem value="newest">Newest First</SelectItem>
                 <SelectItem value="most-views">Most Views</SelectItem>
@@ -130,7 +130,7 @@ const EventRankingControls: React.FC<EventRankingControlsProps> = ({
         </Select>
 
         <Badge variant="outline" className="flex items-center gap-1">
-          {sortBy.includes("most") || sortBy === "newest" ? (
+          {sortBy.includes('most') || sortBy === 'newest' ? (
             <SortDesc className="h-3 w-3" />
           ) : (
             <SortAsc className="h-3 w-3" />

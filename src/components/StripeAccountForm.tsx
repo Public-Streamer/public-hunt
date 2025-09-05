@@ -1,7 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   CreditCard,
   ExternalLink,
@@ -9,10 +6,13 @@ import {
   Loader2,
   AlertCircle,
   RefreshCw,
-} from "lucide-react";
-import { supabase } from "@/lib/supabase";
-import { useToast } from "@/hooks/use-toast";
-import { useAppContext } from "@/contexts/AppContext";
+} from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { supabase } from '@/lib/supabase';
+import { useToast } from '@/hooks/use-toast';
+import { useAppContext } from '@/contexts/AppContext';
 
 interface StripeAccount {
   id: string;
@@ -25,7 +25,7 @@ interface StripeAccount {
 const StripeAccountForm: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [stripeAccount, setStripeAccount] = useState<StripeAccount | null>(
     null
   );
@@ -37,34 +37,32 @@ const StripeAccountForm: React.FC = () => {
     try {
       setCheckingAccount(true);
       const { data, error } = await supabase
-        .from("host_stripe_accounts")
-        .select("*")
-        .eq("user_id", user?.id)
+        .from('host_stripe_accounts')
+        .select('*')
+        .eq('user_id', user?.id)
         .single();
 
-      if (error && error.code !== "PGRST116") {
-        console.log("no record found");
+      if (error && error.code !== 'PGRST116') {
+        console.log('no record found');
         return;
       }
 
       // if any record exist
       if (data) {
-        console.log("record found");
+        console.log('record found');
         // if onboarding is completed
         if (data.onboarding_completed) {
           // Account is fully set up
-          console.log("onboarding completed");
+          console.log('onboarding completed');
           setStripeAccount(data);
-
-          return;
         } else {
           // if onboarding is not completed
-          console.log("onboarding not completed, checking latest from stripe");
+          console.log('onboarding not completed, checking latest from stripe');
           checkStripeAccountStatus();
         }
       }
     } catch (err) {
-      console.error("Error checking existing account:", err);
+      console.error('Error checking existing account:', err);
     } finally {
       setCheckingAccount(false);
     }
@@ -78,16 +76,16 @@ const StripeAccountForm: React.FC = () => {
 
   const handleCreateStripeAccount = async () => {
     setLoading(true);
-    setError("");
+    setError('');
 
     try {
       const { data, error } = await supabase.functions.invoke(
-        "create-stripe-express-account",
+        'create-stripe-express-account',
         {
           body: {
             email: user?.email,
-            firstName: user?.user_metadata?.first_name || "",
-            lastName: user?.user_metadata?.last_name || "",
+            firstName: user?.user_metadata?.first_name || '',
+            lastName: user?.user_metadata?.last_name || '',
           },
         }
       );
@@ -96,11 +94,11 @@ const StripeAccountForm: React.FC = () => {
 
       if (data.url) {
         // Redirect to Stripe onboarding
-        window.open(data.url, "_blank");
+        window.open(data.url, '_blank');
 
         toast({
-          title: "Redirecting to Stripe",
-          description: "Complete your account setup in the new window.",
+          title: 'Redirecting to Stripe',
+          description: 'Complete your account setup in the new window.',
         });
 
         // Start polling for account status
@@ -110,12 +108,12 @@ const StripeAccountForm: React.FC = () => {
       const errorMessage =
         err instanceof Error
           ? err.message
-          : "Failed to create Stripe account. Please try again.";
+          : 'Failed to create Stripe account. Please try again.';
       setError(errorMessage);
       toast({
-        title: "Error",
-        description: "Failed to create Stripe account",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to create Stripe account',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -165,7 +163,7 @@ const StripeAccountForm: React.FC = () => {
     setIsCheckingStatus(true);
     try {
       const { data, error } = await supabase.functions.invoke(
-        "check-stripe-account-status"
+        'check-stripe-account-status'
       );
 
       console.log(data);
@@ -184,11 +182,11 @@ const StripeAccountForm: React.FC = () => {
       //   //set active
       // }
     } catch (error: unknown) {
-      console.error("Error checking account status:", error);
+      console.error('Error checking account status:', error);
       toast({
-        title: "Error",
-        description: "Failed to check account status",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to check account status',
+        variant: 'destructive',
       });
     } finally {
       setIsCheckingStatus(false);
@@ -197,14 +195,14 @@ const StripeAccountForm: React.FC = () => {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "active":
+      case 'active':
         return (
           <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
             <CheckCircle className="h-3 w-3 mr-1" />
             Active
           </span>
         );
-      case "pending":
+      case 'pending':
         return (
           <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
             <Loader2 className="h-3 w-3 mr-1 animate-spin" />
@@ -259,14 +257,14 @@ const StripeAccountForm: React.FC = () => {
             <AlertDescription>
               {stripeAccount.onboarding_completed &&
               stripeAccount.payouts_enabled
-                ? "Your Stripe account is fully set up and ready to receive payments!"
-                : "Complete your Stripe account setup to start receiving payments."}
+                ? 'Your Stripe account is fully set up and ready to receive payments!'
+                : 'Complete your Stripe account setup to start receiving payments.'}
             </AlertDescription>
           </Alert>
 
           <Button
             onClick={() =>
-              window.open(`https://connect.stripe.com/express_login`, "_blank")
+              window.open(`https://connect.stripe.com/express_login`, '_blank')
             }
             className="w-full"
           >

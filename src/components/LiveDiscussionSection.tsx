@@ -1,22 +1,22 @@
-import React, { useState, useRef, useEffect, Suspense } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MessageCircle, Send, Smile } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useAppContext } from "@/contexts/AppContext";
-import TooltipWrapper from "@/components/ui/tooltip-wrapper";
-import { formatDistanceToNow } from "date-fns";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { useSupabaseChatMessages } from "@/hooks/useSupabaseChatMessages";
-import { Input } from "./ui/input";
+import React, { useState, useRef, useEffect, Suspense } from 'react';
+import { MessageCircle, Send, Smile } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { formatDistanceToNow } from 'date-fns';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useAppContext } from '@/contexts/AppContext';
+import TooltipWrapper from '@/components/ui/tooltip-wrapper';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useSupabaseChatMessages } from '@/hooks/useSupabaseChatMessages';
+import { Input } from './ui/input';
 
 // Lazy emoji picker to avoid bundling heavy data on initial load
 const EmojiPickerLazy = React.lazy(async () => {
   const [{ default: Picker }, data] = await Promise.all([
-    import("@emoji-mart/react"),
-    import("@emoji-mart/data"),
+    import('@emoji-mart/react'),
+    import('@emoji-mart/data'),
   ]);
   return { default: (props: any) => <Picker data={data} {...props} /> };
 });
@@ -42,7 +42,7 @@ const LiveDiscussionSection: React.FC<LiveDiscussionSectionProps> = ({
     canSend,
   } = useSupabaseChatMessages(eventId);
 
-  const [newMessage, setNewMessage] = useState("");
+  const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -62,8 +62,8 @@ const LiveDiscussionSection: React.FC<LiveDiscussionSectionProps> = ({
         setShowEmojiPicker(false);
       }
     }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showEmojiPicker]);
   const navigate = useNavigate();
   const { isAuthenticated } = useAppContext();
@@ -73,7 +73,7 @@ const LiveDiscussionSection: React.FC<LiveDiscussionSectionProps> = ({
   useEffect(() => {
     if (messagesEndRef.current) {
       const scrollContainer = messagesEndRef.current.closest(
-        "[data-radix-scroll-area-viewport]"
+        '[data-radix-scroll-area-viewport]'
       );
       if (scrollContainer) {
         scrollContainer.scrollTop = scrollContainer.scrollHeight;
@@ -90,16 +90,16 @@ const LiveDiscussionSection: React.FC<LiveDiscussionSectionProps> = ({
 
     try {
       await sendMessage(messageContent);
-      setNewMessage("");
+      setNewMessage('');
     } catch (error) {
-      console.error("Failed to send message:", error);
+      console.error('Failed to send message:', error);
     } finally {
       setLoading(false);
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmitMessage(e);
     }
@@ -107,9 +107,9 @@ const LiveDiscussionSection: React.FC<LiveDiscussionSectionProps> = ({
 
   const getInitials = (name: string) => {
     return name
-      .split(" ")
+      .split(' ')
       .map((n) => n[0])
-      .join("")
+      .join('')
       .substring(0, 2)
       .toUpperCase();
   };
@@ -180,7 +180,7 @@ const LiveDiscussionSection: React.FC<LiveDiscussionSectionProps> = ({
                               setShowEmojiPicker(false);
                             }}
                             theme="light"
-                            style={{ position: "absolute", left: 0 }}
+                            style={{ position: 'absolute', left: 0 }}
                           />
                         </Suspense>
                       </div>
@@ -203,7 +203,7 @@ const LiveDiscussionSection: React.FC<LiveDiscussionSectionProps> = ({
                     className="flex items-center space-x-2"
                   >
                     <Send className="w-4 h-4" />
-                    <span>{loading ? "Sending..." : "Send"}</span>
+                    <span>{loading ? 'Sending...' : 'Send'}</span>
                   </Button>
                 </TooltipWrapper>
               </div>
@@ -222,7 +222,7 @@ const LiveDiscussionSection: React.FC<LiveDiscussionSectionProps> = ({
                 className="px-2 h-auto font-normal"
               >
                 Sign in
-              </Button>{" "}
+              </Button>{' '}
               to join the live discussion
             </p>
           </div>

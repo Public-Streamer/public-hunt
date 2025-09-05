@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { Eye, Users, Clock } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Users, Clock } from 'lucide-react';
 
 interface LiveEvent {
   id: string;
@@ -28,7 +28,7 @@ const LiveNewsFeed: React.FC = () => {
       streamerCount: 4,
       startTime: '2024-01-20T20:00:00Z',
       thumbnail: '',
-      channelName: 'Music Live'
+      channelName: 'Music Live',
     },
     {
       id: '2',
@@ -38,7 +38,7 @@ const LiveNewsFeed: React.FC = () => {
       streamerCount: 6,
       startTime: '2024-01-20T18:00:00Z',
       thumbnail: '',
-      channelName: 'Sports Central'
+      channelName: 'Sports Central',
     },
     {
       id: '3',
@@ -48,7 +48,7 @@ const LiveNewsFeed: React.FC = () => {
       streamerCount: 3,
       startTime: '2024-01-20T14:00:00Z',
       thumbnail: '',
-      channelName: 'Tech Today'
+      channelName: 'Tech Today',
     },
     {
       id: '4',
@@ -58,7 +58,7 @@ const LiveNewsFeed: React.FC = () => {
       streamerCount: 2,
       startTime: '2024-01-20T16:00:00Z',
       thumbnail: '',
-      channelName: 'Culinary Arts'
+      channelName: 'Culinary Arts',
     },
     {
       id: '5',
@@ -68,14 +68,16 @@ const LiveNewsFeed: React.FC = () => {
       streamerCount: 3,
       startTime: '2024-01-20T19:00:00Z',
       thumbnail: '',
-      channelName: 'Art World'
-    }
+      channelName: 'Art World',
+    },
   ];
 
   useEffect(() => {
     // Simulate loading and sort by viewers (highest first)
     const timer = setTimeout(() => {
-      const sortedEvents = [...mockLiveEvents].sort((a, b) => b.viewers - a.viewers);
+      const sortedEvents = [...mockLiveEvents].sort(
+        (a, b) => b.viewers - a.viewers
+      );
       setLiveEvents(sortedEvents);
       setLoading(false);
     }, 1000);
@@ -93,7 +95,7 @@ const LiveNewsFeed: React.FC = () => {
       <Card className="w-full">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+            <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
             Live Events Feed
           </CardTitle>
         </CardHeader>
@@ -101,8 +103,8 @@ const LiveNewsFeed: React.FC = () => {
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
               <div key={i} className="animate-pulse">
-                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
+                <div className="h-3 bg-gray-200 rounded w-1/2" />
               </div>
             ))}
           </div>
@@ -115,7 +117,7 @@ const LiveNewsFeed: React.FC = () => {
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+          <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
           Live Events Feed
         </CardTitle>
       </CardHeader>
@@ -134,7 +136,9 @@ const LiveNewsFeed: React.FC = () => {
                     </Badge>
                   </div>
                   <h4 className="font-semibold text-sm mb-1">{event.title}</h4>
-                  <p className="text-xs text-gray-600 mb-2">{event.description}</p>
+                  <p className="text-xs text-gray-600 mb-2">
+                    {event.description}
+                  </p>
                   <div className="flex items-center gap-4 text-xs text-gray-500">
                     <div className="flex items-center gap-1">
                       <Eye className="w-3 h-3" />

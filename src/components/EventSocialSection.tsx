@@ -1,23 +1,23 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   Heart,
   MessageSquare,
   Send,
   ChevronDown,
   ChevronUp,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { useEventSocial, EventComment } from "@/hooks/useEventSocial";
-import { ReplyComposer } from "@/components/ReplyComposer";
-import { CommentReply } from "@/components/CommentReply";
-import { cn } from "@/lib/utils";
-import { formatDistanceToNow } from "date-fns";
-import { supabase } from "@/integrations/supabase/client";
+} from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Card, CardContent } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
+import { useEventSocial, EventComment } from '@/hooks/useEventSocial';
+import { ReplyComposer } from '@/components/ReplyComposer';
+import { CommentReply } from '@/components/CommentReply';
+import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
 
 interface EventSocialSectionProps {
   eventId: string;
@@ -25,11 +25,11 @@ interface EventSocialSectionProps {
   className?: string;
 }
 
-export function EventSocialSection({
+export const EventSocialSection = ({
   eventId,
   currentUserProfileId,
   className,
-}: EventSocialSectionProps) {
+}: EventSocialSectionProps) => {
   const {
     likes,
     comments,
@@ -42,7 +42,7 @@ export function EventSocialSection({
     fetchReplies,
   } = useEventSocial(eventId, currentUserProfileId);
 
-  const [newComment, setNewComment] = useState("");
+  const [newComment, setNewComment] = useState('');
   const [isCommenting, setIsCommenting] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
@@ -57,7 +57,7 @@ export function EventSocialSection({
     setIsCommenting(true);
     const success = await addComment(newComment);
     if (success) {
-      setNewComment("");
+      setNewComment('');
     }
     setIsCommenting(false);
   };
@@ -105,7 +105,7 @@ export function EventSocialSection({
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-    if (minutes < 1) return "now";
+    if (minutes < 1) return 'now';
     if (minutes < 60) return `${minutes}m`;
     if (hours < 24) return `${hours}h`;
     if (days < 7) return `${days}d`;
@@ -113,7 +113,7 @@ export function EventSocialSection({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmitComment(e);
     }
@@ -134,7 +134,7 @@ export function EventSocialSection({
     }
 
     if (userLike && otherLikes.length > 0) {
-      const firstName = otherLikes[0]?.display_name || "Someone";
+      const firstName = otherLikes[0]?.display_name || 'Someone';
       const remaining = otherLikes.length - 1;
 
       if (remaining === 0) {
@@ -147,16 +147,16 @@ export function EventSocialSection({
 
       return (
         <span className="text-sm text-muted-foreground md:text-xs truncate">
-          You, <span className="font-medium">{firstName}</span> and{" "}
+          You, <span className="font-medium">{firstName}</span> and{' '}
           <span className="font-medium">
-            {remaining} other{remaining > 1 ? "s" : ""}
+            {remaining} other{remaining > 1 ? 's' : ''}
           </span>
         </span>
       );
     }
 
     // User hasn't liked
-    const firstName = likes[0]?.display_name || "Someone";
+    const firstName = likes[0]?.display_name || 'Someone';
     const remaining = totalLikes - 1;
 
     if (remaining === 0) {
@@ -169,9 +169,9 @@ export function EventSocialSection({
 
     return (
       <span className="text-sm text-muted-foreground md:text-xs truncate">
-        <span className="font-medium">{firstName}</span> and{" "}
+        <span className="font-medium">{firstName}</span> and{' '}
         <span className="font-medium">
-          {remaining} other{remaining > 1 ? "s" : ""}
+          {remaining} other{remaining > 1 ? 's' : ''}
         </span>
       </span>
     );
@@ -190,7 +190,7 @@ export function EventSocialSection({
           <Avatar className="h-8 w-8 flex-shrink-0">
             <AvatarImage src={comment.author_avatar} />
             <AvatarFallback className="text-xs">
-              {comment.author_name?.charAt(0)?.toUpperCase() || "U"}
+              {comment.author_name?.charAt(0)?.toUpperCase() || 'U'}
             </AvatarFallback>
           </Avatar>
 
@@ -252,7 +252,7 @@ export function EventSocialSection({
                 disabled={isLoadingReplies}
               >
                 {isLoadingReplies ? (
-                  "Loading..."
+                  'Loading...'
                 ) : repliesVisible ? (
                   <>
                     <ChevronUp className="h-3 w-3" />
@@ -261,8 +261,8 @@ export function EventSocialSection({
                 ) : (
                   <>
                     <ChevronDown className="h-3 w-3" />
-                    View {comment.reply_count}{" "}
-                    {comment.reply_count === 1 ? "reply" : "replies"}
+                    View {comment.reply_count}{' '}
+                    {comment.reply_count === 1 ? 'reply' : 'replies'}
                   </>
                 )}
               </button>
@@ -289,7 +289,7 @@ export function EventSocialSection({
 
   return (
     <Card
-      className={cn("w-full border shadow-none bg-transparent p-0", className)}
+      className={cn('w-full border shadow-none bg-transparent p-0', className)}
     >
       <CardContent className="p-2 space-y-3">
         {/* Collapsed State: Social Summary + Action Buttons */}
@@ -297,8 +297,8 @@ export function EventSocialSection({
           {/* Social Summary - Clickable to expand comments */}
           <div
             className={cn(
-              "flex-1 cursor-pointer",
-              comments.length > 0 && "hover:text-foreground transition-colors"
+              'flex-1 cursor-pointer',
+              comments.length > 0 && 'hover:text-foreground transition-colors'
             )}
           >
             {/*  */}
@@ -318,17 +318,17 @@ export function EventSocialSection({
                   onClick={toggleLike}
                   disabled={loadingLikes}
                   className={cn(
-                    "flex items-center gap-2 h-8 px-3 md:h-9 md:px-4 shadow-none w-full",
+                    'flex items-center gap-2 h-8 px-3 md:h-9 md:px-4 shadow-none w-full',
                     userLike
-                      ? "text-red-600 hover:text-red-700"
-                      : "text-muted-foreground hover:text-foreground"
+                      ? 'text-red-600 hover:text-red-700'
+                      : 'text-muted-foreground hover:text-foreground'
                   )}
                 >
                   <Heart
-                    className={cn("h-4 w-4", userLike ? "fill-current" : "")}
+                    className={cn('h-4 w-4', userLike ? 'fill-current' : '')}
                   />
                   <span className="text-sm font-medium">
-                    {likes.length > 0 ? likes.length : "Like"}
+                    {likes.length > 0 ? likes.length : 'Like'}
                   </span>
                 </Button>
               </div>
@@ -347,7 +347,7 @@ export function EventSocialSection({
                 >
                   <MessageSquare className="h-4 w-4" />
                   <span className="text-sm font-medium">
-                    {comments.length > 0 ? comments.length : "Comment"}
+                    {comments.length > 0 ? comments.length : 'Comment'}
                   </span>
                 </Button>
               </div>
@@ -398,4 +398,4 @@ export function EventSocialSection({
       </CardContent>
     </Card>
   );
-}
+};

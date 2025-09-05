@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { Plus, Video, Play } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Video, Play } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 interface ProfileVideosProps {
@@ -18,7 +18,10 @@ interface Video {
   created_at: string;
 }
 
-const ProfileVideos: React.FC<ProfileVideosProps> = ({ userId, isOwnProfile }) => {
+const ProfileVideos: React.FC<ProfileVideosProps> = ({
+  userId,
+  isOwnProfile,
+}) => {
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -40,14 +43,15 @@ const ProfileVideos: React.FC<ProfileVideosProps> = ({ userId, isOwnProfile }) =
 
       if (error) throw error;
 
-      const videoData = data?.map(post => ({
-        id: post.id,
-        url: post.media_url,
-        title: post.content,
-        thumbnail: '/placeholder.svg',
-        duration: '2:30',
-        created_at: post.created_at
-      })) || [];
+      const videoData =
+        data?.map((post) => ({
+          id: post.id,
+          url: post.media_url,
+          title: post.content,
+          thumbnail: '/placeholder.svg',
+          duration: '2:30',
+          created_at: post.created_at,
+        })) || [];
 
       setVideos(videoData);
     } catch (error) {
@@ -60,7 +64,7 @@ const ProfileVideos: React.FC<ProfileVideosProps> = ({ userId, isOwnProfile }) =
           thumbnail: '/placeholder.svg',
           title: 'Amazing livestream highlights',
           duration: '5:42',
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
         },
         {
           id: '2',
@@ -68,8 +72,8 @@ const ProfileVideos: React.FC<ProfileVideosProps> = ({ userId, isOwnProfile }) =
           thumbnail: '/placeholder.svg',
           title: 'Event recap video',
           duration: '3:15',
-          created_at: new Date().toISOString()
-        }
+          created_at: new Date().toISOString(),
+        },
       ]);
     } finally {
       setLoading(false);
@@ -104,7 +108,9 @@ const ProfileVideos: React.FC<ProfileVideosProps> = ({ userId, isOwnProfile }) =
             <div className="text-center py-12">
               <Video className="w-12 h-12 mx-auto text-gray-400 mb-4" />
               <p className="text-gray-500">
-                {isOwnProfile ? 'No videos yet. Upload your first video!' : 'No videos to show'}
+                {isOwnProfile
+                  ? 'No videos yet. Upload your first video!'
+                  : 'No videos to show'}
               </p>
             </div>
           ) : (
@@ -127,7 +133,9 @@ const ProfileVideos: React.FC<ProfileVideosProps> = ({ userId, isOwnProfile }) =
                     )}
                   </div>
                   {video.title && (
-                    <h4 className="mt-2 font-medium text-sm line-clamp-2">{video.title}</h4>
+                    <h4 className="mt-2 font-medium text-sm line-clamp-2">
+                      {video.title}
+                    </h4>
                   )}
                   <p className="text-xs text-gray-500 mt-1">
                     {new Date(video.created_at).toLocaleDateString()}

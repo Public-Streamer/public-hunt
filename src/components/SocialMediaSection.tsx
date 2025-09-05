@@ -53,7 +53,11 @@ interface SocialMediaSectionProps {
   type: 'event' | 'channel';
 }
 
-const SocialMediaSection: React.FC<SocialMediaSectionProps> = ({ eventId, channelId, type }) => {
+const SocialMediaSection: React.FC<SocialMediaSectionProps> = ({
+  eventId,
+  channelId,
+  type,
+}) => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -80,7 +84,7 @@ const SocialMediaSection: React.FC<SocialMediaSectionProps> = ({ eventId, channe
       if (error) throw error;
 
       const formattedPosts: Post[] = [];
-      
+
       for (const post of data || []) {
         // Fetch channel info if channel_id exists
         let channelData = null;
@@ -107,9 +111,11 @@ const SocialMediaSection: React.FC<SocialMediaSectionProps> = ({ eventId, channe
         // Fetch tagged users
         const { data: taggedUsers } = await supabase
           .from('user_tags')
-          .select(`
+          .select(
+            `
             tagged_user_id
-          `)
+          `
+          )
           .eq('post_id', post.id);
 
         const formattedTaggedUsers = [];
@@ -120,12 +126,12 @@ const SocialMediaSection: React.FC<SocialMediaSectionProps> = ({ eventId, channe
               .select('id, display_name, username')
               .eq('id', tag.tagged_user_id)
               .single();
-            
+
             if (currentUserProfile) {
               formattedTaggedUsers.push({
                 id: tag.tagged_user_id,
                 name: currentUserProfile.display_name || 'Unknown User',
-                username: currentUserProfile.username || 'unknown'
+                username: currentUserProfile.username || 'unknown',
               });
             }
           }
@@ -136,7 +142,7 @@ const SocialMediaSection: React.FC<SocialMediaSectionProps> = ({ eventId, channe
           author: {
             name: post.author_name,
             username: post.author_username,
-            avatar: post.author_avatar
+            avatar: post.author_avatar,
           },
           content: post.content,
           timestamp: new Date(post.created_at).toLocaleString(),
@@ -146,7 +152,7 @@ const SocialMediaSection: React.FC<SocialMediaSectionProps> = ({ eventId, channe
           channel: channelData,
           event: eventData,
           taggedUsers: formattedTaggedUsers,
-          isLiked: false
+          isLiked: false,
         });
       }
 
@@ -168,19 +174,20 @@ const SocialMediaSection: React.FC<SocialMediaSectionProps> = ({ eventId, channe
 
       if (error) throw error;
 
-      const formattedComments: Comment[] = data?.map(comment => ({
-        id: comment.id,
-        author: {
-          name: comment.author_name,
-          username: comment.author_username,
-          avatar: comment.author_avatar
-        },
-        content: comment.content,
-        timestamp: new Date(comment.created_at).toLocaleString(),
-        likes: comment.likes_count || 0,
-        isLiked: false,
-        replies: []
-      })) || [];
+      const formattedComments: Comment[] =
+        data?.map((comment) => ({
+          id: comment.id,
+          author: {
+            name: comment.author_name,
+            username: comment.author_username,
+            avatar: comment.author_avatar,
+          },
+          content: comment.content,
+          timestamp: new Date(comment.created_at).toLocaleString(),
+          likes: comment.likes_count || 0,
+          isLiked: false,
+          replies: [],
+        })) || [];
 
       setComments(formattedComments);
     } catch (error) {
@@ -198,7 +205,7 @@ const SocialMediaSection: React.FC<SocialMediaSectionProps> = ({ eventId, channe
           author_username: 'currentuser',
           event_id: eventId,
           channel_id: channelId,
-          post_type: type
+          post_type: type,
         })
         .select()
         .single();
@@ -214,13 +221,11 @@ const SocialMediaSection: React.FC<SocialMediaSectionProps> = ({ eventId, channe
 
   const handleLikePost = async (postId: string) => {
     try {
-      const { error } = await supabase
-        .from('post_interactions')
-        .upsert({
-          post_id: postId,
-          user_id: 'current_user',
-          interaction_type: 'like'
-        });
+      const { error } = await supabase.from('post_interactions').upsert({
+        post_id: postId,
+        user_id: 'current_user',
+        interaction_type: 'like',
+      });
 
       if (error) throw error;
       loadPosts();
@@ -231,13 +236,11 @@ const SocialMediaSection: React.FC<SocialMediaSectionProps> = ({ eventId, channe
 
   const handleAddComment = async (content: string) => {
     try {
-      const { error } = await supabase
-        .from('comments')
-        .insert({
-          content,
-          author_name: 'Current User',
-          author_username: 'currentuser'
-        });
+      const { error } = await supabase.from('comments').insert({
+        content,
+        author_name: 'Current User',
+        author_username: 'currentuser',
+      });
 
       if (error) throw error;
       loadComments();
@@ -256,7 +259,7 @@ const SocialMediaSection: React.FC<SocialMediaSectionProps> = ({ eventId, channe
         <TabsList className="grid w-full grid-cols-1">
           <TabsTrigger value="comments">Discussion</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="posts" className="space-y-4">
           <SocialFeed
             posts={posts}
@@ -265,10 +268,10 @@ const SocialMediaSection: React.FC<SocialMediaSectionProps> = ({ eventId, channe
             placeholder={`Share your thoughts about this ${type}...`}
           />
         </TabsContent>
-        
+
         <TabsContent value="comments" className="space-y-4">
           <CommentSection
-            entityId={eventId || channelId || ""}
+            entityId={eventId || channelId || ''}
             entityType={type}
           />
         </TabsContent>

@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Video } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { LiveKitRoom, useTracks } from "@livekit/components-react";
-import { useLiveKitTrackSource } from "@/lib/livekitLazy";
-import MainStreamPreview from "@/components/MainStreamPreview";
-import { useScreenSize } from "@/hooks/use-mobile";
-import MediaBackground from "./MediaBackground";
+import React, { useState, useEffect } from 'react';
+import { Video } from 'lucide-react';
+import { LiveKitRoom, useTracks } from '@livekit/components-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/integrations/supabase/client';
+import { useLiveKitTrackSource } from '@/lib/livekitLazy';
+import MainStreamPreview from '@/components/MainStreamPreview';
+import { useScreenSize } from '@/hooks/use-mobile';
+import MediaBackground from './MediaBackground';
 
 interface EventStreamPreviewProps {
   eventId: string;
@@ -32,7 +32,7 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({
   mediaUrls,
 }) => {
   const [token, setToken] = useState<string | null>(null);
-  const [serverUrl, setServerUrl] = useState<string>("");
+  const [serverUrl, setServerUrl] = useState<string>('');
   const [isBlurred, setIsBlurred] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
 
@@ -40,11 +40,11 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({
     const fetchToken = async () => {
       try {
         const { data, error } = await supabase.functions.invoke(
-          "create-livekit-token",
+          'create-livekit-token',
           {
             body: {
               eventId,
-              userRole: "viewer",
+              userRole: 'viewer',
               permissions: {
                 canPublish: false,
                 canSubscribe: true,
@@ -55,14 +55,14 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({
         );
 
         if (error) {
-          console.error("Error fetching token:", error);
+          console.error('Error fetching token:', error);
           return;
         }
 
         setToken(data.token);
         setServerUrl(data.serverUrl);
       } catch (error) {
-        console.error("Error creating LiveKit token:", error);
+        console.error('Error creating LiveKit token:', error);
       }
     };
 
@@ -90,7 +90,7 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({
       <LiveKitRoom
         token={token}
         serverUrl={serverUrl}
-        connect={true}
+        connect
         className="w-full h-full"
       >
         <StreamContent
@@ -134,10 +134,10 @@ const StreamContent: React.FC<{
     onlySubscribed: false,
   });
 
-  const cameraOff = "/cameraOff.jpg";
+  const cameraOff = '/cameraOff.jpg';
 
   const activeVideoTracks = videoTracks.filter(
-    (track) => track.publication && track.participant.identity !== "viewer"
+    (track) => track.publication && track.participant.identity !== 'viewer'
   );
 
   if (activeVideoTracks.length === 0) {
@@ -147,14 +147,14 @@ const StreamContent: React.FC<{
   return (
     <div
       className={`w-full h-full transition-all duration-500 ${
-        isBlurred ? "blur-md" : ""
+        isBlurred ? 'blur-md' : ''
       }`}
     >
       <MainStreamPreview
         mediaUrls={mediaUrls}
         track={activeVideoTracks[0]}
         eventName={eventName}
-        isLive={true}
+        isLive
         isMuted={isMuted}
         setIsMuted={setIsMuted}
         eventId={eventId}
@@ -167,14 +167,14 @@ const EventStreamPreview: React.FC<EventStreamPreviewProps> = ({
   eventId,
   eventName,
   isLive,
-  fallbackImage = "/placeholder.svg",
+  fallbackImage = '/placeholder.svg',
   hasAccess,
   mediaUrls,
 }) => {
   const [showPreview, setShowPreview] = useState(false);
   const screenSize = useScreenSize();
 
-  console.log("[EventStreamPreview] Component received props:", {
+  console.log('[EventStreamPreview] Component received props:', {
     eventId,
     eventName,
     isLive,
@@ -185,9 +185,9 @@ const EventStreamPreview: React.FC<EventStreamPreviewProps> = ({
   // Don't show preview for non-live events or users who already have access
   if (!isLive || hasAccess) {
     console.log(
-      "[EventStreamPreview] Returning null - isLive:",
+      '[EventStreamPreview] Returning null - isLive:',
       isLive,
-      "hasAccess:",
+      'hasAccess:',
       hasAccess
     );
     return null;
@@ -213,7 +213,7 @@ const EventStreamPreview: React.FC<EventStreamPreviewProps> = ({
             <div
               style={{
                 backgroundImage: `url(${mediaUrls[0]})`,
-                backgroundSize: "cover",
+                backgroundSize: 'cover',
               }}
               className="flex flex-col items-center justify-center h-full space-y-4 bg-black/80"
             >
@@ -230,7 +230,7 @@ const EventStreamPreview: React.FC<EventStreamPreviewProps> = ({
                 {isLive && (
                   <div className="w-1/2">
                     <Button
-                      size={screenSize === "mobile" ? "xs" : "sm"}
+                      size={screenSize === 'mobile' ? 'xs' : 'sm'}
                       onClick={handlePreviewClick}
                       className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3"
                     >

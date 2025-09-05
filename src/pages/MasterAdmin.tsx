@@ -1,25 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Users,
   Eye,
@@ -45,10 +24,31 @@ import {
   TrendingUp,
   Database,
   Lock,
-} from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
-import TooltipWrapper from "@/components/ui/tooltip-wrapper";
+} from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import TooltipWrapper from '@/components/ui/tooltip-wrapper';
 
 interface AdminStats {
   totalUsers: number;
@@ -104,7 +104,7 @@ interface AdminAd {
 interface AdminAssignment {
   id: string;
   email: string;
-  role: "owner" | "master" | "manager" | "administrator";
+  role: 'owner' | 'master' | 'manager' | 'administrator';
   assigned_by?: string;
   assigned_at: string;
   is_active: boolean;
@@ -112,7 +112,7 @@ interface AdminAssignment {
 
 const MasterAdmin: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [userRole, setUserRole] = useState<string>("");
+  const [userRole, setUserRole] = useState<string>('');
   const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<AdminStats>({
@@ -129,12 +129,12 @@ const MasterAdmin: React.FC = () => {
   const [adminAssignments, setAdminAssignments] = useState<AdminAssignment[]>(
     []
   );
-  const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState("overview");
-  const [newAdminEmail, setNewAdminEmail] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState('overview');
+  const [newAdminEmail, setNewAdminEmail] = useState('');
   const [newAdminRole, setNewAdminRole] = useState<
-    "master" | "manager" | "administrator"
-  >("administrator");
+    'master' | 'manager' | 'administrator'
+  >('administrator');
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -149,19 +149,19 @@ const MasterAdmin: React.FC = () => {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        navigate("/login");
+        navigate('/login');
         return;
       }
 
       // Check if user has admin role assignment
       const { data: adminAssignment, error } = await supabase
-        .from("admin_user_assignments")
-        .select("role")
-        .eq("user_id", user.id)
+        .from('admin_user_assignments')
+        .select('role')
+        .eq('user_id', user.id)
         .single();
 
-      if (error && error.code !== "PGRST116") {
-        console.error("Error checking admin status:", error);
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking admin status:', error);
         // navigate('/');
         return;
       }
@@ -174,10 +174,9 @@ const MasterAdmin: React.FC = () => {
       } else {
         // Redirect unauthorized users
         // navigate('/');
-        return;
       }
     } catch (error) {
-      console.error("Admin access check failed:", error);
+      console.error('Admin access check failed:', error);
       // navigate('/');
     } finally {
       setLoading(false);
@@ -195,17 +194,17 @@ const MasterAdmin: React.FC = () => {
         { data: revenueData },
       ] = await Promise.all([
         supabase
-          .from("user_profiles")
-          .select("*", { count: "exact", head: true }),
-        supabase.from("events").select("*", { count: "exact", head: true }),
-        supabase.from("ads").select("*", { count: "exact", head: true }),
+          .from('user_profiles')
+          .select('*', { count: 'exact', head: true }),
+        supabase.from('events').select('*', { count: 'exact', head: true }),
+        supabase.from('ads').select('*', { count: 'exact', head: true }),
         supabase
-          .from("events")
+          .from('events')
           .select(
-            "*, user_profiles!events_created_by_fkey(username, display_name)"
+            '*, user_profiles!events_created_by_fkey(username, display_name)'
           )
-          .eq("is_live", true),
-        supabase.from("events").select("ticket_price"),
+          .eq('is_live', true),
+        supabase.from('events').select('ticket_price'),
       ]);
 
       const totalRevenue =
@@ -229,31 +228,31 @@ const MasterAdmin: React.FC = () => {
       await loadAds();
       await loadAdminAssignments();
     } catch (error) {
-      console.error("Error loading admin data:", error);
+      console.error('Error loading admin data:', error);
     }
   }, []);
 
   const loadUsers = async () => {
     try {
       const { data, error } = await supabase
-        .from("user_profiles")
+        .from('user_profiles')
         .select(
-          "id, username, display_name, created_at, followers_count, bio, location"
+          'id, username, display_name, created_at, followers_count, bio, location'
         )
-        .order("created_at", { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(50);
 
       if (error) throw error;
       setUsers(data || []);
     } catch (error) {
-      console.error("Error loading users:", error);
+      console.error('Error loading users:', error);
     }
   };
 
   const loadEvents = async () => {
     try {
       const { data, error } = await supabase
-        .from("events")
+        .from('events')
         .select(
           `
           id,
@@ -265,7 +264,7 @@ const MasterAdmin: React.FC = () => {
           created_at
         `
         )
-        .order("created_at", { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(50);
 
       if (error) throw error;
@@ -274,29 +273,29 @@ const MasterAdmin: React.FC = () => {
       const eventsWithCreators = await Promise.all(
         (data || []).map(async (event) => {
           const { data: profile } = await supabase
-            .from("user_profiles")
-            .select("username, display_name")
-            .eq("user_id", event.created_by)
+            .from('user_profiles')
+            .select('username, display_name')
+            .eq('user_id', event.created_by)
             .single();
 
           return {
             ...event,
             creator_name:
-              profile?.display_name || profile?.username || "Unknown",
+              profile?.display_name || profile?.username || 'Unknown',
           };
         })
       );
 
       setEvents(eventsWithCreators);
     } catch (error) {
-      console.error("Error loading events:", error);
+      console.error('Error loading events:', error);
     }
   };
 
   const loadAds = async () => {
     try {
       const { data, error } = await supabase
-        .from("ads")
+        .from('ads')
         .select(
           `
           id,
@@ -307,7 +306,7 @@ const MasterAdmin: React.FC = () => {
           created_at
         `
         )
-        .order("created_at", { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(50);
 
       if (error) throw error;
@@ -316,51 +315,51 @@ const MasterAdmin: React.FC = () => {
       const adsWithAdvertisers = await Promise.all(
         (data || []).map(async (ad) => {
           const { data: profile } = await supabase
-            .from("user_profiles")
-            .select("username, display_name")
-            .eq("user_id", ad.user_id)
+            .from('user_profiles')
+            .select('username, display_name')
+            .eq('user_id', ad.user_id)
             .single();
 
           return {
             ...ad,
             advertiser_name:
-              profile?.display_name || profile?.username || "Unknown",
+              profile?.display_name || profile?.username || 'Unknown',
           };
         })
       );
 
       setAds(adsWithAdvertisers);
     } catch (error) {
-      console.error("Error loading ads:", error);
+      console.error('Error loading ads:', error);
     }
   };
 
   const loadAdminAssignments = async () => {
     try {
       const { data, error } = await supabase
-        .from("admin_users")
-        .select("*")
-        .order("created_at", { ascending: false });
+        .from('admin_users')
+        .select('*')
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
       setAdminAssignments(data || []);
     } catch (error) {
-      console.error("Error loading admin assignments:", error);
+      console.error('Error loading admin assignments:', error);
     }
   };
 
   const assignAdminRole = async () => {
     if (!newAdminEmail || !newAdminRole) {
       toast({
-        title: "Error",
-        description: "Please enter an email and select a role",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Please enter an email and select a role',
+        variant: 'destructive',
       });
       return;
     }
 
     try {
-      const { error } = await supabase.from("admin_users").insert({
+      const { error } = await supabase.from('admin_users').insert({
         email: newAdminEmail,
         role: newAdminRole,
         assigned_by: currentUser?.id,
@@ -370,19 +369,19 @@ const MasterAdmin: React.FC = () => {
       if (error) throw error;
 
       toast({
-        title: "Success",
+        title: 'Success',
         description: `Admin role ${newAdminRole} assigned to ${newAdminEmail}`,
       });
 
-      setNewAdminEmail("");
-      setNewAdminRole("administrator");
+      setNewAdminEmail('');
+      setNewAdminRole('administrator');
       await loadAdminAssignments();
     } catch (error) {
-      console.error("Error assigning admin role:", error);
+      console.error('Error assigning admin role:', error);
       toast({
-        title: "Error",
-        description: "Failed to assign admin role",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to assign admin role',
+        variant: 'destructive',
       });
     }
   };
@@ -390,50 +389,50 @@ const MasterAdmin: React.FC = () => {
   const removeAdminRole = async (assignmentId: string) => {
     try {
       const { error } = await supabase
-        .from("admin_users")
+        .from('admin_users')
         .update({ is_active: false })
-        .eq("id", assignmentId);
+        .eq('id', assignmentId);
 
       if (error) throw error;
 
       toast({
-        title: "Success",
-        description: "Admin role removed successfully",
+        title: 'Success',
+        description: 'Admin role removed successfully',
       });
 
       await loadAdminAssignments();
     } catch (error) {
-      console.error("Error removing admin role:", error);
+      console.error('Error removing admin role:', error);
       toast({
-        title: "Error",
-        description: "Failed to remove admin role",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to remove admin role',
+        variant: 'destructive',
       });
     }
   };
 
   const suspendUser = async (userId: string) => {
     // In a real implementation, you'd update a user status field
-    console.log("Suspending user:", userId);
+    console.log('Suspending user:', userId);
     // Reload data after action
     await loadUsers();
   };
 
   const deleteContent = async (
-    contentType: "event" | "ad",
+    contentType: 'event' | 'ad',
     contentId: string
   ) => {
     try {
       const { error } = await supabase
-        .from(contentType === "event" ? "events" : "ads")
+        .from(contentType === 'event' ? 'events' : 'ads')
         .delete()
-        .eq("id", contentId);
+        .eq('id', contentId);
 
       if (error) throw error;
 
       // Reload data
-      if (contentType === "event") await loadEvents();
-      if (contentType === "ad") await loadAds();
+      if (contentType === 'event') await loadEvents();
+      if (contentType === 'ad') await loadAds();
     } catch (error) {
       console.error(`Error deleting ${contentType}:`, error);
     }
@@ -686,10 +685,10 @@ const MasterAdmin: React.FC = () => {
                             {user.display_name || user.username}
                           </p>
                           <p className="text-sm text-gray-300">
-                            {user.email || "No email"}
+                            {user.email || 'No email'}
                           </p>
                           <p className="text-xs text-gray-400">
-                            Joined{" "}
+                            Joined{' '}
                             {new Date(user.created_at).toLocaleDateString()}
                           </p>
                         </div>
@@ -751,7 +750,7 @@ const MasterAdmin: React.FC = () => {
                             )}
                           </div>
                           <p className="text-sm text-gray-300">
-                            by {event.creator_name || "Unknown"}
+                            by {event.creator_name || 'Unknown'}
                           </p>
                           <p className="text-xs text-gray-400">
                             {event.viewer_count} viewers • $
@@ -774,7 +773,7 @@ const MasterAdmin: React.FC = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => deleteContent("event", event.id)}
+                            onClick={() => deleteContent('event', event.id)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -806,7 +805,7 @@ const MasterAdmin: React.FC = () => {
                         <div className="flex-1">
                           <p className="font-semibold text-white">{ad.title}</p>
                           <p className="text-sm text-gray-300">
-                            by {ad.advertiser_name || "Unknown"}
+                            by {ad.advertiser_name || 'Unknown'}
                           </p>
                           <p className="text-xs text-gray-400">
                             Budget: ${ad.budget} • Status: {ad.status}
@@ -816,7 +815,7 @@ const MasterAdmin: React.FC = () => {
                       <div className="flex items-center space-x-2">
                         <Badge
                           variant={
-                            ad.status === "active" ? "default" : "secondary"
+                            ad.status === 'active' ? 'default' : 'secondary'
                           }
                         >
                           {ad.status}
@@ -835,7 +834,7 @@ const MasterAdmin: React.FC = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => deleteContent("ad", ad.id)}
+                            onClick={() => deleteContent('ad', ad.id)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -909,7 +908,7 @@ const MasterAdmin: React.FC = () => {
                   </h3>
 
                   {/* Add New Admin */}
-                  {userRole === "owner" && (
+                  {userRole === 'owner' && (
                     <Card className="bg-white/5 border-white/20 mb-6">
                       <CardHeader>
                         <CardTitle className="text-white text-lg">
@@ -938,7 +937,7 @@ const MasterAdmin: React.FC = () => {
                             <Select
                               value={newAdminRole}
                               onValueChange={(
-                                value: "master" | "manager" | "administrator"
+                                value: 'master' | 'manager' | 'administrator'
                               ) => setNewAdminRole(value)}
                             >
                               <SelectTrigger className="bg-white/20 border-white/30 text-white">
@@ -1007,7 +1006,7 @@ const MasterAdmin: React.FC = () => {
                                     {admin.email}
                                   </p>
                                   <p className="text-xs text-gray-300">
-                                    Assigned{" "}
+                                    Assigned{' '}
                                     {new Date(
                                       admin.assigned_at
                                     ).toLocaleDateString()}
@@ -1017,24 +1016,24 @@ const MasterAdmin: React.FC = () => {
                               <div className="flex items-center space-x-2">
                                 <Badge
                                   variant={
-                                    admin.role === "owner"
-                                      ? "default"
-                                      : "secondary"
+                                    admin.role === 'owner'
+                                      ? 'default'
+                                      : 'secondary'
                                   }
                                   className={
-                                    admin.role === "owner"
-                                      ? "bg-yellow-500 text-black"
-                                      : admin.role === "master"
-                                      ? "bg-purple-500 text-white"
-                                      : admin.role === "manager"
-                                      ? "bg-blue-500 text-white"
-                                      : "bg-gray-500 text-white"
+                                    admin.role === 'owner'
+                                      ? 'bg-yellow-500 text-black'
+                                      : admin.role === 'master'
+                                        ? 'bg-purple-500 text-white'
+                                        : admin.role === 'manager'
+                                          ? 'bg-blue-500 text-white'
+                                          : 'bg-gray-500 text-white'
                                   }
                                 >
                                   {admin.role}
                                 </Badge>
-                                {userRole === "owner" &&
-                                  admin.role !== "owner" && (
+                                {userRole === 'owner' &&
+                                  admin.role !== 'owner' && (
                                     <Button
                                       variant="outline"
                                       size="sm"

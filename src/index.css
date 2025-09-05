@@ -55,7 +55,9 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-feature-settings:
+      'rlig' 1,
+      'calt' 1;
   }
 }
 
@@ -70,7 +72,8 @@
 
 /* Custom animations for live indicators */
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -80,7 +83,8 @@
 
 /* Strobe animation for triangle - DISABLED for performance */
 @keyframes strobe {
-  0%, 100% {
+  0%,
+  100% {
     color: rgb(255 255 0); /* bright yellow */
     /* Removed filter effects that cause performance issues */
   }
@@ -112,14 +116,31 @@
 
 /* Lightning flicker animation */
 @keyframes lightningFlicker {
-  0%, 90%, 100% {
+  0%,
+  90%,
+  100% {
     opacity: 0;
   }
-  5%, 15%, 25%, 35%, 45%, 55%, 65%, 75%, 85% {
+  5%,
+  15%,
+  25%,
+  35%,
+  45%,
+  55%,
+  65%,
+  75%,
+  85% {
     opacity: 1;
     filter: drop-shadow(0 0 8px rgba(255, 255, 0, 0.9)) brightness(1.5);
   }
-  10%, 20%, 30%, 40%, 50%, 60%, 70%, 80% {
+  10%,
+  20%,
+  30%,
+  40%,
+  50%,
+  60%,
+  70%,
+  80% {
     opacity: 0.3;
     filter: drop-shadow(0 0 4px rgba(255, 255, 0, 0.6)) brightness(1.2);
   }
@@ -127,7 +148,8 @@
 
 /* Energy pulse animation */
 @keyframes energyPulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
     opacity: 1;
     filter: drop-shadow(0 0 8px rgba(255, 165, 0, 0.8)) brightness(1.3);
@@ -151,7 +173,8 @@
 
 /* Energy core animation */
 @keyframes energyCore {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
     opacity: 1;
   }
@@ -167,55 +190,70 @@
 
 /* Lightning animation for motto */
 @keyframes lightning {
-  0%, 100% { 
-    transform: translateX(0) rotate(0deg); 
-    opacity: 1; 
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  0%,
+  100% {
+    transform: translateX(0) rotate(0deg);
+    opacity: 1;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
   }
-  10% { 
-    transform: translateX(-2px) rotate(-1deg); 
-    opacity: 0.9; 
-    text-shadow: 0 0 10px rgba(255,255,0,0.8), 2px 2px 4px rgba(0,0,0,0.3);
+  10% {
+    transform: translateX(-2px) rotate(-1deg);
+    opacity: 0.9;
+    text-shadow:
+      0 0 10px rgba(255, 255, 0, 0.8),
+      2px 2px 4px rgba(0, 0, 0, 0.3);
   }
-  20% { 
-    transform: translateX(2px) rotate(1deg); 
-    opacity: 1; 
-    text-shadow: 0 0 15px rgba(255,255,0,0.9), 2px 2px 4px rgba(0,0,0,0.3);
+  20% {
+    transform: translateX(2px) rotate(1deg);
+    opacity: 1;
+    text-shadow:
+      0 0 15px rgba(255, 255, 0, 0.9),
+      2px 2px 4px rgba(0, 0, 0, 0.3);
   }
-  30% { 
-    transform: translateX(-1px) rotate(-0.5deg); 
-    opacity: 0.8; 
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  30% {
+    transform: translateX(-1px) rotate(-0.5deg);
+    opacity: 0.8;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
   }
-  40% { 
-    transform: translateX(1px) rotate(0.5deg); 
-    opacity: 1; 
-    text-shadow: 0 0 8px rgba(255,255,0,0.7), 2px 2px 4px rgba(0,0,0,0.3);
+  40% {
+    transform: translateX(1px) rotate(0.5deg);
+    opacity: 1;
+    text-shadow:
+      0 0 8px rgba(255, 255, 0, 0.7),
+      2px 2px 4px rgba(0, 0, 0, 0.3);
   }
-  50% { 
-    transform: translateX(-2px) rotate(-1deg); 
-    opacity: 0.9; 
-    text-shadow: 0 0 12px rgba(255,255,0,0.8), 2px 2px 4px rgba(0,0,0,0.3);
+  50% {
+    transform: translateX(-2px) rotate(-1deg);
+    opacity: 0.9;
+    text-shadow:
+      0 0 12px rgba(255, 255, 0, 0.8),
+      2px 2px 4px rgba(0, 0, 0, 0.3);
   }
-  60% { 
-    transform: translateX(2px) rotate(1deg); 
-    opacity: 1; 
-    text-shadow: 0 0 20px rgba(255,255,0,1), 2px 2px 4px rgba(0,0,0,0.3);
+  60% {
+    transform: translateX(2px) rotate(1deg);
+    opacity: 1;
+    text-shadow:
+      0 0 20px rgba(255, 255, 0, 1),
+      2px 2px 4px rgba(0, 0, 0, 0.3);
   }
-  70% { 
-    transform: translateX(-1px) rotate(-0.5deg); 
-    opacity: 0.8; 
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  70% {
+    transform: translateX(-1px) rotate(-0.5deg);
+    opacity: 0.8;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
   }
-  80% { 
-    transform: translateX(1px) rotate(0.5deg); 
-    opacity: 1; 
-    text-shadow: 0 0 10px rgba(255,255,0,0.8), 2px 2px 4px rgba(0,0,0,0.3);
+  80% {
+    transform: translateX(1px) rotate(0.5deg);
+    opacity: 1;
+    text-shadow:
+      0 0 10px rgba(255, 255, 0, 0.8),
+      2px 2px 4px rgba(0, 0, 0, 0.3);
   }
-  90% { 
-    transform: translateX(-2px) rotate(-1deg); 
-    opacity: 0.9; 
-    text-shadow: 0 0 15px rgba(255,255,0,0.9), 2px 2px 4px rgba(0,0,0,0.3);
+  90% {
+    transform: translateX(-2px) rotate(-1deg);
+    opacity: 0.9;
+    text-shadow:
+      0 0 15px rgba(255, 255, 0, 0.9),
+      2px 2px 4px rgba(0, 0, 0, 0.3);
   }
 }
 
@@ -307,7 +345,8 @@
 }
 
 @keyframes sparkle-float-1 {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0;
     transform: scale(0.5) rotate(0deg) translate(0, 0);
   }
@@ -326,7 +365,8 @@
 }
 
 @keyframes sparkle-float-2 {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0;
     transform: scale(0.6) rotate(0deg) translate(0, 0);
   }
@@ -336,12 +376,13 @@
   }
   66% {
     opacity: 0.9;
-    transform: scale(1.0) rotate(360deg) translate(-35px, 3px);
+    transform: scale(1) rotate(360deg) translate(-35px, 3px);
   }
 }
 
 @keyframes sparkle-float-3 {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0;
     transform: scale(0.4) rotate(0deg) translate(0, 0);
   }
@@ -364,7 +405,8 @@
 }
 
 @keyframes sparkle-float-4 {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0;
     transform: scale(0.8) rotate(0deg) translate(0, 0);
   }
@@ -375,7 +417,8 @@
 }
 
 @keyframes sparkle-float-5 {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0;
     transform: scale(0.3) rotate(0deg) translate(0, 0);
   }
@@ -394,7 +437,8 @@
 }
 
 @keyframes sparkle-float-6 {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0;
     transform: scale(0.7) rotate(0deg) translate(0, 0);
   }
@@ -409,18 +453,20 @@
 }
 
 @keyframes sparkle-float-7 {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0;
     transform: scale(0.5) rotate(0deg) translate(0, 0);
   }
   50% {
     opacity: 1;
-    transform: scale(2.0) rotate(720deg) translate(32px, -12px);
+    transform: scale(2) rotate(720deg) translate(32px, -12px);
   }
 }
 
 @keyframes sparkle-float-8 {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0;
     transform: scale(0.6) rotate(0deg) translate(0, 0);
   }
@@ -430,7 +476,7 @@
   }
   50% {
     opacity: 1;
-    transform: scale(1.0) rotate(300deg) translate(70px, 2px);
+    transform: scale(1) rotate(300deg) translate(70px, 2px);
   }
   75% {
     opacity: 0.9;
@@ -439,7 +485,8 @@
 }
 
 @keyframes sparkle-float-9 {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0;
     transform: scale(0.4) rotate(0deg) translate(0, 0);
   }
@@ -454,7 +501,8 @@
 }
 
 @keyframes sparkle-float-10 {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0;
     transform: scale(0.9) rotate(0deg) translate(0, 0);
   }
@@ -472,7 +520,7 @@
   }
   80% {
     opacity: 1;
-    transform: scale(1.0) rotate(400deg) translate(-50px, -10px);
+    transform: scale(1) rotate(400deg) translate(-50px, -10px);
   }
 }
 
@@ -504,50 +552,50 @@
   .safe-area-pb {
     padding-bottom: env(safe-area-inset-bottom);
   }
-  
+
   .safe-area-pt {
     padding-top: env(safe-area-inset-top);
   }
-  
+
   .safe-area-pl {
     padding-left: env(safe-area-inset-left);
   }
-  
+
   .safe-area-pr {
     padding-right: env(safe-area-inset-right);
   }
-  
+
   /* Force persistent scroll bars for auth templates */
   .auth-template {
     overflow-x: auto !important;
     overflow-y: auto !important;
     scrollbar-gutter: stable both-edges;
   }
-  
+
   .auth-template::-webkit-scrollbar {
     width: 16px !important;
     height: 16px !important;
   }
-  
+
   .auth-template::-webkit-scrollbar-track {
     background: hsl(var(--muted)) !important;
     border-radius: 8px;
   }
-  
+
   .auth-template::-webkit-scrollbar-thumb {
     background: hsl(var(--muted-foreground)) !important;
     border-radius: 8px;
     border: 2px solid hsl(var(--muted));
   }
-  
+
   .auth-template::-webkit-scrollbar-thumb:hover {
     background: hsl(var(--foreground)) !important;
   }
-  
+
   .auth-template::-webkit-scrollbar-corner {
     background: hsl(var(--muted)) !important;
   }
-  
+
   /* Force scrollbars on Firefox */
   .auth-template {
     scrollbar-width: thick;
@@ -558,9 +606,9 @@
 /* === Update Glow Utilities (semantic, token-based) === */
 :root {
   /* Semantic feedback colors */
-  --success: 142 71% 45%;      /* green */
-  --warning: 38 92% 50%;       /* amber/orange */
-  --info: 200 98% 39%;         /* blue */
+  --success: 142 71% 45%; /* green */
+  --warning: 38 92% 50%; /* amber/orange */
+  --info: 200 98% 39%; /* blue */
   --pending-color: var(--ring); /* fallback to ring color */
 }
 .dark {
@@ -570,25 +618,51 @@
 }
 
 @keyframes glow-pulse {
-  0% { box-shadow: 0 0 0 0 hsl(var(--glow-color) / 0.50), 0 0 0 0 hsl(var(--glow-color) / 0.20); }
-  50% { box-shadow: 0 0 0 3px hsl(var(--glow-color) / 0.50), 0 0 24px 6px hsl(var(--glow-color) / 0.25); }
-  100% { box-shadow: 0 0 0 0 hsl(var(--glow-color) / 0.00), 0 0 0 0 hsl(var(--glow-color) / 0.00); }
+  0% {
+    box-shadow:
+      0 0 0 0 hsl(var(--glow-color) / 0.5),
+      0 0 0 0 hsl(var(--glow-color) / 0.2);
+  }
+  50% {
+    box-shadow:
+      0 0 0 3px hsl(var(--glow-color) / 0.5),
+      0 0 24px 6px hsl(var(--glow-color) / 0.25);
+  }
+  100% {
+    box-shadow:
+      0 0 0 0 hsl(var(--glow-color) / 0),
+      0 0 0 0 hsl(var(--glow-color) / 0);
+  }
 }
 
-.glow-surface { position: relative; }
+.glow-surface {
+  position: relative;
+}
 .glow-active::after {
-  content: "";
+  content: '';
   position: absolute;
   inset: -3px;
   border-radius: inherit;
   pointer-events: none;
   animation: glow-pulse 1.2s ease-in-out infinite;
-  box-shadow: 0 0 0 3px hsl(var(--glow-color) / 0.35), 0 0 24px 6px hsl(var(--glow-color) / 0.20);
+  box-shadow:
+    0 0 0 3px hsl(var(--glow-color) / 0.35),
+    0 0 24px 6px hsl(var(--glow-color) / 0.2);
 }
 
 /* Semantic variants: set the --glow-color token */
-.glow-success { --glow-color: var(--success); }
-.glow-danger  { --glow-color: var(--destructive); }
-.glow-warning { --glow-color: var(--warning); }
-.glow-info    { --glow-color: var(--info); }
-.glow-pending { --glow-color: var(--pending-color); }
+.glow-success {
+  --glow-color: var(--success);
+}
+.glow-danger {
+  --glow-color: var(--destructive);
+}
+.glow-warning {
+  --glow-color: var(--warning);
+}
+.glow-info {
+  --glow-color: var(--info);
+}
+.glow-pending {
+  --glow-color: var(--pending-color);
+}
