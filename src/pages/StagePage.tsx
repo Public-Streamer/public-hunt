@@ -1,10 +1,5 @@
 import React, { useState, useEffect, useRef, Suspense } from 'react';
-import {
-  useParams,
-  Navigate,
-  useSearchParams,
-  useNavigate,
-} from 'react-router-dom';
+import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 import { getCurrentUser } from '@/lib/auth/whoami';
 import { useIdentityGuard } from '@/hooks/useIdentityGuard';
@@ -36,7 +31,7 @@ const StagePage: React.FC = () => {
   const inviteToken = searchParams.get('token');
 
   // Use React Query for event data
-  const { data: eventData, isLoading: isEventLoading } = useQuery({
+  const { data: eventData } = useQuery({
     queryKey: ['event', eventId],
     queryFn: async () => {
       if (!eventId) {
@@ -80,12 +75,7 @@ const StagePage: React.FC = () => {
         .select('id, streamer_counts')
         .eq('event_id', eventData?.id);
 
-      const { data, error } = await streamQuery.single();
-
-      // if (error) {
-      //   toast.error("Stream not found");
-      //   throw new Error(error.message);
-      // }
+      const { data } = await streamQuery.single();
 
       return data;
     },
@@ -111,7 +101,6 @@ const StagePage: React.FC = () => {
         const supabase = supabaseBrowser();
         const {
           data: { user: currentUser },
-          error,
         } = await supabase.auth.getUser();
 
         // if (error || !currentUser) {
@@ -122,14 +111,14 @@ const StagePage: React.FC = () => {
 
         console.log(
           'StagePage - Current authenticated user:',
-          currentUser.email
+          currentUser?.email
         );
 
         // Force identity verification with getCurrentUser from whoami utility
         const verifiedUser = await getCurrentUser();
-        if (!verifiedUser || verifiedUser.email !== currentUser.email) {
+        if (!verifiedUser || verifiedUser.email !== currentUser?.email) {
           console.error('Identity mismatch detected! Forcing fresh login.', {
-            supabaseUser: currentUser.email,
+            supabaseUser: currentUser?.email,
             verifiedUser: verifiedUser?.email,
           });
           // window.location.href = "/login";
@@ -138,8 +127,8 @@ const StagePage: React.FC = () => {
         console.log('Identity verified:', verifiedUser.email);
 
         const userForState = {
-          id: currentUser.id,
-          email: currentUser.email || '',
+          id: currentUser?.id,
+          email: currentUser?.email || '',
         };
         setUser(userForState);
 
@@ -152,7 +141,7 @@ const StagePage: React.FC = () => {
         if (!eventData) return;
 
         // Check if user is host (event creator)
-        if (eventData?.created_by === currentUser.id) {
+        if (eventData?.created_by === currentUser?.id) {
           console.log('User is event host (creator)');
           setUserRole('host');
           return;
@@ -163,7 +152,7 @@ const StagePage: React.FC = () => {
           .from('event_streamers')
           .select('*')
           .eq('event_id', eventData?.id)
-          .eq('streamer_id', currentUser.id)
+          .eq('streamer_id', currentUser?.id)
           .single();
 
         if (streamerData) {
@@ -422,7 +411,7 @@ const StagePage: React.FC = () => {
           userId={user?.id}
           eventHostId={eventData?.created_by}
           streamId={streamId}
-          autoGoLive={eventData?.is_live}
+          autoGoLive={eventData.is_live}
           generateToken={generateToken}
         />
       </LiveKitRoomLazy>
