@@ -23,11 +23,11 @@ import {
   Lock,
   Unlock,
 } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 import { VideoTrackLazy, useLiveKitTrackSource } from '@/lib/livekitLazy';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import {
   AlertDialog,
@@ -66,7 +66,7 @@ import { StreamNameEditor } from '@/components/StreamNameEditor';
 interface StreamerInterfaceProps {
   eventId: string;
   eventTitle: string;
-  isLive: boolean;
+  isLive: boolean | null;
   userRole?: 'host' | 'streamer';
   userId?: string;
   eventHostId?: string;
@@ -78,7 +78,7 @@ interface StreamerInterfaceProps {
 export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   eventId,
   eventTitle,
-  isLive,
+
   userRole,
   userId,
   eventHostId,
@@ -87,7 +87,6 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   generateToken,
 }) => {
   const { localParticipant } = useLocalParticipant();
-  const participants = useParticipants();
   const controls = useStreamingControls(eventId, generateToken);
   const screenSize = useScreenSize();
   const { checkScreenShareSupport } = useMobileMediaPermissions();
@@ -117,7 +116,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   }, [controls.isStreaming]);
 
   // Real-time scoreboard metadata tracking
-  const { selectedGameType: realtimeGameType, scoreboardName } =
+  const { selectedGameType: realtimeGameType } =
     useEventScoreboardMeta(eventId);
 
   // Local state for game type (prioritize real-time data)

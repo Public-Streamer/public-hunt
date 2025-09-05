@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import { useQuery } from '@tanstack/react-query';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 import { getCurrentUser } from '@/lib/auth/whoami';
 import { useIdentityGuard } from '@/hooks/useIdentityGuard';
 import { LiveKitRoomLazy, RoomAudioRendererLazy } from '@/lib/livekitLazy';
 import '@livekit/components-styles';
 import { StreamerInterface } from '@/components/StreamerInterface';
-import { toast } from 'sonner';
-import { useQuery } from '@tanstack/react-query';
 
 const StagePage: React.FC = () => {
   const { eventId } = useParams<{ eventId: string }>();
@@ -54,6 +54,7 @@ const StagePage: React.FC = () => {
 
       if (error) {
         toast.error('Event not found');
+
         throw new Error(error.message);
       }
 
@@ -72,6 +73,7 @@ const StagePage: React.FC = () => {
       const supabase = supabaseBrowser();
       const streamQuery = supabase
         .from('event_streams')
+
         .select('id, streamer_counts')
         .eq('event_id', eventData?.id);
 
@@ -85,7 +87,6 @@ const StagePage: React.FC = () => {
   // Update local state when event data changes
   useEffect(() => {
     if (streamData) {
-      console.log('Stream data setting up:', streamData);
       setStreamId(streamData.id);
     }
   }, [streamData]);
@@ -95,7 +96,6 @@ const StagePage: React.FC = () => {
     const checkAuthAndAssignRole = async () => {
       try {
         // Force fresh authentication check by clearing any potentially stale state
-        console.log('StagePage - Starting fresh authentication check');
 
         // Get current user identity with fresh client
         const supabase = supabaseBrowser();
@@ -108,11 +108,6 @@ const StagePage: React.FC = () => {
         //   navigate("/login");
         //   return;
         // }
-
-        console.log(
-          'StagePage - Current authenticated user:',
-          currentUser?.email
-        );
 
         // Force identity verification with getCurrentUser from whoami utility
         const verifiedUser = await getCurrentUser();
@@ -406,7 +401,7 @@ const StagePage: React.FC = () => {
         <StreamerInterface
           eventId={eventData?.id}
           eventTitle={eventData?.name}
-          isLive={eventData?.is_live}
+          isLive={eventData.is_live}
           userRole={userRole}
           userId={user?.id}
           eventHostId={eventData?.created_by}
