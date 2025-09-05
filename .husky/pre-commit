@@ -1,1 +1,2 @@
+echo "\033[0;32mWell done brother! We are finally committing!\033[0m"
 npx lint-staged
