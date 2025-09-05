@@ -1,1 +1,2 @@
+echo "Brother, you are not using eslint for now but don't forget to add it later"
 npx lint-staged
