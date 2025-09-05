@@ -26,7 +26,9 @@ export function treeColor(s: ScoreState): string {
   }
 }
 
-export function getStatusBadgeClass(status: 'pending' | 'final' | null): string {
+export function getStatusBadgeClass(
+  status: 'pending' | 'final' | null
+): string {
   switch (status) {
     case 'pending':
       return 'bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-950/50 dark:text-orange-200 dark:border-orange-800 animate-pulse';

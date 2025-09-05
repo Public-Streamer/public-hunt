@@ -1,7 +1,7 @@
-import { X, Loader2 } from "lucide-react";
-import { Dialog, DialogContent, DialogOverlay } from "./ui/dialog";
-import { Button } from "./ui/button";
-import { useState, useEffect } from "react";
+import { X, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogOverlay } from './ui/dialog';
+import { Button } from './ui/button';
 
 interface ImageModalProps {
   isOpen: boolean;
@@ -10,12 +10,12 @@ interface ImageModalProps {
   initialIndex?: number;
 }
 
-export function ImageModal({
+export const ImageModal = ({
   isOpen,
   onClose,
   images,
   initialIndex = 0,
-}: ImageModalProps) {
+}: ImageModalProps) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [imageLoading, setImageLoading] = useState(true);
 
@@ -28,7 +28,7 @@ export function ImageModal({
   useEffect(() => {
     if (isOpen) {
       const originalOverflow = document.body.style.overflow;
-      document.body.style.overflow = "hidden";
+      document.body.style.overflow = 'hidden';
       return () => {
         document.body.style.overflow = originalOverflow;
       };
@@ -59,9 +59,9 @@ export function ImageModal({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "ArrowLeft") goToPrev();
-    if (e.key === "ArrowRight") goToNext();
-    if (e.key === "Escape") onClose();
+    if (e.key === 'ArrowLeft') goToPrev();
+    if (e.key === 'ArrowRight') goToNext();
+    if (e.key === 'Escape') onClose();
   };
 
   const handleBackdropClick = (e: React.MouseEvent) => {
@@ -110,7 +110,7 @@ export function ImageModal({
               className="max-h-[90vh] max-w-[90vw] object-contain rounded-sm shadow-lg"
               onClick={(e) => e.stopPropagation()}
               onLoad={handleImageLoad}
-              style={{ display: imageLoading ? "none" : "block" }}
+              style={{ display: imageLoading ? 'none' : 'block' }}
             />
           </div>
 
@@ -154,4 +154,4 @@ export function ImageModal({
       </DialogContent>
     </Dialog>
   );
-}
+};

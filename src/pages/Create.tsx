@@ -1,30 +1,30 @@
-import React, { useState, useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import TooltipWrapper from "@/components/ui/tooltip-wrapper";
-import CreateChannelForm from "@/components/CreateChannelForm";
-import CreateEventForm from "@/components/CreateEventForm";
-import CreateAdForm from "@/components/CreateAdForm";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabase";
-import { useAppContext } from "@/contexts/AppContext";
+import React, { useState, useEffect } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import TooltipWrapper from '@/components/ui/tooltip-wrapper';
+import CreateChannelForm from '@/components/CreateChannelForm';
+import CreateEventForm from '@/components/CreateEventForm';
+import CreateAdForm from '@/components/CreateAdForm';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/lib/supabase';
+import { useAppContext } from '@/contexts/AppContext';
 
 const Create: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("create-event");
+  const [activeTab, setActiveTab] = useState('create-event');
   const { toast } = useToast();
   const { user } = useAppContext();
 
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!user) {
-      navigate('/login?redirect=' + encodeURIComponent('/create'));
+      navigate(`/login?redirect=${encodeURIComponent('/create')}`);
     }
   }, [user, navigate]);
-  
+
   useEffect(() => {
     const tab = searchParams.get('tab');
     if (tab === 'event') {
@@ -41,34 +41,34 @@ const Create: React.FC = () => {
   });
 
   const [channelFormData, setChannelFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    channelName: "",
-    channelDescription: "",
-    category: "",
+    firstName: '',
+    lastName: '',
+    email: '',
+    channelName: '',
+    channelDescription: '',
+    category: '',
   });
 
   const [eventFormData, setEventFormData] = useState({
-    name: "",
-    description: "",
-    date: "",
-    time: "",
-    location: "",
-    category: "",
-    channelId: "",
+    name: '',
+    description: '',
+    date: '',
+    time: '',
+    location: '',
+    category: '',
+    channelId: '',
   });
 
   const [channelMedia, setChannelMedia] = useState([]);
   const [eventMedia, setEventMedia] = useState([]);
-  
+
   const [adFormData, setAdFormData] = useState({
-    title: "",
-    description: "",
+    title: '',
+    description: '',
     budget: 0,
-    adType: "",
-    startDate: "",
-    endDate: "",
+    adType: '',
+    startDate: '',
+    endDate: '',
     targetChannels: [],
   });
 
@@ -82,60 +82,75 @@ const Create: React.FC = () => {
     setEventFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleAdInputChange = (field: string, value: string | number | string[]) => {
+  const handleAdInputChange = (
+    field: string,
+    value: string | number | string[]
+  ) => {
     setAdFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const isChannelFormValid = () => {
     const requiredFields = [
-      "firstName",
-      "lastName",
-      "email",
-      "channelName",
-      "channelDescription",
-      "category",
+      'firstName',
+      'lastName',
+      'email',
+      'channelName',
+      'channelDescription',
+      'category',
     ];
     return requiredFields.every(
-      (field) => channelFormData[field as keyof typeof channelFormData] !== ""
+      (field) => channelFormData[field as keyof typeof channelFormData] !== ''
     );
   };
 
   const isEventFormValid = () => {
     const requiredFields = [
-      "name",
-      "description",
-      "date",
-      "time",
-      "location",
-      "category",
+      'name',
+      'description',
+      'date',
+      'time',
+      'location',
+      'category',
     ];
     return requiredFields.every(
-      (field) => eventFormData[field as keyof typeof eventFormData] !== ""
+      (field) => eventFormData[field as keyof typeof eventFormData] !== ''
     );
   };
 
   const isAdFormValid = () => {
-    const requiredFields = ["title", "budget", "adType"];
-    return requiredFields.every(
-      (field) => adFormData[field as keyof typeof adFormData] !== "" && adFormData[field as keyof typeof adFormData] !== 0
-    ) && adFormData.targetChannels.length > 0;
+    const requiredFields = ['title', 'budget', 'adType'];
+    return (
+      requiredFields.every(
+        (field) =>
+          adFormData[field as keyof typeof adFormData] !== '' &&
+          adFormData[field as keyof typeof adFormData] !== 0
+      ) && adFormData.targetChannels.length > 0
+    );
   };
 
   // Allow event creation - remove restrictions
   const canCreateEvent = true;
 
-  const generateChannelThumbnail = async (channelName: string, category: string): Promise<string> => {
+  const generateChannelThumbnail = async (
+    channelName: string,
+    category: string
+  ): Promise<string> => {
     // Create a canvas element for generating thumbnail
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    
+
     if (!ctx) return '';
-    
+
     canvas.width = 1200;
     canvas.height = 630;
-    
+
     // Create gradient background based on category
-    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    const gradient = ctx.createLinearGradient(
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
     switch (category.toLowerCase()) {
       case 'gaming':
         gradient.addColorStop(0, '#667eea');
@@ -157,20 +172,24 @@ const Create: React.FC = () => {
         gradient.addColorStop(0, '#667eea');
         gradient.addColorStop(1, '#764ba2');
     }
-    
+
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
+
     // Add channel name
     ctx.fillStyle = 'white';
     ctx.font = 'bold 72px Arial';
     ctx.textAlign = 'center';
     ctx.fillText(channelName, canvas.width / 2, canvas.height / 2 - 50);
-    
+
     // Add category
     ctx.font = '36px Arial';
-    ctx.fillText(category.toUpperCase(), canvas.width / 2, canvas.height / 2 + 50);
-    
+    ctx.fillText(
+      category.toUpperCase(),
+      canvas.width / 2,
+      canvas.height / 2 + 50
+    );
+
     // Convert to data URL
     return canvas.toDataURL('image/jpeg', 0.8);
   };
@@ -179,28 +198,32 @@ const Create: React.FC = () => {
     e.preventDefault();
     if (!isChannelFormValid()) {
       toast({
-        title: "Incomplete Form",
-        description: "Please fill in all required fields.",
-        variant: "destructive"
+        title: 'Incomplete Form',
+        description: 'Please fill in all required fields.',
+        variant: 'destructive',
       });
       return;
     }
 
     try {
       // Get current user
-      const { data: userData, error: userError } = await supabase.auth.getUser();
+      const { data: userData, error: userError } =
+        await supabase.auth.getUser();
       if (userError || !userData.user) {
         toast({
-          title: "Authentication Required",
-          description: "You must be logged in to create a channel.",
-          variant: "destructive"
+          title: 'Authentication Required',
+          description: 'You must be logged in to create a channel.',
+          variant: 'destructive',
         });
         return;
       }
 
       // Generate channel thumbnail
-      const thumbnailDataUrl = await generateChannelThumbnail(channelFormData.channelName, channelFormData.category);
-      
+      const thumbnailDataUrl = await generateChannelThumbnail(
+        channelFormData.channelName,
+        channelFormData.category
+      );
+
       // Prepare media URLs (including generated thumbnail)
       const mediaUrls = [thumbnailDataUrl];
       if (channelMedia && channelMedia.length > 0) {
@@ -223,7 +246,7 @@ const Create: React.FC = () => {
           media_urls: mediaUrls,
           owner_first_name: channelFormData.firstName,
           owner_last_name: channelFormData.lastName,
-          owner_email: channelFormData.email
+          owner_email: channelFormData.email,
         })
         .select()
         .single();
@@ -231,19 +254,19 @@ const Create: React.FC = () => {
       if (channelError) {
         console.error('Error creating channel:', channelError);
         toast({
-          title: "Error",
-          description: "Failed to create channel. Please try again.",
-          variant: "destructive"
+          title: 'Error',
+          description: 'Failed to create channel. Please try again.',
+          variant: 'destructive',
         });
         return;
       }
 
       // The channel_master permission is automatically created by the database trigger
-      
+
       toast({
-        title: "Channel Created Successfully!",
+        title: 'Channel Created Successfully!',
         description: `Your channel "${channelFormData.channelName}" has been created and you are now the Channel Master.`,
-        variant: "default"
+        variant: 'default',
       });
 
       // Navigate to the new channel page
@@ -255,9 +278,9 @@ const Create: React.FC = () => {
     } catch (error) {
       console.error('Error creating channel:', error);
       toast({
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
-        variant: "destructive"
+        title: 'Error',
+        description: 'An unexpected error occurred. Please try again.',
+        variant: 'destructive',
       });
     }
   };
@@ -265,7 +288,7 @@ const Create: React.FC = () => {
   const handleEventSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isEventFormValid()) {
-      console.log("Event creation data:", eventFormData, "Media:", eventMedia);
+      console.log('Event creation data:', eventFormData, 'Media:', eventMedia);
       // Navigate back to events page after successful creation
       navigate('/events');
     }
@@ -275,21 +298,23 @@ const Create: React.FC = () => {
     e.preventDefault();
     if (!isAdFormValid()) {
       toast({
-        title: "Incomplete Form",
-        description: "Please fill in all required fields and select at least one target channel.",
-        variant: "destructive"
+        title: 'Incomplete Form',
+        description:
+          'Please fill in all required fields and select at least one target channel.',
+        variant: 'destructive',
       });
       return;
     }
 
     try {
       // Get current user
-      const { data: userData, error: userError } = await supabase.auth.getUser();
+      const { data: userData, error: userError } =
+        await supabase.auth.getUser();
       if (userError || !userData.user) {
         toast({
-          title: "Authentication Required",
-          description: "You must be logged in to create ads.",
-          variant: "destructive"
+          title: 'Authentication Required',
+          description: 'You must be logged in to create ads.',
+          variant: 'destructive',
         });
         return;
       }
@@ -317,7 +342,7 @@ const Create: React.FC = () => {
           target_channels: adFormData.targetChannels,
           media_urls: mediaUrls,
           user_id: userData.user.id,
-          status: 'draft'
+          status: 'draft',
         })
         .select()
         .single();
@@ -325,17 +350,17 @@ const Create: React.FC = () => {
       if (adError) {
         console.error('Error creating ad:', adError);
         toast({
-          title: "Error",
-          description: "Failed to create ad campaign. Please try again.",
-          variant: "destructive"
+          title: 'Error',
+          description: 'Failed to create ad campaign. Please try again.',
+          variant: 'destructive',
         });
         return;
       }
 
       toast({
-        title: "Ad Campaign Created Successfully!",
+        title: 'Ad Campaign Created Successfully!',
         description: `Your ad campaign "${adFormData.title}" has been created as a draft.`,
-        variant: "default"
+        variant: 'default',
       });
 
       // Navigate to the My Ads page
@@ -345,15 +370,15 @@ const Create: React.FC = () => {
     } catch (error) {
       console.error('Error creating ad:', error);
       toast({
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
-        variant: "destructive"
+        title: 'Error',
+        description: 'An unexpected error occurred. Please try again.',
+        variant: 'destructive',
       });
     }
   };
 
   const getEventTabTooltip = () => {
-    return "Create and manage live streaming events for your channel";
+    return 'Create and manage live streaming events for your channel';
   };
 
   return (
@@ -375,7 +400,9 @@ const Create: React.FC = () => {
                 <div className="flex items-center justify-center gap-2 text-xl lg:text-2xl xl:text-3xl font-bold sm:flex-col sm:gap-0 sm:text-base md:flex-row md:gap-2 md:text-lg ">
                   <span className="flex items-center gap-1">
                     <span>⚡</span>
-                    <span className="hidden sm:inline md:inline lg:inline">Create</span>
+                    <span className="hidden sm:inline md:inline lg:inline">
+                      Create
+                    </span>
                   </span>
                   <span>Event</span>
                 </div>
@@ -395,8 +422,7 @@ const Create: React.FC = () => {
                 </div>
               </TabsTrigger>
             </TooltipWrapper> */}
-            
-          
+
             {/* <TooltipWrapper content="Create and manage commercial advertisements with targeted channel placement and budget control">
               <TabsTrigger
                 value="create-ad"
@@ -425,7 +451,6 @@ const Create: React.FC = () => {
                 </div>
               </TabsTrigger>
             </TooltipWrapper> */}
-
           </TabsList>
 
           <TabsContent value="create-channel">
@@ -452,10 +477,15 @@ const Create: React.FC = () => {
           <TabsContent value="create-ad">
             <Card>
               <CardContent className="text-center py-12">
-                <h3 className="text-2xl font-bold mb-4">Create Advertising Campaigns</h3>
-                <p className="text-gray-600 mb-6">Ad creation has moved to our dedicated Advertisers page with an improved workflow.</p>
-                <Button 
-                  onClick={() => window.location.href = '/advertisers'} 
+                <h3 className="text-2xl font-bold mb-4">
+                  Create Advertising Campaigns
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  Ad creation has moved to our dedicated Advertisers page with
+                  an improved workflow.
+                </p>
+                <Button
+                  onClick={() => (window.location.href = '/advertisers')}
                   className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3"
                 >
                   Go to Advertisers Page
@@ -467,9 +497,14 @@ const Create: React.FC = () => {
           <TabsContent value="create-episode">
             <Card>
               <CardContent className="text-center py-12">
-                <h3 className="text-2xl font-bold mb-4">Create Episode Content</h3>
-                <p className="text-gray-600 mb-6">Build episodic content for your channel with scheduled publishing and series management.</p>
-                <Button 
+                <h3 className="text-2xl font-bold mb-4">
+                  Create Episode Content
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  Build episodic content for your channel with scheduled
+                  publishing and series management.
+                </p>
+                <Button
                   onClick={() => navigate('/create-episode')}
                   className="bg-orange-600 hover:bg-orange-700 text-lg px-8 py-3"
                 >

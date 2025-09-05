@@ -1,6 +1,6 @@
-import React from "react";
-import { Link } from "react-router-dom";
-import { brandName } from "@/lib/brand";
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { brandName } from '@/lib/brand';
 
 const Footer: React.FC = () => {
   return (

@@ -1,46 +1,46 @@
-import React, { Suspense, useEffect } from "react";
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
-import { ThemeProvider } from "@/components/theme-provider";
-import { AppProvider } from "@/contexts/AppContext";
-import { supabaseBrowser } from "@/lib/supabase/browser";
-import Layout from "@/components/Layout";
-import Index from "./pages/Index";
-import Create from "./pages/Create";
-import CreateEpisode from "./pages/CreateEpisode";
-import Events from "./pages/Events";
+import React, { Suspense, useEffect } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
+import { Toaster } from '@/components/ui/toaster';
+import { Toaster as Sonner } from '@/components/ui/sonner';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { ThemeProvider } from '@/components/theme-provider';
+import { AppProvider } from '@/contexts/AppContext';
+import { supabaseBrowser } from '@/lib/supabase/browser';
+import Layout from '@/components/Layout';
+import Index from './pages/Index';
+import Create from './pages/Create';
+import CreateEpisode from './pages/CreateEpisode';
+import Events from './pages/Events';
+import CompanyProfile from './pages/CompanyProfile';
+import Login from './pages/Login';
+import PaymentSetup from './pages/PaymentSetup';
+import WithdrawFunds from './pages/WithdrawFunds';
+import QA from './pages/QA';
+import PastEvents from './pages/PastEvents';
+import MyAds from './pages/MyAds';
+import Advertisers from './pages/Advertisers';
+import CreateAd from './pages/CreateAd';
+import AdLibrary from './pages/AdLibrary';
+import AdvertiserDashboard from './pages/AdvertiserDashboard';
+import MasterAdmin from './pages/MasterAdmin';
+import NotFound from './pages/NotFound';
+import LegalDocumentPage from './pages/LegalDocument';
+import Post from './pages/Post';
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
+import ReportDMCA from './pages/ReportDMCA';
+import ResetPasswordForm from './components/ResetPasswordForm';
+import SetNewPassword from './pages/SetNewPassword';
 
-const StagePage = React.lazy(() => import("./pages/StagePage"));
-const EventPage = React.lazy(() => import("./pages/EventPage"));
-const Profile = React.lazy(() => import("./pages/Profile"));
-import CompanyProfile from "./pages/CompanyProfile";
-import Login from "./pages/Login";
-import PaymentSetup from "./pages/PaymentSetup";
-import WithdrawFunds from "./pages/WithdrawFunds";
-import QA from "./pages/QA";
-import PastEvents from "./pages/PastEvents";
-import MyAds from "./pages/MyAds";
-import Advertisers from "./pages/Advertisers";
-import CreateAd from "./pages/CreateAd";
-import AdLibrary from "./pages/AdLibrary";
-import AdvertiserDashboard from "./pages/AdvertiserDashboard";
-import MasterAdmin from "./pages/MasterAdmin";
-import NotFound from "./pages/NotFound";
-import LegalDocumentPage from "./pages/LegalDocument";
-import Post from "./pages/Post";
-import Terms from "./pages/Terms";
-import Privacy from "./pages/Privacy";
-import ReportDMCA from "./pages/ReportDMCA";
-import ResetPasswordForm from "./components/ResetPasswordForm";
-import SetNewPassword from "./pages/SetNewPassword";
+const StagePage = React.lazy(() => import('./pages/StagePage'));
+const EventPage = React.lazy(() => import('./pages/EventPage'));
+const Profile = React.lazy(() => import('./pages/Profile'));
 
 const queryClient = new QueryClient();
 
 // Simplified auth state sync - no aggressive reloads
-function AuthStateSync() {
+const AuthStateSync = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -50,14 +50,14 @@ function AuthStateSync() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth state changed:", event, session?.user?.email);
+      console.log('Auth state changed:', event, session?.user?.email);
     });
 
     return () => subscription.unsubscribe();
   }, [navigate]);
 
   return null;
-}
+};
 
 const App = () => {
   return (
@@ -102,7 +102,10 @@ const App = () => {
                       element={<SetNewPassword />}
                     />
                     <Route path="/payments" element={<PaymentSetup />} />
-                    <Route path="/past-events" element={<PastEvents events={[]} />} />
+                    <Route
+                      path="/past-events"
+                      element={<PastEvents events={[]} />}
+                    />
                     <Route path="/my-ads" element={<MyAds />} />
                     <Route path="/advertisers" element={<Advertisers />} />
                     <Route path="/create-ad" element={<CreateAd />} />

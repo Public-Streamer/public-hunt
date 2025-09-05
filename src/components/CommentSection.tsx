@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { supabase } from "@/lib/supabase";
-import { useToast } from "@/hooks/use-toast";
-import { ThumbsUp, ThumbsDown, MessageCircle } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useAppContext } from "@/contexts/AppContext";
-import TooltipWrapper from "@/components/ui/tooltip-wrapper";
-import { formatDistanceToNow } from "date-fns";
+import React, { useState, useEffect } from 'react';
+import { ThumbsUp, ThumbsDown, MessageCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { formatDistanceToNow } from 'date-fns';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { supabase } from '@/lib/supabase';
+import { useToast } from '@/hooks/use-toast';
+import { useAppContext } from '@/contexts/AppContext';
+import TooltipWrapper from '@/components/ui/tooltip-wrapper';
 
 // UUID validation helper
 const isValidUUID = (str: string): boolean => {
@@ -36,7 +36,7 @@ interface Comment {
 
 interface CommentSectionProps {
   entityId: string;
-  entityType: "event" | "channel" | "post";
+  entityType: 'event' | 'channel' | 'post';
   onCommentAdded?: () => void;
 }
 
@@ -46,7 +46,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
   onCommentAdded,
 }) => {
   const [comments, setComments] = useState<Comment[]>([]);
-  const [newComment, setNewComment] = useState("");
+  const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(false);
   const [currentUserProfile, setcurrentUserProfile] = useState<any>(null);
   const { toast } = useToast();
@@ -64,9 +64,9 @@ const CommentSection: React.FC<CommentSectionProps> = ({
     } = await supabase.auth.getUser();
     if (user) {
       const { data: profile } = await supabase
-        .from("user_profiles")
-        .select("*")
-        .eq("user_id", user.id)
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', user.id)
         .single();
       setcurrentUserProfile(profile);
     }
@@ -85,7 +85,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
       } = await supabase.auth.getUser();
 
       const { data, error } = await supabase
-        .from("comments")
+        .from('comments')
         .select(
           `
           *,
@@ -101,8 +101,8 @@ const CommentSection: React.FC<CommentSectionProps> = ({
           )
         `
         )
-        .eq("post_id", entityId)
-        .order("created_at", { ascending: false });
+        .eq('post_id', entityId)
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
 
@@ -141,13 +141,13 @@ const CommentSection: React.FC<CommentSectionProps> = ({
 
       setComments(processedComments);
     } catch (error) {
-      console.error("Error fetching comments:", error);
+      console.error('Error fetching comments:', error);
       // Don't show error toast for invalid UUIDs, just fail silently
       if (isValidUUID(entityId)) {
         toast({
-          title: "Error",
-          description: "Failed to load comments",
-          variant: "destructive",
+          title: 'Error',
+          description: 'Failed to load comments',
+          variant: 'destructive',
         });
       }
     }
@@ -160,7 +160,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
 
     setLoading(true);
     try {
-      const { error } = await supabase.from("comments").insert({
+      const { error } = await supabase.from('comments').insert({
         content: newComment,
         post_id: entityId,
         user_profile_id: currentUserProfile.id,
@@ -173,32 +173,32 @@ const CommentSection: React.FC<CommentSectionProps> = ({
       if (error) throw error;
 
       // Update the comment count in the user_posts table
-      if (entityType === "post") {
+      if (entityType === 'post') {
         const { error: updateError } = await supabase
-          .from("user_posts")
+          .from('user_posts')
           .update({ comments: comments.length + 1 })
-          .eq("id", entityId);
+          .eq('id', entityId);
 
         if (updateError) {
-          console.error("Error updating comment count:", updateError);
+          console.error('Error updating comment count:', updateError);
         }
       }
 
-      setNewComment("");
+      setNewComment('');
       fetchComments();
 
       // Notify parent component that a comment was added
       onCommentAdded?.();
 
       toast({
-        title: "Comment posted",
-        description: "Your comment has been posted successfully",
+        title: 'Comment posted',
+        description: 'Your comment has been posted successfully',
       });
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to post comment",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to post comment',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -214,7 +214,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
     if (!currentUserProfile) return;
 
     try {
-      const { error } = await supabase.from("comment_likes").upsert({
+      const { error } = await supabase.from('comment_likes').upsert({
         comment_id: commentId,
         user_profile_id: currentUserProfile.id,
         is_like: isLike,
@@ -224,9 +224,9 @@ const CommentSection: React.FC<CommentSectionProps> = ({
       fetchComments();
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to update like",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to update like',
+        variant: 'destructive',
       });
     }
   };
@@ -267,7 +267,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                     type="submit"
                     disabled={loading || !newComment.trim()}
                   >
-                    {loading ? "Posting..." : "Post Comment"}
+                    {loading ? 'Posting...' : 'Post Comment'}
                   </Button>
                 </TooltipWrapper>
               </div>
@@ -286,7 +286,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                 className="p-0 h-auto font-normal"
               >
                 Sign in
-              </Button>{" "}
+              </Button>{' '}
               to join the conversation
             </p>
           </div>

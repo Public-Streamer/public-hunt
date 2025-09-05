@@ -1,12 +1,12 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Calendar, Clock, Star, Eye, DollarSign } from "lucide-react";
-import TooltipWrapper from "@/components/ui/tooltip-wrapper";
-import TicketPurchaseModal from "./TicketPurchaseModal";
-import MediaBackground from "./MediaBackground";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Calendar, Clock, Star, Eye, DollarSign } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import TooltipWrapper from '@/components/ui/tooltip-wrapper';
+import TicketPurchaseModal from './TicketPurchaseModal';
+import MediaBackground from './MediaBackground';
 
 interface ScheduledEvent {
   id: string;

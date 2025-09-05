@@ -1,11 +1,22 @@
-import * as React from "react"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./tooltip"
-import { DropdownMenuItem, DropdownMenuCheckboxItem, DropdownMenuRadioItem, DropdownMenuSubTrigger } from "./dropdown-menu"
-import { cn } from "@/lib/utils"
+import * as React from 'react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from './tooltip';
+import {
+  DropdownMenuItem,
+  DropdownMenuCheckboxItem,
+  DropdownMenuRadioItem,
+  DropdownMenuSubTrigger,
+} from './dropdown-menu';
+import { cn } from '@/lib/utils';
 
-interface TooltipDropdownMenuItemProps extends React.ComponentPropsWithoutRef<typeof DropdownMenuItem> {
-  tooltip?: string
-  inset?: boolean
+interface TooltipDropdownMenuItemProps
+  extends React.ComponentPropsWithoutRef<typeof DropdownMenuItem> {
+  tooltip?: string;
+  inset?: boolean;
 }
 
 const TooltipDropdownMenuItem = React.forwardRef<
@@ -17,7 +28,7 @@ const TooltipDropdownMenuItem = React.forwardRef<
       <DropdownMenuItem ref={ref} className={className} {...props}>
         {children}
       </DropdownMenuItem>
-    )
+    );
   }
 
   return (
@@ -33,12 +44,13 @@ const TooltipDropdownMenuItem = React.forwardRef<
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
-  )
-})
-TooltipDropdownMenuItem.displayName = "TooltipDropdownMenuItem"
+  );
+});
+TooltipDropdownMenuItem.displayName = 'TooltipDropdownMenuItem';
 
-interface TooltipDropdownMenuCheckboxItemProps extends React.ComponentPropsWithoutRef<typeof DropdownMenuCheckboxItem> {
-  tooltip?: string
+interface TooltipDropdownMenuCheckboxItemProps
+  extends React.ComponentPropsWithoutRef<typeof DropdownMenuCheckboxItem> {
+  tooltip?: string;
 }
 
 const TooltipDropdownMenuCheckboxItem = React.forwardRef<
@@ -50,7 +62,7 @@ const TooltipDropdownMenuCheckboxItem = React.forwardRef<
       <DropdownMenuCheckboxItem ref={ref} className={className} {...props}>
         {children}
       </DropdownMenuCheckboxItem>
-    )
+    );
   }
 
   return (
@@ -66,8 +78,8 @@ const TooltipDropdownMenuCheckboxItem = React.forwardRef<
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
-  )
-})
-TooltipDropdownMenuCheckboxItem.displayName = "TooltipDropdownMenuCheckboxItem"
+  );
+});
+TooltipDropdownMenuCheckboxItem.displayName = 'TooltipDropdownMenuCheckboxItem';
 
-export { TooltipDropdownMenuItem, TooltipDropdownMenuCheckboxItem }
+export { TooltipDropdownMenuItem, TooltipDropdownMenuCheckboxItem };

@@ -1,8 +1,8 @@
-import React, { useState, useMemo, useEffect, lazy, Suspense } from "react";
-import type { TrackReference } from "@livekit/components-core";
-import MainStreamPreview from "./MainStreamPreview";
-import StreamerPreview from "./StreamerPreview";
-import { useLiveKitTrackSource } from "@/lib/livekitLazy";
+import React, { useState, useMemo, useEffect, lazy, Suspense } from 'react';
+import type { TrackReference } from '@livekit/components-core';
+import MainStreamPreview from './MainStreamPreview';
+import StreamerPreview from './StreamerPreview';
+import { useLiveKitTrackSource } from '@/lib/livekitLazy';
 
 interface StreamPreviewContainerProps {
   eventName: string;
@@ -15,7 +15,7 @@ interface StreamPreviewContainerProps {
 
 // Lazy-loaded inner content that uses LiveKit hooks/components so we don't statically import them in this file
 const StreamTracksContentLazy = lazy(() =>
-  import("@livekit/components-react").then((m) => {
+  import('@livekit/components-react').then((m) => {
     const { useTracks, StartAudio } = m;
 
     const Comp: React.FC<{
@@ -46,8 +46,8 @@ const StreamTracksContentLazy = lazy(() =>
             (track) =>
               track.publication &&
               track.publication.track &&
-              track.publication.kind === "video" &&
-              track.participant.identity !== "viewer"
+              track.publication.kind === 'video' &&
+              track.participant.identity !== 'viewer'
           )
           .filter(
             (track): track is TrackReference => track.publication !== undefined
@@ -78,10 +78,8 @@ const StreamTracksContentLazy = lazy(() =>
               if (trackRef.publication.track) {
                 trackRef.publication.track.mediaStreamTrack.enabled = true;
               }
-            } else {
-              if (trackRef.publication.track) {
-                trackRef.publication.track.mediaStreamTrack.enabled = false;
-              }
+            } else if (trackRef.publication.track) {
+              trackRef.publication.track.mediaStreamTrack.enabled = false;
             }
           });
         } else {

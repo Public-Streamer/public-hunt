@@ -1,11 +1,18 @@
 import React, { useState, useEffect } from 'react';
+import {
+  UserPlus,
+  Users,
+  UserCheck,
+  UserX,
+  Search,
+  MessageCircle,
+} from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { UserPlus, Users, UserCheck, UserX, Search, MessageCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import MessageDialog from '@/components/MessageDialog';
@@ -36,7 +43,10 @@ interface ProfileFriendsProps {
   isOwnProfile: boolean;
 }
 
-const ProfileFriends: React.FC<ProfileFriendsProps> = ({ userId, isOwnProfile }) => {
+const ProfileFriends: React.FC<ProfileFriendsProps> = ({
+  userId,
+  isOwnProfile,
+}) => {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [friendRequests, setFriendRequests] = useState<FriendRequest[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -65,7 +75,7 @@ const ProfileFriends: React.FC<ProfileFriendsProps> = ({ userId, isOwnProfile })
           bio: 'Digital artist and content creator',
           mutual_friends: 12,
           status: 'friend',
-          created_at: '2024-01-15T10:30:00Z'
+          created_at: '2024-01-15T10:30:00Z',
         },
         {
           id: '2',
@@ -76,7 +86,7 @@ const ProfileFriends: React.FC<ProfileFriendsProps> = ({ userId, isOwnProfile })
           bio: 'Tech enthusiast and gamer',
           mutual_friends: 8,
           status: 'friend',
-          created_at: '2024-01-20T14:20:00Z'
+          created_at: '2024-01-20T14:20:00Z',
         },
         {
           id: '3',
@@ -87,8 +97,8 @@ const ProfileFriends: React.FC<ProfileFriendsProps> = ({ userId, isOwnProfile })
           bio: 'Photographer and travel blogger',
           mutual_friends: 15,
           status: 'friend',
-          created_at: '2024-02-01T09:45:00Z'
-        }
+          created_at: '2024-02-01T09:45:00Z',
+        },
       ];
       setFriends(mockFriends);
     } catch (error) {
@@ -96,7 +106,7 @@ const ProfileFriends: React.FC<ProfileFriendsProps> = ({ userId, isOwnProfile })
       toast({
         title: 'Error',
         description: 'Failed to load friends',
-        variant: 'destructive'
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -113,7 +123,7 @@ const ProfileFriends: React.FC<ProfileFriendsProps> = ({ userId, isOwnProfile })
           requester_name: 'Alex Rodriguez',
           requester_username: 'alex_rod',
           requester_avatar: '/placeholder.svg',
-          created_at: '2024-03-10T16:30:00Z'
+          created_at: '2024-03-10T16:30:00Z',
         },
         {
           id: '2',
@@ -121,8 +131,8 @@ const ProfileFriends: React.FC<ProfileFriendsProps> = ({ userId, isOwnProfile })
           requester_name: 'Lisa Park',
           requester_username: 'lisa_p',
           requester_avatar: '/placeholder.svg',
-          created_at: '2024-03-12T11:15:00Z'
-        }
+          created_at: '2024-03-12T11:15:00Z',
+        },
       ];
       setFriendRequests(mockRequests);
     } catch (error) {
@@ -133,17 +143,17 @@ const ProfileFriends: React.FC<ProfileFriendsProps> = ({ userId, isOwnProfile })
   const handleAcceptRequest = async (requestId: string) => {
     try {
       // Mock accepting friend request
-      setFriendRequests(prev => prev.filter(req => req.id !== requestId));
+      setFriendRequests((prev) => prev.filter((req) => req.id !== requestId));
       toast({
         title: 'Success',
-        description: 'Friend request accepted'
+        description: 'Friend request accepted',
       });
     } catch (error) {
       console.error('Error accepting friend request:', error);
       toast({
         title: 'Error',
         description: 'Failed to accept friend request',
-        variant: 'destructive'
+        variant: 'destructive',
       });
     }
   };
@@ -151,24 +161,25 @@ const ProfileFriends: React.FC<ProfileFriendsProps> = ({ userId, isOwnProfile })
   const handleDeclineRequest = async (requestId: string) => {
     try {
       // Mock declining friend request
-      setFriendRequests(prev => prev.filter(req => req.id !== requestId));
+      setFriendRequests((prev) => prev.filter((req) => req.id !== requestId));
       toast({
         title: 'Success',
-        description: 'Friend request declined'
+        description: 'Friend request declined',
       });
     } catch (error) {
       console.error('Error declining friend request:', error);
       toast({
         title: 'Error',
         description: 'Failed to decline friend request',
-        variant: 'destructive'
+        variant: 'destructive',
       });
     }
   };
 
-  const filteredFriends = friends.filter(friend =>
-    friend.display_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    friend.username.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredFriends = friends.filter(
+    (friend) =>
+      friend.display_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      friend.username.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
@@ -198,7 +209,7 @@ const ProfileFriends: React.FC<ProfileFriendsProps> = ({ userId, isOwnProfile })
             Suggestions
           </TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="friends" className="space-y-4">
           <div className="flex items-center space-x-4">
             <div className="relative flex-1">
@@ -211,10 +222,13 @@ const ProfileFriends: React.FC<ProfileFriendsProps> = ({ userId, isOwnProfile })
               />
             </div>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredFriends.map((friend) => (
-              <Card key={friend.id} className="hover:shadow-md transition-shadow">
+              <Card
+                key={friend.id}
+                className="hover:shadow-md transition-shadow"
+              >
                 <CardContent className="p-4">
                   <div className="flex items-start space-x-3">
                     <Avatar className="w-12 h-12">
@@ -222,10 +236,16 @@ const ProfileFriends: React.FC<ProfileFriendsProps> = ({ userId, isOwnProfile })
                       <AvatarFallback>{friend.display_name[0]}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-medium truncate">{friend.display_name}</h4>
-                      <p className="text-sm text-muted-foreground truncate">@{friend.username}</p>
+                      <h4 className="font-medium truncate">
+                        {friend.display_name}
+                      </h4>
+                      <p className="text-sm text-muted-foreground truncate">
+                        @{friend.username}
+                      </p>
                       {friend.bio && (
-                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{friend.bio}</p>
+                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                          {friend.bio}
+                        </p>
                       )}
                       <p className="text-xs text-muted-foreground mt-2">
                         {friend.mutual_friends} mutual friends
@@ -233,9 +253,9 @@ const ProfileFriends: React.FC<ProfileFriendsProps> = ({ userId, isOwnProfile })
                     </div>
                   </div>
                   <div className="flex space-x-2 mt-3">
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
+                    <Button
+                      size="sm"
+                      variant="outline"
                       className="flex-1"
                       onClick={() => {
                         setSelectedFriend(friend);
@@ -245,14 +265,15 @@ const ProfileFriends: React.FC<ProfileFriendsProps> = ({ userId, isOwnProfile })
                       <MessageCircle className="w-4 h-4 mr-2" />
                       Message
                     </Button>
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       variant="outline"
                       onClick={() => {
                         // Add to group chat functionality
                         toast({
                           title: 'Feature Coming Soon',
-                          description: 'Group chat functionality will be available soon!',
+                          description:
+                            'Group chat functionality will be available soon!',
                         });
                       }}
                     >
@@ -264,7 +285,7 @@ const ProfileFriends: React.FC<ProfileFriendsProps> = ({ userId, isOwnProfile })
             ))}
           </div>
         </TabsContent>
-        
+
         {isOwnProfile && (
           <TabsContent value="requests" className="space-y-4">
             <Card>
@@ -276,19 +297,30 @@ const ProfileFriends: React.FC<ProfileFriendsProps> = ({ userId, isOwnProfile })
               </CardHeader>
               <CardContent>
                 {friendRequests.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8">No pending friend requests</p>
+                  <p className="text-center text-muted-foreground py-8">
+                    No pending friend requests
+                  </p>
                 ) : (
                   <div className="space-y-4">
                     {friendRequests.map((request) => (
-                      <div key={request.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div
+                        key={request.id}
+                        className="flex items-center justify-between p-3 border rounded-lg"
+                      >
                         <div className="flex items-center space-x-3">
                           <Avatar>
                             <AvatarImage src={request.requester_avatar} />
-                            <AvatarFallback>{request.requester_name[0]}</AvatarFallback>
+                            <AvatarFallback>
+                              {request.requester_name[0]}
+                            </AvatarFallback>
                           </Avatar>
                           <div>
-                            <h4 className="font-medium">{request.requester_name}</h4>
-                            <p className="text-sm text-muted-foreground">@{request.requester_username}</p>
+                            <h4 className="font-medium">
+                              {request.requester_name}
+                            </h4>
+                            <p className="text-sm text-muted-foreground">
+                              @{request.requester_username}
+                            </p>
                           </div>
                         </div>
                         <div className="flex space-x-2">
@@ -316,7 +348,7 @@ const ProfileFriends: React.FC<ProfileFriendsProps> = ({ userId, isOwnProfile })
             </Card>
           </TabsContent>
         )}
-        
+
         <TabsContent value="suggestions" className="space-y-4">
           <Card>
             <CardHeader>
@@ -324,13 +356,14 @@ const ProfileFriends: React.FC<ProfileFriendsProps> = ({ userId, isOwnProfile })
             </CardHeader>
             <CardContent>
               <p className="text-center text-muted-foreground py-8">
-                Friend suggestions will appear here based on your activity and mutual connections.
+                Friend suggestions will appear here based on your activity and
+                mutual connections.
               </p>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
-      
+
       {showMessageDialog && selectedFriend && (
         <MessageDialog
           isOpen={showMessageDialog}

@@ -1,5 +1,9 @@
 import React from 'react';
-import { LEGAL_NOTICE, LEGAL_TITLE, LEGAL_BODY_SECTIONS } from '@/content/legal/terms';
+import {
+  LEGAL_NOTICE,
+  LEGAL_TITLE,
+  LEGAL_BODY_SECTIONS,
+} from '@/content/legal/terms';
 import ProhibitedCategories from '@/components/legal/ProhibitedCategories';
 
 interface LegalAgreementBodyProps {
@@ -43,7 +47,9 @@ const LegalAgreementBody: React.FC<LegalAgreementBodyProps> = ({
     <div className={s.container}>
       {showImportantNotice && (
         <div className="bg-red-50 p-3 sm:p-4 rounded border border-red-200">
-          <h3 className={`text-red-700 mb-2 ${s.noticeTitle}`}>IMPORTANT LEGAL NOTICE</h3>
+          <h3 className={`text-red-700 mb-2 ${s.noticeTitle}`}>
+            IMPORTANT LEGAL NOTICE
+          </h3>
           <p className="text-red-700">{LEGAL_NOTICE}</p>
         </div>
       )}

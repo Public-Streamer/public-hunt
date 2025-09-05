@@ -1,6 +1,6 @@
 import React from 'react';
-import LoginForm from '@/components/LoginForm';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import LoginForm from '@/components/LoginForm';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();

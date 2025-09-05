@@ -1,24 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Play, 
-  Pause, 
-  Eye, 
-  DollarSign, 
-  Calendar, 
+import {
+  Play,
+  Pause,
+  Eye,
+  DollarSign,
+  Calendar,
   Target,
   MoreVertical,
   Edit,
   Trash2,
-  BarChart3
+  BarChart3,
 } from 'lucide-react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { format } from 'date-fns';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
-import { format } from 'date-fns';
 
 interface Ad {
   id: string;
@@ -47,12 +52,13 @@ const MyAds: React.FC = () => {
 
   const fetchAds = async () => {
     try {
-      const { data: userData, error: userError } = await supabase.auth.getUser();
+      const { data: userData, error: userError } =
+        await supabase.auth.getUser();
       if (userError || !userData.user) {
         toast({
-          title: "Authentication Required",
-          description: "Please log in to view your ads.",
-          variant: "destructive"
+          title: 'Authentication Required',
+          description: 'Please log in to view your ads.',
+          variant: 'destructive',
         });
         return;
       }
@@ -68,9 +74,9 @@ const MyAds: React.FC = () => {
     } catch (error) {
       console.error('Error fetching ads:', error);
       toast({
-        title: "Error",
-        description: "Failed to load your ads.",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to load your ads.',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -86,46 +92,45 @@ const MyAds: React.FC = () => {
 
       if (error) throw error;
 
-      setAds(ads.map(ad => 
-        ad.id === adId 
-          ? { ...ad, status: newStatus, updated_at: new Date().toISOString() }
-          : ad
-      ));
+      setAds(
+        ads.map((ad) =>
+          ad.id === adId
+            ? { ...ad, status: newStatus, updated_at: new Date().toISOString() }
+            : ad
+        )
+      );
 
       toast({
-        title: "Status Updated",
+        title: 'Status Updated',
         description: `Ad status changed to ${newStatus}.`,
       });
     } catch (error) {
       console.error('Error updating ad status:', error);
       toast({
-        title: "Error",
-        description: "Failed to update ad status.",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to update ad status.',
+        variant: 'destructive',
       });
     }
   };
 
   const deleteAd = async (adId: string) => {
     try {
-      const { error } = await supabase
-        .from('ads')
-        .delete()
-        .eq('id', adId);
+      const { error } = await supabase.from('ads').delete().eq('id', adId);
 
       if (error) throw error;
 
-      setAds(ads.filter(ad => ad.id !== adId));
+      setAds(ads.filter((ad) => ad.id !== adId));
       toast({
-        title: "Ad Deleted",
-        description: "Your ad campaign has been deleted.",
+        title: 'Ad Deleted',
+        description: 'Your ad campaign has been deleted.',
       });
     } catch (error) {
       console.error('Error deleting ad:', error);
       toast({
-        title: "Error",
-        description: "Failed to delete ad.",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to delete ad.',
+        variant: 'destructive',
       });
     }
   };
@@ -145,7 +150,7 @@ const MyAds: React.FC = () => {
     }
   };
 
-  const filteredAds = ads.filter(ad => {
+  const filteredAds = ads.filter((ad) => {
     if (activeTab === 'all') return true;
     return ad.status === activeTab;
   });
@@ -165,7 +170,7 @@ const MyAds: React.FC = () => {
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">My Ad Campaigns</h1>
-          <Button onClick={() => window.location.href = '/create?tab=ad'}>
+          <Button onClick={() => (window.location.href = '/create?tab=ad')}>
             Create New Ad
           </Button>
         </div>
@@ -174,16 +179,17 @@ const MyAds: React.FC = () => {
           <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="all">All ({ads.length})</TabsTrigger>
             <TabsTrigger value="active">
-              Active ({ads.filter(ad => ad.status === 'active').length})
+              Active ({ads.filter((ad) => ad.status === 'active').length})
             </TabsTrigger>
             <TabsTrigger value="paused">
-              Paused ({ads.filter(ad => ad.status === 'paused').length})
+              Paused ({ads.filter((ad) => ad.status === 'paused').length})
             </TabsTrigger>
             <TabsTrigger value="pending_approval">
-              Pending ({ads.filter(ad => ad.status === 'pending_approval').length})
+              Pending (
+              {ads.filter((ad) => ad.status === 'pending_approval').length})
             </TabsTrigger>
             <TabsTrigger value="completed">
-              Completed ({ads.filter(ad => ad.status === 'completed').length})
+              Completed ({ads.filter((ad) => ad.status === 'completed').length})
             </TabsTrigger>
           </TabsList>
 
@@ -194,12 +200,13 @@ const MyAds: React.FC = () => {
                   <Target className="h-12 w-12 mx-auto mb-4 text-gray-400" />
                   <h3 className="text-lg font-medium mb-2">No ads found</h3>
                   <p className="text-gray-600 mb-4">
-                    {activeTab === 'all' 
-                      ? "You haven't created any ad campaigns yet." 
-                      : `No ads with status "${activeTab}".`
-                    }
+                    {activeTab === 'all'
+                      ? "You haven't created any ad campaigns yet."
+                      : `No ads with status "${activeTab}".`}
                   </p>
-                  <Button onClick={() => window.location.href = '/create?tab=ad'}>
+                  <Button
+                    onClick={() => (window.location.href = '/create?tab=ad')}
+                  >
                     Create Your First Ad
                   </Button>
                 </CardContent>
@@ -211,14 +218,23 @@ const MyAds: React.FC = () => {
                     <CardHeader className="pb-3">
                       <div className="flex justify-between items-start">
                         <div>
-                          <CardTitle className="text-lg line-clamp-2">{ad.title}</CardTitle>
-                          <Badge variant={getStatusBadgeVariant(ad.status)} className="mt-2">
+                          <CardTitle className="text-lg line-clamp-2">
+                            {ad.title}
+                          </CardTitle>
+                          <Badge
+                            variant={getStatusBadgeVariant(ad.status)}
+                            className="mt-2"
+                          >
                             {ad.status.replace('_', ' ').toUpperCase()}
                           </Badge>
                         </div>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                            >
                               <MoreVertical className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
@@ -232,17 +248,21 @@ const MyAds: React.FC = () => {
                               Analytics
                             </DropdownMenuItem>
                             {ad.status === 'active' ? (
-                              <DropdownMenuItem onClick={() => updateAdStatus(ad.id, 'paused')}>
+                              <DropdownMenuItem
+                                onClick={() => updateAdStatus(ad.id, 'paused')}
+                              >
                                 <Pause className="h-4 w-4 mr-2" />
                                 Pause
                               </DropdownMenuItem>
                             ) : ad.status === 'paused' ? (
-                              <DropdownMenuItem onClick={() => updateAdStatus(ad.id, 'active')}>
+                              <DropdownMenuItem
+                                onClick={() => updateAdStatus(ad.id, 'active')}
+                              >
                                 <Play className="h-4 w-4 mr-2" />
                                 Resume
                               </DropdownMenuItem>
                             ) : null}
-                            <DropdownMenuItem 
+                            <DropdownMenuItem
                               onClick={() => deleteAd(ad.id)}
                               className="text-red-600"
                             >
@@ -260,10 +280,12 @@ const MyAds: React.FC = () => {
                             {ad.description}
                           </p>
                         )}
-                        
+
                         <div className="flex items-center gap-2 text-sm">
                           <DollarSign className="h-4 w-4 text-green-600" />
-                          <span className="font-medium">${ad.budget.toFixed(2)}</span>
+                          <span className="font-medium">
+                            ${ad.budget.toFixed(2)}
+                          </span>
                           <span className="text-gray-500">budget</span>
                         </div>
 
@@ -275,11 +297,18 @@ const MyAds: React.FC = () => {
                         {ad.start_date && (
                           <div className="flex items-center gap-2 text-sm">
                             <Calendar className="h-4 w-4 text-orange-600" />
-                            <span>{format(new Date(ad.start_date), 'MMM dd, yyyy')}</span>
+                            <span>
+                              {format(new Date(ad.start_date), 'MMM dd, yyyy')}
+                            </span>
                             {ad.end_date && (
                               <>
                                 <span className="text-gray-400">-</span>
-                                <span>{format(new Date(ad.end_date), 'MMM dd, yyyy')}</span>
+                                <span>
+                                  {format(
+                                    new Date(ad.end_date),
+                                    'MMM dd, yyyy'
+                                  )}
+                                </span>
                               </>
                             )}
                           </div>

@@ -33,23 +33,26 @@ export interface ViewerState {
 }
 
 // Pure function to merge snapshot into state
-export function mergeSnapshot(prev: ViewerState | null, snap: Snapshot): ViewerState {
+export function mergeSnapshot(
+  prev: ViewerState | null,
+  snap: Snapshot
+): ViewerState {
   const streams: Record<string, Stream> = {};
   const scorecards: Record<string, Scorecard> = {};
 
   // Convert arrays to records for O(1) lookups
-  snap.streams.forEach(stream => {
+  snap.streams.forEach((stream) => {
     streams[stream.streamId] = stream;
   });
 
-  snap.scorecards.forEach(card => {
+  snap.scorecards.forEach((card) => {
     scorecards[card.cardId] = card;
   });
 
   return {
     asOf: snap.asOf,
     streams,
-    scorecards
+    scorecards,
   };
 }
 
@@ -72,7 +75,7 @@ export function applyStreamDelta(
       livekitRoom: `event-${row.event_id}`,
       livekitTrackIds: row.livekit_track_sid ? [row.livekit_track_sid] : [],
       status: row.is_active ? 'live' : 'ended',
-      startedAt: row.created_at
+      startedAt: row.created_at,
     };
     newStreams[row.id] = stream;
   }
@@ -80,7 +83,7 @@ export function applyStreamDelta(
   return {
     ...prev,
     streams: newStreams,
-    asOf: new Date().toISOString()
+    asOf: new Date().toISOString(),
   };
 }
 
@@ -105,9 +108,9 @@ export function applyScorecardDelta(
         teamName: row.team_name,
         teamColor: row.team_color,
         score: row.score,
-        customFields: row.custom_fields || {}
+        customFields: row.custom_fields || {},
       },
-      lastUpdatedAt: row.updated_at
+      lastUpdatedAt: row.updated_at,
     };
     newScorecards[row.id] = scorecard;
   }
@@ -115,13 +118,15 @@ export function applyScorecardDelta(
   return {
     ...prev,
     scorecards: newScorecards,
-    asOf: new Date().toISOString()
+    asOf: new Date().toISOString(),
   };
 }
 
 // Helper to get streams as array
 export function getStreamsArray(state: ViewerState): Stream[] {
-  return Object.values(state.streams).filter(stream => stream.status === 'live');
+  return Object.values(state.streams).filter(
+    (stream) => stream.status === 'live'
+  );
 }
 
 // Helper to get scorecards as array

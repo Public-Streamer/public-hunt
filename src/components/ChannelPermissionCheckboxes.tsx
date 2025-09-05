@@ -9,27 +9,26 @@ interface ChannelPermissionCheckboxesProps {
   onPermissionChange: (permission: string, checked: boolean) => void;
 }
 
-const ChannelPermissionCheckboxes: React.FC<ChannelPermissionCheckboxesProps> = ({
-  selectedRole,
-  permissions,
-  onPermissionChange
-}) => {
+const ChannelPermissionCheckboxes: React.FC<
+  ChannelPermissionCheckboxesProps
+> = ({ selectedRole, permissions, onPermissionChange }) => {
   const rolePermissions = {
     channel_master: [
-      'All permissions of Channel Administrators plus can add/remove/change Channel Administrators'
+      'All permissions of Channel Administrators plus can add/remove/change Channel Administrators',
     ],
     channel_administrator: [
-      'All permissions of Channel Manager plus can add/remove/change Channel Managers and change all aspects of the Channel including Channel Name, Description, Category etc.'
+      'All permissions of Channel Manager plus can add/remove/change Channel Managers and change all aspects of the Channel including Channel Name, Description, Category etc.',
     ],
     channel_manager: [
-      'All permissions of Channel Moderators plus can add/remove/change Channel Moderators and create events for the channel and designate all Event Production team roles and permissions.'
+      'All permissions of Channel Moderators plus can add/remove/change Channel Moderators and create events for the channel and designate all Event Production team roles and permissions.',
     ],
     channel_moderator: [
-      'Can add/remove any comments or subscribers to the channel.'
-    ]
+      'Can add/remove any comments or subscribers to the channel.',
+    ],
   };
 
-  const currentPermissions = rolePermissions[selectedRole as keyof typeof rolePermissions] || [];
+  const currentPermissions =
+    rolePermissions[selectedRole as keyof typeof rolePermissions] || [];
 
   if (!selectedRole) {
     return null;
@@ -39,7 +38,10 @@ const ChannelPermissionCheckboxes: React.FC<ChannelPermissionCheckboxesProps> = 
     <Card className="mt-4">
       <CardHeader>
         <CardTitle className="text-lg">
-          {selectedRole.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} Permissions
+          {selectedRole
+            .replace(/_/g, ' ')
+            .replace(/\b\w/g, (l) => l.toUpperCase())}{' '}
+          Permissions
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -49,10 +51,12 @@ const ChannelPermissionCheckboxes: React.FC<ChannelPermissionCheckboxesProps> = 
               <Checkbox
                 id={`permission-${index}`}
                 checked={permissions.includes(permission)}
-                onCheckedChange={(checked) => onPermissionChange(permission, checked as boolean)}
+                onCheckedChange={(checked) =>
+                  onPermissionChange(permission, checked as boolean)
+                }
               />
-              <Label 
-                htmlFor={`permission-${index}`} 
+              <Label
+                htmlFor={`permission-${index}`}
                 className="text-sm leading-relaxed cursor-pointer"
               >
                 {permission}

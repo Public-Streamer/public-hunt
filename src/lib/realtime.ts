@@ -1,5 +1,5 @@
-import { supabaseBrowser } from '@/lib/supabase/browser';
 import type { RealtimeChannel } from '@supabase/supabase-js';
+import { supabaseBrowser } from '@/lib/supabase/browser';
 
 export interface DeltaEvent {
   type: 'stream' | 'scorecard';
@@ -14,7 +14,9 @@ export interface RealtimeSubscription {
 // Batching utility
 class DeltaBatcher {
   private buffer: DeltaEvent[] = [];
+
   private timeoutId: NodeJS.Timeout | null = null;
+
   private callback: (deltas: DeltaEvent[]) => void;
 
   constructor(callback: (deltas: DeltaEvent[]) => void) {
@@ -23,7 +25,7 @@ class DeltaBatcher {
 
   add(delta: DeltaEvent) {
     this.buffer.push(delta);
-    
+
     // Cancel existing timeout
     if (this.timeoutId) {
       clearTimeout(this.timeoutId);
@@ -62,20 +64,21 @@ export function subscribeEvent(
   const supabase = supabaseBrowser();
 
   try {
-    channel = supabase.channel(`event:${eventId}`)
+    channel = supabase
+      .channel(`event:${eventId}`)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'event_streams',
-          filter: `event_id=eq.${eventId}`
+          filter: `event_id=eq.${eventId}`,
         },
         (payload) => {
           batcher.add({
             type: 'stream',
             operation: payload.eventType as 'INSERT' | 'UPDATE' | 'DELETE',
-            data: payload.new || payload.old
+            data: payload.new || payload.old,
           });
         }
       )
@@ -85,13 +88,13 @@ export function subscribeEvent(
           event: '*',
           schema: 'public',
           table: 'event_scoreboard',
-          filter: `event_id=eq.${eventId}`
+          filter: `event_id=eq.${eventId}`,
         },
         (payload) => {
           batcher.add({
             type: 'scorecard',
             operation: payload.eventType as 'INSERT' | 'UPDATE' | 'DELETE',
-            data: payload.new || payload.old
+            data: payload.new || payload.old,
           });
         }
       )
@@ -111,16 +114,16 @@ export function subscribeEvent(
           }
           channel = null;
         }
-      }
+      },
     };
   } catch (error) {
     console.error('[Realtime] Error setting up subscription:', error);
     batcher.destroy();
-    
+
     return {
       dispose: () => {
         // Already cleaned up
-      }
+      },
     };
   }
 }
@@ -128,8 +131,11 @@ export function subscribeEvent(
 // Watchdog polling for fallback
 export class WatchdogPoller {
   private intervalId: NodeJS.Timeout | null = null;
+
   private pollCount = 0;
+
   private maxPolls = 3; // Poll at 0s, 10s, 20s
+
   private stopped = false;
 
   constructor(

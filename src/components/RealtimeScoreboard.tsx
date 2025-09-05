@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Trophy } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 
 interface Team {
@@ -18,16 +18,18 @@ interface RealtimeScoreboardProps {
   eventId: string;
 }
 
-export const RealtimeScoreboard: React.FC<RealtimeScoreboardProps> = ({ eventId }) => {
+export const RealtimeScoreboard: React.FC<RealtimeScoreboardProps> = ({
+  eventId,
+}) => {
   const [teams, setTeams] = useState<Team[]>([]);
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
     console.log('[Scoreboard] Setting up realtime for event:', eventId);
-    
+
     // Initial fetch
     fetchTeams();
-    
+
     // Set up realtime subscription
     const channel = supabase
       .channel('scoreboard-changes')
@@ -37,19 +39,23 @@ export const RealtimeScoreboard: React.FC<RealtimeScoreboardProps> = ({ eventId 
           event: '*',
           schema: 'public',
           table: 'event_scoreboard',
-          filter: `event_id=eq.${eventId}`
+          filter: `event_id=eq.${eventId}`,
         },
         (payload) => {
           console.log('[Scoreboard] Realtime update received:', payload);
-          
+
           if (payload.eventType === 'INSERT') {
-            setTeams(prev => [...prev, payload.new as Team]);
+            setTeams((prev) => [...prev, payload.new as Team]);
           } else if (payload.eventType === 'UPDATE') {
-            setTeams(prev => prev.map(team => 
-              team.id === payload.new.id ? payload.new as Team : team
-            ));
+            setTeams((prev) =>
+              prev.map((team) =>
+                team.id === payload.new.id ? (payload.new as Team) : team
+              )
+            );
           } else if (payload.eventType === 'DELETE') {
-            setTeams(prev => prev.filter(team => team.id !== payload.old.id));
+            setTeams((prev) =>
+              prev.filter((team) => team.id !== payload.old.id)
+            );
           }
         }
       )
@@ -66,12 +72,15 @@ export const RealtimeScoreboard: React.FC<RealtimeScoreboardProps> = ({ eventId 
 
   const fetchTeams = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke('scoreboard-operations', {
-        body: { action: 'fetch', eventId }
-      });
+      const { data, error } = await supabase.functions.invoke(
+        'scoreboard-operations',
+        {
+          body: { action: 'fetch', eventId },
+        }
+      );
 
       if (error) throw error;
-      
+
       setTeams(data || []);
     } catch (error) {
       console.error('Error fetching teams:', error);
@@ -102,24 +111,27 @@ export const RealtimeScoreboard: React.FC<RealtimeScoreboardProps> = ({ eventId 
             <div
               key={team.id}
               className="flex items-center gap-3 p-3 rounded-lg border transition-all duration-300"
-              style={{ 
-                borderLeftColor: team.team_color, 
+              style={{
+                borderLeftColor: team.team_color,
                 borderLeftWidth: '4px',
-                backgroundColor: index === 0 ? 'hsl(var(--accent))' : 'transparent'
+                backgroundColor:
+                  index === 0 ? 'hsl(var(--accent))' : 'transparent',
               }}
             >
               <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted text-sm font-bold">
                 {index + 1}
               </div>
-              
+
               <div className="flex-1 min-w-0">
                 <div className="font-medium flex items-center gap-2 text-sm sm:text-base truncate">
                   <span className="truncate">{team.team_name}</span>
-                  {index === 0 && <Trophy className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500 flex-shrink-0" />}
+                  {index === 0 && (
+                    <Trophy className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500 flex-shrink-0" />
+                  )}
                 </div>
               </div>
-              
-              <div 
+
+              <div
                 className="text-lg sm:text-xl font-bold flex-shrink-0"
                 style={{ color: team.team_color }}
               >
@@ -128,7 +140,7 @@ export const RealtimeScoreboard: React.FC<RealtimeScoreboardProps> = ({ eventId 
             </div>
           ))}
         </div>
-        
+
         {!isConnected && (
           <div className="text-center mt-4 text-sm text-muted-foreground">
             Connecting to live updates...

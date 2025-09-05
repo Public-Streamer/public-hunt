@@ -1,13 +1,13 @@
-import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { supabase } from "@/lib/supabase";
-import { useToast } from "@/hooks/use-toast";
-import { brandName } from "@/lib/brand";
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { supabase } from '@/lib/supabase';
+import { useToast } from '@/hooks/use-toast';
+import { brandName } from '@/lib/brand';
 
 interface ProfileSetupProps {
   onComplete: () => void;
@@ -15,14 +15,14 @@ interface ProfileSetupProps {
 
 const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
   const [formData, setFormData] = useState({
-    username: "",
-    displayName: "",
-    bio: "",
-    location: "",
-    website: "",
-    birthday: "",
+    username: '',
+    displayName: '',
+    bio: '',
+    location: '',
+    website: '',
+    birthday: '',
   });
-  const [profilePicture, setProfilePicture] = useState<string>("");
+  const [profilePicture, setProfilePicture] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -34,9 +34,9 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) throw new Error("No user found");
+      if (!user) throw new Error('No user found');
 
-      const { error } = await supabase.from("user_profiles").insert({
+      const { error } = await supabase.from('user_profiles').insert({
         user_id: user.id,
         username: formData.username,
         display_name: formData.displayName,
@@ -50,15 +50,15 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
       if (error) throw error;
 
       toast({
-        title: "Profile created successfully!",
-        description: "Welcome to " + brandName,
+        title: 'Profile created successfully!',
+        description: `Welcome to ${brandName}`,
       });
       onComplete();
     } catch (error) {
       toast({
-        title: "Error creating profile",
-        description: error instanceof Error ? error.message : "Unknown error",
-        variant: "destructive",
+        title: 'Error creating profile',
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -164,7 +164,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
           </div>
 
           <Button type="submit" disabled={loading} className="w-full">
-            {loading ? "Creating Profile..." : "Create Profile"}
+            {loading ? 'Creating Profile...' : 'Create Profile'}
           </Button>
         </form>
       </CardContent>

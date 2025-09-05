@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 interface ControlLock {
   owner: string;
@@ -34,21 +34,32 @@ export const useEventControlLock = ({
     setLoading(true);
     setError(null);
     try {
-      const { data, error } = await supabase.functions.invoke("scoreboard-operations", {
-        body: { action: "acquireLock", eventId, override: !!opts?.override || overrideIfHost },
-      });
+      const { data, error } = await supabase.functions.invoke(
+        'scoreboard-operations',
+        {
+          body: {
+            action: 'acquireLock',
+            eventId,
+            override: !!opts?.override || overrideIfHost,
+          },
+        }
+      );
       if (error) throw error;
-      if ((data as any)?.error === "locked") {
+      if ((data as any)?.error === 'locked') {
         const info = data as any;
         setLock(info.lock || null);
-        setError("locked");
-        toast({ title: "Controls in use", description: `Locked by ${info.owner_name || "another user"}`, variant: "destructive" });
+        setError('locked');
+        toast({
+          title: 'Controls in use',
+          description: `Locked by ${info.owner_name || 'another user'}`,
+          variant: 'destructive',
+        });
         return false;
       }
       setLock((data as any)?.lock || null);
       return true;
     } catch (e: any) {
-      setError(e?.message || "Failed to acquire lock");
+      setError(e?.message || 'Failed to acquire lock');
       return false;
     } finally {
       setLoading(false);
@@ -61,12 +72,15 @@ export const useEventControlLock = ({
       // Close to expiry, renew
       renewingRef.current = true;
       try {
-        const { data, error } = await supabase.functions.invoke("scoreboard-operations", {
-          body: { action: "renewLock", eventId, override: overrideIfHost },
-        });
+        const { data, error } = await supabase.functions.invoke(
+          'scoreboard-operations',
+          {
+            body: { action: 'renewLock', eventId, override: overrideIfHost },
+          }
+        );
         if (!error) setLock((data as any)?.lock || null);
       } catch (e: any) {
-        console.log(e)
+        console.log(e);
       }
       renewingRef.current = false;
     }
@@ -75,11 +89,11 @@ export const useEventControlLock = ({
   const release = async () => {
     if (!enabled) return;
     try {
-      await supabase.functions.invoke("scoreboard-operations", {
-        body: { action: "releaseLock", eventId },
+      await supabase.functions.invoke('scoreboard-operations', {
+        body: { action: 'releaseLock', eventId },
       });
     } catch (e: any) {
-      console.log(e)
+      console.log(e);
     }
     setLock(null);
   };
@@ -95,17 +109,20 @@ export const useEventControlLock = ({
     };
     start();
     const onVis = () => {
-      if (document.visibilityState === "visible") renew();
+      if (document.visibilityState === 'visible') renew();
     };
-    document.addEventListener("visibilitychange", onVis);
+    document.addEventListener('visibilitychange', onVis);
     return () => {
       clearInterval(interval);
-      document.removeEventListener("visibilitychange", onVis);
+      document.removeEventListener('visibilitychange', onVis);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId, enabled, autoAcquire]);
 
-  const lockedByName = useMemo(() => (lock && !owned ? lock.owner_name || "another user" : null), [lock, owned]);
+  const lockedByName = useMemo(
+    () => (lock && !owned ? lock.owner_name || 'another user' : null),
+    [lock, owned]
+  );
 
   return {
     lock,

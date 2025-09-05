@@ -1,8 +1,8 @@
-import React, { useState } from "react";
-import { Send } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
+import React, { useState } from 'react';
+import { Send } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { cn } from '@/lib/utils';
 
 interface ReplyComposerProps {
   onSubmit: (content: string) => Promise<boolean>;
@@ -11,13 +11,13 @@ interface ReplyComposerProps {
   disabled?: boolean;
 }
 
-export function ReplyComposer({ 
-  onSubmit, 
-  placeholder = "Write a reply...", 
+export const ReplyComposer = ({
+  onSubmit,
+  placeholder = 'Write a reply...',
   className,
-  disabled = false 
-}: ReplyComposerProps) {
-  const [content, setContent] = useState("");
+  disabled = false,
+}: ReplyComposerProps) => {
+  const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent | React.KeyboardEvent) => {
@@ -27,20 +27,20 @@ export function ReplyComposer({
     setIsSubmitting(true);
     const success = await onSubmit(content.trim());
     if (success) {
-      setContent("");
+      setContent('');
     }
     setIsSubmitting(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e);
     }
   };
 
   return (
-    <div className={cn("flex gap-2 items-start", className)}>
+    <div className={cn('flex gap-2 items-start', className)}>
       <Textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
@@ -61,4 +61,4 @@ export function ReplyComposer({
       </Button>
     </div>
   );
-}
+};

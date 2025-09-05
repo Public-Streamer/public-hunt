@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
+import { Image, Video, Smile, Send } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Image, Video, Smile, Send } from 'lucide-react';
 import SocialPost from './SocialPost';
 
 interface Post {
@@ -19,7 +19,7 @@ interface Post {
   comments: number;
   shares: number;
   media_url?: string;
-  media_type?: "image" | "video";
+  media_type?: 'image' | 'video';
   channels?: {
     id: string;
     name: string;
@@ -51,7 +51,7 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
   onLikePost,
   onCommentPost,
   onSharePost,
-  placeholder = "What's on your mind?"
+  placeholder = "What's on your mind?",
 }) => {
   const [newPost, setNewPost] = useState('');
 
@@ -132,7 +132,9 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
             onLike={onLikePost}
             onComment={onCommentPost}
             onShare={onSharePost}
-            onEdit={(postId, newContent) => console.log('Edit post:', postId, newContent)}
+            onEdit={(postId, newContent) =>
+              console.log('Edit post:', postId, newContent)
+            }
             onDelete={(postId) => console.log('Delete post:', postId)}
           />
         ))}

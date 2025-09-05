@@ -4,11 +4,14 @@ import LegalAgreementBody from '@/components/legal/LegalAgreementBody';
 const Terms: React.FC = () => {
   useEffect(() => {
     const title = 'Terms of Service - Public Streamer';
-    const description = 'Read Public Streamer\'s Terms of Service for media streaming, content, and user responsibilities.';
+    const description =
+      "Read Public Streamer's Terms of Service for media streaming, content, and user responsibilities.";
     document.title = title;
 
     const setMeta = (name: string, content: string) => {
-      let el = document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement | null;
+      let el = document.querySelector(
+        `meta[name="${name}"]`
+      ) as HTMLMetaElement | null;
       if (!el) {
         el = document.createElement('meta');
         el.setAttribute('name', name);
@@ -18,7 +21,9 @@ const Terms: React.FC = () => {
     };
     setMeta('description', description);
 
-    let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+    let canonical = document.querySelector(
+      'link[rel="canonical"]'
+    ) as HTMLLinkElement | null;
     if (!canonical) {
       canonical = document.createElement('link');
       canonical.setAttribute('rel', 'canonical');
@@ -31,7 +36,7 @@ const Terms: React.FC = () => {
       '@type': 'WebPage',
       name: 'Terms of Service',
       description,
-      url: `${window.location.origin}/terms`
+      url: `${window.location.origin}/terms`,
     };
     const script = document.createElement('script');
     script.type = 'application/ld+json';

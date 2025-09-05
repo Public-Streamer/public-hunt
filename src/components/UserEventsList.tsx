@@ -1,11 +1,27 @@
 import React, { useState, useEffect } from 'react';
+import {
+  Calendar,
+  Clock,
+  DollarSign,
+  ExternalLink,
+  Trash2,
+} from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { supabase } from '@/lib/supabase';
-import { Calendar, Clock, DollarSign, ExternalLink, Trash2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
 interface Event {
@@ -54,20 +70,20 @@ const UserEventsList: React.FC<UserEventsListProps> = ({ userId }) => {
 
   const getStatusColor = (event: Event) => {
     if (event.is_live) return 'bg-red-500';
-    
+
     const eventDate = new Date(`${event.date}T${event.time}`);
     const now = new Date();
-    
+
     if (eventDate > now) return 'bg-blue-500';
     return 'bg-gray-500';
   };
 
   const getStatusText = (event: Event) => {
     if (event.is_live) return 'live';
-    
+
     const eventDate = new Date(`${event.date}T${event.time}`);
     const now = new Date();
-    
+
     if (eventDate > now) return 'upcoming';
     return 'completed';
   };
@@ -83,18 +99,18 @@ const UserEventsList: React.FC<UserEventsListProps> = ({ userId }) => {
       if (error) throw error;
 
       // Remove the event from local state
-      setEvents(events.filter(event => event.id !== eventId));
-      
+      setEvents(events.filter((event) => event.id !== eventId));
+
       toast({
-        title: "Event deleted",
-        description: "The event has been successfully deleted.",
+        title: 'Event deleted',
+        description: 'The event has been successfully deleted.',
       });
     } catch (error) {
       console.error('Error deleting event:', error);
       toast({
-        title: "Error",
-        description: "Failed to delete the event. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to delete the event. Please try again.',
+        variant: 'destructive',
       });
     }
   };
@@ -125,7 +141,9 @@ const UserEventsList: React.FC<UserEventsListProps> = ({ userId }) => {
                 <div className="flex justify-between items-start">
                   <div>
                     <CardTitle className="text-lg">{event.name}</CardTitle>
-                    <p className="text-sm text-gray-600 mt-1">{event.description}</p>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {event.description}
+                    </p>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Badge variant="secondary">{event.category}</Badge>
@@ -136,11 +154,15 @@ const UserEventsList: React.FC<UserEventsListProps> = ({ userId }) => {
                 </div>
               </CardHeader>
               <CardContent>
-                  <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4 text-sm text-gray-600">
                     <div className="flex items-center space-x-1">
                       <Calendar className="w-4 h-4" />
-                      <span>{event.date ? new Date(event.date).toLocaleDateString() : 'No date set'}</span>
+                      <span>
+                        {event.date
+                          ? new Date(event.date).toLocaleDateString()
+                          : 'No date set'}
+                      </span>
                     </div>
                     <div className="flex items-center space-x-1">
                       <Clock className="w-4 h-4" />
@@ -153,7 +175,13 @@ const UserEventsList: React.FC<UserEventsListProps> = ({ userId }) => {
                     <span>{event.viewer_count || 0} viewers</span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Link to={event.slug ? `/event/${event.slug}` : `/event/${event.id}`}>
+                    <Link
+                      to={
+                        event.slug
+                          ? `/event/${event.slug}`
+                          : `/event/${event.id}`
+                      }
+                    >
                       <Button variant="outline" size="sm">
                         <ExternalLink className="w-4 h-4 mr-1" />
                         View
@@ -161,7 +189,11 @@ const UserEventsList: React.FC<UserEventsListProps> = ({ userId }) => {
                     </Link>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-destructive hover:text-destructive"
+                        >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </AlertDialogTrigger>
@@ -169,13 +201,15 @@ const UserEventsList: React.FC<UserEventsListProps> = ({ userId }) => {
                         <AlertDialogHeader>
                           <AlertDialogTitle>Delete Event</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Are you sure you want to delete "<strong>{event.name}</strong>"? 
-                            This action cannot be undone and will permanently remove the event and all associated data.
+                            Are you sure you want to delete "
+                            <strong>{event.name}</strong>"? This action cannot
+                            be undone and will permanently remove the event and
+                            all associated data.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction 
+                          <AlertDialogAction
                             onClick={() => handleDeleteEvent(event.id)}
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                           >

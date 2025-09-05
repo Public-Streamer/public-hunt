@@ -5,11 +5,8 @@ import React, {
   useMemo,
   Suspense,
   startTransition,
-} from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+} from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   Calendar,
   Clock,
@@ -18,41 +15,43 @@ import {
   ArrowLeft,
   Loader2,
   Flag,
-} from "lucide-react";
-import { LiveKitRoomLazy, RoomAudioRendererLazy } from "@/lib/livekitLazy";
-import "@livekit/components-styles";
-import SocialShareMenu from "@/components/SocialShareMenu";
-import TicketPurchaseModal from "@/components/TicketPurchaseModal";
-import StreamPreviewContainer from "@/components/StreamPreviewContainer";
-import { ReportEventModal } from "@/components/ReportEventModal";
-import { EventSocialSection } from "@/components/EventSocialSection";
-import { useReportEvent } from "@/hooks/useReportEvent";
-import { CustomScoreboard } from "@/components/CustomScoreboard";
-import { PinnedMessageSection } from "@/components/PinnedMessageSection";
-import EventStreamPreview from "@/components/EventStreamPreview";
-import MediaBackground from "@/components/MediaBackground";
-import { supabase } from "@/lib/supabase";
-import { useToast } from "@/hooks/use-toast";
-import { useAppContext } from "@/contexts/AppContext";
-import { useScoreboardTeams } from "@/hooks/useScoreboardTeams";
-import { getShareableEventUrl } from "@/lib/shareUtils";
-import { Database } from "@/integrations/supabase/types";
-import { CoonhoundScoreboardViewer } from "@/components/scorecard/CoonhoundScoreboardViewer";
-import { patchEvent } from "@/lib/eventStore";
-import { useEventSelector } from "@/hooks/useEventData";
-import { useQuery } from "@tanstack/react-query";
-import LiveDiscussionSection from "@/components/LiveDiscussionSection";
+} from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { LiveKitRoomLazy, RoomAudioRendererLazy } from '@/lib/livekitLazy';
+import '@livekit/components-styles';
+import SocialShareMenu from '@/components/SocialShareMenu';
+import TicketPurchaseModal from '@/components/TicketPurchaseModal';
+import StreamPreviewContainer from '@/components/StreamPreviewContainer';
+import { ReportEventModal } from '@/components/ReportEventModal';
+import { EventSocialSection } from '@/components/EventSocialSection';
+import { useReportEvent } from '@/hooks/useReportEvent';
+import { CustomScoreboard } from '@/components/CustomScoreboard';
+import { PinnedMessageSection } from '@/components/PinnedMessageSection';
+import EventStreamPreview from '@/components/EventStreamPreview';
+import MediaBackground from '@/components/MediaBackground';
+import { supabase } from '@/lib/supabase';
+import { useToast } from '@/hooks/use-toast';
+import { useAppContext } from '@/contexts/AppContext';
+import { useScoreboardTeams } from '@/hooks/useScoreboardTeams';
+import { getShareableEventUrl } from '@/lib/shareUtils';
+import { Database } from '@/integrations/supabase/types';
+import { CoonhoundScoreboardViewer } from '@/components/scorecard/CoonhoundScoreboardViewer';
+import { patchEvent } from '@/lib/eventStore';
+import { useEventSelector } from '@/hooks/useEventData';
+import LiveDiscussionSection from '@/components/LiveDiscussionSection';
 
-type EventData = Database["public"]["Tables"]["events"]["Row"];
+type EventData = Database['public']['Tables']['events']['Row'];
 
 const EventPage: React.FC = () => {
-  console.log("[EventPage] Component render started");
+  console.log('[EventPage] Component render started');
 
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user: currentUser, currentUserProfile: currentUserProfile } =
-    useAppContext();
+  const { user: currentUser, currentUserProfile } = useAppContext();
   const [loading, setLoading] = useState(false);
   const [hasTicket, setHasTicket] = useState(false);
   const [checkingTicket, setCheckingTicket] = useState(false);
@@ -74,7 +73,7 @@ const EventPage: React.FC = () => {
     isFetching: isFetchingEvent,
     error: eventError,
   } = useQuery<EventData>({
-    queryKey: ["event-data", eventId],
+    queryKey: ['event-data', eventId],
     queryFn: () => fetchEventData(),
     enabled: !!eventId,
   });
@@ -90,16 +89,16 @@ const EventPage: React.FC = () => {
     try {
       setCheckingTicket(true);
       const { data, error } = await supabase
-        .from("tickets")
-        .select("*")
-        .eq("event_id", eventData?.id)
-        .eq("user_id", currentUser.id)
-        .eq("status", "active")
+        .from('tickets')
+        .select('*')
+        .eq('event_id', eventData?.id)
+        .eq('user_id', currentUser.id)
+        .eq('status', 'active')
         .single();
 
       setHasTicket(!!data && !error);
     } catch (error) {
-      console.error("Error checking ticket status:", error);
+      console.error('Error checking ticket status:', error);
       setHasTicket(false);
     } finally {
       setCheckingTicket(false);
@@ -111,15 +110,15 @@ const EventPage: React.FC = () => {
 
     try {
       const { data, error } = await supabase
-        .from("event_streamers")
-        .select("*")
-        .eq("event_id", eventData?.id)
-        .eq("streamer_id", currentUser.id)
+        .from('event_streamers')
+        .select('*')
+        .eq('event_id', eventData?.id)
+        .eq('streamer_id', currentUser.id)
         .single();
 
       setIsStreamer(!!data && !error);
     } catch (error) {
-      console.error("Error checking streamer status:", error);
+      console.error('Error checking streamer status:', error);
       setIsStreamer(false);
     }
   }, [currentUser, eventData?.id]);
@@ -143,19 +142,19 @@ const EventPage: React.FC = () => {
 
   // Hook to track scoreboard teams for conditional rendering
   const { hasTeams: hasCustomTeams } = useScoreboardTeams(
-    eventData?.id || "",
-    selectedGameType === "custom" ? "custom" : undefined
+    eventData?.id || '',
+    selectedGameType === 'custom' ? 'custom' : undefined
   );
   const { hasTeams: hasCoonHuntTeams } = useScoreboardTeams(
-    eventData?.id || "",
-    selectedGameType === "coon_hunt" ? "coon_hunt" : undefined
+    eventData?.id || '',
+    selectedGameType === 'coon_hunt' ? 'coon_hunt' : undefined
   );
 
   // Determine if scoreboard should be visible
   const showScoreboard =
     selectedGameType &&
-    ((selectedGameType === "custom" && hasCustomTeams) ||
-      (selectedGameType === "coon_hunt" && hasCoonHuntTeams));
+    ((selectedGameType === 'custom' && hasCustomTeams) ||
+      (selectedGameType === 'coon_hunt' && hasCoonHuntTeams));
 
   useEffect(() => {
     if (currentUser?.id && eventData?.id) {
@@ -171,11 +170,11 @@ const EventPage: React.FC = () => {
     const subscription = supabase
       .channel(`event-page-${eventData?.id}`)
       .on(
-        "postgres_changes",
+        'postgres_changes',
         {
-          event: "UPDATE",
-          schema: "public",
-          table: "events",
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'events',
           filter: `id=eq.${eventData?.id}`,
         },
         (payload) => {
@@ -192,7 +191,7 @@ const EventPage: React.FC = () => {
       .subscribe();
 
     return () => {
-      console.log("[EventPage] Cleaning up real-time subscription");
+      console.log('[EventPage] Cleaning up real-time subscription');
       subscription.unsubscribe();
     };
   }, [eventData?.id]);
@@ -221,7 +220,7 @@ const EventPage: React.FC = () => {
     loading: reportStatusLoading,
     checkStatus: refreshReportStatus,
   } = useReportEvent({
-    eventId: eventData?.id || "",
+    eventId: eventData?.id || '',
     enabled: !!(eventData?.id && isViewer),
   });
 
@@ -231,11 +230,11 @@ const EventPage: React.FC = () => {
     try {
       setLoading(true);
       const { data, error } = await supabase.functions.invoke(
-        "create-livekit-token",
+        'create-livekit-token',
         {
           body: {
             eventId: eventData?.id,
-            userRole: "viewer",
+            userRole: 'viewer',
             permissions: {
               canPublish: false,
               canSubscribe: true,
@@ -246,12 +245,12 @@ const EventPage: React.FC = () => {
       );
 
       if (error) {
-        console.error("Error generating viewer token:", error);
+        console.error('Error generating viewer token:', error);
         return;
       }
 
       if (!data?.token || !data?.roomName || !data?.serverUrl) {
-        console.error("Invalid token response");
+        console.error('Invalid token response');
         return;
       }
 
@@ -261,7 +260,7 @@ const EventPage: React.FC = () => {
       setLoading(false);
     } catch (error) {
       setLoading(false);
-      console.error("Error generating viewer token:", error);
+      console.error('Error generating viewer token:', error);
     }
   }, [currentUser?.id, eventData?.id]);
 
@@ -287,22 +286,22 @@ const EventPage: React.FC = () => {
   const fetchEventData = async () => {
     try {
       // Import utility functions
-      const { parseEventIdentifier } = await import("@/lib/eventUtils");
+      const { parseEventIdentifier } = await import('@/lib/eventUtils');
       const { isUuid, identifier } = parseEventIdentifier(eventId!);
 
       // Fetch event data by UUID or slug
       const eventQuery = isUuid
-        ? supabase.from("events").select("*, metadata").eq("id", identifier)
-        : supabase.from("events").select("*, metadata").eq("slug", identifier);
+        ? supabase.from('events').select('*, metadata').eq('id', identifier)
+        : supabase.from('events').select('*, metadata').eq('slug', identifier);
 
       const { data: eventData, error: eventError } = await eventQuery.single();
 
       if (eventError) {
-        console.error("Error fetching event:", eventError);
+        console.error('Error fetching event:', eventError);
         toast({
-          title: "Error",
-          description: "Failed to load event details",
-          variant: "destructive",
+          title: 'Error',
+          description: 'Failed to load event details',
+          variant: 'destructive',
         });
         return;
       }
@@ -311,9 +310,9 @@ const EventPage: React.FC = () => {
       let hostStripeAccountId = null;
       if (eventData?.created_by) {
         const { data: stripeAccount } = await supabase
-          .from("host_stripe_accounts")
-          .select("stripe_account_id")
-          .eq("user_id", eventData?.created_by)
+          .from('host_stripe_accounts')
+          .select('stripe_account_id')
+          .eq('user_id', eventData?.created_by)
           .single();
 
         hostStripeAccountId = stripeAccount?.stripe_account_id || null;
@@ -326,7 +325,7 @@ const EventPage: React.FC = () => {
       };
       return eventWithStripeAccount;
     } catch (error) {
-      console.error("Error fetching event data:", error);
+      console.error('Error fetching event data:', error);
       throw error;
     }
   };
@@ -349,9 +348,9 @@ const EventPage: React.FC = () => {
   const handlePayment = useCallback(() => {
     if (!currentUser?.id) {
       toast({
-        title: "Sign In Required",
-        description: "Please sign in to purchase tickets",
-        variant: "destructive",
+        title: 'Sign In Required',
+        description: 'Please sign in to purchase tickets',
+        variant: 'destructive',
       });
       navigate(
         `/login?redirect=${encodeURIComponent(window.location.pathname)}`
@@ -385,9 +384,9 @@ const EventPage: React.FC = () => {
   const handleReportClick = useCallback(() => {
     if (!currentUser?.id) {
       toast({
-        title: "Sign In Required",
-        description: "Please sign in to report this event",
-        variant: "destructive",
+        title: 'Sign In Required',
+        description: 'Please sign in to report this event',
+        variant: 'destructive',
       });
       navigate(
         `/login?redirect=${encodeURIComponent(window.location.pathname)}`
@@ -401,8 +400,8 @@ const EventPage: React.FC = () => {
     setHasTicket(true);
     checkTicketStatus(); // Refresh ticket status
     toast({
-      title: "Success!",
-      description: "Your ticket has been purchased successfully",
+      title: 'Success!',
+      description: 'Your ticket has been purchased successfully',
     });
   };
 
@@ -415,7 +414,7 @@ const EventPage: React.FC = () => {
   };
 
   const goBackToEvents = () => {
-    startTransition(() => navigate("/events"));
+    startTransition(() => navigate('/events'));
   };
 
   const AdmissionButton = () => {
@@ -434,7 +433,7 @@ const EventPage: React.FC = () => {
           onClick={goToStage}
           className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-lg py-3"
         >
-          Enter Stage {isEventHost ? "(Host)" : "(Streamer)"}
+          Enter Stage {isEventHost ? '(Host)' : '(Streamer)'}
         </Button>
       );
     }
@@ -484,9 +483,9 @@ const EventPage: React.FC = () => {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded mb-4"></div>
-          <div className="h-64 bg-gray-200 rounded mb-4"></div>
-          <div className="h-32 bg-gray-200 rounded"></div>
+          <div className="h-8 bg-gray-200 rounded mb-4" />
+          <div className="h-64 bg-gray-200 rounded mb-4" />
+          <div className="h-32 bg-gray-200 rounded" />
         </div>
       </div>
     );
@@ -512,10 +511,10 @@ const EventPage: React.FC = () => {
   const mediaData =
     eventData?.media_urls?.map((url, index) => ({
       id: index.toString(),
-      type: url.endsWith(".mp4") ? ("video" as const) : ("image" as const),
+      type: url.endsWith('.mp4') ? ('video' as const) : ('image' as const),
       url,
       title: `Media ${index + 1}`,
-      thumbnail: url.endsWith(".mp4") ? "/placeholder.gif" : url,
+      thumbnail: url.endsWith('.mp4') ? '/placeholder.gif' : url,
     })) || [];
 
   return (
@@ -562,10 +561,10 @@ const EventPage: React.FC = () => {
                       adaptiveStream: true,
                       dynacast: true,
                     }}
-                    connect={true}
+                    connect
                   >
                     <StreamPreviewContainer
-                      mediaUrls={eventData?.media_urls || ["/placeholder.gif"]}
+                      mediaUrls={eventData?.media_urls || ['/placeholder.gif']}
                       eventName={eventData?.name}
                       isLive={isLive}
                       hasAccess={hasTicket || canEnterStage}
@@ -587,12 +586,12 @@ const EventPage: React.FC = () => {
                       showScoreboard &&
                       (hasTicket || canEnterStage) && (
                         <div className="p-5">
-                          {selectedGameType === "custom" ? (
+                          {selectedGameType === 'custom' ? (
                             <CustomScoreboard
                               eventId={eventData?.id}
                               isHost={false}
                             />
-                          ) : selectedGameType === "coon_hunt" ? (
+                          ) : selectedGameType === 'coon_hunt' ? (
                             <CoonhoundScoreboardViewer
                               eventId={eventData?.id}
                               isViewer={isViewer}
@@ -612,25 +611,25 @@ const EventPage: React.FC = () => {
                         eventData?.ticket_price > 0,
                       noTicket: !hasTicket,
                       cannotEnterStage: !canEnterStage,
-                      isLive: isLive,
+                      isLive,
                     };
 
                     console.log(
-                      "[EventStreamPreview] Debug conditions:",
+                      '[EventStreamPreview] Debug conditions:',
                       previewConditions
                     );
                     console.log(
-                      "[EventStreamPreview] eventData?.ticket_price:",
+                      '[EventStreamPreview] eventData?.ticket_price:',
                       eventData?.ticket_price
                     );
-                    console.log("[EventStreamPreview] hasTicket:", hasTicket);
+                    console.log('[EventStreamPreview] hasTicket:', hasTicket);
                     console.log(
-                      "[EventStreamPreview] canEnterStage:",
+                      '[EventStreamPreview] canEnterStage:',
                       canEnterStage
                     );
-                    console.log("[EventStreamPreview] isLive:", isLive);
+                    console.log('[EventStreamPreview] isLive:', isLive);
                     console.log(
-                      "[EventStreamPreview] currentUser:",
+                      '[EventStreamPreview] currentUser:',
                       !!currentUser
                     );
 
@@ -642,29 +641,29 @@ const EventPage: React.FC = () => {
                       !canEnterStage &&
                       isLive;
 
-                    console.log("[EventStreamPreview] Should show preview:");
+                    console.log('[EventStreamPreview] Should show preview:');
 
                     return shouldShowPreview;
                   })() ? (
                     <div className="relative aspect-video bg-black">
                       <EventStreamPreview
                         mediaUrls={
-                          eventData?.media_urls || ["/placeholder.svg"]
+                          eventData?.media_urls || ['/placeholder.svg']
                         }
                         eventId={eventData?.id}
                         eventName={eventData?.name}
                         isLive={isLive}
                         fallbackImage={
-                          eventData?.media_urls?.[0] || "/placeholder.svg"
+                          eventData?.media_urls?.[0] || '/placeholder.svg'
                         }
                         hasAccess={hasTicket || canEnterStage}
                       />
                     </div>
                   ) : (
                     <MediaBackground
-                      mediaUrls={eventData?.media_urls || ["/placeholder.svg"]}
+                      mediaUrls={eventData?.media_urls || ['/placeholder.svg']}
                       className="aspect-video "
-                      enableModal={true}
+                      enableModal
                       autoIntervalMs={3000}
                     />
                   )}
@@ -689,10 +688,10 @@ const EventPage: React.FC = () => {
                 currentUserProfile
                   ? {
                       id: currentUserProfile.id,
-                      username: currentUserProfile.display_name || "User",
-                      display_name: currentUserProfile.display_name || "User",
+                      username: currentUserProfile.display_name || 'User',
+                      display_name: currentUserProfile.display_name || 'User',
                       profile_picture_url:
-                        currentUserProfile.profile_picture_url || "",
+                        currentUserProfile.profile_picture_url || '',
                     }
                   : undefined
               }
@@ -760,7 +759,7 @@ const EventPage: React.FC = () => {
                   <div className="flex items-center text-xs sm:text-sm">
                     <MapPin className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 text-gray-500 flex-shrink-0" />
                     <span className="truncate">
-                      {eventData?.location || "Online"}
+                      {eventData?.location || 'Online'}
                     </span>
                   </div>
                 </div>
@@ -797,8 +796,8 @@ const EventPage: React.FC = () => {
                     onClick={handleReportClick}
                     disabled={hasReported || reportStatusLoading}
                   >
-                    <Flag className="h-4 w-4 mr-2" />{" "}
-                    {hasReported ? "Reported" : "Report Event"}
+                    <Flag className="h-4 w-4 mr-2" />{' '}
+                    {hasReported ? 'Reported' : 'Report Event'}
                   </Button>
                 </CardContent>
               </Card>

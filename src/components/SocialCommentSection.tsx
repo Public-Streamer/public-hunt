@@ -1,4 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import {
+  ThumbsUp,
+  ThumbsDown,
+  MessageCircle,
+  MoreHorizontal,
+} from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -6,9 +13,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
-import { ThumbsUp, ThumbsDown, MessageCircle, MoreHorizontal } from 'lucide-react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { formatDistanceToNow } from 'date-fns';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface Comment {
   id: string;
@@ -32,10 +42,10 @@ interface SocialCommentSectionProps {
   canModerate?: boolean;
 }
 
-const SocialCommentSection: React.FC<SocialCommentSectionProps> = ({ 
-  entityId, 
-  entityType, 
-  canModerate = false 
+const SocialCommentSection: React.FC<SocialCommentSectionProps> = ({
+  entityId,
+  entityType,
+  canModerate = false,
 }) => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
@@ -49,7 +59,9 @@ const SocialCommentSection: React.FC<SocialCommentSectionProps> = ({
   }, [entityId]);
 
   const getcurrentUserProfile = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (user) {
       const { data: profile } = await supabase
         .from('user_profiles')
@@ -62,11 +74,14 @@ const SocialCommentSection: React.FC<SocialCommentSectionProps> = ({
 
   const fetchComments = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       const { data, error } = await supabase
         .from('comments')
-        .select(`
+        .select(
+          `
           *,
           user_profile:user_profiles!user_profile_id(
             id,
@@ -78,39 +93,45 @@ const SocialCommentSection: React.FC<SocialCommentSectionProps> = ({
             is_like,
             user_profile_id
           )
-        `)
+        `
+        )
         .eq('post_id', entityId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
       // Process comments to calculate likes/dislikes and user interaction state
-      const processedComments = data?.map(comment => {
-        const likes = comment.comment_likes?.filter(like => like.is_like === true) || [];
-        const dislikes = comment.comment_likes?.filter(like => like.is_like === false) || [];
-        
-        let userLiked = false;
-        let userDisliked = false;
-        
-        if (user && currentUserProfile) {
-          const userLike = comment.comment_likes?.find(like => 
-            like.user_profile_id === currentUserProfile.id
-          );
-          if (userLike) {
-            userLiked = userLike.is_like === true;
-            userDisliked = userLike.is_like === false;
-          }
-        }
+      const processedComments =
+        data?.map((comment) => {
+          const likes =
+            comment.comment_likes?.filter((like) => like.is_like === true) ||
+            [];
+          const dislikes =
+            comment.comment_likes?.filter((like) => like.is_like === false) ||
+            [];
 
-        return {
-          ...comment,
-          likes_count: likes.length,
-          dislikes_count: dislikes.length,
-          user_liked: userLiked,
-          user_disliked: userDisliked,
-          comment_likes: undefined // Remove this from the final object
-        };
-      }) || [];
+          let userLiked = false;
+          let userDisliked = false;
+
+          if (user && currentUserProfile) {
+            const userLike = comment.comment_likes?.find(
+              (like) => like.user_profile_id === currentUserProfile.id
+            );
+            if (userLike) {
+              userLiked = userLike.is_like === true;
+              userDisliked = userLike.is_like === false;
+            }
+          }
+
+          return {
+            ...comment,
+            likes_count: likes.length,
+            dislikes_count: dislikes.length,
+            user_liked: userLiked,
+            user_disliked: userDisliked,
+            comment_likes: undefined, // Remove this from the final object
+          };
+        }) || [];
 
       setComments(processedComments);
     } catch (error) {
@@ -124,13 +145,11 @@ const SocialCommentSection: React.FC<SocialCommentSectionProps> = ({
 
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('comments')
-        .insert({
-          content: newComment,
-          post_id: entityId,
-          user_profile_id: currentUserProfile.id
-        });
+      const { error } = await supabase.from('comments').insert({
+        content: newComment,
+        post_id: entityId,
+        user_profile_id: currentUserProfile.id,
+      });
 
       if (error) throw error;
 
@@ -138,13 +157,13 @@ const SocialCommentSection: React.FC<SocialCommentSectionProps> = ({
       fetchComments();
       toast({
         title: 'Comment posted',
-        description: 'Your comment has been posted successfully'
+        description: 'Your comment has been posted successfully',
       });
     } catch (error) {
       toast({
         title: 'Error',
         description: 'Failed to post comment',
-        variant: 'destructive'
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -155,13 +174,11 @@ const SocialCommentSection: React.FC<SocialCommentSectionProps> = ({
     if (!currentUserProfile) return;
 
     try {
-      const { error } = await supabase
-        .from('comment_likes')
-        .upsert({
-          comment_id: commentId,
-          user_profile_id: currentUserProfile.id,
-          is_like: isLike
-        });
+      const { error } = await supabase.from('comment_likes').upsert({
+        comment_id: commentId,
+        user_profile_id: currentUserProfile.id,
+        is_like: isLike,
+      });
 
       if (error) throw error;
       fetchComments();
@@ -169,7 +186,7 @@ const SocialCommentSection: React.FC<SocialCommentSectionProps> = ({
       toast({
         title: 'Error',
         description: 'Failed to update like',
-        variant: 'destructive'
+        variant: 'destructive',
       });
     }
   };
@@ -185,13 +202,13 @@ const SocialCommentSection: React.FC<SocialCommentSectionProps> = ({
       fetchComments();
       toast({
         title: 'Comment deleted',
-        description: 'Comment has been removed'
+        description: 'Comment has been removed',
       });
     } catch (error) {
       toast({
         title: 'Error',
         description: 'Failed to delete comment',
-        variant: 'destructive'
+        variant: 'destructive',
       });
     }
   };
@@ -212,7 +229,8 @@ const SocialCommentSection: React.FC<SocialCommentSectionProps> = ({
               <Avatar className="w-8 h-8">
                 <AvatarImage src={currentUserProfile.profile_picture_url} />
                 <AvatarFallback>
-                  {currentUserProfile.display_name?.[0] || currentUserProfile.username[0]}
+                  {currentUserProfile.display_name?.[0] ||
+                    currentUserProfile.username[0]}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
@@ -236,24 +254,31 @@ const SocialCommentSection: React.FC<SocialCommentSectionProps> = ({
         {/* Comments List */}
         <div className="space-y-4">
           {comments.map((comment) => (
-            <div key={comment.id} className="flex space-x-3 p-3 border rounded-lg">
+            <div
+              key={comment.id}
+              className="flex space-x-3 p-3 border rounded-lg"
+            >
               <Avatar className="w-8 h-8">
                 <AvatarImage src={comment.user_profile.profile_picture_url} />
                 <AvatarFallback>
-                  {comment.user_profile.display_name?.[0] || comment.user_profile.username[0]}
+                  {comment.user_profile.display_name?.[0] ||
+                    comment.user_profile.username[0]}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
                 <div className="flex items-center space-x-2">
                   <span className="font-semibold text-sm">
-                    {comment.user_profile.display_name || comment.user_profile.username}
+                    {comment.user_profile.display_name ||
+                      comment.user_profile.username}
                   </span>
                   <span className="text-xs text-gray-500">
-                    {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
+                    {formatDistanceToNow(new Date(comment.created_at), {
+                      addSuffix: true,
+                    })}
                   </span>
                 </div>
                 <p className="text-sm mt-1">{comment.content}</p>
-                
+
                 {/* Like/Dislike Buttons */}
                 <div className="flex items-center space-x-4 mt-2">
                   <Button
@@ -276,9 +301,10 @@ const SocialCommentSection: React.FC<SocialCommentSectionProps> = ({
                   </Button>
                 </div>
               </div>
-              
+
               {/* Moderation Menu */}
-              {(canModerate || comment.user_profile.id === currentUserProfile?.id) && (
+              {(canModerate ||
+                comment.user_profile.id === currentUserProfile?.id) && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm">
@@ -286,7 +312,9 @@ const SocialCommentSection: React.FC<SocialCommentSectionProps> = ({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
-                    <DropdownMenuItem onClick={() => handleDeleteComment(comment.id)}>
+                    <DropdownMenuItem
+                      onClick={() => handleDeleteComment(comment.id)}
+                    >
                       Delete Comment
                     </DropdownMenuItem>
                   </DropdownMenuContent>

@@ -1,12 +1,5 @@
-import React from "react";
-import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import { Link } from "react-router-dom";
+import React from 'react';
+import { Link } from 'react-router-dom';
 import {
   X,
   User,
@@ -19,10 +12,17 @@ import {
   Target,
   IdCard,
   CreditCard,
-} from "lucide-react";
-import { useAppContext } from "@/contexts/AppContext";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import TooltipWrapper from "@/components/ui/tooltip-wrapper";
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
+import { useAppContext } from '@/contexts/AppContext';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import TooltipWrapper from '@/components/ui/tooltip-wrapper';
 
 interface MobileNavProps {
   isOpen: boolean;
@@ -139,7 +139,9 @@ const MobileNav: React.FC<MobileNavProps> = ({
           </Link>
         </nav>
         <div className="mt-6">
-          <h4 className="text-xs uppercase tracking-wider text-gray-500 mb-2">Legal</h4>
+          <h4 className="text-xs uppercase tracking-wider text-gray-500 mb-2">
+            Legal
+          </h4>
           <Link
             to="/terms"
             onClick={onClose}

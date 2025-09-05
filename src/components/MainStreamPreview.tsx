@@ -1,11 +1,11 @@
-import React, { useEffect, useState, useRef } from "react";
-import { VideoTrackLazy } from "@/lib/livekitLazy";
-import type { TrackReference } from "@livekit/components-core";
-import { Badge } from "@/components/ui/badge";
-import { Eye } from "lucide-react";
+import React, { useEffect, useState, useRef } from 'react';
+import type { TrackReference } from '@livekit/components-core';
+import { Eye } from 'lucide-react';
+import { VideoTrackLazy } from '@/lib/livekitLazy';
+import { Badge } from '@/components/ui/badge';
 import { useStreamName } from '@/hooks/useStreamName';
-import MediaBackground from "./MediaBackground";
-import InStreamChatOverlay from "./InStreamChatOverlay";
+import MediaBackground from './MediaBackground';
+import InStreamChatOverlay from './InStreamChatOverlay';
 
 interface MainStreamPreviewProps {
   track?: TrackReference;
@@ -44,7 +44,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
   const streamName = useStreamName(track?.participant);
 
   useEffect(() => {
-    if (window.location.pathname === "/") {
+    if (window.location.pathname === '/') {
       setIsHome(true);
     } else {
       setIsHome(false);
@@ -53,7 +53,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
 
   // Detect iOS Safari
   const isIOSSafari = () => {
-    const userAgent = navigator.userAgent;
+    const { userAgent } = navigator;
     return (
       /iPad|iPhone|iPod/.test(userAgent) &&
       (/Safari/.test(userAgent) || /CriOS/.test(userAgent)) &&
@@ -70,7 +70,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
       // Look for video element within the container
       const container = videoContainerRef.current;
       if (container) {
-        const videoEl = container.querySelector("video");
+        const videoEl = container.querySelector('video');
         if (videoEl) {
           videoElementRef.current = videoEl;
           return videoEl;
@@ -93,7 +93,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
             return;
           }
         } catch (error) {
-          console.log("iOS video fullscreen failed, falling back to container");
+          console.log('iOS video fullscreen failed, falling back to container');
         }
       }
 
@@ -121,7 +121,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
           setShowControls(true);
           return;
         } catch (error) {
-          console.log("iOS video exit fullscreen failed");
+          console.log('iOS video exit fullscreen failed');
         }
       }
 
@@ -172,7 +172,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
     const handleVideoFullscreenChange = () => {
       const videoElement =
         videoElementRef.current ||
-        videoContainerRef.current?.querySelector("video");
+        videoContainerRef.current?.querySelector('video');
 
       if (videoElement && isIOSSafari()) {
         // Check if video is in fullscreen mode
@@ -192,41 +192,41 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
     };
 
     // Standard fullscreen events
-    document.addEventListener("fullscreenchange", handleFullscreenChange);
-    document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
-    document.addEventListener("msfullscreenchange", handleFullscreenChange);
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('msfullscreenchange', handleFullscreenChange);
 
     // iOS video fullscreen events
-    const videoElement = videoContainerRef.current?.querySelector("video");
+    const videoElement = videoContainerRef.current?.querySelector('video');
     if (videoElement && isIOSSafari()) {
       videoElement.addEventListener(
-        "webkitbeginfullscreen",
+        'webkitbeginfullscreen',
         handleVideoFullscreenChange
       );
       videoElement.addEventListener(
-        "webkitendfullscreen",
+        'webkitendfullscreen',
         handleVideoFullscreenChange
       );
     }
 
     return () => {
-      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
       document.removeEventListener(
-        "webkitfullscreenchange",
+        'webkitfullscreenchange',
         handleFullscreenChange
       );
       document.removeEventListener(
-        "msfullscreenchange",
+        'msfullscreenchange',
         handleFullscreenChange
       );
 
       if (videoElement && isIOSSafari()) {
         videoElement.removeEventListener(
-          "webkitbeginfullscreen",
+          'webkitbeginfullscreen',
           handleVideoFullscreenChange
         );
         videoElement.removeEventListener(
-          "webkitendfullscreen",
+          'webkitendfullscreen',
           handleVideoFullscreenChange
         );
       }
@@ -244,7 +244,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
     }
   };
 
-  const cameraOff = "/cameraOff.jpg";
+  const cameraOff = '/cameraOff.jpg';
   const bgUrl = mediaUrls?.[0] ? mediaUrls[0] : cameraOff;
   if (!track) {
     return (
@@ -268,7 +268,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
     );
   }
 
-  const participant = track.participant;
+  const { participant } = track;
 
   // const isAudioEnabled =
   //   audioTracks
@@ -293,66 +293,56 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
   // };
 
   return (
-    <>
-      <div
-        ref={videoContainerRef}
-        className={`aspect-video relative bg-black ${
-          isFullscreen ? "fixed inset-0 z-50 aspect-auto" : ""
+    <div
+      ref={videoContainerRef}
+      className={`aspect-video relative bg-black ${
+        isFullscreen ? 'fixed inset-0 z-50 aspect-auto' : ''
+      }`}
+      onMouseMove={handleMouseMove}
+      onTouchStart={handleMouseMove}
+    >
+      <VideoTrackLazy trackRef={track} className="w-full h-full object-cover" />
+
+      {/* <AudioTrack trackRef={audioTracks[0]}/> */}
+
+      {/* Live badge */}
+      <Badge
+        className={`absolute top-2 left-2 sm:top-4 sm:left-4 bg-red-600 text-white text-xs transition-opacity duration-300 z-50 ${
+          isFullscreen && !showControls ? 'opacity-0' : 'opacity-100'
         }`}
-        onMouseMove={handleMouseMove}
-        onTouchStart={handleMouseMove}
       >
-        <VideoTrackLazy
-          trackRef={track}
-          className="w-full h-full object-cover"
-        />
+        <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full mr-1 animate-pulse" />
+        LIVE
+      </Badge>
 
-        {/* <AudioTrack trackRef={audioTracks[0]}/> */}
+      {/* Multi-camera indicator */}
 
-        {/* Live badge */}
-        <Badge
-          className={`absolute top-2 left-2 sm:top-4 sm:left-4 bg-red-600 text-white text-xs transition-opacity duration-300 z-50 ${
-            isFullscreen && !showControls ? "opacity-0" : "opacity-100"
-          }`}
-        >
-          <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full mr-1 animate-pulse" />
-          LIVE
+      {/* Viewer Count */}
+      <div className="absolute top-2 right-2">
+        <Badge variant="secondary" className="flex items-center gap-1 text-xs">
+          <Eye className="h-3 w-3" />
+          {0}
         </Badge>
-
-        {/* Multi-camera indicator */}
-
-        {/* Viewer Count */}
-        <div className="absolute top-2 right-2">
-          <Badge
-            variant="secondary"
-            className="flex items-center gap-1 text-xs"
-          >
-            <Eye className="h-3 w-3" />
-                    {0}
-          </Badge>
-        </div>
-
-        {!isHome && (
-          <InStreamChatOverlay
-            eventId={eventId}
-            isVisible={isChatVisible}
-            onVisibilityToggle={() => setIsChatVisible(!isChatVisible)}
-            isFullscreen={isFullscreen}
-            showControls={showControls}
-            showFullscreenToggle={true}
-            onFullscreenToggle={handleFullscreenToggle}
-            eventHostId={eventHostId}
-          />
-        )}
-
-        {/* Participant info */}
-        <div className="absolute bottom-2 right-2 flex justify-end items-start z-10">
-          <Badge variant="default">
-            {streamName || 'Unknown'}
-          </Badge>
-        </div>
       </div>
-    </>
+
+      {!isHome && (
+        <InStreamChatOverlay
+          eventId={eventId}
+          isVisible={isChatVisible}
+          onVisibilityToggle={() => setIsChatVisible(!isChatVisible)}
+          isFullscreen={isFullscreen}
+          showControls={showControls}
+          showFullscreenToggle
+          onFullscreenToggle={handleFullscreenToggle}
+          eventHostId={eventHostId}
+        />
+      )}
+
+      {/* Participant info */}
+      <div className="absolute bottom-2 right-2 flex justify-end items-start z-10">
+        <Badge variant="default">{streamName || 'Unknown'}</Badge>
+      </div>
+    </div>
   );
 };
 

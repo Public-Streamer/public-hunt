@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
 import { UserPlus, UserMinus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 
@@ -15,7 +15,7 @@ const FollowButton: React.FC<FollowButtonProps> = ({
   targetId,
   targetType,
   currentUserId,
-  className = ''
+  className = '',
 }) => {
   const [isFollowing, setIsFollowing] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -52,7 +52,7 @@ const FollowButton: React.FC<FollowButtonProps> = ({
       toast({
         title: 'Error',
         description: 'Please log in to follow',
-        variant: 'destructive'
+        variant: 'destructive',
       });
       return;
     }
@@ -74,13 +74,11 @@ const FollowButton: React.FC<FollowButtonProps> = ({
           description: `Unfollowed ${targetType}`,
         });
       } else {
-        const { error } = await supabase
-          .from('user_follows')
-          .insert({
-            follower_id: currentUserId,
-            following_type: targetType,
-            following_id: targetId
-          });
+        const { error } = await supabase.from('user_follows').insert({
+          follower_id: currentUserId,
+          following_type: targetType,
+          following_id: targetId,
+        });
 
         if (error) throw error;
         setIsFollowing(true);
@@ -94,7 +92,7 @@ const FollowButton: React.FC<FollowButtonProps> = ({
       toast({
         title: 'Error',
         description: 'Failed to update follow status',
-        variant: 'destructive'
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);

@@ -1,11 +1,11 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
-import { Search, Clock } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
-import { Input } from "@/components/ui/input";
-import { useDebounce } from "@/hooks/useDebounce";
-import { useEventSearch, SearchResult } from "@/hooks/useEventSearch";
-import { cn } from "@/lib/utils";
-import MediaBackground from "./MediaBackground";
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { Search, Clock } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Input } from '@/components/ui/input';
+import { useDebounce } from '@/hooks/useDebounce';
+import { useEventSearch, SearchResult } from '@/hooks/useEventSearch';
+import { cn } from '@/lib/utils';
+import MediaBackground from './MediaBackground';
 
 interface EventSearchBoxProps {
   placeholder?: string;
@@ -13,10 +13,10 @@ interface EventSearchBoxProps {
 }
 
 const EventSearchBox: React.FC<EventSearchBoxProps> = ({
-  placeholder = "Search events, episodes, or channels…",
+  placeholder = 'Search events, episodes, or channels…',
   className,
 }) => {
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
@@ -32,7 +32,7 @@ const EventSearchBox: React.FC<EventSearchBoxProps> = ({
 
   // Load recent searches from localStorage on mount
   useEffect(() => {
-    const stored = localStorage.getItem("recent-event-searches");
+    const stored = localStorage.getItem('recent-event-searches');
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
@@ -51,14 +51,14 @@ const EventSearchBox: React.FC<EventSearchBoxProps> = ({
         ...recentSearches.filter((q) => q !== query),
       ].slice(0, 5);
       setRecentSearches(newRecent);
-      localStorage.setItem("recent-event-searches", JSON.stringify(newRecent));
+      localStorage.setItem('recent-event-searches', JSON.stringify(newRecent));
     },
     [recentSearches]
   );
 
   const clearRecentSearches = useCallback(() => {
     setRecentSearches([]);
-    localStorage.removeItem("recent-event-searches");
+    localStorage.removeItem('recent-event-searches');
   }, []);
 
   const handleSelect = useCallback(
@@ -86,19 +86,19 @@ const EventSearchBox: React.FC<EventSearchBoxProps> = ({
         results.length > 0
           ? results
           : searchQuery.length === 0
-          ? recentSearches
-          : [];
+            ? recentSearches
+            : [];
 
       switch (e.key) {
-        case "ArrowDown":
+        case 'ArrowDown':
           e.preventDefault();
           setSelectedIndex((prev) => (prev + 1) % items.length);
           break;
-        case "ArrowUp":
+        case 'ArrowUp':
           e.preventDefault();
           setSelectedIndex((prev) => (prev <= 0 ? items.length - 1 : prev - 1));
           break;
-        case "Enter":
+        case 'Enter':
           e.preventDefault();
           if (selectedIndex >= 0 && selectedIndex < items.length) {
             if (results.length > 0) {
@@ -108,7 +108,7 @@ const EventSearchBox: React.FC<EventSearchBoxProps> = ({
             }
           }
           break;
-        case "Escape":
+        case 'Escape':
           setIsOpen(false);
           setSelectedIndex(-1);
           inputRef.current?.blur();
@@ -149,7 +149,7 @@ const EventSearchBox: React.FC<EventSearchBoxProps> = ({
   const showError = error && debouncedQuery.length >= 2;
 
   return (
-    <div className={cn("w-full max-w-2xl mx-auto relative", className)}>
+    <div className={cn('w-full max-w-2xl mx-auto relative', className)}>
       <div className="relative">
         <Input
           ref={inputRef}
@@ -195,8 +195,8 @@ const EventSearchBox: React.FC<EventSearchBoxProps> = ({
                   role="option"
                   aria-selected={selectedIndex === index}
                   className={cn(
-                    "flex items-center space-x-3 p-2 rounded cursor-pointer",
-                    selectedIndex === index ? "bg-accent" : "hover:bg-accent/50"
+                    'flex items-center space-x-3 p-2 rounded cursor-pointer',
+                    selectedIndex === index ? 'bg-accent' : 'hover:bg-accent/50'
                   )}
                   onClick={() => handleRecentSelect(query)}
                 >
@@ -229,10 +229,10 @@ const EventSearchBox: React.FC<EventSearchBoxProps> = ({
                     role="option"
                     aria-selected={selectedIndex === index}
                     className={cn(
-                      "flex items-center space-x-3 p-2 rounded cursor-pointer",
+                      'flex items-center space-x-3 p-2 rounded cursor-pointer',
                       selectedIndex === index
-                        ? "bg-accent"
-                        : "hover:bg-accent/50"
+                        ? 'bg-accent'
+                        : 'hover:bg-accent/50'
                     )}
                     onClick={() => handleSelect(result)}
                   >

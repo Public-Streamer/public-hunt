@@ -1,11 +1,17 @@
 import React, { useState } from 'react';
+import { Crown, AlertTriangle, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Crown, AlertTriangle, CheckCircle } from 'lucide-react';
 
 interface User {
   id: string;
@@ -19,10 +25,10 @@ interface ChannelMasterTransferProps {
   onTransfer: (newMasterId: string) => void;
 }
 
-const ChannelMasterTransfer: React.FC<ChannelMasterTransferProps> = ({ 
-  currentMaster, 
-  channelAdmins, 
-  onTransfer 
+const ChannelMasterTransfer: React.FC<ChannelMasterTransferProps> = ({
+  currentMaster,
+  channelAdmins,
+  onTransfer,
 }) => {
   const [selectedAdmin, setSelectedAdmin] = useState<string>('');
   const [confirmationText, setConfirmationText] = useState('');
@@ -54,7 +60,10 @@ const ChannelMasterTransfer: React.FC<ChannelMasterTransferProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="border-yellow-500 text-yellow-600 hover:bg-yellow-50">
+        <Button
+          variant="outline"
+          className="border-yellow-500 text-yellow-600 hover:bg-yellow-50"
+        >
           <Crown className="h-4 w-4 mr-2" />
           Transfer Master Role
         </Button>
@@ -66,16 +75,17 @@ const ChannelMasterTransfer: React.FC<ChannelMasterTransferProps> = ({
             Transfer Channel Master Role
           </DialogTitle>
         </DialogHeader>
-        
+
         {step === 'select' && (
           <div className="space-y-4">
             <Alert>
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
-                This action will transfer all master privileges to another user. You will become a regular channel administrator.
+                This action will transfer all master privileges to another user.
+                You will become a regular channel administrator.
               </AlertDescription>
             </Alert>
-            
+
             <div>
               <Label htmlFor="admin-select">Select New Channel Master</Label>
               <select
@@ -85,23 +95,23 @@ const ChannelMasterTransfer: React.FC<ChannelMasterTransferProps> = ({
                 className="w-full p-2 border rounded-md"
               >
                 <option value="">Choose an administrator...</option>
-                {channelAdmins.map(admin => (
+                {channelAdmins.map((admin) => (
                   <option key={admin.id} value={admin.id}>
                     {admin.name} ({admin.email})
                   </option>
                 ))}
               </select>
             </div>
-            
+
             <div className="flex gap-2">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => setIsOpen(false)}
                 className="flex-1"
               >
                 Cancel
               </Button>
-              <Button 
+              <Button
                 onClick={() => setStep('confirm')}
                 disabled={!selectedAdmin}
                 className="flex-1"
@@ -111,18 +121,21 @@ const ChannelMasterTransfer: React.FC<ChannelMasterTransferProps> = ({
             </div>
           </div>
         )}
-        
+
         {step === 'confirm' && (
           <div className="space-y-4">
             <Alert>
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
-                <strong>Warning:</strong> This action cannot be undone. The new master will have full control over the channel.
+                <strong>Warning:</strong> This action cannot be undone. The new
+                master will have full control over the channel.
               </AlertDescription>
             </Alert>
-            
+
             <div>
-              <Label htmlFor="confirmation">Type "{confirmationPhrase}" to confirm</Label>
+              <Label htmlFor="confirmation">
+                Type "{confirmationPhrase}" to confirm
+              </Label>
               <Input
                 id="confirmation"
                 value={confirmationText}
@@ -131,16 +144,16 @@ const ChannelMasterTransfer: React.FC<ChannelMasterTransferProps> = ({
                 className="font-mono"
               />
             </div>
-            
+
             <div className="flex gap-2">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={resetDialog}
                 className="flex-1"
               >
                 Back
               </Button>
-              <Button 
+              <Button
                 onClick={handleTransfer}
                 disabled={!isConfirmationValid}
                 variant="destructive"
@@ -151,7 +164,7 @@ const ChannelMasterTransfer: React.FC<ChannelMasterTransferProps> = ({
             </div>
           </div>
         )}
-        
+
         {step === 'success' && (
           <div className="text-center space-y-4">
             <CheckCircle className="h-16 w-16 text-green-500 mx-auto" />

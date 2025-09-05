@@ -1,25 +1,75 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Progress } from "@/components/ui/progress";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Slider } from "@/components/ui/slider";
-import { PlayCircle, Edit, Copy, Rocket, Trash2, Search, Filter, TrendingUp, Eye, Clock, DollarSign, BarChart3, FlaskConical, Lightbulb, CheckCircle, AlertCircle, Trophy, Target, Zap, Star, MessageSquare, Flag, Users, AlertTriangle, Award } from "lucide-react";
-import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  PlayCircle,
+  Edit,
+  Copy,
+  Rocket,
+  Trash2,
+  Search,
+  Filter,
+  TrendingUp,
+  Eye,
+  Clock,
+  DollarSign,
+  BarChart3,
+  FlaskConical,
+  Lightbulb,
+  CheckCircle,
+  AlertCircle,
+  Trophy,
+  Target,
+  Zap,
+  Star,
+  MessageSquare,
+  Flag,
+  Users,
+  AlertTriangle,
+  Award,
+} from 'lucide-react';
+import { toast } from 'sonner';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Progress } from '@/components/ui/progress';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Slider } from '@/components/ui/slider';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AdPerformance {
   campaignName: string;
   dateRun: string;
-  status: "Active" | "Completed" | "Paused";
+  status: 'Active' | 'Completed' | 'Paused';
   totalViews: number;
   avgViewDuration: number;
   ctr: number;
@@ -29,7 +79,7 @@ interface AdPerformance {
 interface ABTestResult {
   testName: string;
   dateRun: string;
-  status: "Running" | "Completed";
+  status: 'Running' | 'Completed';
   variationA: {
     name: string;
     views: number;
@@ -44,11 +94,11 @@ interface ABTestResult {
     avgDuration: number;
     cost: number;
   };
-  winner?: "A" | "B" | "tie";
+  winner?: 'A' | 'B' | 'tie';
 }
 
 interface AISuggestion {
-  type: "warning" | "suggestion" | "success";
+  type: 'warning' | 'suggestion' | 'success';
   title: string;
   description: string;
   actionable: boolean;
@@ -64,8 +114,8 @@ interface ViewerFeedback {
 }
 
 interface AdFlag {
-  type: "underperforming" | "poor_feedback" | "high_cost";
-  severity: "warning" | "critical";
+  type: 'underperforming' | 'poor_feedback' | 'high_cost';
+  severity: 'warning' | 'critical';
   message: string;
   suggestions: string[];
 }
@@ -88,8 +138,8 @@ interface SavedAd {
   name: string;
   thumbnail: string;
   dateCreated: string;
-  mediaType: "Video" | "Image" | "Mixed";
-  status: "Draft" | "Published" | "Archived";
+  mediaType: 'Video' | 'Image' | 'Mixed';
+  status: 'Draft' | 'Published' | 'Archived';
   duration?: number;
   performanceHistory: AdPerformance[];
   abTestResults?: ABTestResult[];
@@ -98,121 +148,139 @@ interface SavedAd {
 // Mock data for saved ads
 const mockSavedAds: SavedAd[] = [
   {
-    id: "1",
-    name: "Summer Sale Promo",
-    thumbnail: "/placeholder.svg",
-    dateCreated: "2024-01-15",
-    mediaType: "Video",
-    status: "Published",
+    id: '1',
+    name: 'Summer Sale Promo',
+    thumbnail: '/placeholder.svg',
+    dateCreated: '2024-01-15',
+    mediaType: 'Video',
+    status: 'Published',
     duration: 30,
     performanceHistory: [
       {
-        campaignName: "Q1 Summer Push",
-        dateRun: "2024-01-20 - 2024-01-27",
-        status: "Completed",
+        campaignName: 'Q1 Summer Push',
+        dateRun: '2024-01-20 - 2024-01-27',
+        status: 'Completed',
         totalViews: 15420,
         avgViewDuration: 24.5,
         ctr: 3.2,
-        budgetSpent: 125.50
+        budgetSpent: 125.5,
       },
       {
-        campaignName: "Weekend Boost",
-        dateRun: "2024-02-03 - 2024-02-04",
-        status: "Completed",
+        campaignName: 'Weekend Boost',
+        dateRun: '2024-02-03 - 2024-02-04',
+        status: 'Completed',
         totalViews: 8930,
         avgViewDuration: 18.7,
         ctr: 2.8,
-        budgetSpent: 75.00
-      }
+        budgetSpent: 75.0,
+      },
     ],
     abTestResults: [
       {
-        testName: "Music Test",
-        dateRun: "2024-01-28 - 2024-02-01",
-        status: "Completed",
+        testName: 'Music Test',
+        dateRun: '2024-01-28 - 2024-02-01',
+        status: 'Completed',
         variationA: {
-          name: "Original Music",
+          name: 'Original Music',
           views: 8420,
           engagement: 3.2,
           avgDuration: 24.5,
-          cost: 85.20
+          cost: 85.2,
         },
         variationB: {
-          name: "Upbeat Music",
+          name: 'Upbeat Music',
           views: 9680,
           engagement: 4.1,
           avgDuration: 27.8,
-          cost: 92.40
+          cost: 92.4,
         },
-        winner: "B"
-      }
-    ]
+        winner: 'B',
+      },
+    ],
   },
   {
-    id: "2",
-    name: "New Product Launch",
-    thumbnail: "/placeholder.svg",
-    dateCreated: "2024-01-10",
-    mediaType: "Image",
-    status: "Draft",
+    id: '2',
+    name: 'New Product Launch',
+    thumbnail: '/placeholder.svg',
+    dateCreated: '2024-01-10',
+    mediaType: 'Image',
+    status: 'Draft',
     performanceHistory: [
       {
-        campaignName: "Test Campaign",
-        dateRun: "2024-01-15 - 2024-01-20",
-        status: "Completed",
+        campaignName: 'Test Campaign',
+        dateRun: '2024-01-15 - 2024-01-20',
+        status: 'Completed',
         totalViews: 2000,
         avgViewDuration: 4.2,
         ctr: 0.1,
-        budgetSpent: 400.00
-      }
-    ]
+        budgetSpent: 400.0,
+      },
+    ],
   },
   {
-    id: "3",
-    name: "Brand Awareness Video",
-    thumbnail: "/placeholder.svg",
-    dateCreated: "2024-01-05",
-    mediaType: "Video",
-    status: "Published",
+    id: '3',
+    name: 'Brand Awareness Video',
+    thumbnail: '/placeholder.svg',
+    dateCreated: '2024-01-05',
+    mediaType: 'Video',
+    status: 'Published',
     duration: 45,
     performanceHistory: [
       {
-        campaignName: "Brand Campaign #1",
-        dateRun: "2024-01-12 - 2024-01-19",
-        status: "Completed",
+        campaignName: 'Brand Campaign #1',
+        dateRun: '2024-01-12 - 2024-01-19',
+        status: 'Completed',
         totalViews: 25680,
         avgViewDuration: 32.1,
         ctr: 4.1,
-        budgetSpent: 200.00
-      }
-    ]
-  }
+        budgetSpent: 200.0,
+      },
+    ],
+  },
 ];
 
 // Performance analysis functions
-const analyzeAdPerformance = (ad: SavedAd, feedback: ViewerFeedback[]): AdPerformanceAnalysis => {
-  const totalImpressions = ad.performanceHistory.reduce((sum, perf) => sum + perf.totalViews, 0);
-  const totalBudget = ad.performanceHistory.reduce((sum, perf) => sum + perf.budgetSpent, 0);
-  
+const analyzeAdPerformance = (
+  ad: SavedAd,
+  feedback: ViewerFeedback[]
+): AdPerformanceAnalysis => {
+  const totalImpressions = ad.performanceHistory.reduce(
+    (sum, perf) => sum + perf.totalViews,
+    0
+  );
+  const totalBudget = ad.performanceHistory.reduce(
+    (sum, perf) => sum + perf.budgetSpent,
+    0
+  );
+
   // Calculate metrics
   const viewThroughRate = totalImpressions > 0 ? 75 : 0; // Mock VTR - in real app would be calculated
-  const avgViewDuration = ad.performanceHistory.length > 0 
-    ? ad.performanceHistory.reduce((sum, perf) => sum + perf.avgViewDuration, 0) / ad.performanceHistory.length 
-    : 0;
+  const avgViewDuration =
+    ad.performanceHistory.length > 0
+      ? ad.performanceHistory.reduce(
+          (sum, perf) => sum + perf.avgViewDuration,
+          0
+        ) / ad.performanceHistory.length
+      : 0;
   const costPerView = totalImpressions > 0 ? totalBudget / totalImpressions : 0;
-  const avgRating = feedback.length > 0 
-    ? feedback.reduce((sum, f) => sum + f.starRating, 0) / feedback.length 
-    : 0;
-  
+  const avgRating =
+    feedback.length > 0
+      ? feedback.reduce((sum, f) => sum + f.starRating, 0) / feedback.length
+      : 0;
+
   // Calculate positive tags percentage
   const negativeTagsCount = feedback.reduce((count, f) => {
-    const negativeTags = f.selectedTags.filter(tag => 
+    const negativeTags = f.selectedTags.filter((tag) =>
       ['confusing', 'too_long'].includes(tag)
     ).length;
     return count + negativeTags;
   }, 0);
-  const totalTags = feedback.reduce((count, f) => count + f.selectedTags.length, 0);
-  const positiveTagsPercentage = totalTags > 0 ? ((totalTags - negativeTagsCount) / totalTags) * 100 : 100;
+  const totalTags = feedback.reduce(
+    (count, f) => count + f.selectedTags.length,
+    0
+  );
+  const positiveTagsPercentage =
+    totalTags > 0 ? ((totalTags - negativeTagsCount) / totalTags) * 100 : 100;
 
   // Check flagging criteria (minimum 500 impressions required)
   const flags: AdFlag[] = [];
@@ -222,67 +290,68 @@ const analyzeAdPerformance = (ad: SavedAd, feedback: ViewerFeedback[]): AdPerfor
     // Performance-based flags
     if (viewThroughRate < 20) {
       flags.push({
-        type: "underperforming",
-        severity: "critical",
-        message: "Very low view-through rate",
+        type: 'underperforming',
+        severity: 'critical',
+        message: 'Very low view-through rate',
         suggestions: [
-          "Consider making your opening more engaging",
-          "Test different thumbnails or preview images",
-          "Shorten the ad duration"
-        ]
+          'Consider making your opening more engaging',
+          'Test different thumbnails or preview images',
+          'Shorten the ad duration',
+        ],
       });
     }
 
     if (ad.duration && avgViewDuration < 5 && ad.duration > 15) {
       flags.push({
-        type: "underperforming",
-        severity: "warning",
-        message: "Viewers are not watching your ad to completion",
+        type: 'underperforming',
+        severity: 'warning',
+        message: 'Viewers are not watching your ad to completion',
         suggestions: [
-          "Hook viewers in the first 3 seconds",
-          "Consider shortening your ad",
-          "Make your value proposition clearer"
-        ]
+          'Hook viewers in the first 3 seconds',
+          'Consider shortening your ad',
+          'Make your value proposition clearer',
+        ],
       });
     }
 
-    if (costPerView > 0.1) { // Mock threshold
+    if (costPerView > 0.1) {
+      // Mock threshold
       flags.push({
-        type: "high_cost",
-        severity: "warning",
-        message: "Cost per view is higher than average",
+        type: 'high_cost',
+        severity: 'warning',
+        message: 'Cost per view is higher than average',
         suggestions: [
-          "Optimize your targeting",
-          "Test different creative approaches",
-          "Consider adjusting your budget"
-        ]
+          'Optimize your targeting',
+          'Test different creative approaches',
+          'Consider adjusting your budget',
+        ],
       });
     }
 
     // Feedback-based flags
     if (avgRating < 2.5 && feedback.length >= 10) {
       flags.push({
-        type: "poor_feedback",
-        severity: "critical",
-        message: "Poor viewer ratings",
+        type: 'poor_feedback',
+        severity: 'critical',
+        message: 'Poor viewer ratings',
         suggestions: [
-          "Review negative feedback comments",
-          "Test different messaging",
-          "Improve audio/visual quality"
-        ]
+          'Review negative feedback comments',
+          'Test different messaging',
+          'Improve audio/visual quality',
+        ],
       });
     }
 
     if (positiveTagsPercentage < 50 && feedback.length >= 10) {
       flags.push({
-        type: "poor_feedback",
-        severity: "warning",
-        message: "High negative feedback rate",
+        type: 'poor_feedback',
+        severity: 'warning',
+        message: 'High negative feedback rate',
         suggestions: [
-          "Address common complaints from feedback",
-          "A/B test different versions",
-          "Consider updating your creative"
-        ]
+          'Address common complaints from feedback',
+          'A/B test different versions',
+          'Consider updating your creative',
+        ],
       });
     }
   }
@@ -296,27 +365,28 @@ const analyzeAdPerformance = (ad: SavedAd, feedback: ViewerFeedback[]): AdPerfor
 
     if (avgRating >= 4.5 && feedback.length >= 10) {
       criteriasMet++;
-      topPerformingBadges.push("High Rated");
+      topPerformingBadges.push('High Rated');
     }
 
     if (ad.duration && avgViewDuration >= ad.duration * 0.8) {
       criteriasMet++;
-      topPerformingBadges.push("High Completion");
+      topPerformingBadges.push('High Completion');
     }
 
     if (viewThroughRate >= 60) {
       criteriasMet++;
-      topPerformingBadges.push("High Engagement");
+      topPerformingBadges.push('High Engagement');
     }
 
     if (positiveTagsPercentage >= 60 && feedback.length >= 5) {
       criteriasMet++;
-      topPerformingBadges.push("Positive Feedback");
+      topPerformingBadges.push('Positive Feedback');
     }
 
-    if (costPerView <= 0.02) { // Top 25% mock threshold
+    if (costPerView <= 0.02) {
+      // Top 25% mock threshold
       criteriasMet++;
-      topPerformingBadges.push("Cost Effective");
+      topPerformingBadges.push('Cost Effective');
     }
 
     return criteriasMet >= 3;
@@ -332,87 +402,94 @@ const analyzeAdPerformance = (ad: SavedAd, feedback: ViewerFeedback[]): AdPerfor
     avgViewDuration,
     costPerView,
     avgRating,
-    positiveTagsPercentage
+    positiveTagsPercentage,
   };
 };
 
 // Mock AI suggestions generator
 const generateAISuggestions = (ad: SavedAd): AISuggestion[] => {
   const suggestions: AISuggestion[] = [];
-  
+
   if (ad.duration && ad.duration > 60) {
     suggestions.push({
-      type: "warning",
-      title: "Consider shortening your ad",
-      description: "Your ad runs over 60 seconds. Shorter ads typically have higher completion rates and better engagement.",
-      actionable: true
+      type: 'warning',
+      title: 'Consider shortening your ad',
+      description:
+        'Your ad runs over 60 seconds. Shorter ads typically have higher completion rates and better engagement.',
+      actionable: true,
     });
   }
-  
-  if (ad.mediaType === "Video" && Math.random() > 0.5) {
+
+  if (ad.mediaType === 'Video' && Math.random() > 0.5) {
     suggestions.push({
-      type: "suggestion",
-      title: "Add a clear headline",
-      description: "Try adding a headline that highlights your main offer or benefit to grab viewers' attention immediately.",
-      actionable: true
+      type: 'suggestion',
+      title: 'Add a clear headline',
+      description:
+        "Try adding a headline that highlights your main offer or benefit to grab viewers' attention immediately.",
+      actionable: true,
     });
   }
-  
-  if (ad.mediaType === "Image") {
+
+  if (ad.mediaType === 'Image') {
     suggestions.push({
-      type: "suggestion",
-      title: "Consider adding motion",
-      description: "Converting your image to a short video with subtle animation can increase engagement by up to 40%.",
-      actionable: true
+      type: 'suggestion',
+      title: 'Consider adding motion',
+      description:
+        'Converting your image to a short video with subtle animation can increase engagement by up to 40%.',
+      actionable: true,
     });
   }
-  
+
   if (Math.random() > 0.7) {
     suggestions.push({
-      type: "warning",
-      title: "Image quality check",
-      description: "This image may appear pixelated on mobile devices. Consider using a higher resolution version.",
-      actionable: true
+      type: 'warning',
+      title: 'Image quality check',
+      description:
+        'This image may appear pixelated on mobile devices. Consider using a higher resolution version.',
+      actionable: true,
     });
   }
-  
+
   if (ad.performanceHistory.length > 0) {
-    const avgEngagement = ad.performanceHistory.reduce((sum, perf) => sum + perf.ctr, 0) / ad.performanceHistory.length;
+    const avgEngagement =
+      ad.performanceHistory.reduce((sum, perf) => sum + perf.ctr, 0) /
+      ad.performanceHistory.length;
     if (avgEngagement > 3.5) {
       suggestions.push({
-        type: "success",
-        title: "Great performance!",
-        description: "This ad is performing well with above-average engagement rates. Consider using similar elements in future ads.",
-        actionable: false
+        type: 'success',
+        title: 'Great performance!',
+        description:
+          'This ad is performing well with above-average engagement rates. Consider using similar elements in future ads.',
+        actionable: false,
       });
     }
   }
-  
+
   return suggestions;
 };
 
 const AdLibrary = () => {
   const navigate = useNavigate();
   const [ads, setAds] = useState<SavedAd[]>(mockSavedAds);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All");
-  const [typeFilter, setTypeFilter] = useState("All");
-  const [sortBy, setSortBy] = useState("Newest");
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [typeFilter, setTypeFilter] = useState('All');
+  const [sortBy, setSortBy] = useState('Newest');
   const [selectedAd, setSelectedAd] = useState<SavedAd | null>(null);
-  
+
   // A/B Testing state
   const [showABTestDialog, setShowABTestDialog] = useState(false);
   const [abTestBudget, setAbTestBudget] = useState([50]);
   const [abTestDuration, setAbTestDuration] = useState([3]);
   const [abTestSplit, setAbTestSplit] = useState([50]);
-  const [variationBName, setVariationBName] = useState("");
-  const [variationBChanges, setVariationBChanges] = useState("");
-  
+  const [variationBName, setVariationBName] = useState('');
+  const [variationBChanges, setVariationBChanges] = useState('');
+
   // AI Feedback state
   const [showAIFeedback, setShowAIFeedback] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState<AISuggestion[]>([]);
   const [loadingAI, setLoadingAI] = useState(false);
-  
+
   // Viewer Feedback state
   const [viewerFeedback, setViewerFeedback] = useState<ViewerFeedback[]>([]);
   const [loadingFeedback, setLoadingFeedback] = useState(false);
@@ -422,37 +499,74 @@ const AdLibrary = () => {
     topTags: { tag: string; count: number; percentage: number }[];
     responseRate: number;
   } | null>(null);
-  
+
   // Performance Analysis state
-  const [adAnalysis, setAdAnalysis] = useState<{ [adId: string]: AdPerformanceAnalysis }>({});
+  const [adAnalysis, setAdAnalysis] = useState<{
+    [adId: string]: AdPerformanceAnalysis;
+  }>({});
   const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   useEffect(() => {
     // Analyze performance for all ads
     const analyses: { [adId: string]: AdPerformanceAnalysis } = {};
-    ads.forEach(ad => {
-      const mockFeedback: ViewerFeedback[] = ad.id === "1" ? [
-        { id: "1", starRating: 5, selectedTags: ["helpful", "relevant"], feedbackText: "Great ad!", createdAt: "2024-01-20", isFlagged: false },
-        { id: "2", starRating: 4, selectedTags: ["good_music"], feedbackText: "", createdAt: "2024-01-21", isFlagged: false },
-      ] : ad.id === "2" ? [
-        { id: "3", starRating: 2, selectedTags: ["confusing", "too_long"], feedbackText: "Too confusing", createdAt: "2024-01-15", isFlagged: false },
-      ] : [];
-      
+    ads.forEach((ad) => {
+      const mockFeedback: ViewerFeedback[] =
+        ad.id === '1'
+          ? [
+              {
+                id: '1',
+                starRating: 5,
+                selectedTags: ['helpful', 'relevant'],
+                feedbackText: 'Great ad!',
+                createdAt: '2024-01-20',
+                isFlagged: false,
+              },
+              {
+                id: '2',
+                starRating: 4,
+                selectedTags: ['good_music'],
+                feedbackText: '',
+                createdAt: '2024-01-21',
+                isFlagged: false,
+              },
+            ]
+          : ad.id === '2'
+            ? [
+                {
+                  id: '3',
+                  starRating: 2,
+                  selectedTags: ['confusing', 'too_long'],
+                  feedbackText: 'Too confusing',
+                  createdAt: '2024-01-15',
+                  isFlagged: false,
+                },
+              ]
+            : [];
+
       analyses[ad.id] = analyzeAdPerformance(ad, mockFeedback);
     });
     setAdAnalysis(analyses);
   }, [ads]);
 
   const filteredAds = ads
-    .filter(ad => {
-      const matchesSearch = ad.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus = statusFilter === "All" || ad.status === statusFilter;
-      const matchesType = typeFilter === "All" || ad.mediaType === typeFilter;
+    .filter((ad) => {
+      const matchesSearch = ad.name
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      const matchesStatus =
+        statusFilter === 'All' || ad.status === statusFilter;
+      const matchesType = typeFilter === 'All' || ad.mediaType === typeFilter;
       return matchesSearch && matchesStatus && matchesType;
     })
     .sort((a, b) => {
-      if (sortBy === "Newest") return new Date(b.dateCreated).getTime() - new Date(a.dateCreated).getTime();
-      if (sortBy === "Oldest") return new Date(a.dateCreated).getTime() - new Date(b.dateCreated).getTime();
+      if (sortBy === 'Newest')
+        return (
+          new Date(b.dateCreated).getTime() - new Date(a.dateCreated).getTime()
+        );
+      if (sortBy === 'Oldest')
+        return (
+          new Date(a.dateCreated).getTime() - new Date(b.dateCreated).getTime()
+        );
       return a.name.localeCompare(b.name);
     });
 
@@ -462,7 +576,7 @@ const AdLibrary = () => {
 
   const handleEdit = (adId: string) => {
     navigate(`/create-ad?edit=${adId}`);
-    toast.success("Opening ad editor...");
+    toast.success('Opening ad editor...');
   };
 
   const handleDuplicate = (ad: SavedAd) => {
@@ -471,84 +585,108 @@ const AdLibrary = () => {
       id: Date.now().toString(),
       name: `${ad.name} (Copy)`,
       dateCreated: new Date().toISOString().split('T')[0],
-      status: "Draft" as const,
-      performanceHistory: []
+      status: 'Draft' as const,
+      performanceHistory: [],
     };
     setAds([duplicatedAd, ...ads]);
-    toast.success("Ad duplicated successfully!");
+    toast.success('Ad duplicated successfully!');
   };
 
   const handleUseInCampaign = (adId: string) => {
     navigate(`/advertiser-dashboard?preloadAd=${adId}`);
-    toast.success("Redirecting to campaign setup...");
+    toast.success('Redirecting to campaign setup...');
   };
 
   const handleDelete = (adId: string) => {
-    setAds(ads.filter(ad => ad.id !== adId));
-    toast.success("Ad deleted successfully");
+    setAds(ads.filter((ad) => ad.id !== adId));
+    toast.success('Ad deleted successfully');
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "Published": return "bg-success";
-      case "Draft": return "bg-warning";
-      case "Archived": return "bg-muted";
-      default: return "bg-secondary";
+      case 'Published':
+        return 'bg-success';
+      case 'Draft':
+        return 'bg-warning';
+      case 'Archived':
+        return 'bg-muted';
+      default:
+        return 'bg-secondary';
     }
   };
 
   const calculateTotalPerformance = (ad: SavedAd) => {
     if (ad.performanceHistory.length === 0) return null;
-    
-    const totalViews = ad.performanceHistory.reduce((sum, perf) => sum + perf.totalViews, 0);
-    const totalSpent = ad.performanceHistory.reduce((sum, perf) => sum + perf.budgetSpent, 0);
-    const avgDuration = ad.performanceHistory.reduce((sum, perf) => sum + perf.avgViewDuration, 0) / ad.performanceHistory.length;
+
+    const totalViews = ad.performanceHistory.reduce(
+      (sum, perf) => sum + perf.totalViews,
+      0
+    );
+    const totalSpent = ad.performanceHistory.reduce(
+      (sum, perf) => sum + perf.budgetSpent,
+      0
+    );
+    const avgDuration =
+      ad.performanceHistory.reduce(
+        (sum, perf) => sum + perf.avgViewDuration,
+        0
+      ) / ad.performanceHistory.length;
     const avgCPV = totalSpent / totalViews;
-    
-    return { totalViews, totalSpent, avgDuration, avgCPV, campaignCount: ad.performanceHistory.length };
+
+    return {
+      totalViews,
+      totalSpent,
+      avgDuration,
+      avgCPV,
+      campaignCount: ad.performanceHistory.length,
+    };
   };
 
   // A/B Testing handlers
   const handleRunABTest = (ad: SavedAd) => {
     setSelectedAd(ad);
     setVariationBName(`${ad.name} - Variation B`);
-    setVariationBChanges("");
+    setVariationBChanges('');
     setShowABTestDialog(true);
   };
 
   const handleLaunchABTest = () => {
     if (!selectedAd) return;
-    
+
     // Simulate creating A/B test
     const newTest: ABTestResult = {
       testName: `A/B Test: ${selectedAd.name}`,
       dateRun: `${new Date().toISOString().split('T')[0]} - Running`,
-      status: "Running",
+      status: 'Running',
       variationA: {
         name: selectedAd.name,
         views: 0,
         engagement: 0,
         avgDuration: 0,
-        cost: 0
+        cost: 0,
       },
       variationB: {
         name: variationBName,
         views: 0,
         engagement: 0,
         avgDuration: 0,
-        cost: 0
-      }
+        cost: 0,
+      },
     };
 
     // Update the ad with the new test
-    setAds(ads.map(ad => 
-      ad.id === selectedAd.id 
-        ? { ...ad, abTestResults: [...(ad.abTestResults || []), newTest] }
-        : ad
-    ));
+    setAds(
+      ads.map((ad) =>
+        ad.id === selectedAd.id
+          ? { ...ad, abTestResults: [...(ad.abTestResults || []), newTest] }
+          : ad
+      )
+    );
 
     setShowABTestDialog(false);
-    toast.success("A/B test launched successfully! Results will appear in 24-48 hours.");
+    toast.success(
+      'A/B test launched successfully! Results will appear in 24-48 hours.'
+    );
   };
 
   // AI Feedback handlers
@@ -556,7 +694,7 @@ const AdLibrary = () => {
     setSelectedAd(ad);
     setLoadingAI(true);
     setShowAIFeedback(true);
-    
+
     // Simulate AI analysis delay
     setTimeout(() => {
       const suggestions = generateAISuggestions(ad);
@@ -568,36 +706,38 @@ const AdLibrary = () => {
   // Viewer Feedback handlers
   const handleLoadViewerFeedback = async (ad: SavedAd) => {
     setLoadingFeedback(true);
-    
+
     try {
       const { data: feedback, error } = await supabase
-        .from("ad_feedback")
-        .select("*")
-        .eq("ad_id", ad.id)
-        .eq("is_flagged", false)
-        .order("created_at", { ascending: false });
+        .from('ad_feedback')
+        .select('*')
+        .eq('ad_id', ad.id)
+        .eq('is_flagged', false)
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
 
       // Process feedback data
-      const processedFeedback: ViewerFeedback[] = feedback.map(item => ({
+      const processedFeedback: ViewerFeedback[] = feedback.map((item) => ({
         id: item.id,
         starRating: item.star_rating,
         selectedTags: item.selected_tags || [],
         feedbackText: item.feedback_text,
         createdAt: item.created_at,
-        isFlagged: item.is_flagged
+        isFlagged: item.is_flagged,
       }));
 
       setViewerFeedback(processedFeedback);
 
       // Calculate stats
       if (feedback.length > 0) {
-        const avgRating = feedback.reduce((sum, item) => sum + item.star_rating, 0) / feedback.length;
-        
+        const avgRating =
+          feedback.reduce((sum, item) => sum + item.star_rating, 0) /
+          feedback.length;
+
         // Calculate top tags
         const tagCounts: { [key: string]: number } = {};
-        feedback.forEach(item => {
+        feedback.forEach((item) => {
           (item.selected_tags || []).forEach((tag: string) => {
             tagCounts[tag] = (tagCounts[tag] || 0) + 1;
           });
@@ -607,27 +747,31 @@ const AdLibrary = () => {
           .map(([tag, count]) => ({
             tag,
             count,
-            percentage: (count / feedback.length) * 100
+            percentage: (count / feedback.length) * 100,
           }))
           .sort((a, b) => b.count - a.count)
           .slice(0, 3);
 
         // Mock total views for response rate calculation
-        const totalViews = ad.performanceHistory.reduce((sum, perf) => sum + perf.totalViews, 0) || 1000;
+        const totalViews =
+          ad.performanceHistory.reduce(
+            (sum, perf) => sum + perf.totalViews,
+            0
+          ) || 1000;
         const responseRate = (feedback.length / totalViews) * 100;
 
         setFeedbackStats({
           avgRating,
           totalResponses: feedback.length,
           topTags,
-          responseRate
+          responseRate,
         });
       } else {
         setFeedbackStats(null);
       }
     } catch (error) {
-      console.error("Error loading viewer feedback:", error);
-      toast.error("Failed to load viewer feedback");
+      console.error('Error loading viewer feedback:', error);
+      toast.error('Failed to load viewer feedback');
     } finally {
       setLoadingFeedback(false);
     }
@@ -636,17 +780,17 @@ const AdLibrary = () => {
   const handleFlagFeedback = async (feedbackId: string) => {
     try {
       const { error } = await supabase
-        .from("ad_feedback")
+        .from('ad_feedback')
         .update({ is_flagged: true })
-        .eq("id", feedbackId);
+        .eq('id', feedbackId);
 
       if (error) throw error;
 
-      setViewerFeedback(prev => prev.filter(f => f.id !== feedbackId));
-      toast.success("Feedback flagged and hidden");
+      setViewerFeedback((prev) => prev.filter((f) => f.id !== feedbackId));
+      toast.success('Feedback flagged and hidden');
     } catch (error) {
-      console.error("Error flagging feedback:", error);
-      toast.error("Failed to flag feedback");
+      console.error('Error flagging feedback:', error);
+      toast.error('Failed to flag feedback');
     }
   };
 
@@ -658,7 +802,9 @@ const AdLibrary = () => {
           <div className="text-center space-y-2">
             <h1 className="text-3xl font-bold text-foreground">Ad Library</h1>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Manage all of your saved ads in one place. Preview, edit, launch into campaigns, or create variations of your best-performing content.
+              Manage all of your saved ads in one place. Preview, edit, launch
+              into campaigns, or create variations of your best-performing
+              content.
             </p>
           </div>
 
@@ -691,7 +837,7 @@ const AdLibrary = () => {
                     className="pl-10"
                   />
                 </div>
-                
+
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                   <SelectTrigger>
                     <SelectValue placeholder="Filter by status" />
@@ -734,9 +880,12 @@ const AdLibrary = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredAds.map((ad) => {
               const analysis = adAnalysis[ad.id];
-              
+
               return (
-                <Card key={ad.id} className="overflow-hidden hover:shadow-lg transition-shadow relative">
+                <Card
+                  key={ad.id}
+                  className="overflow-hidden hover:shadow-lg transition-shadow relative"
+                >
                   {/* Top Performing Badge */}
                   {analysis?.isTopPerforming && (
                     <div className="absolute top-2 left-2 z-10">
@@ -746,20 +895,23 @@ const AdLibrary = () => {
                       </Badge>
                     </div>
                   )}
-                  
+
                   {/* Flag Indicator */}
                   {analysis?.isFlagged && (
                     <div className="absolute top-2 right-2 z-10">
-                      <Badge variant="destructive" className="flex items-center gap-1">
+                      <Badge
+                        variant="destructive"
+                        className="flex items-center gap-1"
+                      >
                         <AlertTriangle className="h-3 w-3" />
                         Needs Attention
                       </Badge>
                     </div>
                   )}
-                  
+
                   <div className="aspect-video bg-muted relative">
-                    <img 
-                      src={ad.thumbnail} 
+                    <img
+                      src={ad.thumbnail}
                       alt={ad.name}
                       className="w-full h-full object-cover"
                     />
@@ -774,13 +926,17 @@ const AdLibrary = () => {
                       </div>
                     )}
                   </div>
-                  
+
                   <CardContent className="p-4 space-y-4">
                     <div>
-                      <h3 className="font-semibold text-foreground truncate">{ad.name}</h3>
+                      <h3 className="font-semibold text-foreground truncate">
+                        {ad.name}
+                      </h3>
                       <div className="flex justify-between text-sm text-muted-foreground mt-1">
                         <span>{ad.mediaType}</span>
-                        <span>{new Date(ad.dateCreated).toLocaleDateString()}</span>
+                        <span>
+                          {new Date(ad.dateCreated).toLocaleDateString()}
+                        </span>
                       </div>
                     </div>
 
@@ -793,17 +949,27 @@ const AdLibrary = () => {
                         </div>
                         <div className="grid grid-cols-2 gap-2 text-xs">
                           <div>
-                            <span className="text-muted-foreground">Total Views:</span>
-                            <div className="font-medium">{calculateTotalPerformance(ad)?.totalViews.toLocaleString()}</div>
+                            <span className="text-muted-foreground">
+                              Total Views:
+                            </span>
+                            <div className="font-medium">
+                              {calculateTotalPerformance(
+                                ad
+                              )?.totalViews.toLocaleString()}
+                            </div>
                           </div>
                           <div>
-                            <span className="text-muted-foreground">Campaigns:</span>
-                            <div className="font-medium">{ad.performanceHistory.length}</div>
+                            <span className="text-muted-foreground">
+                              Campaigns:
+                            </span>
+                            <div className="font-medium">
+                              {ad.performanceHistory.length}
+                            </div>
                           </div>
                         </div>
                       </div>
                     )}
-                    
+
                     <div className="grid grid-cols-2 gap-2">
                       <Button
                         variant="outline"
@@ -814,7 +980,7 @@ const AdLibrary = () => {
                         <PlayCircle className="h-4 w-4" />
                         Preview
                       </Button>
-                      
+
                       <Button
                         variant="outline"
                         size="sm"
@@ -825,7 +991,7 @@ const AdLibrary = () => {
                         Edit
                       </Button>
                     </div>
-                    
+
                     <div className="grid grid-cols-3 gap-2">
                       <Button
                         variant="outline"
@@ -836,7 +1002,7 @@ const AdLibrary = () => {
                         <Copy className="h-3 w-3" />
                         Copy
                       </Button>
-                      
+
                       <Button
                         size="sm"
                         onClick={() => handleUseInCampaign(ad.id)}
@@ -845,7 +1011,7 @@ const AdLibrary = () => {
                         <Rocket className="h-3 w-3" />
                         Launch
                       </Button>
-                      
+
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button
@@ -861,7 +1027,8 @@ const AdLibrary = () => {
                           <AlertDialogHeader>
                             <AlertDialogTitle>Delete Ad</AlertDialogTitle>
                             <AlertDialogDescription>
-                              Are you sure you want to delete "{ad.name}"? This action cannot be undone.
+                              Are you sure you want to delete "{ad.name}"? This
+                              action cannot be undone.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
@@ -885,15 +1052,16 @@ const AdLibrary = () => {
           {filteredAds.length === 0 && (
             <Card>
               <CardContent className="text-center py-12">
-                <h3 className="text-lg font-semibold text-muted-foreground mb-2">No ads found</h3>
+                <h3 className="text-lg font-semibold text-muted-foreground mb-2">
+                  No ads found
+                </h3>
                 <p className="text-muted-foreground mb-4">
-                  {ads.length === 0 
+                  {ads.length === 0
                     ? "You haven't created any ads yet. Start by creating your first ad!"
-                    : "Try adjusting your search or filter criteria."
-                  }
+                    : 'Try adjusting your search or filter criteria.'}
                 </p>
                 {ads.length === 0 && (
-                  <Button onClick={() => navigate("/create-ad")}>
+                  <Button onClick={() => navigate('/create-ad')}>
                     Create Your First Ad
                   </Button>
                 )}
@@ -920,21 +1088,32 @@ const AdLibrary = () => {
                 <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
                   <div className="flex items-center gap-2 text-destructive mb-2">
                     <AlertTriangle className="h-5 w-5" />
-                    <h3 className="font-semibold">This ad is underperforming</h3>
+                    <h3 className="font-semibold">
+                      This ad is underperforming
+                    </h3>
                   </div>
                   <p className="text-sm text-muted-foreground mb-3">
-                    Consider making edits or running an A/B test to improve results.
+                    Consider making edits or running an A/B test to improve
+                    results.
                   </p>
                   <div className="flex gap-2">
                     <Button size="sm" onClick={() => handleEdit(selectedAd.id)}>
                       <Edit className="h-3 w-3 mr-1" />
                       Edit Ad
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => handleRunABTest(selectedAd)}>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleRunABTest(selectedAd)}
+                    >
                       <FlaskConical className="h-3 w-3 mr-1" />
                       Run A/B Test
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => handleGetAIFeedback(selectedAd)}>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleGetAIFeedback(selectedAd)}
+                    >
                       <Lightbulb className="h-3 w-3 mr-1" />
                       Get Suggestions
                     </Button>
@@ -947,17 +1126,26 @@ const AdLibrary = () => {
                 <div className="mb-6 p-4 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/20 rounded-lg">
                   <div className="flex items-center gap-2 text-yellow-600 mb-2">
                     <Award className="h-5 w-5" />
-                    <h3 className="font-semibold">Congratulations! This ad is among the top-performing on the platform.</h3>
+                    <h3 className="font-semibold">
+                      Congratulations! This ad is among the top-performing on
+                      the platform.
+                    </h3>
                   </div>
                   <p className="text-sm text-muted-foreground mb-3">
-                    Great job! This ad is performing excellently across multiple metrics.
+                    Great job! This ad is performing excellently across multiple
+                    metrics.
                   </p>
                   <div className="flex gap-1 flex-wrap">
-                    {adAnalysis[selectedAd.id]?.topPerformingBadges.map((badge) => (
-                      <Badge key={badge} className="bg-yellow-500/20 text-yellow-700 border-yellow-500/30">
-                        {badge}
-                      </Badge>
-                    ))}
+                    {adAnalysis[selectedAd.id]?.topPerformingBadges.map(
+                      (badge) => (
+                        <Badge
+                          key={badge}
+                          className="bg-yellow-500/20 text-yellow-700 border-yellow-500/30"
+                        >
+                          {badge}
+                        </Badge>
+                      )
+                    )}
                   </div>
                 </div>
               )}
@@ -973,28 +1161,41 @@ const AdLibrary = () => {
 
                 <TabsContent value="preview" className="space-y-4">
                   <div className="aspect-video bg-muted rounded-lg overflow-hidden">
-                    <img 
-                      src={selectedAd.thumbnail} 
+                    <img
+                      src={selectedAd.thumbnail}
                       alt={selectedAd.name}
                       className="w-full h-full object-cover"
                     />
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <Button onClick={() => handleEdit(selectedAd.id)} className="flex items-center gap-2">
+                    <Button
+                      onClick={() => handleEdit(selectedAd.id)}
+                      className="flex items-center gap-2"
+                    >
                       <Edit className="h-4 w-4" />
                       Edit Ad
                     </Button>
-                    <Button onClick={() => handleDuplicate(selectedAd)} variant="outline" className="flex items-center gap-2">
+                    <Button
+                      onClick={() => handleDuplicate(selectedAd)}
+                      variant="outline"
+                      className="flex items-center gap-2"
+                    >
                       <Copy className="h-4 w-4" />
                       Duplicate
                     </Button>
-                    <Button onClick={() => handleUseInCampaign(selectedAd.id)} className="flex items-center gap-2">
+                    <Button
+                      onClick={() => handleUseInCampaign(selectedAd.id)}
+                      className="flex items-center gap-2"
+                    >
                       <Rocket className="h-4 w-4" />
                       Launch Campaign
                     </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="destructive" className="flex items-center gap-2">
+                        <Button
+                          variant="destructive"
+                          className="flex items-center gap-2"
+                        >
                           <Trash2 className="h-4 w-4" />
                           Delete
                         </Button>
@@ -1003,7 +1204,8 @@ const AdLibrary = () => {
                         <AlertDialogHeader>
                           <AlertDialogTitle>Delete Ad</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Are you sure you want to delete "{selectedAd.name}"? This action cannot be undone.
+                            Are you sure you want to delete "{selectedAd.name}"?
+                            This action cannot be undone.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
@@ -1031,21 +1233,23 @@ const AdLibrary = () => {
                         See what viewers think about your ad
                       </p>
                     </div>
-                    <Button 
-                      onClick={() => handleLoadViewerFeedback(selectedAd)} 
+                    <Button
+                      onClick={() => handleLoadViewerFeedback(selectedAd)}
                       disabled={loadingFeedback}
                       className="flex items-center gap-2"
                     >
                       <MessageSquare className="h-4 w-4" />
-                      {loadingFeedback ? "Loading..." : "Refresh Feedback"}
+                      {loadingFeedback ? 'Loading...' : 'Refresh Feedback'}
                     </Button>
                   </div>
 
                   {loadingFeedback ? (
                     <Card>
                       <CardContent className="text-center py-12">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                        <h3 className="text-lg font-semibold mb-2">Loading Viewer Feedback...</h3>
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold mb-2">
+                          Loading Viewer Feedback...
+                        </h3>
                         <p className="text-muted-foreground">
                           Gathering insights from your audience.
                         </p>
@@ -1066,7 +1270,9 @@ const AdLibrary = () => {
                             <div className="text-center p-4 bg-muted/50 rounded-lg">
                               <div className="flex items-center justify-center gap-2 mb-2">
                                 <Star className="h-4 w-4 text-yellow-500" />
-                                <span className="text-sm text-muted-foreground">Avg Rating</span>
+                                <span className="text-sm text-muted-foreground">
+                                  Avg Rating
+                                </span>
                               </div>
                               <div className="text-2xl font-bold flex items-center justify-center gap-1">
                                 {feedbackStats.avgRating.toFixed(1)}
@@ -1075,9 +1281,10 @@ const AdLibrary = () => {
                                     <Star
                                       key={star}
                                       className={`h-4 w-4 ${
-                                        star <= Math.round(feedbackStats.avgRating)
-                                          ? "fill-yellow-400 text-yellow-400"
-                                          : "text-muted-foreground"
+                                        star <=
+                                        Math.round(feedbackStats.avgRating)
+                                          ? 'fill-yellow-400 text-yellow-400'
+                                          : 'text-muted-foreground'
                                       }`}
                                     />
                                   ))}
@@ -1087,24 +1294,37 @@ const AdLibrary = () => {
                             <div className="text-center p-4 bg-muted/50 rounded-lg">
                               <div className="flex items-center justify-center gap-2 mb-2">
                                 <MessageSquare className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-sm text-muted-foreground">Total Responses</span>
+                                <span className="text-sm text-muted-foreground">
+                                  Total Responses
+                                </span>
                               </div>
-                              <div className="text-2xl font-bold">{feedbackStats.totalResponses}</div>
+                              <div className="text-2xl font-bold">
+                                {feedbackStats.totalResponses}
+                              </div>
                             </div>
                             <div className="text-center p-4 bg-muted/50 rounded-lg">
                               <div className="flex items-center justify-center gap-2 mb-2">
                                 <Users className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-sm text-muted-foreground">Response Rate</span>
+                                <span className="text-sm text-muted-foreground">
+                                  Response Rate
+                                </span>
                               </div>
-                              <div className="text-2xl font-bold">{feedbackStats.responseRate.toFixed(1)}%</div>
+                              <div className="text-2xl font-bold">
+                                {feedbackStats.responseRate.toFixed(1)}%
+                              </div>
                             </div>
                             <div className="text-center p-4 bg-muted/50 rounded-lg">
                               <div className="flex items-center justify-center gap-2 mb-2">
                                 <Target className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-sm text-muted-foreground">Top Tag</span>
+                                <span className="text-sm text-muted-foreground">
+                                  Top Tag
+                                </span>
                               </div>
                               <div className="text-sm font-bold">
-                                {feedbackStats.topTags[0]?.tag.replace('_', ' ') || 'N/A'}
+                                {feedbackStats.topTags[0]?.tag.replace(
+                                  '_',
+                                  ' '
+                                ) || 'N/A'}
                               </div>
                             </div>
                           </div>
@@ -1120,10 +1340,17 @@ const AdLibrary = () => {
                           <CardContent>
                             <div className="space-y-3">
                               {feedbackStats.topTags.map((tag, index) => (
-                                <div key={tag.tag} className="flex items-center justify-between">
+                                <div
+                                  key={tag.tag}
+                                  className="flex items-center justify-between"
+                                >
                                   <div className="flex items-center gap-2">
                                     <Badge variant="outline">
-                                      {tag.tag.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                      {tag.tag
+                                        .replace('_', ' ')
+                                        .replace(/\b\w/g, (l) =>
+                                          l.toUpperCase()
+                                        )}
                                     </Badge>
                                     <span className="text-sm text-muted-foreground">
                                       {tag.count} responses
@@ -1131,12 +1358,14 @@ const AdLibrary = () => {
                                   </div>
                                   <div className="flex items-center gap-2">
                                     <div className="w-20 bg-muted rounded-full h-2">
-                                      <div 
-                                        className="bg-primary h-2 rounded-full" 
+                                      <div
+                                        className="bg-primary h-2 rounded-full"
                                         style={{ width: `${tag.percentage}%` }}
                                       />
                                     </div>
-                                    <span className="text-sm font-medium">{tag.percentage.toFixed(0)}%</span>
+                                    <span className="text-sm font-medium">
+                                      {tag.percentage.toFixed(0)}%
+                                    </span>
                                   </div>
                                 </div>
                               ))}
@@ -1146,7 +1375,8 @@ const AdLibrary = () => {
                       )}
 
                       {/* Recent Comments */}
-                      {viewerFeedback.filter(f => f.feedbackText).length > 0 && (
+                      {viewerFeedback.filter((f) => f.feedbackText).length >
+                        0 && (
                         <Card>
                           <CardHeader>
                             <CardTitle>Recent Viewer Comments</CardTitle>
@@ -1154,10 +1384,13 @@ const AdLibrary = () => {
                           <CardContent>
                             <div className="space-y-4">
                               {viewerFeedback
-                                .filter(f => f.feedbackText)
+                                .filter((f) => f.feedbackText)
                                 .slice(0, 5)
                                 .map((feedback) => (
-                                  <div key={feedback.id} className="border rounded-lg p-4 space-y-2">
+                                  <div
+                                    key={feedback.id}
+                                    className="border rounded-lg p-4 space-y-2"
+                                  >
                                     <div className="flex items-center justify-between">
                                       <div className="flex items-center gap-2">
                                         <div className="flex">
@@ -1166,30 +1399,40 @@ const AdLibrary = () => {
                                               key={star}
                                               className={`h-3 w-3 ${
                                                 star <= feedback.starRating
-                                                  ? "fill-yellow-400 text-yellow-400"
-                                                  : "text-muted-foreground"
+                                                  ? 'fill-yellow-400 text-yellow-400'
+                                                  : 'text-muted-foreground'
                                               }`}
                                             />
                                           ))}
                                         </div>
                                         <span className="text-xs text-muted-foreground">
-                                          {new Date(feedback.createdAt).toLocaleDateString()}
+                                          {new Date(
+                                            feedback.createdAt
+                                          ).toLocaleDateString()}
                                         </span>
                                       </div>
                                       <Button
                                         variant="ghost"
                                         size="sm"
-                                        onClick={() => handleFlagFeedback(feedback.id)}
+                                        onClick={() =>
+                                          handleFlagFeedback(feedback.id)
+                                        }
                                         className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
                                       >
                                         <Flag className="h-3 w-3" />
                                       </Button>
                                     </div>
-                                    <p className="text-sm">{feedback.feedbackText}</p>
+                                    <p className="text-sm">
+                                      {feedback.feedbackText}
+                                    </p>
                                     {feedback.selectedTags.length > 0 && (
                                       <div className="flex gap-1 flex-wrap">
                                         {feedback.selectedTags.map((tag) => (
-                                          <Badge key={tag} variant="secondary" className="text-xs">
+                                          <Badge
+                                            key={tag}
+                                            variant="secondary"
+                                            className="text-xs"
+                                          >
                                             {tag.replace('_', ' ')}
                                           </Badge>
                                         ))}
@@ -1206,11 +1449,17 @@ const AdLibrary = () => {
                     <Card>
                       <CardContent className="text-center py-12">
                         <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold text-muted-foreground mb-2">No Viewer Feedback Yet</h3>
+                        <h3 className="text-lg font-semibold text-muted-foreground mb-2">
+                          No Viewer Feedback Yet
+                        </h3>
                         <p className="text-muted-foreground mb-4">
-                          Viewers can rate and review your ads when they appear in campaigns. Feedback will appear here once your ad goes live.
+                          Viewers can rate and review your ads when they appear
+                          in campaigns. Feedback will appear here once your ad
+                          goes live.
                         </p>
-                        <Button onClick={() => handleLoadViewerFeedback(selectedAd)}>
+                        <Button
+                          onClick={() => handleLoadViewerFeedback(selectedAd)}
+                        >
                           <MessageSquare className="h-4 w-4 mr-2" />
                           Check for Feedback
                         </Button>
@@ -1235,30 +1484,57 @@ const AdLibrary = () => {
                             <div className="text-center p-4 bg-muted/50 rounded-lg">
                               <div className="flex items-center justify-center gap-2 mb-2">
                                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-sm text-muted-foreground">Campaigns</span>
+                                <span className="text-sm text-muted-foreground">
+                                  Campaigns
+                                </span>
                               </div>
-                              <div className="text-2xl font-bold">{calculateTotalPerformance(selectedAd)?.campaignCount}</div>
+                              <div className="text-2xl font-bold">
+                                {
+                                  calculateTotalPerformance(selectedAd)
+                                    ?.campaignCount
+                                }
+                              </div>
                             </div>
                             <div className="text-center p-4 bg-muted/50 rounded-lg">
                               <div className="flex items-center justify-center gap-2 mb-2">
                                 <Eye className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-sm text-muted-foreground">Total Views</span>
+                                <span className="text-sm text-muted-foreground">
+                                  Total Views
+                                </span>
                               </div>
-                              <div className="text-2xl font-bold">{calculateTotalPerformance(selectedAd)?.totalViews.toLocaleString()}</div>
+                              <div className="text-2xl font-bold">
+                                {calculateTotalPerformance(
+                                  selectedAd
+                                )?.totalViews.toLocaleString()}
+                              </div>
                             </div>
                             <div className="text-center p-4 bg-muted/50 rounded-lg">
                               <div className="flex items-center justify-center gap-2 mb-2">
                                 <Clock className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-sm text-muted-foreground">Avg Duration</span>
+                                <span className="text-sm text-muted-foreground">
+                                  Avg Duration
+                                </span>
                               </div>
-                              <div className="text-2xl font-bold">{calculateTotalPerformance(selectedAd)?.avgDuration.toFixed(1)}s</div>
+                              <div className="text-2xl font-bold">
+                                {calculateTotalPerformance(
+                                  selectedAd
+                                )?.avgDuration.toFixed(1)}
+                                s
+                              </div>
                             </div>
                             <div className="text-center p-4 bg-muted/50 rounded-lg">
                               <div className="flex items-center justify-center gap-2 mb-2">
                                 <DollarSign className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-sm text-muted-foreground">Avg CPV</span>
+                                <span className="text-sm text-muted-foreground">
+                                  Avg CPV
+                                </span>
                               </div>
-                              <div className="text-2xl font-bold">${calculateTotalPerformance(selectedAd)?.avgCPV.toFixed(3)}</div>
+                              <div className="text-2xl font-bold">
+                                $
+                                {calculateTotalPerformance(
+                                  selectedAd
+                                )?.avgCPV.toFixed(3)}
+                              </div>
                             </div>
                           </div>
                         </CardContent>
@@ -1271,38 +1547,67 @@ const AdLibrary = () => {
                         </CardHeader>
                         <CardContent>
                           <div className="space-y-4">
-                            {selectedAd.performanceHistory.map((campaign, index) => (
-                              <div key={index} className="border rounded-lg p-4 space-y-3">
-                                <div className="flex justify-between items-start">
-                                  <div>
-                                    <h4 className="font-semibold">{campaign.campaignName}</h4>
-                                    <p className="text-sm text-muted-foreground">{campaign.dateRun}</p>
+                            {selectedAd.performanceHistory.map(
+                              (campaign, index) => (
+                                <div
+                                  key={index}
+                                  className="border rounded-lg p-4 space-y-3"
+                                >
+                                  <div className="flex justify-between items-start">
+                                    <div>
+                                      <h4 className="font-semibold">
+                                        {campaign.campaignName}
+                                      </h4>
+                                      <p className="text-sm text-muted-foreground">
+                                        {campaign.dateRun}
+                                      </p>
+                                    </div>
+                                    <Badge
+                                      className={getStatusColor(
+                                        campaign.status.toLowerCase()
+                                      )}
+                                    >
+                                      {campaign.status}
+                                    </Badge>
                                   </div>
-                                  <Badge className={getStatusColor(campaign.status.toLowerCase())}>
-                                    {campaign.status}
-                                  </Badge>
+
+                                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                    <div>
+                                      <span className="text-muted-foreground">
+                                        Views:
+                                      </span>
+                                      <div className="font-medium">
+                                        {campaign.totalViews.toLocaleString()}
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <span className="text-muted-foreground">
+                                        Avg Duration:
+                                      </span>
+                                      <div className="font-medium">
+                                        {campaign.avgViewDuration}s
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <span className="text-muted-foreground">
+                                        CTR:
+                                      </span>
+                                      <div className="font-medium">
+                                        {campaign.ctr}%
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <span className="text-muted-foreground">
+                                        Spent:
+                                      </span>
+                                      <div className="font-medium">
+                                        ${campaign.budgetSpent}
+                                      </div>
+                                    </div>
+                                  </div>
                                 </div>
-                                
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                                  <div>
-                                    <span className="text-muted-foreground">Views:</span>
-                                    <div className="font-medium">{campaign.totalViews.toLocaleString()}</div>
-                                  </div>
-                                  <div>
-                                    <span className="text-muted-foreground">Avg Duration:</span>
-                                    <div className="font-medium">{campaign.avgViewDuration}s</div>
-                                  </div>
-                                  <div>
-                                    <span className="text-muted-foreground">CTR:</span>
-                                    <div className="font-medium">{campaign.ctr}%</div>
-                                  </div>
-                                  <div>
-                                    <span className="text-muted-foreground">Spent:</span>
-                                    <div className="font-medium">${campaign.budgetSpent}</div>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
+                              )
+                            )}
                           </div>
                         </CardContent>
                       </Card>
@@ -1311,11 +1616,15 @@ const AdLibrary = () => {
                     <Card>
                       <CardContent className="text-center py-12">
                         <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold text-muted-foreground mb-2">No Performance Data</h3>
+                        <h3 className="text-lg font-semibold text-muted-foreground mb-2">
+                          No Performance Data
+                        </h3>
                         <p className="text-muted-foreground mb-4">
                           This ad hasn't been used in any campaigns yet.
                         </p>
-                        <Button onClick={() => handleUseInCampaign(selectedAd.id)}>
+                        <Button
+                          onClick={() => handleUseInCampaign(selectedAd.id)}
+                        >
                           Launch First Campaign
                         </Button>
                       </CardContent>
@@ -1328,26 +1637,41 @@ const AdLibrary = () => {
                     <div>
                       <h3 className="text-lg font-semibold">A/B Testing</h3>
                       <p className="text-sm text-muted-foreground">
-                        Test different versions of your ad to see what works best
+                        Test different versions of your ad to see what works
+                        best
                       </p>
                     </div>
-                    <Button onClick={() => handleRunABTest(selectedAd)} className="flex items-center gap-2">
+                    <Button
+                      onClick={() => handleRunABTest(selectedAd)}
+                      className="flex items-center gap-2"
+                    >
                       <FlaskConical className="h-4 w-4" />
                       Run A/B Test
                     </Button>
                   </div>
 
-                  {selectedAd.abTestResults && selectedAd.abTestResults.length > 0 ? (
+                  {selectedAd.abTestResults &&
+                  selectedAd.abTestResults.length > 0 ? (
                     <div className="space-y-4">
                       {selectedAd.abTestResults.map((test, index) => (
                         <Card key={index}>
                           <CardHeader>
                             <div className="flex justify-between items-start">
                               <div>
-                                <CardTitle className="text-base">{test.testName}</CardTitle>
-                                <p className="text-sm text-muted-foreground">{test.dateRun}</p>
+                                <CardTitle className="text-base">
+                                  {test.testName}
+                                </CardTitle>
+                                <p className="text-sm text-muted-foreground">
+                                  {test.dateRun}
+                                </p>
                               </div>
-                              <Badge className={test.status === "Running" ? "bg-blue-500" : "bg-success"}>
+                              <Badge
+                                className={
+                                  test.status === 'Running'
+                                    ? 'bg-blue-500'
+                                    : 'bg-success'
+                                }
+                              >
                                 {test.status}
                               </Badge>
                             </div>
@@ -1355,59 +1679,103 @@ const AdLibrary = () => {
                           <CardContent>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                               {/* Variation A */}
-                              <div className={`border rounded-lg p-4 ${test.winner === "A" ? "border-success bg-success/10" : ""}`}>
+                              <div
+                                className={`border rounded-lg p-4 ${test.winner === 'A' ? 'border-success bg-success/10' : ''}`}
+                              >
                                 <div className="flex justify-between items-center mb-3">
                                   <h4 className="font-semibold flex items-center gap-2">
                                     {test.variationA.name}
-                                    {test.winner === "A" && <Trophy className="h-4 w-4 text-success" />}
+                                    {test.winner === 'A' && (
+                                      <Trophy className="h-4 w-4 text-success" />
+                                    )}
                                   </h4>
-                                  <span className="text-xs text-muted-foreground">Variation A</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    Variation A
+                                  </span>
                                 </div>
                                 <div className="grid grid-cols-2 gap-3 text-sm">
                                   <div>
-                                    <span className="text-muted-foreground">Views:</span>
-                                    <div className="font-medium">{test.variationA.views.toLocaleString()}</div>
+                                    <span className="text-muted-foreground">
+                                      Views:
+                                    </span>
+                                    <div className="font-medium">
+                                      {test.variationA.views.toLocaleString()}
+                                    </div>
                                   </div>
                                   <div>
-                                    <span className="text-muted-foreground">Engagement:</span>
-                                    <div className="font-medium">{test.variationA.engagement}%</div>
+                                    <span className="text-muted-foreground">
+                                      Engagement:
+                                    </span>
+                                    <div className="font-medium">
+                                      {test.variationA.engagement}%
+                                    </div>
                                   </div>
                                   <div>
-                                    <span className="text-muted-foreground">Avg Duration:</span>
-                                    <div className="font-medium">{test.variationA.avgDuration}s</div>
+                                    <span className="text-muted-foreground">
+                                      Avg Duration:
+                                    </span>
+                                    <div className="font-medium">
+                                      {test.variationA.avgDuration}s
+                                    </div>
                                   </div>
                                   <div>
-                                    <span className="text-muted-foreground">Cost:</span>
-                                    <div className="font-medium">${test.variationA.cost}</div>
+                                    <span className="text-muted-foreground">
+                                      Cost:
+                                    </span>
+                                    <div className="font-medium">
+                                      ${test.variationA.cost}
+                                    </div>
                                   </div>
                                 </div>
                               </div>
 
                               {/* Variation B */}
-                              <div className={`border rounded-lg p-4 ${test.winner === "B" ? "border-success bg-success/10" : ""}`}>
+                              <div
+                                className={`border rounded-lg p-4 ${test.winner === 'B' ? 'border-success bg-success/10' : ''}`}
+                              >
                                 <div className="flex justify-between items-center mb-3">
                                   <h4 className="font-semibold flex items-center gap-2">
                                     {test.variationB.name}
-                                    {test.winner === "B" && <Trophy className="h-4 w-4 text-success" />}
+                                    {test.winner === 'B' && (
+                                      <Trophy className="h-4 w-4 text-success" />
+                                    )}
                                   </h4>
-                                  <span className="text-xs text-muted-foreground">Variation B</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    Variation B
+                                  </span>
                                 </div>
                                 <div className="grid grid-cols-2 gap-3 text-sm">
                                   <div>
-                                    <span className="text-muted-foreground">Views:</span>
-                                    <div className="font-medium">{test.variationB.views.toLocaleString()}</div>
+                                    <span className="text-muted-foreground">
+                                      Views:
+                                    </span>
+                                    <div className="font-medium">
+                                      {test.variationB.views.toLocaleString()}
+                                    </div>
                                   </div>
                                   <div>
-                                    <span className="text-muted-foreground">Engagement:</span>
-                                    <div className="font-medium">{test.variationB.engagement}%</div>
+                                    <span className="text-muted-foreground">
+                                      Engagement:
+                                    </span>
+                                    <div className="font-medium">
+                                      {test.variationB.engagement}%
+                                    </div>
                                   </div>
                                   <div>
-                                    <span className="text-muted-foreground">Avg Duration:</span>
-                                    <div className="font-medium">{test.variationB.avgDuration}s</div>
+                                    <span className="text-muted-foreground">
+                                      Avg Duration:
+                                    </span>
+                                    <div className="font-medium">
+                                      {test.variationB.avgDuration}s
+                                    </div>
                                   </div>
                                   <div>
-                                    <span className="text-muted-foreground">Cost:</span>
-                                    <div className="font-medium">${test.variationB.cost}</div>
+                                    <span className="text-muted-foreground">
+                                      Cost:
+                                    </span>
+                                    <div className="font-medium">
+                                      ${test.variationB.cost}
+                                    </div>
                                   </div>
                                 </div>
                               </div>
@@ -1422,7 +1790,8 @@ const AdLibrary = () => {
                                   </span>
                                 </div>
                                 <p className="text-sm text-muted-foreground mt-1">
-                                  This variation performed better and is recommended for future campaigns.
+                                  This variation performed better and is
+                                  recommended for future campaigns.
                                 </p>
                               </div>
                             )}
@@ -1434,9 +1803,12 @@ const AdLibrary = () => {
                     <Card>
                       <CardContent className="text-center py-12">
                         <FlaskConical className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold text-muted-foreground mb-2">No A/B Tests Yet</h3>
+                        <h3 className="text-lg font-semibold text-muted-foreground mb-2">
+                          No A/B Tests Yet
+                        </h3>
                         <p className="text-muted-foreground mb-4">
-                          Start testing different versions of your ad to optimize performance.
+                          Start testing different versions of your ad to
+                          optimize performance.
                         </p>
                         <Button onClick={() => handleRunABTest(selectedAd)}>
                           <FlaskConical className="h-4 w-4 mr-2" />
@@ -1455,7 +1827,10 @@ const AdLibrary = () => {
                         Get smart suggestions to improve your ad performance
                       </p>
                     </div>
-                    <Button onClick={() => handleGetAIFeedback(selectedAd)} className="flex items-center gap-2">
+                    <Button
+                      onClick={() => handleGetAIFeedback(selectedAd)}
+                      className="flex items-center gap-2"
+                    >
                       <Lightbulb className="h-4 w-4" />
                       Get AI Suggestions
                     </Button>
@@ -1464,10 +1839,13 @@ const AdLibrary = () => {
                   {loadingAI ? (
                     <Card>
                       <CardContent className="text-center py-12">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                        <h3 className="text-lg font-semibold mb-2">Analyzing Your Ad...</h3>
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold mb-2">
+                          Analyzing Your Ad...
+                        </h3>
                         <p className="text-muted-foreground">
-                          Our AI is reviewing your ad and generating personalized suggestions.
+                          Our AI is reviewing your ad and generating
+                          personalized suggestions.
                         </p>
                       </CardContent>
                     </Card>
@@ -1478,23 +1856,29 @@ const AdLibrary = () => {
                           <CardContent className="p-4">
                             <div className="flex items-start gap-3">
                               <div className="flex-shrink-0 mt-1">
-                                {suggestion.type === "warning" && (
+                                {suggestion.type === 'warning' && (
                                   <AlertCircle className="h-5 w-5 text-warning" />
                                 )}
-                                {suggestion.type === "suggestion" && (
+                                {suggestion.type === 'suggestion' && (
                                   <Lightbulb className="h-5 w-5 text-primary" />
                                 )}
-                                {suggestion.type === "success" && (
+                                {suggestion.type === 'success' && (
                                   <CheckCircle className="h-5 w-5 text-success" />
                                 )}
                               </div>
                               <div className="flex-1">
-                                <h4 className="font-semibold mb-1">{suggestion.title}</h4>
+                                <h4 className="font-semibold mb-1">
+                                  {suggestion.title}
+                                </h4>
                                 <p className="text-sm text-muted-foreground mb-3">
                                   {suggestion.description}
                                 </p>
                                 {suggestion.actionable && (
-                                  <Button size="sm" variant="outline" onClick={() => handleEdit(selectedAd.id)}>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleEdit(selectedAd.id)}
+                                  >
                                     <Edit className="h-3 w-3 mr-1" />
                                     Fix This
                                   </Button>
@@ -1509,9 +1893,12 @@ const AdLibrary = () => {
                     <Card>
                       <CardContent className="text-center py-12">
                         <Lightbulb className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold text-muted-foreground mb-2">No AI Analysis Yet</h3>
+                        <h3 className="text-lg font-semibold text-muted-foreground mb-2">
+                          No AI Analysis Yet
+                        </h3>
                         <p className="text-muted-foreground mb-4">
-                          Get personalized suggestions to optimize your ad for better performance.
+                          Get personalized suggestions to optimize your ad for
+                          better performance.
                         </p>
                         <Button onClick={() => handleGetAIFeedback(selectedAd)}>
                           <Lightbulb className="h-4 w-4 mr-2" />
@@ -1536,7 +1923,8 @@ const AdLibrary = () => {
               Set Up A/B Test
             </DialogTitle>
             <DialogDescription>
-              Test different versions of your ad to see which performs better. We'll create two variations and split your audience evenly.
+              Test different versions of your ad to see which performs better.
+              We'll create two variations and split your audience evenly.
             </DialogDescription>
           </DialogHeader>
 
@@ -1546,8 +1934,8 @@ const AdLibrary = () => {
               <div className="space-y-4">
                 <h4 className="font-semibold">Variation A (Original)</h4>
                 <div className="aspect-video bg-muted rounded-lg overflow-hidden">
-                  <img 
-                    src={selectedAd?.thumbnail} 
+                  <img
+                    src={selectedAd?.thumbnail}
                     alt={selectedAd?.name}
                     className="w-full h-full object-cover"
                   />
@@ -1579,7 +1967,8 @@ const AdLibrary = () => {
                       className="h-20"
                     />
                     <p className="text-xs text-muted-foreground mt-1">
-                      Describe the changes you'll make to create the test variation.
+                      Describe the changes you'll make to create the test
+                      variation.
                     </p>
                   </div>
                 </div>
@@ -1589,7 +1978,7 @@ const AdLibrary = () => {
             {/* Test Parameters */}
             <div className="space-y-4 border-t pt-6">
               <h4 className="font-semibold">Test Parameters</h4>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-2">
                   <Label>Total Budget: ${abTestBudget[0]}</Label>
@@ -1622,7 +2011,9 @@ const AdLibrary = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Traffic Split: {abTestSplit[0]}% / {100 - abTestSplit[0]}%</Label>
+                  <Label>
+                    Traffic Split: {abTestSplit[0]}% / {100 - abTestSplit[0]}%
+                  </Label>
                   <Slider
                     value={abTestSplit}
                     onValueChange={setAbTestSplit}
@@ -1645,19 +2036,32 @@ const AdLibrary = () => {
                 A/B Testing Tips
               </h5>
               <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• Test one element at a time (music, text, colors) for clear results</li>
-                <li>• Run tests for at least 3-5 days to gather meaningful data</li>
-                <li>• We'll automatically declare a winner when results are statistically significant</li>
-                <li>• You can pause or stop the test anytime from your dashboard</li>
+                <li>
+                  • Test one element at a time (music, text, colors) for clear
+                  results
+                </li>
+                <li>
+                  • Run tests for at least 3-5 days to gather meaningful data
+                </li>
+                <li>
+                  • We'll automatically declare a winner when results are
+                  statistically significant
+                </li>
+                <li>
+                  • You can pause or stop the test anytime from your dashboard
+                </li>
               </ul>
             </div>
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowABTestDialog(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setShowABTestDialog(false)}
+            >
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={handleLaunchABTest}
               disabled={!variationBName.trim() || !variationBChanges.trim()}
               className="flex items-center gap-2"

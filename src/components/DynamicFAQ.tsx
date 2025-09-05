@@ -1,8 +1,13 @@
 import React from 'react';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Sparkles } from 'lucide-react';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Sparkles } from 'lucide-react';
 
 interface FAQ {
   id: string;
@@ -18,13 +23,17 @@ interface DynamicFAQProps {
 
 const DynamicFAQ: React.FC<DynamicFAQProps> = ({ faqs }) => {
   const sortedFAQs = faqs.sort((a, b) => a.priority - b.priority);
-  
+
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case 'payments': return 'bg-green-100 text-green-800';
-      case 'channels': return 'bg-blue-100 text-blue-800';
-      case 'events': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'payments':
+        return 'bg-green-100 text-green-800';
+      case 'channels':
+        return 'bg-blue-100 text-blue-800';
+      case 'events':
+        return 'bg-purple-100 text-purple-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -46,8 +55,8 @@ const DynamicFAQ: React.FC<DynamicFAQProps> = ({ faqs }) => {
               <AccordionTrigger className="text-left">
                 <div className="flex items-center gap-2 flex-1">
                   <span>{faq.question}</span>
-                  <Badge 
-                    variant="secondary" 
+                  <Badge
+                    variant="secondary"
                     className={`ml-auto ${getCategoryColor(faq.category)}`}
                   >
                     {faq.category}

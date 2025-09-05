@@ -1,13 +1,13 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import EventRankingControls, {
   SortOption,
-} from "@/components/EventRankingControls";
-import ScheduledEventsGrid from "@/components/ScheduledEventsGrid";
+} from '@/components/EventRankingControls';
+import ScheduledEventsGrid from '@/components/ScheduledEventsGrid';
 
 const EventsScheduled: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const [scheduledSortBy, setScheduledSortBy] =
-    useState<SortOption>("most-ticket-sales");
+    useState<SortOption>('most-ticket-sales');
 
   // Generate mock scheduled events
   const scheduledEvents = Array.from({ length: 30 }, (_, i) => {
@@ -25,8 +25,8 @@ const EventsScheduled: React.FC = () => {
       channelName: `Channel ${Math.floor(i / 3) + 1}`,
       startDate: startDate.toLocaleDateString(),
       startTime: startDate.toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
+        hour: '2-digit',
+        minute: '2-digit',
       }),
       startDateTime: startDate,
       views: Math.floor(Math.random() * 15000) + 500,
@@ -48,9 +48,9 @@ const EventsScheduled: React.FC = () => {
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 
-    if (days > 0) return `in ${days} day${days > 1 ? "s" : ""}`;
-    if (hours > 0) return `in ${hours} hour${hours > 1 ? "s" : ""}`;
-    return "starting soon";
+    if (days > 0) return `in ${days} day${days > 1 ? 's' : ''}`;
+    if (hours > 0) return `in ${hours} hour${hours > 1 ? 's' : ''}`;
+    return 'starting soon';
   }
 
   return (

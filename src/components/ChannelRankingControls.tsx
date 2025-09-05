@@ -1,10 +1,16 @@
 import React from 'react';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Users } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import TooltipWrapper from '@/components/ui/tooltip-wrapper';
 
-export type ChannelSortOption = 
+export type ChannelSortOption =
   | 'most-revenue-all-time'
   | 'most-revenue-12-months'
   | 'most-revenue-30-days'
@@ -34,7 +40,7 @@ const ChannelRankingControls: React.FC<ChannelRankingControlsProps> = ({
   sortBy,
   onSortChange,
   memberSearch,
-  onMemberSearchChange
+  onMemberSearchChange,
 }) => {
   return (
     <div className="flex flex-col md:flex-row gap-4 mb-6">
@@ -49,7 +55,7 @@ const ChannelRankingControls: React.FC<ChannelRankingControlsProps> = ({
           />
         </TooltipWrapper>
       </div>
-      
+
       <div className="relative flex-1">
         <Users className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
         <TooltipWrapper content="Search by channel owner or member">
@@ -61,16 +67,22 @@ const ChannelRankingControls: React.FC<ChannelRankingControlsProps> = ({
           />
         </TooltipWrapper>
       </div>
-      
+
       <TooltipWrapper content="Sort channels by different criteria">
         <Select value={sortBy} onValueChange={onSortChange}>
           <SelectTrigger className="w-full md:w-[200px]">
             <SelectValue placeholder="Sort by..." />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="most-revenue-all-time">Most Revenue All Time</SelectItem>
-            <SelectItem value="most-revenue-12-months">Most Revenue Past 12 Months</SelectItem>
-            <SelectItem value="most-revenue-30-days">Most Revenue Past 30 Days</SelectItem>
+            <SelectItem value="most-revenue-all-time">
+              Most Revenue All Time
+            </SelectItem>
+            <SelectItem value="most-revenue-12-months">
+              Most Revenue Past 12 Months
+            </SelectItem>
+            <SelectItem value="most-revenue-30-days">
+              Most Revenue Past 30 Days
+            </SelectItem>
             <SelectItem value="most-revenue">Most Revenue</SelectItem>
             <SelectItem value="least-revenue">Least Revenue</SelectItem>
             <SelectItem value="most-subscribers">Most Subscribers</SelectItem>

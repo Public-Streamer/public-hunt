@@ -8,7 +8,11 @@ interface ValidationMessageProps {
   className?: string;
 }
 
-const ValidationMessage: React.FC<ValidationMessageProps> = ({ type, message, className }) => {
+const ValidationMessage: React.FC<ValidationMessageProps> = ({
+  type,
+  message,
+  className,
+}) => {
   const icons = {
     success: Check,
     error: X,
@@ -26,11 +30,13 @@ const ValidationMessage: React.FC<ValidationMessageProps> = ({ type, message, cl
   const IconComponent = icons[type];
 
   return (
-    <div className={cn(
-      'flex items-center gap-2 text-xs px-2 py-1.5 rounded border',
-      styles[type],
-      className
-    )}>
+    <div
+      className={cn(
+        'flex items-center gap-2 text-xs px-2 py-1.5 rounded border',
+        styles[type],
+        className
+      )}
+    >
       <IconComponent className="w-3 h-3 flex-shrink-0" />
       <span>{message}</span>
     </div>

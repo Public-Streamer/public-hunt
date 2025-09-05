@@ -1,11 +1,18 @@
 import React, { useState, useEffect } from 'react';
+import {
+  Heart,
+  MessageCircle,
+  Share2,
+  Calendar,
+  Users,
+  Play,
+} from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/lib/supabase';
-import { Heart, MessageCircle, Share2, Calendar, Users, Play } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useAppContext } from '@/contexts/AppContext';
 import CommentSection from './CommentSection';
@@ -32,7 +39,9 @@ interface UserPostData {
 const ProfileNewsfeed: React.FC = () => {
   const [posts, setPosts] = useState<UserPostData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showComments, setShowComments] = useState<{[key: string]: boolean}>({});
+  const [showComments, setShowComments] = useState<{ [key: string]: boolean }>(
+    {}
+  );
   const navigate = useNavigate();
   const { isAuthenticated } = useAppContext();
   const { toast } = useToast();
@@ -70,7 +79,9 @@ const ProfileNewsfeed: React.FC = () => {
     }
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       // Check if user has already liked this post
@@ -94,50 +105,52 @@ const ProfileNewsfeed: React.FC = () => {
         if (error) throw error;
 
         // Update UI and database
-        setPosts(prev => prev.map(post => {
-          if (post.id === postId) {
-            const newLikeCount = Math.max(0, post.likes - 1);
-            // Update database
-            supabase
-              .from('user_posts')
-              .update({ likes: newLikeCount })
-              .eq('id', postId);
-            return { ...post, likes: newLikeCount };
-          }
-          return post;
-        }));
+        setPosts((prev) =>
+          prev.map((post) => {
+            if (post.id === postId) {
+              const newLikeCount = Math.max(0, post.likes - 1);
+              // Update database
+              supabase
+                .from('user_posts')
+                .update({ likes: newLikeCount })
+                .eq('id', postId);
+              return { ...post, likes: newLikeCount };
+            }
+            return post;
+          })
+        );
       } else {
         // Like the post
-        const { error } = await supabase
-          .from('post_interactions')
-          .insert({
-            post_id: postId,
-            user_id: user.id,
-            interaction_type: 'like'
-          });
+        const { error } = await supabase.from('post_interactions').insert({
+          post_id: postId,
+          user_id: user.id,
+          interaction_type: 'like',
+        });
 
         if (error) throw error;
 
         // Update UI and database
-        setPosts(prev => prev.map(post => {
-          if (post.id === postId) {
-            const newLikeCount = post.likes + 1;
-            // Update database
-            supabase
-              .from('user_posts')
-              .update({ likes: newLikeCount })
-              .eq('id', postId);
-            return { ...post, likes: newLikeCount };
-          }
-          return post;
-        }));
+        setPosts((prev) =>
+          prev.map((post) => {
+            if (post.id === postId) {
+              const newLikeCount = post.likes + 1;
+              // Update database
+              supabase
+                .from('user_posts')
+                .update({ likes: newLikeCount })
+                .eq('id', postId);
+              return { ...post, likes: newLikeCount };
+            }
+            return post;
+          })
+        );
       }
     } catch (error) {
       console.error('Error handling like:', error);
       toast({
-        title: "Error",
-        description: "Failed to update like status.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to update like status.',
+        variant: 'destructive',
       });
     }
   };
@@ -149,12 +162,12 @@ const ProfileNewsfeed: React.FC = () => {
       return;
     }
     // Update comment count in local state
-    setPosts(prev => prev.map(post => 
-      post.id === postId 
-        ? { ...post, comments: post.comments + 1 }
-        : post
-    ));
-    
+    setPosts((prev) =>
+      prev.map((post) =>
+        post.id === postId ? { ...post, comments: post.comments + 1 } : post
+      )
+    );
+
     console.log('Comment on post:', postId, comment);
   };
 
@@ -168,42 +181,42 @@ const ProfileNewsfeed: React.FC = () => {
 
     try {
       await navigator.clipboard.writeText(postUrl);
-      
+
       // Update database with incremented share count
-      const currentPost = posts.find(post => post.id === postId);
+      const currentPost = posts.find((post) => post.id === postId);
       const newShareCount = (currentPost?.shares || 0) + 1;
-      
+
       const { error } = await supabase
-        .from("user_posts")
+        .from('user_posts')
         .update({ shares: newShareCount })
-        .eq("id", postId);
+        .eq('id', postId);
 
       if (error) {
-        console.error("Error updating shares count:", error);
+        console.error('Error updating shares count:', error);
         toast({
-          title: "Share failed",
-          description: "Could not update share count.",
-          variant: "destructive",
+          title: 'Share failed',
+          description: 'Could not update share count.',
+          variant: 'destructive',
         });
         return;
       }
 
       // Update local state after successful database update
-      setPosts(prev => prev.map(post => 
-        post.id === postId 
-          ? { ...post, shares: newShareCount }
-          : post
-      ));
-      
+      setPosts((prev) =>
+        prev.map((post) =>
+          post.id === postId ? { ...post, shares: newShareCount } : post
+        )
+      );
+
       toast({
-        title: "Link copied",
-        description: "Post link copied to clipboard!",
+        title: 'Link copied',
+        description: 'Post link copied to clipboard!',
       });
     } catch (err) {
       toast({
-        title: "Share failed",
-        description: "Could not copy link to clipboard.",
-        variant: "destructive",
+        title: 'Share failed',
+        description: 'Could not copy link to clipboard.',
+        variant: 'destructive',
       });
     }
   };
@@ -227,17 +240,21 @@ const ProfileNewsfeed: React.FC = () => {
                   <div className="flex-1">
                     <div className="flex items-center space-x-2">
                       <h4 className="font-semibold">{post.user_name}</h4>
-                      <span className="text-sm text-gray-500">@{post.user_name}</span>
+                      <span className="text-sm text-gray-500">
+                        @{post.user_name}
+                      </span>
                     </div>
-                    <p className="text-sm text-gray-500">{new Date(post.created_at).toLocaleString()}</p>
+                    <p className="text-sm text-gray-500">
+                      {new Date(post.created_at).toLocaleString()}
+                    </p>
                   </div>
                 </div>
-                
+
                 <p className="text-gray-700 mb-4">{post.content}</p>
-                
+
                 {post.media_url && (
                   <div className="mb-4 rounded-lg overflow-hidden">
-                    {post.media_type === "video" ? (
+                    {post.media_type === 'video' ? (
                       <video
                         src={post.media_url}
                         controls
@@ -252,32 +269,34 @@ const ProfileNewsfeed: React.FC = () => {
                     )}
                   </div>
                 )}
-                
+
                 <div className="flex items-center space-x-6 pt-4 border-t">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => handleLike(post.id)}
                     className="text-gray-500"
                   >
                     <Heart className="w-4 h-4 mr-1" />
                     {post.likes}
                   </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => setShowComments(prev => ({
-                      ...prev,
-                      [post.id]: !prev[post.id]
-                    }))}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() =>
+                      setShowComments((prev) => ({
+                        ...prev,
+                        [post.id]: !prev[post.id],
+                      }))
+                    }
                     className="text-gray-500"
                   >
                     <MessageCircle className="w-4 h-4 mr-1" />
                     {post.comments}
                   </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => handleShare(post.id)}
                     className="text-gray-500"
                   >
@@ -285,17 +304,21 @@ const ProfileNewsfeed: React.FC = () => {
                     {post.shares || 0}
                   </Button>
                 </div>
-                
+
                 {showComments[post.id] && (
                   <div className="mt-4 border-t pt-4">
-                    <CommentSection 
-                      entityId={post.id} 
-                      entityType="post" 
-                      onCommentAdded={() => setPosts(prev => prev.map(p => 
-                        p.id === post.id 
-                          ? { ...p, comments: p.comments + 1 }
-                          : p
-                      ))}
+                    <CommentSection
+                      entityId={post.id}
+                      entityType="post"
+                      onCommentAdded={() =>
+                        setPosts((prev) =>
+                          prev.map((p) =>
+                            p.id === post.id
+                              ? { ...p, comments: p.comments + 1 }
+                              : p
+                          )
+                        )
+                      }
                     />
                   </div>
                 )}

@@ -4,18 +4,18 @@ import React, {
   useState,
   useCallback,
   useRef,
-} from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Plus, Clock, ChevronDown, Upload, Edit3, Trash2 } from "lucide-react";
-import { TimerControl } from "./TimerControl";
+} from 'react';
+import { Plus, Clock, ChevronDown, Upload, Edit3, Trash2 } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { TimerControl } from './TimerControl';
 import {
   Collapsible,
   CollapsibleTrigger,
   CollapsibleContent,
-} from "@/components/ui/collapsible";
+} from '@/components/ui/collapsible';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,12 +26,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { useCountdown, TimerStatus } from "@/hooks/useCountdown";
-import { toast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-export type EntryOutcome = "pending" | "+" | "-" | "o" | "/"; // plus / minus / circle / slash
-export type EntryType = "strike" | "tree";
+} from '@/components/ui/alert-dialog';
+import { useCountdown, TimerStatus } from '@/hooks/useCountdown';
+import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+
+export type EntryOutcome = 'pending' | '+' | '-' | 'o' | '/'; // plus / minus / circle / slash
+export type EntryType = 'strike' | 'tree';
 
 export interface ScoreEntry {
   id: string;
@@ -100,7 +101,7 @@ export const DogCard: React.FC<DogCardProps> = ({
   lockOpen,
 }) => {
   const [draft, setDraft] = useState<DogData>(dog);
-  const [customPoints, setCustomPoints] = useState<string>("");
+  const [customPoints, setCustomPoints] = useState<string>('');
   const [treeMinusBlink, setTreeMinusBlink] = useState(false);
   const pedigreeInputRef = useRef<HTMLInputElement>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
@@ -108,10 +109,10 @@ export const DogCard: React.FC<DogCardProps> = ({
   const treeTimer = useCountdown(3 * 60, {
     onComplete: () => {
       toast({
-        title: "Tree time finished",
+        title: 'Tree time finished',
         description: `${draft.name}: tree time ended`,
       });
-      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
         try {
           (navigator as any).vibrate?.(200);
         } catch (e: any) {
@@ -123,10 +124,10 @@ export const DogCard: React.FC<DogCardProps> = ({
   const treeBark2Timer = useCountdown(2 * 60, {
     onComplete: () => {
       toast({
-        title: "Tree bark timer expired",
+        title: 'Tree bark timer expired',
         description: `${draft.name}: 2-minute tree bark rule expired`,
       });
-      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
         try {
           (navigator as any).vibrate?.(200);
         } catch (e: any) {
@@ -140,10 +141,10 @@ export const DogCard: React.FC<DogCardProps> = ({
   const shineTimer = useCountdown(8 * 60, {
     onComplete: () => {
       toast({
-        title: "Shine time finished",
+        title: 'Shine time finished',
         description: `${draft.name}: shine time ended`,
       });
-      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
         try {
           (navigator as any).vibrate?.(200);
         } catch (e: any) {
@@ -155,10 +156,10 @@ export const DogCard: React.FC<DogCardProps> = ({
   const trackBarkTimer = useCountdown(6 * 60, {
     onComplete: () => {
       toast({
-        title: "Track bark time finished",
+        title: 'Track bark time finished',
         description: `${draft.name}: track bark time ended`,
       });
-      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
         try {
           (navigator as any).vibrate?.(200);
         } catch (e: any) {
@@ -170,10 +171,10 @@ export const DogCard: React.FC<DogCardProps> = ({
   const walkTimer = useCountdown(1 * 60, {
     onComplete: () => {
       toast({
-        title: "Walk time finished",
+        title: 'Walk time finished',
         description: `${draft.name}: 1-minute walk ended`,
       });
-      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
         try {
           (navigator as any).vibrate?.(200);
         } catch (e: any) {
@@ -185,10 +186,10 @@ export const DogCard: React.FC<DogCardProps> = ({
   const babblingTimer = useCountdown(1 * 60, {
     onComplete: () => {
       toast({
-        title: "Babbling 1 Minute finished",
+        title: 'Babbling 1 Minute finished',
         description: `${draft.name}: 1-minute babbling window ended`,
       });
-      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
         try {
           (navigator as any).vibrate?.(200);
         } catch (e: any) {
@@ -200,10 +201,10 @@ export const DogCard: React.FC<DogCardProps> = ({
   const notHuntingTimer = useCountdown(15 * 60, {
     onComplete: () => {
       toast({
-        title: "Not hunting time finished",
+        title: 'Not hunting time finished',
         description: `${draft.name}: 15-minute timer ended`,
       });
-      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
         try {
           (navigator as any).vibrate?.(200);
         } catch (e: any) {
@@ -214,16 +215,16 @@ export const DogCard: React.FC<DogCardProps> = ({
   });
   const goneHuntingTimer = useCountdown(5 * 60, {
     onComplete: () => {
-      if (notHuntingTimer.status === "running") {
+      if (notHuntingTimer.status === 'running') {
         // During Not Hunting: do NOT scratch; reset the 15-minute timer instead
         toast({
-          title: "Gone Hunt expired during Not Hunting",
+          title: 'Gone Hunt expired during Not Hunting',
           description: `${draft.name}: Not Hunting reset to 15:00`,
         });
         notHuntingTimer.reset(15 * 60);
         // Reset Gone Hunt as well so it can be cleanly restarted if needed
         goneHuntingTimer.reset(5 * 60);
-        if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+        if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
           try {
             (navigator as any).vibrate?.(200);
           } catch (e: any) {
@@ -235,9 +236,9 @@ export const DogCard: React.FC<DogCardProps> = ({
       }
       // Otherwise, scratch dog when Gone Hunt expires outside Not Hunting
       toast({
-        title: "Gone Hunt expired — Dog scratched",
+        title: 'Gone Hunt expired — Dog scratched',
         description: `${draft.name} is scratched from the hunt`,
-        variant: "destructive",
+        variant: 'destructive',
       });
       const updated: DogData = { ...draft, disqualified: true };
       setDraft(updated);
@@ -245,7 +246,7 @@ export const DogCard: React.FC<DogCardProps> = ({
       // Reset related timers for clarity
       goneHuntingTimer.reset(5 * 60);
       notHuntingTimer.reset(15 * 60);
-      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
         try {
           (navigator as any).vibrate?.(200);
         } catch (e: any) {
@@ -258,10 +259,10 @@ export const DogCard: React.FC<DogCardProps> = ({
   const stationaryTimer = useCountdown(5 * 60, {
     onComplete: () => {
       toast({
-        title: "Stationary finished",
+        title: 'Stationary finished',
         description: `${draft.name}: 5-minute stationary completed`,
       });
-      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
         try {
           (navigator as any).vibrate?.(200);
         } catch (e: any) {
@@ -273,12 +274,12 @@ export const DogCard: React.FC<DogCardProps> = ({
   const stationaryNonBarkTimer = useCountdown(2 * 60, {
     onComplete: () => {
       toast({
-        title: "No Bark 2:00 expired",
+        title: 'No Bark 2:00 expired',
         description: `${draft.name}: judge decision required — Stationary reset`,
       });
       // Do not auto-minus on expiry; only reset linked Stationary timer
       stationaryTimer.reset(5 * 60);
-      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
         try {
           (navigator as any).vibrate?.(200);
         } catch (e: any) {
@@ -347,10 +348,10 @@ export const DogCard: React.FC<DogCardProps> = ({
 
   const computeTotal = (entries: ScoreEntry[]) => {
     return entries.reduce((sum, e) => {
-      if (e.outcome === "+") return sum + e.points;
-      if (e.outcome === "-") return sum - e.points;
-      if (e.outcome === "o") return sum; // circle doesn't change
-      if (e.outcome === "/") return sum; // slashed strike doesn't change
+      if (e.outcome === '+') return sum + e.points;
+      if (e.outcome === '-') return sum - e.points;
+      if (e.outcome === 'o') return sum; // circle doesn't change
+      if (e.outcome === '/') return sum; // slashed strike doesn't change
       return sum; // pending doesn't count
     }, 0);
   };
@@ -358,16 +359,16 @@ export const DogCard: React.FC<DogCardProps> = ({
   const total = useMemo(() => computeTotal(draft.entries), [draft.entries]);
 
   const totalAbs = Math.abs(total);
-  const totalIndicator = total > 0 ? "+" : total < 0 ? "–" : "";
+  const totalIndicator = total > 0 ? '+' : total < 0 ? '–' : '';
   const circleTotal = useMemo(() => {
     return draft.entries.reduce(
-      (sum, e) => (e.outcome === "o" ? sum + e.points : sum),
+      (sum, e) => (e.outcome === 'o' ? sum + e.points : sum),
       0
     );
   }, [draft.entries]);
   const showCircleAsTotal = total === 0 && circleTotal > 0;
 
-  const hasPending = draft.entries.some((e) => e.outcome === "pending");
+  const hasPending = draft.entries.some((e) => e.outcome === 'pending');
 
   const addEntry = (type: EntryType, points: number) => {
     if (!canEdit) return;
@@ -375,7 +376,7 @@ export const DogCard: React.FC<DogCardProps> = ({
       id: crypto.randomUUID(),
       type,
       points,
-      outcome: "pending",
+      outcome: 'pending',
       at: new Date().toISOString(),
     };
     const updated: DogData = {
@@ -392,17 +393,17 @@ export const DogCard: React.FC<DogCardProps> = ({
     // 2-Minute No-Bark Rule Warning:
     // Show warning when scoring trees before timers expire, but allow the action
     if (
-      entry?.type === "tree" &&
-      treeTimer.status !== "finished" &&
-      outcome !== "pending"
+      entry?.type === 'tree' &&
+      treeTimer.status !== 'finished' &&
+      outcome !== 'pending'
     ) {
-      const isMinus = outcome === "-";
-      const twoMinExpired = treeBark2Timer.status === "finished";
+      const isMinus = outcome === '-';
+      const twoMinExpired = treeBark2Timer.status === 'finished';
       if (!(isMinus && twoMinExpired)) {
         toast({
-          title: "Warning: Tree timer active",
-          description: "Scoring tree before 3:00 expires",
-          variant: "destructive",
+          title: 'Warning: Tree timer active',
+          description: 'Scoring tree before 3:00 expires',
+          variant: 'destructive',
         });
         // Continue to allow scoring instead of returning
       }
@@ -431,12 +432,12 @@ export const DogCard: React.FC<DogCardProps> = ({
 
   const startNonBarkGuarded = () => {
     if (!canEdit) return;
-    if (stationaryTimer.status !== "running") {
+    if (stationaryTimer.status !== 'running') {
       toast({
-        title: "Start Stationary first",
+        title: 'Start Stationary first',
         description:
-          "Begin the 5-minute stationary before starting the 2-minute no-bark",
-        variant: "destructive",
+          'Begin the 5-minute stationary before starting the 2-minute no-bark',
+        variant: 'destructive',
       });
       return;
     }
@@ -446,12 +447,12 @@ export const DogCard: React.FC<DogCardProps> = ({
 
   const startGoneHuntingGuarded = () => {
     if (!canEdit) return;
-    if (notHuntingTimer.status !== "running") {
+    if (notHuntingTimer.status !== 'running') {
       toast({
-        title: "Start Not Hunting first",
+        title: 'Start Not Hunting first',
         description:
-          "Begin the 15-minute not hunting timer before starting the 5-minute gone hunting",
-        variant: "destructive",
+          'Begin the 15-minute not hunting timer before starting the 5-minute gone hunting',
+        variant: 'destructive',
       });
       return;
     }
@@ -468,7 +469,7 @@ export const DogCard: React.FC<DogCardProps> = ({
     const t = useCountdown(cfg.seconds, {
       onComplete: () => {
         toast({ title: `${cfg.label} finished`, description: `${draft.name}` });
-        if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+        if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
           try {
             (navigator as any).vibrate?.(200);
           } catch (e: any) {
@@ -508,7 +509,7 @@ export const DogCard: React.FC<DogCardProps> = ({
 
   // Sync external open control from parent (auto-expand on updates)
   useEffect(() => {
-    if (typeof openExternal === "boolean") {
+    if (typeof openExternal === 'boolean') {
       setOpen(openExternal);
     }
   }, [openExternal]);
@@ -516,17 +517,17 @@ export const DogCard: React.FC<DogCardProps> = ({
   const runningTimers = useMemo(
     () =>
       [
-        { key: "tree", label: "Tree", t: treeTimer },
-        { key: "treeBark2", label: "Tree Bark", t: treeBark2Timer },
-        { key: "shine", label: "Shine", t: shineTimer },
-        { key: "trackBark", label: "Track Bark", t: trackBarkTimer },
-        { key: "walk", label: "Walk", t: walkTimer },
-        { key: "babbling", label: "Babbling 1 Minute", t: babblingTimer },
-        { key: "notHunting", label: "Not Hunt", t: notHuntingTimer },
-        { key: "goneHunting", label: "Gone Hunt", t: goneHuntingTimer },
-        { key: "stationary", label: "Stationary", t: stationaryTimer },
-        { key: "noBark", label: "No Bark", t: stationaryNonBarkTimer },
-      ].filter(({ t }) => t.status === "running"),
+        { key: 'tree', label: 'Tree', t: treeTimer },
+        { key: 'treeBark2', label: 'Tree Bark', t: treeBark2Timer },
+        { key: 'shine', label: 'Shine', t: shineTimer },
+        { key: 'trackBark', label: 'Track Bark', t: trackBarkTimer },
+        { key: 'walk', label: 'Walk', t: walkTimer },
+        { key: 'babbling', label: 'Babbling 1 Minute', t: babblingTimer },
+        { key: 'notHunting', label: 'Not Hunt', t: notHuntingTimer },
+        { key: 'goneHunting', label: 'Gone Hunt', t: goneHuntingTimer },
+        { key: 'stationary', label: 'Stationary', t: stationaryTimer },
+        { key: 'noBark', label: 'No Bark', t: stationaryNonBarkTimer },
+      ].filter(({ t }) => t.status === 'running'),
     [
       treeTimer.status,
       treeBark2Timer.status,
@@ -544,17 +545,17 @@ export const DogCard: React.FC<DogCardProps> = ({
   const collapsedTimers = useMemo(
     () =>
       [
-        { key: "tree", label: "Tree", t: treeTimer },
-        { key: "treeBark2", label: "Tree Bark", t: treeBark2Timer },
-        { key: "shine", label: "Shine", t: shineTimer },
-        { key: "trackBark", label: "Track Bark", t: trackBarkTimer },
-        { key: "walk", label: "Walk", t: walkTimer },
-        { key: "babbling", label: "Babbling 1 Minute", t: babblingTimer },
-        { key: "notHunting", label: "Not Hunt", t: notHuntingTimer },
-        { key: "goneHunting", label: "Gone Hunt", t: goneHuntingTimer },
-        { key: "stationary", label: "Stationary", t: stationaryTimer },
-        { key: "noBark", label: "No Bark", t: stationaryNonBarkTimer },
-      ].filter(({ t }) => t.status === "running" || t.status === "finished"),
+        { key: 'tree', label: 'Tree', t: treeTimer },
+        { key: 'treeBark2', label: 'Tree Bark', t: treeBark2Timer },
+        { key: 'shine', label: 'Shine', t: shineTimer },
+        { key: 'trackBark', label: 'Track Bark', t: trackBarkTimer },
+        { key: 'walk', label: 'Walk', t: walkTimer },
+        { key: 'babbling', label: 'Babbling 1 Minute', t: babblingTimer },
+        { key: 'notHunting', label: 'Not Hunt', t: notHuntingTimer },
+        { key: 'goneHunting', label: 'Gone Hunt', t: goneHuntingTimer },
+        { key: 'stationary', label: 'Stationary', t: stationaryTimer },
+        { key: 'noBark', label: 'No Bark', t: stationaryNonBarkTimer },
+      ].filter(({ t }) => t.status === 'running' || t.status === 'finished'),
     [
       treeTimer.status,
       treeTimer.formatted,
@@ -636,52 +637,52 @@ export const DogCard: React.FC<DogCardProps> = ({
   );
 
   // Upload helpers for pedigree and dog photo
-  const handleUpload = async (file: File, kind: "pedigree" | "photo") => {
+  const handleUpload = async (file: File, kind: 'pedigree' | 'photo') => {
     try {
-      const ext = file.name.split(".").pop() || "jpg";
+      const ext = file.name.split('.').pop() || 'jpg';
       const filePath = `scorecards/dogs/${
         draft.id
       }/${kind}-${Date.now()}.${ext}`;
       const { error: uploadError } = await supabase.storage
-        .from("media")
+        .from('media')
         .upload(filePath, file);
       if (uploadError) throw uploadError;
       const { data: urlData } = supabase.storage
-        .from("media")
+        .from('media')
         .getPublicUrl(filePath);
       const url = urlData.publicUrl;
       const updated: DogData = {
         ...draft,
-        dogPhotoUrl: kind === "photo" ? url : draft.dogPhotoUrl,
-        pedigreeImageUrl: kind === "pedigree" ? url : draft.pedigreeImageUrl,
+        dogPhotoUrl: kind === 'photo' ? url : draft.dogPhotoUrl,
+        pedigreeImageUrl: kind === 'pedigree' ? url : draft.pedigreeImageUrl,
       };
       setDraft(updated);
       onChange(updated, computeTotal(updated.entries));
       toast({
-        title: "Upload complete",
+        title: 'Upload complete',
         description: `${
-          kind === "photo" ? "Dog photo" : "Pedigree"
+          kind === 'photo' ? 'Dog photo' : 'Pedigree'
         } uploaded for ${draft.name}`,
       });
     } catch (e: any) {
-      console.error("Upload failed", e);
+      console.error('Upload failed', e);
       toast({
-        title: "Upload failed",
-        description: e?.message || "Could not upload file",
-        variant: "destructive",
+        title: 'Upload failed',
+        description: e?.message || 'Could not upload file',
+        variant: 'destructive',
       });
     }
   };
 
   const onFileChangePedigree = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
-    if (f) handleUpload(f, "pedigree");
-    if (e.target) e.target.value = "";
+    if (f) handleUpload(f, 'pedigree');
+    if (e.target) e.target.value = '';
   };
   const onFileChangePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
-    if (f) handleUpload(f, "photo");
-    if (e.target) e.target.value = "";
+    if (f) handleUpload(f, 'photo');
+    if (e.target) e.target.value = '';
   };
 
   return (
@@ -752,12 +753,12 @@ export const DogCard: React.FC<DogCardProps> = ({
                       variant="outline"
                       size="sm"
                       onClick={() => setIsEditing((v) => !v)}
-                      aria-label={isEditing ? "Finish editing" : "Edit dog"}
-                      title={isEditing ? "Finish editing" : "Edit dog"}
+                      aria-label={isEditing ? 'Finish editing' : 'Edit dog'}
+                      title={isEditing ? 'Finish editing' : 'Edit dog'}
                       className="text-xs px-2 py-1 h-7"
                     >
-                      <Edit3 className="h-3 w-3 mr-1" />{" "}
-                      {isEditing ? "Done" : "Edit"}
+                      <Edit3 className="h-3 w-3 mr-1" />{' '}
+                      {isEditing ? 'Done' : 'Edit'}
                     </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
@@ -788,20 +789,20 @@ export const DogCard: React.FC<DogCardProps> = ({
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                             onClick={async () => {
                               const { error } = await supabase.functions.invoke(
-                                "scoreboard-operations",
+                                'scoreboard-operations',
                                 {
-                                  body: { action: "delete", teamId: draft.id },
+                                  body: { action: 'delete', teamId: draft.id },
                                 }
                               );
                               if (error) {
                                 toast({
-                                  title: "Error",
-                                  description: "Failed to delete team",
-                                  variant: "destructive",
+                                  title: 'Error',
+                                  description: 'Failed to delete team',
+                                  variant: 'destructive',
                                 });
                               } else {
                                 toast({
-                                  title: "Deleted",
+                                  title: 'Deleted',
                                   description: `${draft.name} removed`,
                                 });
                                 onDelete?.(draft.id);
@@ -821,14 +822,14 @@ export const DogCard: React.FC<DogCardProps> = ({
                     size="sm"
                     className="h-7 w-7 p-0 rounded-full flex-shrink-0"
                     aria-label={
-                      (lockOpen ? true : open) ? "Collapse" : "Expand"
+                      (lockOpen ? true : open) ? 'Collapse' : 'Expand'
                     }
-                    title={(lockOpen ? true : open) ? "Collapse" : "Expand"}
+                    title={(lockOpen ? true : open) ? 'Collapse' : 'Expand'}
                     disabled={!!lockOpen}
                   >
                     <ChevronDown
                       className={`h-4 w-4 transition-transform ${
-                        (lockOpen ? true : open) ? "rotate-180" : "rotate-0"
+                        (lockOpen ? true : open) ? 'rotate-180' : 'rotate-0'
                       }`}
                     />
                   </Button>
@@ -851,19 +852,19 @@ export const DogCard: React.FC<DogCardProps> = ({
             {collapsedTimers.length > 0 ? (
               <div className="flex flex-wrap items-center gap-2">
                 {collapsedTimers.map((ct) => {
-                  const isFinished = ct.t.status === "finished";
+                  const isFinished = ct.t.status === 'finished';
                   return (
                     <Badge
                       key={ct.key}
-                      variant={isFinished ? "destructive" : "secondary"}
+                      variant={isFinished ? 'destructive' : 'secondary'}
                       className={`text-xs font-medium ${
                         isFinished
-                          ? "bg-red-100 text-red-800 border-red-300 dark:bg-red-950/50 dark:text-red-200 dark:border-red-800 animate-pulse"
-                          : ""
+                          ? 'bg-red-100 text-red-800 border-red-300 dark:bg-red-950/50 dark:text-red-200 dark:border-red-800 animate-pulse'
+                          : ''
                       }`}
                     >
                       {ct.label}: {ct.t.formatted}
-                      {isFinished && " ⚠️"}
+                      {isFinished && ' ⚠️'}
                     </Badge>
                   );
                 })}
@@ -879,7 +880,7 @@ export const DogCard: React.FC<DogCardProps> = ({
         <CollapsibleContent asChild>
           <CardContent
             className={`space-y-3 ${
-              !canEdit ? "pointer-events-none opacity-60 select-none" : ""
+              !canEdit ? 'pointer-events-none opacity-60 select-none' : ''
             }`}
           >
             {treeMinusBlink && (
@@ -1058,7 +1059,7 @@ export const DogCard: React.FC<DogCardProps> = ({
                   size="sm"
                   variant="secondary"
                   disabled={!canEdit}
-                  onClick={() => addEntry("strike", p)}
+                  onClick={() => addEntry('strike', p)}
                 >
                   Strike +{p}
                 </Button>
@@ -1068,7 +1069,7 @@ export const DogCard: React.FC<DogCardProps> = ({
                   key={`t${p}`}
                   size="sm"
                   disabled={!canEdit}
-                  onClick={() => addEntry("tree", p)}
+                  onClick={() => addEntry('tree', p)}
                 >
                   Tree +{p}
                 </Button>
@@ -1082,11 +1083,11 @@ export const DogCard: React.FC<DogCardProps> = ({
                   value={customPoints}
                   onChange={(e) => setCustomPoints(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") {
+                    if (e.key === 'Enter') {
                       const v = parseFloat(customPoints);
                       if (!isNaN(v) && v > 0) {
-                        addEntry("tree", v);
-                        setCustomPoints("");
+                        addEntry('tree', v);
+                        setCustomPoints('');
                       }
                     }
                   }}
@@ -1098,8 +1099,8 @@ export const DogCard: React.FC<DogCardProps> = ({
                   onClick={() => {
                     const v = parseFloat(customPoints);
                     if (!isNaN(v) && v > 0) {
-                      addEntry("strike", v);
-                      setCustomPoints("");
+                      addEntry('strike', v);
+                      setCustomPoints('');
                     }
                   }}
                 >
@@ -1111,8 +1112,8 @@ export const DogCard: React.FC<DogCardProps> = ({
                   onClick={() => {
                     const v = parseFloat(customPoints);
                     if (!isNaN(v) && v > 0) {
-                      addEntry("tree", v);
-                      setCustomPoints("");
+                      addEntry('tree', v);
+                      setCustomPoints('');
                     }
                   }}
                 >
@@ -1130,30 +1131,30 @@ export const DogCard: React.FC<DogCardProps> = ({
               ) : (
                 draft.entries.map((e) => {
                   const color =
-                    e.outcome === "pending"
-                      ? "bg-accent/10 border-accent/30"
-                      : e.outcome === "+"
-                      ? "bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-800/40"
-                      : e.outcome === "-"
-                      ? "bg-red-50 border-red-200 dark:bg-red-950/20 dark:border-red-800/40"
-                      : e.outcome === "o"
-                      ? "bg-yellow-50 border-yellow-200 dark:bg-yellow-950/20 dark:border-yellow-800/40"
-                      : "bg-muted/20 border-muted/40 transition-colors"; // slash
+                    e.outcome === 'pending'
+                      ? 'bg-accent/10 border-accent/30'
+                      : e.outcome === '+'
+                        ? 'bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-800/40'
+                        : e.outcome === '-'
+                          ? 'bg-red-50 border-red-200 dark:bg-red-950/20 dark:border-red-800/40'
+                          : e.outcome === 'o'
+                            ? 'bg-yellow-50 border-yellow-200 dark:bg-yellow-950/20 dark:border-yellow-800/40'
+                            : 'bg-muted/20 border-muted/40 transition-colors'; // slash
 
                   const typeColor =
-                    e.type === "strike"
-                      ? "bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-200"
-                      : "bg-purple-100 text-purple-800 dark:bg-purple-950/50 dark:text-purple-200";
+                    e.type === 'strike'
+                      ? 'bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-200'
+                      : 'bg-purple-100 text-purple-800 dark:bg-purple-950/50 dark:text-purple-200';
 
                   const renderPoints = () => {
-                    if (e.outcome === "o") {
+                    if (e.outcome === 'o') {
                       return (
                         <span className="font-medium rounded-full ring-2 ring-yellow-500 px-2 py-0.5 text-yellow-700 dark:text-yellow-300 bg-yellow-50 dark:bg-yellow-950/30">
                           {e.points}
                         </span>
                       );
                     }
-                    if (e.outcome === "/") {
+                    if (e.outcome === '/') {
                       return (
                         <span className="relative inline-flex items-center justify-center px-2 py-0.5">
                           <span className="font-medium">{e.points}</span>
@@ -1180,24 +1181,24 @@ export const DogCard: React.FC<DogCardProps> = ({
                             {e.type}
                           </Badge>
                           {renderPoints()}
-                          {e.outcome !== "pending" && e.outcome !== "o" && (
+                          {e.outcome !== 'pending' && e.outcome !== 'o' && (
                             <span
                               className={`ml-1 font-bold text-lg ${
-                                e.outcome === "+"
-                                  ? "text-green-600"
-                                  : e.outcome === "-"
-                                  ? "text-red-600"
-                                  : "text-muted-foreground"
+                                e.outcome === '+'
+                                  ? 'text-green-600'
+                                  : e.outcome === '-'
+                                    ? 'text-red-600'
+                                    : 'text-muted-foreground'
                               }`}
                             >
-                              {e.outcome === "+"
-                                ? "+"
-                                : e.outcome === "-"
-                                ? "–"
-                                : "╱"}
+                              {e.outcome === '+'
+                                ? '+'
+                                : e.outcome === '-'
+                                  ? '–'
+                                  : '╱'}
                             </span>
                           )}
-                          {e.outcome === "pending" && (
+                          {e.outcome === 'pending' && (
                             <Badge variant="outline">pending</Badge>
                           )}
                         </div>
@@ -1207,7 +1208,7 @@ export const DogCard: React.FC<DogCardProps> = ({
                             variant="outline"
                             disabled={!canEdit}
                             className="h-10 w-10 sm:h-12 sm:w-12 p-0 text-base sm:text-xl font-bold hover-scale shrink-0"
-                            onClick={() => setOutcome(e.id, "+")}
+                            onClick={() => setOutcome(e.id, '+')}
                             title="Plus points"
                             aria-label="Plus points"
                           >
@@ -1218,7 +1219,7 @@ export const DogCard: React.FC<DogCardProps> = ({
                             variant="outline"
                             disabled={!canEdit}
                             className="h-10 w-10 sm:h-12 sm:w-12 p-0 text-base sm:text-xl font-bold hover-scale shrink-0"
-                            onClick={() => setOutcome(e.id, "-")}
+                            onClick={() => setOutcome(e.id, '-')}
                             title="Minus points"
                             aria-label="Minus points"
                           >
@@ -1229,7 +1230,7 @@ export const DogCard: React.FC<DogCardProps> = ({
                             variant="outline"
                             disabled={!canEdit}
                             className="h-10 w-10 sm:h-12 sm:w-12 p-0 text-base sm:text-xl font-bold hover-scale shrink-0"
-                            onClick={() => setOutcome(e.id, "o")}
+                            onClick={() => setOutcome(e.id, 'o')}
                             title="Circle"
                             aria-label="Circle"
                           >
@@ -1240,7 +1241,7 @@ export const DogCard: React.FC<DogCardProps> = ({
                             variant="outline"
                             disabled={!canEdit}
                             className="h-10 w-10 sm:h-12 sm:w-12 p-0 text-base sm:text-xl font-bold hover-scale shrink-0"
-                            onClick={() => setOutcome(e.id, "/")}
+                            onClick={() => setOutcome(e.id, '/')}
                             title="Slash"
                             aria-label="Slash"
                           >
@@ -1251,7 +1252,7 @@ export const DogCard: React.FC<DogCardProps> = ({
                             variant="outline"
                             disabled={!canEdit}
                             className="h-10 w-10 sm:h-12 sm:w-12 p-0 text-[10px] sm:text-xs font-semibold hover-scale shrink-0"
-                            onClick={() => setOutcome(e.id, "pending")}
+                            onClick={() => setOutcome(e.id, 'pending')}
                             title="Set Pending"
                             aria-label="Set pending"
                           >
@@ -1320,19 +1321,19 @@ export const DogCard: React.FC<DogCardProps> = ({
                           try {
                             // Extract file path from URL for deletion
                             const url = new URL(draft.pedigreeImageUrl!);
-                            const pathParts = url.pathname.split("/");
+                            const pathParts = url.pathname.split('/');
                             const fileName = pathParts[pathParts.length - 1];
                             const filePath = `pedigrees/${fileName}`;
 
                             const { error } = await supabase.storage
-                              .from("media")
+                              .from('media')
                               .remove([filePath]);
                             if (error) {
-                              console.error("Error deleting pedigree:", error);
+                              console.error('Error deleting pedigree:', error);
                               toast({
-                                title: "Error",
-                                description: "Failed to delete pedigree",
-                                variant: "destructive",
+                                title: 'Error',
+                                description: 'Failed to delete pedigree',
+                                variant: 'destructive',
                               });
                             } else {
                               const updated = {
@@ -1342,16 +1343,16 @@ export const DogCard: React.FC<DogCardProps> = ({
                               setDraft(updated);
                               onChange(updated, total);
                               toast({
-                                title: "Deleted",
-                                description: "Pedigree removed",
+                                title: 'Deleted',
+                                description: 'Pedigree removed',
                               });
                             }
                           } catch (error) {
-                            console.error("Error deleting pedigree:", error);
+                            console.error('Error deleting pedigree:', error);
                             toast({
-                              title: "Error",
-                              description: "Failed to delete pedigree",
-                              variant: "destructive",
+                              title: 'Error',
+                              description: 'Failed to delete pedigree',
+                              variant: 'destructive',
                             });
                           }
                         }}
@@ -1411,19 +1412,19 @@ export const DogCard: React.FC<DogCardProps> = ({
                           try {
                             // Extract file path from URL for deletion
                             const url = new URL(draft.dogPhotoUrl!);
-                            const pathParts = url.pathname.split("/");
+                            const pathParts = url.pathname.split('/');
                             const fileName = pathParts[pathParts.length - 1];
                             const filePath = `photos/${fileName}`;
 
                             const { error } = await supabase.storage
-                              .from("media")
+                              .from('media')
                               .remove([filePath]);
                             if (error) {
-                              console.error("Error deleting dog photo:", error);
+                              console.error('Error deleting dog photo:', error);
                               toast({
-                                title: "Error",
-                                description: "Failed to delete dog photo",
-                                variant: "destructive",
+                                title: 'Error',
+                                description: 'Failed to delete dog photo',
+                                variant: 'destructive',
                               });
                             } else {
                               const updated = {
@@ -1433,16 +1434,16 @@ export const DogCard: React.FC<DogCardProps> = ({
                               setDraft(updated);
                               onChange(updated, total);
                               toast({
-                                title: "Deleted",
-                                description: "Dog photo removed",
+                                title: 'Deleted',
+                                description: 'Dog photo removed',
                               });
                             }
                           } catch (error) {
-                            console.error("Error deleting dog photo:", error);
+                            console.error('Error deleting dog photo:', error);
                             toast({
-                              title: "Error",
-                              description: "Failed to delete dog photo",
-                              variant: "destructive",
+                              title: 'Error',
+                              description: 'Failed to delete dog photo',
+                              variant: 'destructive',
                             });
                           }
                         }}
@@ -1468,7 +1469,7 @@ export const DogCard: React.FC<DogCardProps> = ({
               />
               <Input
                 placeholder="Dog name"
-                value={draft.dogName || ""}
+                value={draft.dogName || ''}
                 onChange={(e) =>
                   setDraft({ ...draft, dogName: e.target.value })
                 }
@@ -1478,7 +1479,7 @@ export const DogCard: React.FC<DogCardProps> = ({
               />
               <Input
                 placeholder="Handler name"
-                value={draft.handler || ""}
+                value={draft.handler || ''}
                 onChange={(e) =>
                   setDraft({ ...draft, handler: e.target.value })
                 }
@@ -1488,7 +1489,7 @@ export const DogCard: React.FC<DogCardProps> = ({
               />
               <Input
                 placeholder="City, State"
-                value={draft.cityState || ""}
+                value={draft.cityState || ''}
                 onChange={(e) =>
                   setDraft({ ...draft, cityState: e.target.value })
                 }
@@ -1498,7 +1499,7 @@ export const DogCard: React.FC<DogCardProps> = ({
               />
               <Input
                 placeholder="Breed"
-                value={draft.breed || ""}
+                value={draft.breed || ''}
                 onChange={(e) => setDraft({ ...draft, breed: e.target.value })}
                 onBlur={onBlurCommit}
                 readOnly={!canEdit || !isEditing}
@@ -1507,12 +1508,12 @@ export const DogCard: React.FC<DogCardProps> = ({
               <Input
                 type="number"
                 placeholder="Age"
-                value={draft.age?.toString() || ""}
+                value={draft.age?.toString() || ''}
                 onChange={(e) =>
                   setDraft({
                     ...draft,
                     age:
-                      e.target.value === ""
+                      e.target.value === ''
                         ? undefined
                         : Number(e.target.value),
                   })

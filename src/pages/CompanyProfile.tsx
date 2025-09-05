@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useParams } from 'react-router-dom';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { useAppContext } from '@/contexts/AppContext';
 import { supabase } from '@/lib/supabase';
@@ -61,7 +61,7 @@ const CompanyProfile: React.FC = () => {
   const loadCompanyProfile = async () => {
     try {
       if (!user || !companyId) return;
-      
+
       // Fetch company profile
       const { data: companyProfile, error: profileError } = await supabase
         .from('company_profiles')
@@ -76,7 +76,8 @@ const CompanyProfile: React.FC = () => {
           id: companyId,
           company_id: companyId,
           company_name: 'Tech Innovations Inc.',
-          description: 'Leading the future of technology with innovative solutions and cutting-edge products.',
+          description:
+            'Leading the future of technology with innovative solutions and cutting-edge products.',
           industry: 'Technology',
           founded_year: 2020,
           headquarters: 'San Francisco, CA',
@@ -87,7 +88,7 @@ const CompanyProfile: React.FC = () => {
           contact_email: 'contact@techinnovations.com',
           contact_phone: '+1 (555) 123-4567',
           social_links: {},
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
         };
         setProfile(mockProfile);
       } else {
@@ -112,7 +113,7 @@ const CompanyProfile: React.FC = () => {
       toast({
         title: 'Error',
         description: 'Failed to load company profile',
-        variant: 'destructive'
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -131,25 +132,30 @@ const CompanyProfile: React.FC = () => {
     return (
       <div className="text-center py-12">
         <h2 className="text-2xl font-bold mb-4">Company Profile Not Found</h2>
-        <p className="text-gray-600">The company profile you're looking for doesn't exist.</p>
+        <p className="text-gray-600">
+          The company profile you're looking for doesn't exist.
+        </p>
       </div>
     );
   }
 
   return (
     <div className="max-w-6xl mx-auto p-4">
-      <CompanyProfileCover 
+      <CompanyProfileCover
         profile={profile}
         isCompanyMaster={isCompanyMaster}
         followersCount={followersCount}
         onProfileUpdate={handleProfileUpdate}
       />
-      
+
       {/* Stories Section */}
       <div className="mb-6">
-        <ProfileStories userId={profile.company_id} isOwnProfile={isCompanyMaster} />
+        <ProfileStories
+          userId={profile.company_id}
+          isOwnProfile={isCompanyMaster}
+        />
       </div>
-      
+
       <Tabs defaultValue="timeline" className="w-full">
         <TabsList className="grid w-full grid-cols-2 lg:grid-cols-9">
           <TabsTrigger value="timeline">Timeline</TabsTrigger>
@@ -158,88 +164,116 @@ const CompanyProfile: React.FC = () => {
           <TabsTrigger value="media">Media</TabsTrigger>
           <TabsTrigger value="events">Events</TabsTrigger>
           <TabsTrigger value="channels">Channels</TabsTrigger>
-          {isCompanyMaster && <TabsTrigger value="messages">Messages</TabsTrigger>}
-          {isCompanyMaster && <TabsTrigger value="notifications">Notifications</TabsTrigger>}
+          {isCompanyMaster && (
+            <TabsTrigger value="messages">Messages</TabsTrigger>
+          )}
+          {isCompanyMaster && (
+            <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          )}
           {isCompanyMaster && <TabsTrigger value="admin">Admin</TabsTrigger>}
         </TabsList>
-        
+
         <TabsContent value="timeline" className="mt-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
-              <ProfileTimeline 
-                userId={profile.company_id} 
-                isOwnProfile={isCompanyMaster} 
+              <ProfileTimeline
+                userId={profile.company_id}
+                isOwnProfile={isCompanyMaster}
                 currentUserProfile={{
                   id: profile.company_id,
-                  username: profile.company_name.toLowerCase().replace(/\s+/g, ''),
+                  username: profile.company_name
+                    .toLowerCase()
+                    .replace(/\s+/g, ''),
                   display_name: profile.company_name,
-                  profile_picture_url: profile.logo_url
+                  profile_picture_url: profile.logo_url,
                 }}
               />
             </div>
             <div className="space-y-6">
               <CompanyProfileAbout profile={profile} />
-              <ProfileMediaUpload userId={profile.company_id} isOwnProfile={isCompanyMaster} />
+              <ProfileMediaUpload
+                userId={profile.company_id}
+                isOwnProfile={isCompanyMaster}
+              />
             </div>
           </div>
         </TabsContent>
-        
+
         <TabsContent value="about" className="mt-6">
           <CompanyProfileAbout profile={profile} />
         </TabsContent>
-        
+
         <TabsContent value="team" className="mt-6">
-          <CompanyRoleManager companyId={profile.company_id} isCompanyMaster={isCompanyMaster} />
+          <CompanyRoleManager
+            companyId={profile.company_id}
+            isCompanyMaster={isCompanyMaster}
+          />
         </TabsContent>
-        
+
         <TabsContent value="media" className="mt-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <ProfilePhotos userId={profile.company_id} isOwnProfile={isCompanyMaster} />
-            <ProfileVideos userId={profile.company_id} isOwnProfile={isCompanyMaster} />
+            <ProfilePhotos
+              userId={profile.company_id}
+              isOwnProfile={isCompanyMaster}
+            />
+            <ProfileVideos
+              userId={profile.company_id}
+              isOwnProfile={isCompanyMaster}
+            />
           </div>
         </TabsContent>
-        
+
         <TabsContent value="events" className="mt-6">
           <UserEventsList userId={profile.company_id} />
         </TabsContent>
-        
+
         <TabsContent value="channels" className="mt-6">
           <UserChannelsList userId={profile.company_id} />
         </TabsContent>
-        
+
         {isCompanyMaster && (
           <TabsContent value="messages" className="mt-6">
             <Messages userId={profile.company_id} />
           </TabsContent>
         )}
-        
+
         {isCompanyMaster && (
           <TabsContent value="notifications" className="mt-6">
             <Notifications userId={profile.company_id} />
           </TabsContent>
         )}
-        
+
         {isCompanyMaster && (
           <TabsContent value="admin" className="mt-6">
             <div className="bg-card rounded-lg shadow p-6">
               <h3 className="text-2xl font-bold mb-4">Company Admin Panel</h3>
-              <p className="text-muted-foreground mb-4">Administrative tools and company management.</p>
+              <p className="text-muted-foreground mb-4">
+                Administrative tools and company management.
+              </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-4 border rounded-lg">
                   <h4 className="font-semibold mb-2">Team Management</h4>
-                  <p className="text-sm text-muted-foreground">Manage company members and roles</p>
+                  <p className="text-sm text-muted-foreground">
+                    Manage company members and roles
+                  </p>
                 </div>
                 <div className="p-4 border rounded-lg">
                   <h4 className="font-semibold mb-2">Content Moderation</h4>
-                  <p className="text-sm text-muted-foreground">Review and moderate company content</p>
+                  <p className="text-sm text-muted-foreground">
+                    Review and moderate company content
+                  </p>
                 </div>
                 <div className="p-4 border rounded-lg">
                   <h4 className="font-semibold mb-2">Analytics</h4>
-                  <p className="text-sm text-muted-foreground">View company performance metrics</p>
+                  <p className="text-sm text-muted-foreground">
+                    View company performance metrics
+                  </p>
                 </div>
                 <div className="p-4 border rounded-lg">
                   <h4 className="font-semibold mb-2">Settings</h4>
-                  <p className="text-sm text-muted-foreground">Configure company settings</p>
+                  <p className="text-sm text-muted-foreground">
+                    Configure company settings
+                  </p>
                 </div>
               </div>
             </div>

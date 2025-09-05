@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
+import { Check, X, Trash2, AlertCircle, Calendar, User } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, X, Trash2, AlertCircle, Calendar, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
 
@@ -29,7 +29,7 @@ const ChannelApprovalMessage: React.FC<ChannelApprovalMessageProps> = ({
   requestedAt,
   status,
   onStatusChange,
-  onDelete
+  onDelete,
 }) => {
   const [processing, setProcessing] = useState(false);
   const { toast } = useToast();
@@ -39,9 +39,10 @@ const ChannelApprovalMessage: React.FC<ChannelApprovalMessageProps> = ({
     try {
       const newStatus = approved ? 'approved' : 'rejected';
       const reviewedAt = new Date().toISOString();
-      
+
       // Get current user
-      const { data: userData, error: userError } = await supabase.auth.getUser();
+      const { data: userData, error: userError } =
+        await supabase.auth.getUser();
       if (userError || !userData.user) {
         throw new Error('User not authenticated');
       }
@@ -52,7 +53,7 @@ const ChannelApprovalMessage: React.FC<ChannelApprovalMessageProps> = ({
         .update({
           status: newStatus,
           reviewed_at: reviewedAt,
-          reviewed_by: userData.user.id
+          reviewed_by: userData.user.id,
         })
         .eq('id', requestId);
 
@@ -77,15 +78,15 @@ const ChannelApprovalMessage: React.FC<ChannelApprovalMessageProps> = ({
         if (eventUpdateError) throw eventUpdateError;
 
         toast({
-          title: "Request Approved",
+          title: 'Request Approved',
           description: `Event "${eventName}" has been assigned to ${channelName}.`,
-          variant: "default"
+          variant: 'default',
         });
       } else {
         toast({
-          title: "Request Rejected",
+          title: 'Request Rejected',
           description: `Event "${eventName}" assignment to ${channelName} has been rejected.`,
-          variant: "default"
+          variant: 'default',
         });
       }
 
@@ -93,9 +94,9 @@ const ChannelApprovalMessage: React.FC<ChannelApprovalMessageProps> = ({
     } catch (error) {
       console.error('Error processing approval:', error);
       toast({
-        title: "Error",
-        description: "Failed to process approval request.",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to process approval request.',
+        variant: 'destructive',
       });
     } finally {
       setProcessing(false);
@@ -113,18 +114,18 @@ const ChannelApprovalMessage: React.FC<ChannelApprovalMessageProps> = ({
       if (error) throw error;
 
       toast({
-        title: "Request Deleted",
+        title: 'Request Deleted',
         description: `Channel assignment request for "${eventName}" has been deleted.`,
-        variant: "default"
+        variant: 'default',
       });
 
       onDelete?.();
     } catch (error) {
       console.error('Error deleting request:', error);
       toast({
-        title: "Error",
-        description: "Failed to delete request.",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to delete request.',
+        variant: 'destructive',
       });
     } finally {
       setProcessing(false);
@@ -161,9 +162,7 @@ const ChannelApprovalMessage: React.FC<ChannelApprovalMessageProps> = ({
             <AlertCircle className="h-5 w-5 mr-2 text-orange-500" />
             Channel Assignment Request
           </CardTitle>
-          <Badge className={getStatusColor()}>
-            {getStatusText()}
-          </Badge>
+          <Badge className={getStatusColor()}>{getStatusText()}</Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -227,7 +226,9 @@ const ChannelApprovalMessage: React.FC<ChannelApprovalMessageProps> = ({
 
         {status !== 'pending' && (
           <div className="pt-2 text-center text-sm text-muted-foreground">
-            {status === 'approved' ? 'This request has been approved.' : 'This request has been rejected.'}
+            {status === 'approved'
+              ? 'This request has been approved.'
+              : 'This request has been rejected.'}
           </div>
         )}
       </CardContent>

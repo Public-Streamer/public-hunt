@@ -1,4 +1,3 @@
-
 /**
  * Minimal augmentation so components that (incorrectly) use the global DOM Event
  * type for app "Event" objects can compile without modifying read-only files.

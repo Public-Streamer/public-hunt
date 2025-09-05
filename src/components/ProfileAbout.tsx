@@ -1,6 +1,13 @@
 import React from 'react';
+import {
+  MapPin,
+  Calendar,
+  Briefcase,
+  GraduationCap,
+  Heart,
+  Globe,
+} from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { MapPin, Calendar, Briefcase, GraduationCap, Heart, Globe } from 'lucide-react';
 
 interface ProfileAboutProps {
   profile: {
@@ -21,7 +28,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ profile }) => {
   const joinDate = new Date(profile.created_at).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
-    day: 'numeric'
+    day: 'numeric',
   });
 
   return (
@@ -37,42 +44,48 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ profile }) => {
               <p className="text-gray-700">{profile.bio}</p>
             </div>
           )}
-          
+
           <div className="space-y-3">
             {profile.work && (
               <div className="flex items-center space-x-3">
                 <Briefcase className="w-5 h-5 text-gray-500" />
-                <span>Works at <strong>{profile.work}</strong></span>
+                <span>
+                  Works at <strong>{profile.work}</strong>
+                </span>
               </div>
             )}
-            
+
             {profile.education && (
               <div className="flex items-center space-x-3">
                 <GraduationCap className="w-5 h-5 text-gray-500" />
-                <span>Studied at <strong>{profile.education}</strong></span>
+                <span>
+                  Studied at <strong>{profile.education}</strong>
+                </span>
               </div>
             )}
-            
+
             {profile.location && (
               <div className="flex items-center space-x-3">
                 <MapPin className="w-5 h-5 text-gray-500" />
-                <span>Lives in <strong>{profile.location}</strong></span>
+                <span>
+                  Lives in <strong>{profile.location}</strong>
+                </span>
               </div>
             )}
-            
+
             {profile.relationship_status && (
               <div className="flex items-center space-x-3">
                 <Heart className="w-5 h-5 text-gray-500" />
                 <span>{profile.relationship_status}</span>
               </div>
             )}
-            
+
             {profile.website && (
               <div className="flex items-center space-x-3">
                 <Globe className="w-5 h-5 text-gray-500" />
-                <a 
-                  href={profile.website} 
-                  target="_blank" 
+                <a
+                  href={profile.website}
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-600 hover:underline"
                 >
@@ -80,7 +93,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ profile }) => {
                 </a>
               </div>
             )}
-            
+
             <div className="flex items-center space-x-3">
               <Calendar className="w-5 h-5 text-gray-500" />
               <span>Joined {joinDate}</span>
@@ -88,7 +101,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ profile }) => {
           </div>
         </CardContent>
       </Card>
-      
+
       <Card>
         <CardHeader>
           <CardTitle>Contact Info</CardTitle>
@@ -102,9 +115,9 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ profile }) => {
             {profile.website && (
               <div>
                 <span className="font-medium">Website:</span>
-                <a 
-                  href={profile.website} 
-                  target="_blank" 
+                <a
+                  href={profile.website}
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="ml-2 text-blue-600 hover:underline"
                 >

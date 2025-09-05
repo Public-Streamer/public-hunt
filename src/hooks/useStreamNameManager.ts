@@ -1,13 +1,13 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { LocalParticipant } from "livekit-client";
-import { supabaseBrowser } from "@/lib/supabase/browser";
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { LocalParticipant } from 'livekit-client';
+import { supabaseBrowser } from '@/lib/supabase/browser';
 import {
   createStreamNameMetadata,
   validateStreamName,
   normalizeStreamName,
-} from "@/lib/streamNameUtils";
+} from '@/lib/streamNameUtils';
 
-type SyncStatus = "idle" | "saving" | "error" | "success";
+type SyncStatus = 'idle' | 'saving' | 'error' | 'success';
 
 interface StreamNameManager {
   value: string;
@@ -36,11 +36,11 @@ export function useStreamNameManager({
   const supabase = useMemo(() => supabaseBrowser(), []);
 
   // State management
-  const [value, setValue] = useState("");
-  const [originalValue, setOriginalValue] = useState("");
+  const [value, setValue] = useState('');
+  const [originalValue, setOriginalValue] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [syncStatus, setSyncStatus] = useState<SyncStatus>("idle");
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
   const [error, setError] = useState<string | null>(null);
 
   // Refs for managing async operations
@@ -65,7 +65,7 @@ export function useStreamNameManager({
         );
         await participant.setMetadata(newMetadata);
       } catch (error) {
-        console.error("Failed to update participant metadata:", error);
+        console.error('Failed to update participant metadata:', error);
       }
     },
     [participant]
@@ -79,24 +79,24 @@ export function useStreamNameManager({
 
     try {
       const { data, error } = await supabase
-        .from("event_streamers")
-        .select("camera_name")
-        .eq("event_id", eventId)
-        .eq("streamer_id", userId)
+        .from('event_streamers')
+        .select('camera_name')
+        .eq('event_id', eventId)
+        .eq('streamer_id', userId)
         .maybeSingle();
 
       if (error) throw error;
 
-      const name = data?.camera_name ?? "";
+      const name = data?.camera_name ?? '';
       setValue(name);
       setOriginalValue(name);
 
       // Update participant metadata to match database
       await updateParticipantMetadata(name);
     } catch (err) {
-      console.error("Error loading stream name:", err);
-      setError("Failed to load stream name");
-      setSyncStatus("error");
+      console.error('Error loading stream name:', err);
+      setError('Failed to load stream name');
+      setSyncStatus('error');
     }
   }, [eventId, userId, supabase, updateParticipantMetadata]);
 
@@ -111,26 +111,26 @@ export function useStreamNameManager({
     // Validate stream name
     const validation = validateStreamName(trimmedValue);
     if (!validation.isValid) {
-      setError(validation.error || "Invalid stream name");
-      setSyncStatus("error");
+      setError(validation.error || 'Invalid stream name');
+      setSyncStatus('error');
       throw new Error(validation.error);
     }
 
     setIsSaving(true);
-    setSyncStatus("saving");
+    setSyncStatus('saving');
     setError(null);
 
     const thisSaveId = ++latestSaveId.current;
 
     try {
-      console.log("Attempting to save stream name:", {
+      console.log('Attempting to save stream name:', {
         eventId,
         userId,
         trimmedValue,
       });
 
       // Use UPSERT logic to handle both INSERT and UPDATE cases
-      const { error } = await supabase.from("event_streamers").upsert(
+      const { error } = await supabase.from('event_streamers').upsert(
         {
           event_id: eventId,
           streamer_id: userId,
@@ -139,37 +139,37 @@ export function useStreamNameManager({
           permissions: [], // Default empty permissions
         },
         {
-          onConflict: "event_id,streamer_id",
+          onConflict: 'event_id,streamer_id',
           ignoreDuplicates: false,
         }
       );
 
       if (error) {
-        console.error("Database error:", error);
+        console.error('Database error:', error);
         throw error;
       }
 
-      console.log("Stream name saved successfully");
+      console.log('Stream name saved successfully');
 
       // Only update state if this is still the latest save
       if (latestSaveId.current === thisSaveId) {
         await updateParticipantMetadata(trimmedValue);
         setOriginalValue(trimmedValue);
         setIsEditing(false);
-        setSyncStatus("success");
+        setSyncStatus('success');
 
         // Show success status briefly
         setTimeout(() => {
           if (latestSaveId.current === thisSaveId) {
-            setSyncStatus("idle");
+            setSyncStatus('idle');
           }
         }, 2000);
       }
     } catch (err) {
-      console.error("Failed to save stream name:", err);
+      console.error('Failed to save stream name:', err);
       if (latestSaveId.current === thisSaveId) {
-        setError(err instanceof Error ? err.message : "Failed to save");
-        setSyncStatus("error");
+        setError(err instanceof Error ? err.message : 'Failed to save');
+        setSyncStatus('error');
       }
       throw err;
     } finally {
@@ -199,21 +199,21 @@ export function useStreamNameManager({
   const startEdit = useCallback(() => {
     setIsEditing(true);
     setError(null);
-    setSyncStatus("idle");
+    setSyncStatus('idle');
   }, []);
 
   const cancelEdit = useCallback(() => {
     setValue(originalValue);
     setIsEditing(false);
     setError(null);
-    setSyncStatus("idle");
+    setSyncStatus('idle');
   }, [originalValue]);
 
   const save = useCallback(async () => {
     await saveStreamName();
   }, [saveStreamName]);
 
-  console.log("value from useStreamNameManager", value);
+  console.log('value from useStreamNameManager', value);
 
   return {
     value,

@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
+import React, { useState, useEffect } from 'react';
 import {
   Play,
   User,
@@ -8,14 +7,15 @@ import {
   Zap,
   DollarSign,
   Triangle,
-} from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { useAppContext } from "@/contexts/AppContext";
-import MobileNav from "./MobileNav";
-import TooltipWrapper from "@/components/ui/tooltip-wrapper";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { brandMode } from "@/lib/brand";
+} from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useAppContext } from '@/contexts/AppContext';
+import MobileNav from './MobileNav';
+import TooltipWrapper from '@/components/ui/tooltip-wrapper';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { brandMode } from '@/lib/brand';
 
 interface HeaderProps {
   onLoginClick?: () => void;
@@ -27,7 +27,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
   const { user, currentUserProfile, logout, isAuthenticated } = useAppContext();
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
-  const isDoghuntMode = brandMode === "doghunt";
+  const isDoghuntMode = brandMode === 'doghunt';
 
   // Animation cycling state (0: strobe triangle, 1: sparks, 2: lightning, 3: energy pulse)
   const [animationIndex, setAnimationIndex] = useState(0);
@@ -43,19 +43,19 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
 
   // Animation component that cycles between different effects
   const AnimatedConnector = ({ isMobile }: { isMobile: boolean }) => {
-    const containerClass = isMobile ? "mx-0.5 flex-shrink-0" : "mx-1";
-    const sparkClass = isMobile ? "h-1 w-1" : "h-1.5 w-1.5";
+    const containerClass = isMobile ? 'mx-0.5 flex-shrink-0' : 'mx-1';
+    const sparkClass = isMobile ? 'h-1 w-1' : 'h-1.5 w-1.5';
 
     switch (animationIndex) {
       case 0: // Static triangle (strobe animation disabled for performance)
         return (
           <Triangle
             className={`text-yellow-400 ${
-              isMobile ? "h-1.5 w-1.5" : "h-2 w-2"
+              isMobile ? 'h-1.5 w-1.5' : 'h-2 w-2'
             } ${containerClass} rotate-90 stroke-[3]`}
             style={{
               filter:
-                "drop-shadow(2px 2px 4px rgba(0,0,0,0.7)) brightness(1.3)",
+                'drop-shadow(2px 2px 4px rgba(0,0,0,0.7)) brightness(1.3)',
               // Removed strobe animation that was causing performance issues
             }}
           />
@@ -65,7 +65,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
         return (
           <div
             className={`relative ${containerClass} ${
-              isMobile ? "w-4 h-2" : "w-6 h-3"
+              isMobile ? 'w-4 h-2' : 'w-6 h-3'
             }`}
           >
             <div className="absolute inset-0 overflow-hidden">
@@ -74,9 +74,9 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                   key={i}
                   className={`absolute ${sparkClass} bg-yellow-400 rounded-full`}
                   style={{
-                    left: "0%",
+                    left: '0%',
                     top: `${20 + i * 10}%`,
-                    filter: "drop-shadow(0 0 4px rgba(255, 255, 0, 0.8))",
+                    filter: 'drop-shadow(0 0 4px rgba(255, 255, 0, 0.8))',
                     animation: `sparkFly 2s ease-in-out infinite ${i * 0.2}s`,
                   }}
                 />
@@ -89,13 +89,13 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
         return (
           <div
             className={`relative ${containerClass} ${
-              isMobile ? "w-4 h-2" : "w-6 h-3"
+              isMobile ? 'w-4 h-2' : 'w-6 h-3'
             }`}
           >
             <svg
               className="absolute inset-0 w-full h-full"
               viewBox="0 0 24 12"
-              style={{ filter: "drop-shadow(0 0 6px rgba(255, 255, 0, 0.9))" }}
+              style={{ filter: 'drop-shadow(0 0 6px rgba(255, 255, 0, 0.9))' }}
             >
               <path
                 d="M2 6 L8 2 L6 6 L10 4 L8 8 L12 6 L18 3 L16 7 L22 6"
@@ -105,7 +105,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 style={{
-                  animation: "lightningFlicker 1.8s ease-in-out infinite",
+                  animation: 'lightningFlicker 1.8s ease-in-out infinite',
                 }}
               />
             </svg>
@@ -116,24 +116,24 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
         return (
           <div
             className={`relative ${containerClass} ${
-              isMobile ? "w-4 h-2" : "w-6 h-3"
+              isMobile ? 'w-4 h-2' : 'w-6 h-3'
             }`}
           >
             <div className="absolute inset-0 flex items-center justify-center">
               <div
                 className={`${
-                  isMobile ? "w-2 h-2" : "w-3 h-3"
+                  isMobile ? 'w-2 h-2' : 'w-3 h-3'
                 } bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full`}
                 style={{
-                  filter: "drop-shadow(0 0 8px rgba(255, 165, 0, 0.8))",
-                  animation: "energyPulse 2.5s ease-in-out infinite",
+                  filter: 'drop-shadow(0 0 8px rgba(255, 165, 0, 0.8))',
+                  animation: 'energyPulse 2.5s ease-in-out infinite',
                 }}
               />
               <div
                 className={`absolute ${
-                  isMobile ? "w-1 h-1" : "w-2 h-2"
+                  isMobile ? 'w-1 h-1' : 'w-2 h-2'
                 } bg-white rounded-full`}
-                style={{ animation: "energyCore 2.5s ease-in-out infinite" }}
+                style={{ animation: 'energyCore 2.5s ease-in-out infinite' }}
               />
             </div>
           </div>
@@ -160,7 +160,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
               >
                 <div
                   className="relative bg-gradient-to-br from-white/30 to-white/10 backdrop-blur-sm rounded-xl border border-white/40 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 group p-3 w-14 h-14 flex-shrink-0"
-                  style={{ filter: "drop-shadow(3px 3px 6px rgba(0,0,0,0.6))" }}
+                  style={{ filter: 'drop-shadow(3px 3px 6px rgba(0,0,0,0.6))' }}
                 >
                   {/* Main Play Button with flanking icons - keep desktop proportions */}
                   <div className="relative z-10 flex items-center justify-center h-full">
@@ -168,8 +168,8 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                     <Zap
                       className="text-yellow-300 animate-pulse h-2.5 w-2.5 mr-1"
                       style={{
-                        filter: "drop-shadow(2px 2px 4px rgba(0,0,0,0.7))",
-                        animationDuration: "0.8s",
+                        filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))',
+                        animationDuration: '0.8s',
                       }}
                     />
 
@@ -183,33 +183,33 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                       <Play
                         className="text-white h-8 w-8"
                         style={{
-                          filter: "drop-shadow(3px 3px 6px rgba(0,0,0,0.7))",
+                          filter: 'drop-shadow(3px 3px 6px rgba(0,0,0,0.7))',
                         }}
                       />
                     )}
-                    <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/60 to-transparent opacity-40 pointer-events-none"></div>
+                    <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/60 to-transparent opacity-40 pointer-events-none" />
 
                     {/* Dollar sign to the right of triangle */}
                     <DollarSign
                       className="text-green-300 animate-pulse h-2.5 w-2.5 ml-1"
                       style={{
-                        filter: "drop-shadow(2px 2px 4px rgba(0,0,0,0.7))",
-                        animationDuration: "1.2s",
+                        filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))',
+                        animationDuration: '1.2s',
                       }}
                     />
                   </div>
 
                   {/* Subtle Strobe Effect */}
-                  <div className="absolute inset-0 rounded-xl bg-white/20 opacity-0 group-hover:opacity-100 group-hover:animate-pulse transition-all duration-300"></div>
+                  <div className="absolute inset-0 rounded-xl bg-white/20 opacity-0 group-hover:opacity-100 group-hover:animate-pulse transition-all duration-300" />
 
                   {/* Live Indicator */}
                   <div
                     className="absolute -top-1.5 -right-1.5 flex items-center space-x-1 bg-red-500 text-white rounded-full animate-pulse text-xs px-1.5 py-0.5"
                     style={{
-                      filter: "drop-shadow(2px 2px 4px rgba(0,0,0,0.6))",
+                      filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.6))',
                     }}
                   >
-                    <div className="bg-white rounded-full w-1.5 h-1.5"></div>
+                    <div className="bg-white rounded-full w-1.5 h-1.5" />
                     <span className="font-bold">LIVE</span>
                   </div>
                 </div>
@@ -221,7 +221,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                         className="font-orbitron font-black text-white tracking-wide text-xl leading-tight"
                         style={{
                           textShadow:
-                            "3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)",
+                            '3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)',
                         }}
                       >
                         Dog
@@ -230,7 +230,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                         className="font-orbitron font-black text-white tracking-wide text-xl leading-tight -mt-1"
                         style={{
                           textShadow:
-                            "3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)",
+                            '3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)',
                         }}
                       >
                         Hunt.tv
@@ -242,7 +242,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                         className="font-orbitron font-black text-white tracking-wide text-xl leading-tight"
                         style={{
                           textShadow:
-                            "3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)",
+                            '3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)',
                         }}
                       >
                         Public
@@ -251,7 +251,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                         className="font-orbitron font-black text-white tracking-wide text-xl leading-tight -mt-1"
                         style={{
                           textShadow:
-                            "3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)",
+                            '3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)',
                         }}
                       >
                         Streamer
@@ -260,12 +260,12 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                   )}
                   <div
                     className="flex items-center space-x-1 text-white/80 font-medium text-xs overflow-hidden mt-1 min-w-0"
-                    style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.8)" }}
+                    style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}
                   >
                     <Zap
                       className="text-yellow-300 h-2.5 w-2.5 flex-shrink-0"
                       style={{
-                        filter: "drop-shadow(2px 2px 4px rgba(0,0,0,0.7))",
+                        filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))',
                       }}
                     />
                     <span className="whitespace-nowrap text-[10px] sm:text-xs">
@@ -278,7 +278,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                     <Play
                       className="text-yellow-300 h-2.5 w-2.5 flex-shrink-0"
                       style={{
-                        filter: "drop-shadow(2px 2px 4px rgba(0,0,0,0.7))",
+                        filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))',
                       }}
                     />
 
@@ -288,7 +288,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                     <DollarSign
                       className="text-green-300 h-2.5 w-2.5 flex-shrink-0"
                       style={{
-                        filter: "drop-shadow(2px 2px 4px rgba(0,0,0,0.7))",
+                        filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))',
                       }}
                     />
                   </div>
@@ -332,7 +332,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                     <Button
                       onClick={onLoginClick}
                       className="bg-white/20 text-white hover:bg-white/30 border border-white/40 shadow-md backdrop-blur-sm text-sm px-3 py-2"
-                      style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.5)" }}
+                      style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}
                     >
                       <User className="h-4 w-4 mr-1" />
                       {/* <span className="font-medium">Login</span> */}
@@ -349,7 +349,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                   <div
                     className="relative bg-gradient-to-br from-white/30 to-white/10 backdrop-blur-sm rounded-xl border border-white/40 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 group p-4 py-6"
                     style={{
-                      filter: "drop-shadow(4px 4px 8px rgba(0,0,0,0.6))",
+                      filter: 'drop-shadow(4px 4px 8px rgba(0,0,0,0.6))',
                     }}
                   >
                     {/* Main Play Button with flanking icons */}
@@ -358,8 +358,8 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                       <Zap
                         className="text-yellow-300 animate-pulse h-3 w-3 "
                         style={{
-                          filter: "drop-shadow(2px 2px 4px rgba(0,0,0,0.7))",
-                          animationDuration: "0.8s",
+                          filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))',
+                          animationDuration: '0.8s',
                         }}
                       />
 
@@ -373,33 +373,33 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                         <Play
                           className="text-white h-10 w-10"
                           style={{
-                            filter: "drop-shadow(3px 3px 6px rgba(0,0,0,0.7))",
+                            filter: 'drop-shadow(3px 3px 6px rgba(0,0,0,0.7))',
                           }}
                         />
                       )}
 
-                      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/60 to-transparent opacity-40 pointer-events-none"></div>
+                      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/60 to-transparent opacity-40 pointer-events-none" />
 
                       {/* <Crosshair className=" absolute   bottom-3 right-4 w-2 h-2   " /> */}
                       {/* Dollar sign to the right of triangle */}
                       <DollarSign
                         className="text-green-300 animate-pulse h-3 w-3 ml-1"
                         style={{
-                          filter: "drop-shadow(2px 2px 4px rgba(0,0,0,0.7))",
-                          animationDuration: "1.2s",
+                          filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))',
+                          animationDuration: '1.2s',
                         }}
                       />
                     </div>
                     {/* Subtle Strobe Effect */}
-                    <div className="absolute inset-0 rounded-xl bg-white/20 opacity-0 group-hover:opacity-100 group-hover:animate-pulse transition-all duration-300"></div>
+                    <div className="absolute inset-0 rounded-xl bg-white/20 opacity-0 group-hover:opacity-100 group-hover:animate-pulse transition-all duration-300" />
                     {/* Live Indicator */}
                     <div
                       className="absolute -top-2 -right-2 flex items-center space-x-1 bg-red-500 text-white rounded-full animate-pulse text-xs px-2 py-1"
                       style={{
-                        filter: "drop-shadow(2px 2px 4px rgba(0,0,0,0.6))",
+                        filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.6))',
                       }}
                     >
-                      <div className="bg-white rounded-full w-2 h-2"></div>
+                      <div className="bg-white rounded-full w-2 h-2" />
                       <span className="font-bold">LIVE</span>
                     </div>
                   </div>
@@ -411,7 +411,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                           className="font-orbitron font-black text-white tracking-wide text-2xl leading-tight"
                           style={{
                             textShadow:
-                              "3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)",
+                              '3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)',
                           }}
                         >
                           Dog
@@ -420,7 +420,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                           className="font-orbitron font-black text-white tracking-wide text-2xl leading-tight -mt-1"
                           style={{
                             textShadow:
-                              "3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)",
+                              '3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)',
                           }}
                         >
                           Hunt.tv
@@ -431,14 +431,14 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                       </span>
                       <div
                         className="flex space-x-1 text-white/80 font-medium text-sm mt-1"
-                        style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.8)" }}
+                        style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}
                       >
                         <div className="flex items-center space-x-1">
                           <Zap
                             className="text-yellow-300 h-4 w-4"
                             style={{
                               filter:
-                                "drop-shadow(2px 2px 4px rgba(0,0,0,0.7))",
+                                'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))',
                             }}
                           />
 
@@ -452,17 +452,17 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                             className="rotate-90 text-yellow-300 h-4 w-4"
                             style={{
                               filter:
-                                "drop-shadow(2px 2px 4px rgba(0,0,0,0.7))",
+                                'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))',
                             }}
                           />
                           <span className="whitespace-nowrap">
-                            Hunt & Earn{" "}
+                            Hunt & Earn{' '}
                           </span>
                           <DollarSign
                             className="text-green-300 h-4 w-4"
                             style={{
                               filter:
-                                "drop-shadow(2px 2px 4px rgba(0,0,0,0.7))",
+                                'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))',
                             }}
                           />
                         </div>
@@ -475,7 +475,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                           className="font-orbitron font-black text-white tracking-wide text-2xl leading-tight"
                           style={{
                             textShadow:
-                              "3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)",
+                              '3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)',
                           }}
                         >
                           Public
@@ -484,7 +484,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                           className="font-orbitron font-black text-white tracking-wide text-2xl leading-tight -mt-1"
                           style={{
                             textShadow:
-                              "3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)",
+                              '3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)',
                           }}
                         >
                           Streamer
@@ -495,14 +495,14 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                       </span> */}
                       <div
                         className="flex space-x-1 text-white/80 font-medium text-sm mt-1"
-                        style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.8)" }}
+                        style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}
                       >
                         <div className="flex items-center space-x-1">
                           <Zap
                             className="text-yellow-300 h-4 w-4"
                             style={{
                               filter:
-                                "drop-shadow(2px 2px 4px rgba(0,0,0,0.7))",
+                                'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))',
                             }}
                           />
 
@@ -516,7 +516,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                             className="rotate-90 text-yellow-300 h-4 w-4"
                             style={{
                               filter:
-                                "drop-shadow(2px 2px 4px rgba(0,0,0,0.7))",
+                                'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))',
                             }}
                           />
                           <span className="whitespace-nowrap">& Earn </span>
@@ -524,7 +524,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                             className="text-green-300 h-4 w-4"
                             style={{
                               filter:
-                                "drop-shadow(2px 2px 4px rgba(0,0,0,0.7))",
+                                'drop-shadow(2px 2px 4px rgba(0,0,0,0.7))',
                             }}
                           />
                         </div>
@@ -539,11 +539,11 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                   <Link
                     to="/create"
                     className={`px-2 md:px-3 lg:px-4 py-2 rounded-lg font-semibold text-white border-2 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl drop-shadow-lg text-center text-sm lg:text-base ${
-                      isActive("/create")
-                        ? "bg-red-600 border-red-500 shadow-red-400/30"
-                        : "bg-slate-600 border-slate-500 hover:bg-slate-700 hover:border-slate-400"
+                      isActive('/create')
+                        ? 'bg-red-600 border-red-500 shadow-red-400/30'
+                        : 'bg-slate-600 border-slate-500 hover:bg-slate-700 hover:border-slate-400'
                     }`}
-                    style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.5)" }}
+                    style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}
                   >
                     Create
                   </Link>
@@ -565,11 +565,11 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                   <Link
                     to="/events"
                     className={`px-2 md:px-3 lg:px-4 py-2 rounded-lg font-semibold text-white border-2 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl drop-shadow-lg text-center text-sm lg:text-base ${
-                      isActive("/events")
-                        ? "bg-red-600 border-red-500 shadow-red-400/30"
-                        : "bg-slate-600 border-slate-500 hover:bg-slate-700 hover:border-slate-400"
+                      isActive('/events')
+                        ? 'bg-red-600 border-red-500 shadow-red-400/30'
+                        : 'bg-slate-600 border-slate-500 hover:bg-slate-700 hover:border-slate-400'
                     }`}
-                    style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.5)" }}
+                    style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}
                   >
                     Events
                   </Link>
@@ -591,11 +591,11 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                   <Link
                     to="/qa"
                     className={`px-2 md:px-3 lg:px-4 py-2 rounded-lg font-semibold text-white border-2 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl drop-shadow-lg text-center text-sm lg:text-base ${
-                      isActive("/qa")
-                        ? "bg-red-600 border-red-500 shadow-red-400/30"
-                        : "bg-slate-600 border-slate-500 hover:bg-slate-700 hover:border-slate-400"
+                      isActive('/qa')
+                        ? 'bg-red-600 border-red-500 shadow-red-400/30'
+                        : 'bg-slate-600 border-slate-500 hover:bg-slate-700 hover:border-slate-400'
                     }`}
-                    style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.5)" }}
+                    style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}
                   >
                     Q&A
                   </Link>
@@ -604,11 +604,11 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                   <Link
                     to="/payments"
                     className={`px-2 md:px-3 lg:px-4 py-2 rounded-lg font-semibold text-white border-2 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl drop-shadow-lg text-center text-sm lg:text-base ${
-                      isActive("/payments")
-                        ? "bg-red-600 border-red-500 shadow-red-400/30"
-                        : "bg-slate-600 border-slate-500 hover:bg-slate-700 hover:border-slate-400"
+                      isActive('/payments')
+                        ? 'bg-red-600 border-red-500 shadow-red-400/30'
+                        : 'bg-slate-600 border-slate-500 hover:bg-slate-700 hover:border-slate-400'
                     }`}
-                    style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.5)" }}
+                    style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}
                   >
                     Payments
                   </Link>
@@ -650,7 +650,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                     <Button
                       onClick={onLoginClick}
                       className="bg-white/20 text-white hover:bg-white/30 border border-white/40 shadow-md backdrop-blur-sm"
-                      style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.5)" }}
+                      style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}
                     >
                       <User className="h-4 w-4 mr-1" />
                       <span className=" font-medium">Login</span>

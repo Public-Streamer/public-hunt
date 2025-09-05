@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import StripeCheckout from './StripeCheckout';
 
 interface TicketPurchaseModalProps {
@@ -21,7 +26,7 @@ const TicketPurchaseModal: React.FC<TicketPurchaseModalProps> = ({
   eventTitle,
   price,
   hostStripeAccountId,
-  onPurchaseSuccess
+  onPurchaseSuccess,
 }) => {
   const [purchaseComplete, setPurchaseComplete] = useState(false);
 
@@ -56,7 +61,7 @@ const TicketPurchaseModal: React.FC<TicketPurchaseModalProps> = ({
             </Button>
           </DialogTitle>
         </DialogHeader>
-        
+
         {purchaseComplete ? (
           <div className="text-center py-8">
             <div className="text-green-600 text-lg font-semibold mb-2">

@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { MapPin, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { MapPin, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 interface LocationSuggestion {
@@ -23,8 +23,8 @@ interface LocationAutocompleteProps {
 const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
   value,
   onChange,
-  placeholder = "Enter event location",
-  className
+  placeholder = 'Enter event location',
+  className,
 }) => {
   const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -41,26 +41,33 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
       }
       navigator.geolocation.getCurrentPosition(resolve, reject, {
         timeout: 10000,
-        enableHighAccuracy: true
+        enableHighAccuracy: true,
       });
     });
   };
 
-  const getLocationSuggestions = async (lat?: number, lng?: number, query?: string) => {
+  const getLocationSuggestions = async (
+    lat?: number,
+    lng?: number,
+    query?: string
+  ) => {
     try {
       setIsLoading(true);
-      const { data, error } = await supabase.functions.invoke('location-suggestions', {
-        body: { latitude: lat, longitude: lng, query: query || value }
-      });
-      
+      const { data, error } = await supabase.functions.invoke(
+        'location-suggestions',
+        {
+          body: { latitude: lat, longitude: lng, query: query || value },
+        }
+      );
+
       if (error) throw error;
-      
+
       const suggestions: LocationSuggestion[] = data?.suggestions || [];
       setSuggestions(suggestions);
-      
+
       // Auto-populate closest city if input is empty and we haven't done it yet
       if (!value && !hasAutoPopulated && suggestions.length > 0) {
-        const closest = suggestions.find(s => s.isClosest) || suggestions[0];
+        const closest = suggestions.find((s) => s.isClosest) || suggestions[0];
         const locationString = `${closest.city}, ${closest.state}`;
         onChange(locationString);
         setHasAutoPopulated(true);
@@ -71,7 +78,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
       setSuggestions([
         { city: 'New York', state: 'NY', country: 'USA' },
         { city: 'Los Angeles', state: 'CA', country: 'USA' },
-        { city: 'Chicago', state: 'IL', country: 'USA' }
+        { city: 'Chicago', state: 'IL', country: 'USA' },
       ]);
     } finally {
       setIsLoading(false);
@@ -83,7 +90,10 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
     if (suggestions.length === 0) {
       try {
         const position = await getUserLocation();
-        await getLocationSuggestions(position.coords.latitude, position.coords.longitude);
+        await getLocationSuggestions(
+          position.coords.latitude,
+          position.coords.longitude
+        );
       } catch (error) {
         console.log('Could not get user location, using default suggestions');
         await getLocationSuggestions();
@@ -102,12 +112,16 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
     const inputValue = e.target.value;
     onChange(inputValue);
     setHasAutoPopulated(true);
-    
+
     // Trigger search when user types
     if (inputValue.length > 0) {
       try {
         const position = await getUserLocation();
-        await getLocationSuggestions(position.coords.latitude, position.coords.longitude, inputValue);
+        await getLocationSuggestions(
+          position.coords.latitude,
+          position.coords.longitude,
+          inputValue
+        );
       } catch (error) {
         await getLocationSuggestions(undefined, undefined, inputValue);
       }
@@ -119,8 +133,12 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node) &&
-          inputRef.current && !inputRef.current.contains(event.target as Node)) {
+      if (
+        suggestionsRef.current &&
+        !suggestionsRef.current.contains(event.target as Node) &&
+        inputRef.current &&
+        !inputRef.current.contains(event.target as Node)
+      ) {
         setShowSuggestions(false);
       }
     };
@@ -139,9 +157,12 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
         placeholder={placeholder}
         className={className}
       />
-      
+
       {showSuggestions && (suggestions.length > 0 || isLoading) && (
-        <Card ref={suggestionsRef} className="absolute top-full left-0 right-0 z-50 mt-1 max-h-60 overflow-y-auto">
+        <Card
+          ref={suggestionsRef}
+          className="absolute top-full left-0 right-0 z-50 mt-1 max-h-60 overflow-y-auto"
+        >
           {isLoading ? (
             <div className="flex items-center justify-center p-4">
               <Loader2 className="h-4 w-4 animate-spin mr-2" />

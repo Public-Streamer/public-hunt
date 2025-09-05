@@ -16,7 +16,7 @@ const StreamerGrid: React.FC<StreamerGridProps> = ({ eventId, hasPaid }) => {
         role: 'Main Camera',
         viewers: 1250,
         isLive: true,
-        thumbnail: '/placeholder.svg'
+        thumbnail: '/placeholder.svg',
       },
       {
         id: '2',
@@ -24,7 +24,7 @@ const StreamerGrid: React.FC<StreamerGridProps> = ({ eventId, hasPaid }) => {
         role: 'Side Angle',
         viewers: 890,
         isLive: true,
-        thumbnail: '/placeholder.svg'
+        thumbnail: '/placeholder.svg',
       },
       {
         id: '3',
@@ -32,7 +32,7 @@ const StreamerGrid: React.FC<StreamerGridProps> = ({ eventId, hasPaid }) => {
         role: 'Close-up',
         viewers: 670,
         isLive: true,
-        thumbnail: '/placeholder.svg'
+        thumbnail: '/placeholder.svg',
       },
       {
         id: '4',
@@ -40,7 +40,7 @@ const StreamerGrid: React.FC<StreamerGridProps> = ({ eventId, hasPaid }) => {
         role: 'Crowd View',
         viewers: 445,
         isLive: true,
-        thumbnail: '/placeholder.svg'
+        thumbnail: '/placeholder.svg',
       },
       {
         id: '5',
@@ -48,7 +48,7 @@ const StreamerGrid: React.FC<StreamerGridProps> = ({ eventId, hasPaid }) => {
         role: 'Backstage',
         viewers: 320,
         isLive: true,
-        thumbnail: '/placeholder.svg'
+        thumbnail: '/placeholder.svg',
       },
       {
         id: '6',
@@ -56,15 +56,15 @@ const StreamerGrid: React.FC<StreamerGridProps> = ({ eventId, hasPaid }) => {
         role: 'Drone Camera',
         viewers: 280,
         isLive: true,
-        thumbnail: '/placeholder.svg'
-      }
+        thumbnail: '/placeholder.svg',
+      },
     ];
-    
+
     // Modify based on eventId to simulate different events
     const eventNum = parseInt(id) || 1;
-    return baseStreamers.map(streamer => ({
+    return baseStreamers.map((streamer) => ({
       ...streamer,
-      viewers: streamer.viewers + (eventNum * 10)
+      viewers: streamer.viewers + eventNum * 10,
     }));
   };
 
@@ -75,10 +75,12 @@ const StreamerGrid: React.FC<StreamerGridProps> = ({ eventId, hasPaid }) => {
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold">Live Streams ({streamers.length})</h2>
         {!hasPaid && (
-          <p className="text-sm text-gray-600">Pay admission to unlock full access</p>
+          <p className="text-sm text-gray-600">
+            Pay admission to unlock full access
+          </p>
         )}
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {streamers.map((streamer) => (
           <StreamerThumbnail

@@ -1,9 +1,9 @@
 import React, { useState, useCallback } from 'react';
+import { Search, CheckCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -23,10 +23,10 @@ interface UserSearchBoxProps {
   placeholder?: string;
 }
 
-const UserSearchBox: React.FC<UserSearchBoxProps> = ({ 
-  onUserSelect, 
-  selectedUser, 
-  placeholder = "Search for existing users..." 
+const UserSearchBox: React.FC<UserSearchBoxProps> = ({
+  onUserSelect,
+  selectedUser,
+  placeholder = 'Search for existing users...',
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<currentUserProfile[]>([]);
@@ -34,44 +34,51 @@ const UserSearchBox: React.FC<UserSearchBoxProps> = ({
   const [showResults, setShowResults] = useState(false);
   const { toast } = useToast();
 
-  const searchUsers = useCallback(async (term: string) => {
-    setIsLoading(true);
-    try {
-      let query = supabase
-        .from('user_profiles')
-        .select('id, user_id, username, display_name, profile_picture_url, bio, location')
-        .limit(10);
+  const searchUsers = useCallback(
+    async (term: string) => {
+      setIsLoading(true);
+      try {
+        let query = supabase
+          .from('user_profiles')
+          .select(
+            'id, user_id, username, display_name, profile_picture_url, bio, location'
+          )
+          .limit(10);
 
-      if (term.length >= 2) {
-        query = query.or(`username.ilike.%${term}%,display_name.ilike.%${term}%`);
-      }
+        if (term.length >= 2) {
+          query = query.or(
+            `username.ilike.%${term}%,display_name.ilike.%${term}%`
+          );
+        }
 
-      const { data, error } = await query;
+        const { data, error } = await query;
 
-      if (error) {
+        if (error) {
+          toast({
+            title: 'Search Error',
+            description: 'Failed to search users. Please try again.',
+            variant: 'destructive',
+          });
+          return;
+        }
+
+        setSearchResults(data || []);
+        setShowResults(true);
+      } catch (error) {
         toast({
-          title: "Search Error",
-          description: "Failed to search users. Please try again.",
-          variant: "destructive",
+          title: 'Search Error',
+          description: 'An unexpected error occurred.',
+          variant: 'destructive',
         });
-        return;
+      } finally {
+        setIsLoading(false);
       }
-
-      setSearchResults(data || []);
-      setShowResults(true);
-    } catch (error) {
-      toast({
-        title: "Search Error", 
-        description: "An unexpected error occurred.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [toast]);
+    },
+    [toast]
+  );
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+    const { value } = e.target;
     setSearchTerm(value);
     searchUsers(value);
   };
@@ -116,9 +123,13 @@ const UserSearchBox: React.FC<UserSearchBoxProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={selectedUser.profile_picture_url || undefined} />
+                  <AvatarImage
+                    src={selectedUser.profile_picture_url || undefined}
+                  />
                   <AvatarFallback>
-                    {(selectedUser.display_name || selectedUser.username).charAt(0).toUpperCase()}
+                    {(selectedUser.display_name || selectedUser.username)
+                      .charAt(0)
+                      .toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div>
@@ -128,14 +139,12 @@ const UserSearchBox: React.FC<UserSearchBoxProps> = ({
                     </span>
                     <CheckCircle className="h-4 w-4 text-green-600" />
                   </div>
-                  <p className="text-xs text-muted-foreground">@{selectedUser.username}</p>
+                  <p className="text-xs text-muted-foreground">
+                    @{selectedUser.username}
+                  </p>
                 </div>
               </div>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={clearSelection}
-              >
+              <Button variant="outline" size="sm" onClick={clearSelection}>
                 Change
               </Button>
             </div>
@@ -159,9 +168,13 @@ const UserSearchBox: React.FC<UserSearchBoxProps> = ({
                     onClick={() => handleUserSelect(user)}
                   >
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={user.profile_picture_url || undefined} />
+                      <AvatarImage
+                        src={user.profile_picture_url || undefined}
+                      />
                       <AvatarFallback>
-                        {(user.display_name || user.username).charAt(0).toUpperCase()}
+                        {(user.display_name || user.username)
+                          .charAt(0)
+                          .toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">

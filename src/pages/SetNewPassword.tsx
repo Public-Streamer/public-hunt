@@ -1,26 +1,26 @@
-import React, { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import React, { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SetNewPasswordProps {
   onSuccess?: () => void;
 }
 
 const SetNewPassword: React.FC<SetNewPasswordProps> = ({ onSuccess }) => {
-  const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
+  const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setError('');
 
     if (password.length < 8) {
-      return setError("Password must be at least 8 characters.");
+      return setError('Password must be at least 8 characters.');
     }
     if (password !== confirm) {
-      return setError("Passwords do not match.");
+      return setError('Passwords do not match.');
     }
 
     setLoading(true);
@@ -147,7 +147,7 @@ const SetNewPassword: React.FC<SetNewPasswordProps> = ({ onSuccess }) => {
         disabled={loading}
         className="w-full bg-primary text-primary-foreground py-2 rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors"
       >
-        {loading ? "Updating..." : "Update Password"}
+        {loading ? 'Updating...' : 'Update Password'}
       </button>
     </div>
   );

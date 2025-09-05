@@ -1,9 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { supabase } from '@/integrations/supabase/client';
 
 interface CompanyAccount {
   company_id: string;
@@ -16,10 +28,10 @@ interface CompanyAccountSelectorProps {
   onCancel: () => void;
 }
 
-const CompanyAccountSelector: React.FC<CompanyAccountSelectorProps> = ({ 
-  user, 
-  onSelection, 
-  onCancel 
+const CompanyAccountSelector: React.FC<CompanyAccountSelectorProps> = ({
+  user,
+  onSelection,
+  onCancel,
 }) => {
   const [companyAccounts, setCompanyAccounts] = useState<CompanyAccount[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<string>('');
@@ -31,10 +43,12 @@ const CompanyAccountSelector: React.FC<CompanyAccountSelectorProps> = ({
         // Get all companies where this user is a company master
         const { data: companyRoles, error } = await supabase
           .from('company_roles')
-          .select(`
+          .select(
+            `
             company_id,
             company_profiles!inner(company_name)
-          `)
+          `
+          )
           .eq('user_id', user.id)
           .eq('role', 'company_master');
 
@@ -42,12 +56,13 @@ const CompanyAccountSelector: React.FC<CompanyAccountSelectorProps> = ({
           console.error('Error fetching company accounts:', error);
           setCompanyAccounts([]);
         } else {
-          const companies = companyRoles?.map(role => ({
-            company_id: role.company_id,
-            company_name: (role.company_profiles as any).company_name
-          })) || [];
+          const companies =
+            companyRoles?.map((role) => ({
+              company_id: role.company_id,
+              company_name: (role.company_profiles as any).company_name,
+            })) || [];
           setCompanyAccounts(companies);
-          
+
           // Auto-select if only one company
           if (companies.length === 1) {
             setSelectedCompany(companies[0].company_id);
@@ -98,7 +113,7 @@ const CompanyAccountSelector: React.FC<CompanyAccountSelectorProps> = ({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 auth-template">
-          <Button 
+          <Button
             onClick={handleIndividualLogin}
             className="w-full"
             variant="outline"
@@ -109,15 +124,21 @@ const CompanyAccountSelector: React.FC<CompanyAccountSelectorProps> = ({
           {companyAccounts.length > 0 && (
             <div className="space-y-3">
               <div className="text-sm font-medium">Company Account</div>
-              
+
               {companyAccounts.length > 1 && (
-                <Select value={selectedCompany} onValueChange={setSelectedCompany}>
+                <Select
+                  value={selectedCompany}
+                  onValueChange={setSelectedCompany}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select a company" />
                   </SelectTrigger>
                   <SelectContent>
                     {companyAccounts.map((company) => (
-                      <SelectItem key={company.company_id} value={company.company_id}>
+                      <SelectItem
+                        key={company.company_id}
+                        value={company.company_id}
+                      >
                         {company.company_name}
                       </SelectItem>
                     ))}
@@ -125,22 +146,19 @@ const CompanyAccountSelector: React.FC<CompanyAccountSelectorProps> = ({
                 </Select>
               )}
 
-              <Button 
+              <Button
                 onClick={handleCompanyLogin}
                 className="w-full"
                 disabled={companyAccounts.length > 1 && !selectedCompany}
               >
                 Sign in as Company Master
-                {companyAccounts.length === 1 && ` - ${companyAccounts[0].company_name}`}
+                {companyAccounts.length === 1 &&
+                  ` - ${companyAccounts[0].company_name}`}
               </Button>
             </div>
           )}
 
-          <Button 
-            onClick={onCancel}
-            variant="ghost"
-            className="w-full"
-          >
+          <Button onClick={onCancel} variant="ghost" className="w-full">
             Cancel
           </Button>
         </CardContent>

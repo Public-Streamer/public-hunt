@@ -1,14 +1,13 @@
-import React, { useState, useEffect } from "react";
-import { lazy, Suspense, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Eye, Clock, Loader } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useLiveKitTrackSource } from "@/lib/livekitLazy";
-import MainStreamPreview from "@/components/MainStreamPreview";
-import MediaBackground from "@/components/MediaBackground";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useAppContext } from "@/contexts/AppContext";
+import React, { useState, useEffect, lazy, Suspense, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Eye, Clock, Loader } from 'lucide-react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
+import { useLiveKitTrackSource } from '@/lib/livekitLazy';
+import MainStreamPreview from '@/components/MainStreamPreview';
+import MediaBackground from '@/components/MediaBackground';
+import { useAppContext } from '@/contexts/AppContext';
 
 interface LiveEvent {
   id: string;
@@ -31,12 +30,12 @@ interface StreamPreviewProps {
 
 // Lazy wrapper for LiveKitRoom to avoid static imports
 const LiveKitRoomLazy = lazy(() =>
-  import("@livekit/components-react").then((m) => ({ default: m.LiveKitRoom }))
+  import('@livekit/components-react').then((m) => ({ default: m.LiveKitRoom }))
 );
 
 // Lazy StreamContent that uses useTracks from @livekit/components-react
 const StreamContentLazy = lazy(() =>
-  import("@livekit/components-react").then((m) => {
+  import('@livekit/components-react').then((m) => {
     const { useTracks } = m;
     const Comp: React.FC<{
       eventName: string;
@@ -55,7 +54,7 @@ const StreamContentLazy = lazy(() =>
       });
 
       const activeVideoTracks = videoTracks.filter(
-        (track) => track.publication && track.participant.identity !== "viewer"
+        (track) => track.publication && track.participant.identity !== 'viewer'
       );
 
       if (activeVideoTracks.length === 0) {
@@ -69,12 +68,12 @@ const StreamContentLazy = lazy(() =>
       }
 
       return (
-        <div className={`w-full h-full transition-all duration-500`}>
+        <div className="w-full h-full transition-all duration-500">
           <MainStreamPreview
             mediaUrls={event?.mediaUrls || []}
             track={activeVideoTracks[0] as any}
             eventName={eventName}
-            isLive={true}
+            isLive
             isMuted={isMuted}
             setIsMuted={setIsMuted}
             eventId={event?.id}
@@ -93,11 +92,11 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({
 }) => {
   const fetchLiveKitToken = async () => {
     const { data, error } = await supabase.functions.invoke(
-      "create-livekit-token",
+      'create-livekit-token',
       {
         body: {
           eventId: event.id,
-          userRole: "viewer",
+          userRole: 'viewer',
           permissions: {
             canPublish: false,
             canSubscribe: true,
@@ -108,9 +107,9 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({
     );
     if (error) {
       throw new Error(
-        error.message === "Edge Function returned a non-2xx status code"
-          ? "Login to watch live events"
-          : "Error fetching token"
+        error.message === 'Edge Function returned a non-2xx status code'
+          ? 'Login to watch live events'
+          : 'Error fetching token'
       );
     }
     return data;
@@ -121,19 +120,19 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({
     isLoading: isTokenLoading,
     error: tokenError,
   } = useQuery({
-    queryKey: ["livekit-token", event.id],
+    queryKey: ['livekit-token', event.id],
     queryFn: fetchLiveKitToken,
     enabled: !!event.id,
   });
 
   const token = tokenData?.token || null;
-  const serverUrl = tokenData?.serverUrl || "";
+  const serverUrl = tokenData?.serverUrl || '';
 
   if (isTokenLoading) {
     return (
       <div className="text-center py-12 flex justify-center items-center">
-        {" "}
-        <Loader className="animate-spin " />{" "}
+        {' '}
+        <Loader className="animate-spin " />{' '}
       </div>
     );
   }
@@ -151,7 +150,7 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({
         <LiveKitRoomLazy
           token={token}
           serverUrl={serverUrl}
-          connect={true}
+          connect
           className="w-full h-full"
         >
           <StreamContentLazy
@@ -163,7 +162,7 @@ const StreamPreview: React.FC<StreamPreviewProps> = ({
       </Suspense>
 
       <div className="absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity duration-500 backdrop-blur-[1px] z-0">
-        <div className="text-center text-white p-6 max-w-xs"></div>
+        <div className="text-center text-white p-6 max-w-xs" />
       </div>
     </div>
   );
@@ -190,18 +189,18 @@ const LiveEventSpotlight: React.FC = () => {
     isLoading: isEventsLoading,
     error: eventsError,
   } = useQuery({
-    queryKey: ["live-events", isAuthenticated],
+    queryKey: ['live-events', isAuthenticated],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("events")
-        .select("*")
-        .eq("is_live", true)
-        .order("viewer_count", { ascending: false })
+        .from('events')
+        .select('*')
+        .eq('is_live', true)
+        .order('viewer_count', { ascending: false })
         .limit(6);
 
       if (error) {
         console.log(error.message);
-        throw new Error(error.message || "Error fetching live events");
+        throw new Error(error.message || 'Error fetching live events');
       }
 
       return (
@@ -224,12 +223,12 @@ const LiveEventSpotlight: React.FC = () => {
 
   useEffect(() => {
     const channel = supabase
-      .channel("public:events-live-spotlight")
+      .channel('public:events-live-spotlight')
       .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "events" },
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'events' },
         () => {
-          queryClient.invalidateQueries({ queryKey: ["live-events"] });
+          queryClient.invalidateQueries({ queryKey: ['live-events'] });
         }
       )
       .subscribe();
@@ -306,12 +305,12 @@ const LiveEventSpotlight: React.FC = () => {
                   <h3
                     className="font-semibold text-sm leading-tight"
                     style={{
-                      display: "-webkit-box",
+                      display: '-webkit-box',
                       WebkitLineClamp: 2,
-                      WebkitBoxOrient: "vertical",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      maxHeight: "2.5rem",
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      maxHeight: '2.5rem',
                     }}
                     title={event.title}
                   >

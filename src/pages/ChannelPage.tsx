@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { Clock, History, Users, Star, Eye } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, History, Users, Star, Eye } from 'lucide-react';
-import EventRankingControls, { SortOption } from '@/components/EventRankingControls';
+import EventRankingControls, {
+  SortOption,
+} from '@/components/EventRankingControls';
 import ScheduledEventsGrid from '@/components/ScheduledEventsGrid';
 import ChannelPastEventsGrid from '@/components/ChannelPastEventsGrid';
 import SocialMediaSection from '@/components/SocialMediaSection';
@@ -84,13 +86,15 @@ const ChannelPage: React.FC = () => {
     return (
       <div className="text-center py-12">
         <h2 className="text-2xl font-bold mb-4">Channel Not Found</h2>
-        <p className="text-gray-600">The channel you're looking for doesn't exist.</p>
+        <p className="text-gray-600">
+          The channel you're looking for doesn't exist.
+        </p>
       </div>
     );
   }
-  
+
   const channelUrl = `${window.location.origin}/channel/${channelId}`;
-  
+
   // Generate mock live events for this channel
   const liveEvents = Array.from({ length: 10 }, (_, i) => ({
     id: i + 1,
@@ -103,21 +107,27 @@ const ChannelPage: React.FC = () => {
     price: Math.floor(Math.random() * 25) + 5,
     ticketRevenue: Math.floor(Math.random() * 50000) + 1000,
     participants: [`User${i}`, `Participant${i + 1}`],
-    description: `Description for event ${i + 1}`
+    description: `Description for event ${i + 1}`,
   }));
-  
+
   // Generate mock scheduled events for this channel
   const scheduledEvents = Array.from({ length: 8 }, (_, i) => {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() + Math.floor(Math.random() * 30) + 1);
-    startDate.setHours(Math.floor(Math.random() * 24), Math.floor(Math.random() * 60));
-    
+    startDate.setHours(
+      Math.floor(Math.random() * 24),
+      Math.floor(Math.random() * 60)
+    );
+
     return {
       id: `${i + 100}`,
       title: `Scheduled Event ${i + 1}`,
       channelName: channel.name,
       startDate: startDate.toLocaleDateString(),
-      startTime: startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      startTime: startDate.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
       startDateTime: startDate,
       timeUntilStart: `${Math.floor(Math.random() * 30) + 1} days`,
       views: Math.floor(Math.random() * 15000) + 500,
@@ -125,18 +135,21 @@ const ChannelPage: React.FC = () => {
       price: Math.floor(Math.random() * 30) + 10,
       ticketRevenue: Math.floor(Math.random() * 30000) + 2000,
       participants: [`User${i + 100}`, `Participant${i + 101}`],
-      description: `Upcoming event ${i + 1} description`
+      description: `Upcoming event ${i + 1} description`,
     };
   }).sort((a, b) => a.startDateTime.getTime() - b.startDateTime.getTime());
-  
+
   // Generate mock past events for this channel
   const pastEvents = Array.from({ length: 15 }, (_, i) => {
     const recordedDate = new Date();
-    recordedDate.setDate(recordedDate.getDate() - Math.floor(Math.random() * 365));
-    
+    recordedDate.setDate(
+      recordedDate.getDate() - Math.floor(Math.random() * 365)
+    );
+
     const visibilityOptions = ['public', 'private', 'selected'];
-    const visibility = visibilityOptions[Math.floor(Math.random() * visibilityOptions.length)];
-    
+    const visibility =
+      visibilityOptions[Math.floor(Math.random() * visibilityOptions.length)];
+
     return {
       id: i + 200,
       title: `Past Event ${i + 1}`,
@@ -150,10 +163,10 @@ const ChannelPage: React.FC = () => {
       recordedDate: recordedDate.toISOString(),
       visibility: visibility as 'public' | 'private' | 'selected',
       thumbnail: '/placeholder.svg',
-      participants: [`User${i + 200}`, `Participant${i + 201}`]
+      participants: [`User${i + 200}`, `Participant${i + 201}`],
     };
   });
-  
+
   const sortEvents = (events: any[], sortOption: SortOption) => {
     return [...events].sort((a, b) => {
       switch (sortOption) {
@@ -170,31 +183,37 @@ const ChannelPage: React.FC = () => {
         case 'least-live-viewers':
           return (a.liveViews || 0) - (b.liveViews || 0);
         case 'most-popular':
-          return (b.views * parseFloat(b.rating)) - (a.views * parseFloat(a.rating));
+          return (
+            b.views * parseFloat(b.rating) - a.views * parseFloat(a.rating)
+          );
         case 'least-popular':
-          return (a.views * parseFloat(a.rating)) - (b.views * parseFloat(b.rating));
+          return (
+            a.views * parseFloat(a.rating) - b.views * parseFloat(b.rating)
+          );
         default:
           return b.liveViews - a.liveViews;
       }
     });
   };
-  
+
   const filterEvents = (events: any[]) => {
-    return events.filter(event => {
-      const matchesKeyword = event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            event.description?.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesMember = memberSearch === '' || 
-                           event.participants?.some((participant: string) => 
-                             participant.toLowerCase().includes(memberSearch.toLowerCase())
-                           );
-      
+    return events.filter((event) => {
+      const matchesKeyword =
+        event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        event.description?.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesMember =
+        memberSearch === '' ||
+        event.participants?.some((participant: string) =>
+          participant.toLowerCase().includes(memberSearch.toLowerCase())
+        );
+
       return matchesKeyword && matchesMember;
     });
   };
-  
+
   const filteredLiveEvents = sortEvents(filterEvents(liveEvents), sortBy);
-  
+
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Channel Header */}
@@ -202,8 +221,8 @@ const ChannelPage: React.FC = () => {
         {/* Channel Thumbnail */}
         {channel.media_urls && channel.media_urls.length > 0 && (
           <div className="mb-6 relative">
-            <img 
-              src={channel.media_urls[0]} 
+            <img
+              src={channel.media_urls[0]}
               alt={`${channel.name} thumbnail`}
               className="w-full h-64 object-cover rounded-lg shadow-md"
             />
@@ -215,28 +234,28 @@ const ChannelPage: React.FC = () => {
             </div>
           </div>
         )}
-        
+
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-3xl font-bold">{channel.name}</h1>
-          {isLive && (
-            <Badge className="bg-red-500">LIVE</Badge>
-          )}
+          {isLive && <Badge className="bg-red-500">LIVE</Badge>}
         </div>
         <p className="text-gray-600 mb-4">{channel.description}</p>
-        
+
         {/* Channel Creator Info */}
         <div className="mb-4 p-4 bg-gray-50 rounded-lg">
           <p className="text-sm text-gray-700">
-            <strong>Created by:</strong> {channel.owner_first_name} {channel.owner_last_name}
+            <strong>Created by:</strong> {channel.owner_first_name}{' '}
+            {channel.owner_last_name}
           </p>
           <p className="text-sm text-gray-700">
             <strong>Category:</strong> {channel.category}
           </p>
           <p className="text-sm text-gray-700">
-            <strong>Created:</strong> {new Date(channel.created_at).toLocaleDateString()}
+            <strong>Created:</strong>{' '}
+            {new Date(channel.created_at).toLocaleDateString()}
           </p>
         </div>
-        
+
         <div className="flex items-center space-x-6 text-sm text-gray-500">
           <span className="flex items-center">
             <Users className="h-4 w-4 mr-1" />
@@ -249,12 +268,12 @@ const ChannelPage: React.FC = () => {
           <span>{views.toLocaleString()} total views</span>
         </div>
       </div>
-      
+
       {/* Social Media Section */}
       <div className="mb-8">
         <SocialMediaSection channelId={channelId} type="channel" />
       </div>
-      
+
       {/* Events Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3">
@@ -268,7 +287,7 @@ const ChannelPage: React.FC = () => {
             Past Events
           </TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="live" className="space-y-6">
           <EventRankingControls
             searchTerm={searchTerm}
@@ -279,10 +298,13 @@ const ChannelPage: React.FC = () => {
             onMemberSearchChange={setMemberSearch}
             activeTab={activeTab}
           />
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredLiveEvents.map(event => (
-              <TooltipWrapper key={event.id} content={`View ${event.title} - ${event.liveViews} live viewers`}>
+            {filteredLiveEvents.map((event) => (
+              <TooltipWrapper
+                key={event.id}
+                content={`View ${event.title} - ${event.liveViews} live viewers`}
+              >
                 <Card className="hover:shadow-lg transition-shadow cursor-pointer">
                   <CardHeader>
                     <div className="flex items-center justify-between">
@@ -306,7 +328,10 @@ const ChannelPage: React.FC = () => {
                       <span>{event.views.toLocaleString()} total views</span>
                     </div>
                     <div className="mt-3">
-                      <SocialMediaSection eventId={event.id.toString()} type="event" />
+                      <SocialMediaSection
+                        eventId={event.id.toString()}
+                        type="event"
+                      />
                     </div>
                   </CardContent>
                 </Card>
@@ -314,7 +339,7 @@ const ChannelPage: React.FC = () => {
             ))}
           </div>
         </TabsContent>
-        
+
         <TabsContent value="scheduled" className="space-y-6">
           <EventRankingControls
             searchTerm={searchTerm}
@@ -325,7 +350,7 @@ const ChannelPage: React.FC = () => {
             onMemberSearchChange={setMemberSearch}
             activeTab={activeTab}
           />
-          
+
           <ScheduledEventsGrid
             events={scheduledEvents}
             searchTerm={searchTerm}
@@ -333,7 +358,7 @@ const ChannelPage: React.FC = () => {
             sortBy={scheduledSortBy}
           />
         </TabsContent>
-        
+
         <TabsContent value="past" className="space-y-6">
           <EventRankingControls
             searchTerm={searchTerm}
@@ -344,7 +369,7 @@ const ChannelPage: React.FC = () => {
             onMemberSearchChange={setMemberSearch}
             activeTab={activeTab}
           />
-          
+
           <ChannelPastEventsGrid
             events={pastEvents}
             searchTerm={searchTerm}
@@ -353,10 +378,10 @@ const ChannelPage: React.FC = () => {
           />
         </TabsContent>
       </Tabs>
-      
+
       {/* Social Share Menu */}
       <div className="mt-8">
-        <SocialShareMenu 
+        <SocialShareMenu
           title={channel.name}
           url={channelUrl}
           description={channel.description}

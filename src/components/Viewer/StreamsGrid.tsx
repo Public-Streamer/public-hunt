@@ -1,8 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
+import {
+  Video,
+  Users,
+  Maximize2,
+  Minimize2,
+  Volume2,
+  VolumeX,
+} from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Video, Users, Maximize2, Minimize2, Volume2, VolumeX } from 'lucide-react';
 import { VideoTrackLazy, RoomAudioRendererLazy } from '@/lib/livekitLazy';
 import type { Stream } from '@/lib/viewerState';
 
@@ -19,11 +26,11 @@ interface StreamTileProps {
   isMaximized: boolean;
 }
 
-const StreamTile: React.FC<StreamTileProps> = ({ 
-  stream, 
-  isVisible, 
-  onMaximize, 
-  isMaximized 
+const StreamTile: React.FC<StreamTileProps> = ({
+  stream,
+  isVisible,
+  onMaximize,
+  isMaximized,
 }) => {
   const [isMuted, setIsMuted] = useState(true);
   const [isAttached, setIsAttached] = useState(false);
@@ -50,7 +57,11 @@ const StreamTile: React.FC<StreamTileProps> = ({
   // Re-attach on visibility change (for re-entry scenario)
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && isVisible && containerRef.current) {
+      if (
+        document.visibilityState === 'visible' &&
+        isVisible &&
+        containerRef.current
+      ) {
         // Force re-check intersection when tab becomes visible
         const rect = containerRef.current.getBoundingClientRect();
         const isInViewport = rect.top < window.innerHeight && rect.bottom > 0;
@@ -61,11 +72,12 @@ const StreamTile: React.FC<StreamTileProps> = ({
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    return () =>
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [isVisible, isAttached]);
 
   return (
-    <div 
+    <div
       ref={containerRef}
       className={`relative bg-black rounded-lg overflow-hidden ${
         isMaximized ? 'fixed inset-4 z-50' : 'aspect-video'
@@ -78,7 +90,7 @@ const StreamTile: React.FC<StreamTileProps> = ({
           <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
             <Video className="h-12 w-12 text-white/50" />
           </div>
-          
+
           {/* Audio rendering when unmuted */}
           {!isMuted && (
             <div className="hidden">
@@ -126,7 +138,7 @@ const StreamTile: React.FC<StreamTileProps> = ({
             <Volume2 className="h-4 w-4 text-white" />
           )}
         </Button>
-        
+
         <Button
           variant="secondary"
           size="sm"
@@ -144,10 +156,10 @@ const StreamTile: React.FC<StreamTileProps> = ({
   );
 };
 
-export const StreamsGrid: React.FC<StreamsGridProps> = ({ 
-  streams, 
-  eventId, 
-  hasLiveStreams 
+export const StreamsGrid: React.FC<StreamsGridProps> = ({
+  streams,
+  eventId,
+  hasLiveStreams,
 }) => {
   const [maximizedStream, setMaximizedStream] = useState<string | null>(null);
 
@@ -170,7 +182,9 @@ export const StreamsGrid: React.FC<StreamsGridProps> = ({
           <div className="text-center space-y-4">
             <Video className="h-12 w-12 mx-auto text-muted-foreground" />
             <div>
-              <h3 className="font-semibold text-lg mb-2">Event will begin soon</h3>
+              <h3 className="font-semibold text-lg mb-2">
+                Event will begin soon
+              </h3>
               <p className="text-muted-foreground">
                 Streams will appear here when the event goes live
               </p>
@@ -183,18 +197,20 @@ export const StreamsGrid: React.FC<StreamsGridProps> = ({
 
   return (
     <>
-      <div className={`grid gap-4 ${
-        streams.length === 1 
-          ? 'grid-cols-1' 
-          : streams.length === 2
-          ? 'grid-cols-1 md:grid-cols-2'
-          : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-2'
-      }`}>
+      <div
+        className={`grid gap-4 ${
+          streams.length === 1
+            ? 'grid-cols-1'
+            : streams.length === 2
+              ? 'grid-cols-1 md:grid-cols-2'
+              : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-2'
+        }`}
+      >
         {streams.map((stream) => (
           <StreamTile
             key={stream.streamId}
             stream={stream}
-            isVisible={true}
+            isVisible
             onMaximize={() => {
               setMaximizedStream(
                 maximizedStream === stream.streamId ? null : stream.streamId
@@ -207,7 +223,7 @@ export const StreamsGrid: React.FC<StreamsGridProps> = ({
 
       {/* Maximized overlay backdrop */}
       {maximizedStream && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/90 z-40"
           onClick={() => setMaximizedStream(null)}
         />

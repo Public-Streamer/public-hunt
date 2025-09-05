@@ -1,8 +1,8 @@
-import React from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { formatDistanceToNow } from "date-fns";
-import { EventComment } from "@/hooks/useEventSocial";
-import { cn } from "@/lib/utils";
+import React from 'react';
+import { formatDistanceToNow } from 'date-fns';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { EventComment } from '@/hooks/useEventSocial';
+import { cn } from '@/lib/utils';
 
 interface CommentReplyProps {
   reply: EventComment;
@@ -10,11 +10,11 @@ interface CommentReplyProps {
   onDelete: () => void;
 }
 
-export function CommentReply({
+export const CommentReply = ({
   reply,
   currentUserId,
   onDelete,
-}: CommentReplyProps) {
+}: CommentReplyProps) => {
   const isOwner = currentUserId === reply.user_profile_id;
 
   // Format relative timestamp for mobile
@@ -25,7 +25,7 @@ export function CommentReply({
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-    if (minutes < 1) return "now";
+    if (minutes < 1) return 'now';
     if (minutes < 60) return `${minutes}m`;
     if (hours < 24) return `${hours}h`;
     if (days < 7) return `${days}d`;
@@ -37,7 +37,7 @@ export function CommentReply({
       <Avatar className="h-6 w-6 flex-shrink-0">
         <AvatarImage src={reply.author_avatar} />
         <AvatarFallback className="text-xs text-muted-foreground">
-          {reply.author_name?.charAt(0)?.toUpperCase() || "U"}
+          {reply.author_name?.charAt(0)?.toUpperCase() || 'U'}
         </AvatarFallback>
       </Avatar>
 
@@ -66,4 +66,4 @@ export function CommentReply({
       </div>
     </div>
   );
-}
+};

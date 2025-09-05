@@ -1,5 +1,6 @@
-import { Database } from "@/integrations/supabase/types";
-type EventData = Database["public"]["Tables"]["events"]["Row"];
+import { Database } from '@/integrations/supabase/types';
+
+type EventData = Database['public']['Tables']['events']['Row'];
 
 type Listener = () => void;
 
@@ -42,7 +43,7 @@ export function patchEvent(patch: Partial<EventData>) {
     for (const k of Object.keys(patch) as (keyof EventData)[]) {
       const incoming = patch[k];
 
-      if (k === "media_urls") {
+      if (k === 'media_urls') {
         // add any other arrays here if needed
         // keep old array reference if contents are equal
         if (
@@ -51,11 +52,9 @@ export function patchEvent(patch: Partial<EventData>) {
           (next as any)[k] = incoming;
           changed = true;
         }
-      } else {
-        if (!Object.is(prev[k], incoming)) {
-          (next as any)[k] = incoming;
-          changed = true;
-        }
+      } else if (!Object.is(prev[k], incoming)) {
+        (next as any)[k] = incoming;
+        changed = true;
       }
     }
 

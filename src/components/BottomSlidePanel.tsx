@@ -1,12 +1,9 @@
 import React, { useState } from 'react';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { 
-  Home, 
-  Search, 
-  PlusCircle, 
-  Users, 
+import {
+  Home,
+  Search,
+  PlusCircle,
+  Users,
   Bell,
   MessageCircle,
   Calendar,
@@ -14,9 +11,12 @@ import {
   Settings,
   ChevronUp,
   User,
-  Video
+  Video,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAppContext } from '@/contexts/AppContext';
 
 const BottomSlidePanel: React.FC = () => {
@@ -26,10 +26,25 @@ const BottomSlidePanel: React.FC = () => {
 
   const quickActions = [
     { icon: Home, label: 'Home', path: '/', color: 'text-blue-600' },
-    { icon: Search, label: 'Explore', path: '/events', color: 'text-green-600' },
-    { icon: PlusCircle, label: 'Create', path: '/create', color: 'text-purple-600' },
-    { icon: Users, label: 'Channels', path: '/channels', color: 'text-orange-600' },
-    { icon: User, label: 'Profile', path: '/profile', color: 'text-pink-600' }
+    {
+      icon: Search,
+      label: 'Explore',
+      path: '/events',
+      color: 'text-green-600',
+    },
+    {
+      icon: PlusCircle,
+      label: 'Create',
+      path: '/create',
+      color: 'text-purple-600',
+    },
+    {
+      icon: Users,
+      label: 'Channels',
+      path: '/channels',
+      color: 'text-orange-600',
+    },
+    { icon: User, label: 'Profile', path: '/profile', color: 'text-pink-600' },
   ];
 
   const additionalActions = [
@@ -38,7 +53,7 @@ const BottomSlidePanel: React.FC = () => {
     { icon: MessageCircle, label: 'Messages', path: '/profile?tab=messages' },
     { icon: Bell, label: 'Notifications', path: '/profile?tab=notifications' },
     { icon: Video, label: 'Past Events', path: '/past-events' },
-    { icon: Settings, label: 'Settings', path: '/profile?tab=admin' }
+    { icon: Settings, label: 'Settings', path: '/profile?tab=admin' },
   ];
 
   const handleNavigation = (path: string) => {
@@ -62,7 +77,9 @@ const BottomSlidePanel: React.FC = () => {
                 className="flex flex-col items-center gap-1 h-auto py-2 px-2 text-xs"
               >
                 <Icon className={`h-5 w-5 ${action.color}`} />
-                <span className="text-xs text-muted-foreground">{action.label}</span>
+                <span className="text-xs text-muted-foreground">
+                  {action.label}
+                </span>
               </Button>
             );
           })}
@@ -73,15 +90,15 @@ const BottomSlidePanel: React.FC = () => {
       <div className="md:hidden fixed bottom-16 right-4 z-50">
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetTrigger asChild>
-            <Button 
+            <Button
               size="lg"
               className="rounded-full h-14 w-14 bg-primary hover:bg-primary/90 shadow-lg animate-pulse"
             >
               <ChevronUp className="h-6 w-6" />
             </Button>
           </SheetTrigger>
-          <SheetContent 
-            side="bottom" 
+          <SheetContent
+            side="bottom"
             className="h-[80vh] rounded-t-2xl border-t border-border"
           >
             <div className="flex flex-col h-full">

@@ -1,21 +1,15 @@
-import React, { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
-import { toast } from "sonner";
-import { 
-  BarChart3, 
-  TrendingUp, 
-  Eye, 
-  DollarSign, 
-  Play, 
-  Pause, 
-  Edit3, 
-  Copy, 
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import {
+  BarChart3,
+  TrendingUp,
+  Eye,
+  DollarSign,
+  Play,
+  Pause,
+  Edit3,
+  Copy,
   Trash2,
   Download,
   AlertCircle,
@@ -25,8 +19,14 @@ import {
   ChevronRight,
   RefreshCw,
   FileText,
-  Bell
-} from "lucide-react";
+  Bell,
+} from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
 
 interface Campaign {
   id: string;
@@ -56,26 +56,30 @@ interface CampaignMetrics {
 const AdvertiserDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
+  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(
+    null
+  );
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'billing' | 'notifications'>('overview');
-  
+  const [activeTab, setActiveTab] = useState<
+    'overview' | 'billing' | 'notifications'
+  >('overview');
+
   // Mock metrics data - in real app, this would come from analytics table
   const getMetricsForCampaign = (campaignId: string): CampaignMetrics => ({
     impressions: Math.floor(Math.random() * 10000) + 1000,
     views: Math.floor(Math.random() * 5000) + 500,
     clicks: Math.floor(Math.random() * 200) + 20,
     spend: Math.floor(Math.random() * 100) + 10,
-    ctr: (Math.random() * 5 + 1),
-    cpm: (Math.random() * 10 + 2),
-    viewDuration: Math.floor(Math.random() * 60) + 15
+    ctr: Math.random() * 5 + 1,
+    cpm: Math.random() * 10 + 2,
+    viewDuration: Math.floor(Math.random() * 60) + 15,
   });
 
   const [realTimeMetrics, setRealTimeMetrics] = useState({
     totalSpend: 0,
     totalViews: 0,
     averageCPM: 0,
-    activeCampaigns: 0
+    activeCampaigns: 0,
   });
 
   useEffect(() => {
@@ -84,7 +88,9 @@ const AdvertiserDashboard: React.FC = () => {
 
   const fetchCampaigns = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         navigate('/login');
         return;
@@ -99,28 +105,29 @@ const AdvertiserDashboard: React.FC = () => {
       if (error) throw error;
 
       setCampaigns(data || []);
-      
+
       // Calculate real-time metrics
       const totalSpend = (data || []).reduce((sum, campaign) => {
         const metrics = getMetricsForCampaign(campaign.id);
         return sum + metrics.spend;
       }, 0);
-      
+
       const totalViews = (data || []).reduce((sum, campaign) => {
         const metrics = getMetricsForCampaign(campaign.id);
         return sum + metrics.views;
       }, 0);
-      
-      const activeCampaigns = (data || []).filter(c => c.status === 'active').length;
-      const averageCPM = totalSpend > 0 ? (totalSpend / totalViews * 1000) : 0;
+
+      const activeCampaigns = (data || []).filter(
+        (c) => c.status === 'active'
+      ).length;
+      const averageCPM = totalSpend > 0 ? (totalSpend / totalViews) * 1000 : 0;
 
       setRealTimeMetrics({
         totalSpend,
         totalViews,
         averageCPM,
-        activeCampaigns
+        activeCampaigns,
       });
-
     } catch (error) {
       console.error('Error fetching campaigns:', error);
       toast.error('Failed to load campaigns');
@@ -129,7 +136,10 @@ const AdvertiserDashboard: React.FC = () => {
     }
   };
 
-  const updateCampaignStatus = async (campaignId: string, newStatus: string) => {
+  const updateCampaignStatus = async (
+    campaignId: string,
+    newStatus: string
+  ) => {
     try {
       const { error } = await supabase
         .from('ads')
@@ -138,11 +148,13 @@ const AdvertiserDashboard: React.FC = () => {
 
       if (error) throw error;
 
-      setCampaigns(prev => prev.map(campaign => 
-        campaign.id === campaignId 
-          ? { ...campaign, status: newStatus }
-          : campaign
-      ));
+      setCampaigns((prev) =>
+        prev.map((campaign) =>
+          campaign.id === campaignId
+            ? { ...campaign, status: newStatus }
+            : campaign
+        )
+      );
 
       toast.success(`Campaign ${newStatus} successfully`);
       fetchCampaigns(); // Refresh metrics
@@ -154,7 +166,9 @@ const AdvertiserDashboard: React.FC = () => {
 
   const duplicateCampaign = async (campaign: Campaign) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       const newCampaign = {
@@ -163,13 +177,11 @@ const AdvertiserDashboard: React.FC = () => {
         status: 'draft',
         user_id: user.id,
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       };
       delete (newCampaign as any).id;
 
-      const { error } = await supabase
-        .from('ads')
-        .insert([newCampaign]);
+      const { error } = await supabase.from('ads').insert([newCampaign]);
 
       if (error) throw error;
 
@@ -192,7 +204,7 @@ const AdvertiserDashboard: React.FC = () => {
 
       if (error) throw error;
 
-      setCampaigns(prev => prev.filter(c => c.id !== campaignId));
+      setCampaigns((prev) => prev.filter((c) => c.id !== campaignId));
       toast.success('Campaign deleted successfully');
     } catch (error) {
       console.error('Error deleting campaign:', error);
@@ -202,11 +214,16 @@ const AdvertiserDashboard: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-500';
-      case 'paused': return 'bg-yellow-500';
-      case 'completed': return 'bg-blue-500';
-      case 'draft': return 'bg-gray-500';
-      default: return 'bg-gray-500';
+      case 'active':
+        return 'bg-green-500';
+      case 'paused':
+        return 'bg-yellow-500';
+      case 'completed':
+        return 'bg-blue-500';
+      case 'draft':
+        return 'bg-gray-500';
+      default:
+        return 'bg-gray-500';
     }
   };
 
@@ -219,10 +236,16 @@ const AdvertiserDashboard: React.FC = () => {
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className={`w-3 h-3 rounded-full ${getStatusColor(campaign.status)}`} />
+              <div
+                className={`w-3 h-3 rounded-full ${getStatusColor(campaign.status)}`}
+              />
               <div>
-                <CardTitle className="text-white text-lg">{campaign.title}</CardTitle>
-                <p className="text-white/60 text-sm capitalize">{campaign.ad_type} Ad</p>
+                <CardTitle className="text-white text-lg">
+                  {campaign.title}
+                </CardTitle>
+                <p className="text-white/60 text-sm capitalize">
+                  {campaign.ad_type} Ad
+                </p>
               </div>
             </div>
             <Badge variant="secondary" className="text-xs">
@@ -230,16 +253,20 @@ const AdvertiserDashboard: React.FC = () => {
             </Badge>
           </div>
         </CardHeader>
-        
+
         <CardContent className="space-y-4">
           {/* Key Metrics Row */}
           <div className="grid grid-cols-2 gap-4">
             <div className="text-center">
-              <p className="text-2xl font-bold text-white">{metrics.views.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-white">
+                {metrics.views.toLocaleString()}
+              </p>
               <p className="text-white/60 text-xs">Views</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-green-300">${metrics.spend}</p>
+              <p className="text-2xl font-bold text-green-300">
+                ${metrics.spend}
+              </p>
               <p className="text-white/60 text-xs">Spent</p>
             </div>
           </div>
@@ -248,7 +275,9 @@ const AdvertiserDashboard: React.FC = () => {
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-white/80">Budget Used</span>
-              <span className="text-white/80">${metrics.spend} / ${campaign.budget}</span>
+              <span className="text-white/80">
+                ${metrics.spend} / ${campaign.budget}
+              </span>
             </div>
             <Progress value={budgetUsed} className="h-2" />
           </div>
@@ -256,15 +285,21 @@ const AdvertiserDashboard: React.FC = () => {
           {/* Performance Metrics */}
           <div className="grid grid-cols-3 gap-2 text-center">
             <div>
-              <p className="text-white font-semibold">{metrics.ctr.toFixed(1)}%</p>
+              <p className="text-white font-semibold">
+                {metrics.ctr.toFixed(1)}%
+              </p>
               <p className="text-white/60 text-xs">CTR</p>
             </div>
             <div>
-              <p className="text-white font-semibold">${metrics.cpm.toFixed(2)}</p>
+              <p className="text-white font-semibold">
+                ${metrics.cpm.toFixed(2)}
+              </p>
               <p className="text-white/60 text-xs">CPM</p>
             </div>
             <div>
-              <p className="text-white font-semibold">{metrics.viewDuration}s</p>
+              <p className="text-white font-semibold">
+                {metrics.viewDuration}s
+              </p>
               <p className="text-white/60 text-xs">Avg View</p>
             </div>
           </div>
@@ -299,7 +334,7 @@ const AdvertiserDashboard: React.FC = () => {
                 Resume
               </Button>
             ) : null}
-            
+
             <Button
               variant="outline"
               size="sm"
@@ -394,31 +429,39 @@ const AdvertiserDashboard: React.FC = () => {
           <Card className="bg-white/10 backdrop-blur-sm border-white/20">
             <CardContent className="p-4 text-center">
               <DollarSign className="h-8 w-8 text-green-300 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-white">${realTimeMetrics.totalSpend}</p>
+              <p className="text-2xl font-bold text-white">
+                ${realTimeMetrics.totalSpend}
+              </p>
               <p className="text-white/60 text-sm">Total Spend</p>
             </CardContent>
           </Card>
-          
+
           <Card className="bg-white/10 backdrop-blur-sm border-white/20">
             <CardContent className="p-4 text-center">
               <Eye className="h-8 w-8 text-blue-300 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-white">{realTimeMetrics.totalViews.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-white">
+                {realTimeMetrics.totalViews.toLocaleString()}
+              </p>
               <p className="text-white/60 text-sm">Total Views</p>
             </CardContent>
           </Card>
-          
+
           <Card className="bg-white/10 backdrop-blur-sm border-white/20">
             <CardContent className="p-4 text-center">
               <TrendingUp className="h-8 w-8 text-purple-300 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-white">${realTimeMetrics.averageCPM.toFixed(2)}</p>
+              <p className="text-2xl font-bold text-white">
+                ${realTimeMetrics.averageCPM.toFixed(2)}
+              </p>
               <p className="text-white/60 text-sm">Avg CPM</p>
             </CardContent>
           </Card>
-          
+
           <Card className="bg-white/10 backdrop-blur-sm border-white/20">
             <CardContent className="p-4 text-center">
               <Target className="h-8 w-8 text-orange-300 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-white">{realTimeMetrics.activeCampaigns}</p>
+              <p className="text-2xl font-bold text-white">
+                {realTimeMetrics.activeCampaigns}
+              </p>
               <p className="text-white/60 text-sm">Active Campaigns</p>
             </CardContent>
           </Card>
@@ -429,15 +472,15 @@ const AdvertiserDashboard: React.FC = () => {
           {[
             { id: 'overview', label: 'Campaign Overview', icon: BarChart3 },
             { id: 'billing', label: 'Billing History', icon: FileText },
-            { id: 'notifications', label: 'Notifications', icon: Bell }
+            { id: 'notifications', label: 'Notifications', icon: Bell },
           ].map(({ id, label, icon: Icon }) => (
             <Button
               key={id}
-              variant={activeTab === id ? "default" : "secondary"}
+              variant={activeTab === id ? 'default' : 'secondary'}
               onClick={() => setActiveTab(id as any)}
               className={`${
-                activeTab === id 
-                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white' 
+                activeTab === id
+                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
                   : 'bg-white/10 border border-white/30 text-white hover:bg-white/20'
               }`}
             >
@@ -454,9 +497,12 @@ const AdvertiserDashboard: React.FC = () => {
               <Card className="bg-white/10 backdrop-blur-sm border-white/20">
                 <CardContent className="p-12 text-center">
                   <BarChart3 className="h-16 w-16 text-white/40 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-white mb-2">No Campaigns Yet</h3>
+                  <h3 className="text-xl font-bold text-white mb-2">
+                    No Campaigns Yet
+                  </h3>
                   <p className="text-white/70 mb-6">
-                    Create your first advertising campaign to start reaching your audience.
+                    Create your first advertising campaign to start reaching
+                    your audience.
                   </p>
                   <Button
                     onClick={() => navigate('/create')}
@@ -487,9 +533,12 @@ const AdvertiserDashboard: React.FC = () => {
             <CardContent>
               <div className="text-center py-12">
                 <FileText className="h-16 w-16 text-white/40 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-white mb-2">Billing History</h3>
+                <h3 className="text-xl font-bold text-white mb-2">
+                  Billing History
+                </h3>
                 <p className="text-white/70 mb-6">
-                  Your payment history and receipts will appear here as you create campaigns.
+                  Your payment history and receipts will appear here as you
+                  create campaigns.
                 </p>
                 <Button
                   variant="outline"
@@ -512,24 +561,30 @@ const AdvertiserDashboard: React.FC = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {campaigns.filter(c => c.status === 'active').length > 0 ? (
+              {campaigns.filter((c) => c.status === 'active').length > 0 ? (
                 <div className="space-y-3">
                   <div className="flex items-start space-x-3 p-4 bg-blue-500/20 rounded-lg border-l-4 border-blue-400">
                     <AlertCircle className="h-5 w-5 text-blue-300 mt-0.5" />
                     <div>
-                      <h4 className="text-white font-medium">Campaign Performance Tip</h4>
+                      <h4 className="text-white font-medium">
+                        Campaign Performance Tip
+                      </h4>
                       <p className="text-white/80 text-sm">
-                        Your active campaigns are performing well! Consider increasing budget for better reach.
+                        Your active campaigns are performing well! Consider
+                        increasing budget for better reach.
                       </p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-start space-x-3 p-4 bg-green-500/20 rounded-lg border-l-4 border-green-400">
                     <TrendingUp className="h-5 w-5 text-green-300 mt-0.5" />
                     <div>
-                      <h4 className="text-white font-medium">Optimization Suggestion</h4>
+                      <h4 className="text-white font-medium">
+                        Optimization Suggestion
+                      </h4>
                       <p className="text-white/80 text-sm">
-                        Try targeting different channels to expand your audience reach.
+                        Try targeting different channels to expand your audience
+                        reach.
                       </p>
                     </div>
                   </div>
@@ -537,7 +592,9 @@ const AdvertiserDashboard: React.FC = () => {
               ) : (
                 <div className="text-center py-12">
                   <Bell className="h-16 w-16 text-white/40 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-white mb-2">Stay Updated</h3>
+                  <h3 className="text-xl font-bold text-white mb-2">
+                    Stay Updated
+                  </h3>
                   <p className="text-white/70">
                     Notifications and performance suggestions will appear here.
                   </p>
@@ -553,7 +610,9 @@ const AdvertiserDashboard: React.FC = () => {
             <Card className="bg-white/10 backdrop-blur-sm border-white/20 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-white text-xl">{selectedCampaign.title}</CardTitle>
+                  <CardTitle className="text-white text-xl">
+                    {selectedCampaign.title}
+                  </CardTitle>
                   <Button
                     variant="ghost"
                     onClick={() => setSelectedCampaign(null)}
@@ -563,30 +622,40 @@ const AdvertiserDashboard: React.FC = () => {
                   </Button>
                 </div>
               </CardHeader>
-              
+
               <CardContent className="space-y-6">
                 {/* Campaign Preview */}
                 <div>
                   <h3 className="text-white font-medium mb-3">Ad Preview</h3>
                   <div className="bg-black rounded-lg p-4 text-center">
-                    <p className="text-white/60">Ad preview would appear here</p>
-                    <p className="text-white/40 text-sm mt-2">{selectedCampaign.description}</p>
+                    <p className="text-white/60">
+                      Ad preview would appear here
+                    </p>
+                    <p className="text-white/40 text-sm mt-2">
+                      {selectedCampaign.description}
+                    </p>
                   </div>
                 </div>
 
                 {/* Detailed Analytics */}
                 <div>
-                  <h3 className="text-white font-medium mb-3">Performance Analytics</h3>
+                  <h3 className="text-white font-medium mb-3">
+                    Performance Analytics
+                  </h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {Object.entries(getMetricsForCampaign(selectedCampaign.id)).map(([key, value]) => (
-                      <div key={key} className="text-center p-3 bg-white/5 rounded-lg">
+                    {Object.entries(
+                      getMetricsForCampaign(selectedCampaign.id)
+                    ).map(([key, value]) => (
+                      <div
+                        key={key}
+                        className="text-center p-3 bg-white/5 rounded-lg"
+                      >
                         <p className="text-white font-bold text-lg">
-                          {typeof value === 'number' 
-                            ? key.includes('ctr') || key.includes('cpm') 
-                              ? value.toFixed(2) 
+                          {typeof value === 'number'
+                            ? key.includes('ctr') || key.includes('cpm')
+                              ? value.toFixed(2)
                               : value.toLocaleString()
-                            : value
-                          }
+                            : value}
                           {key.includes('ctr') ? '%' : ''}
                           {key.includes('cpm') ? '$' : ''}
                           {key === 'viewDuration' ? 's' : ''}
@@ -609,7 +678,7 @@ const AdvertiserDashboard: React.FC = () => {
                     <Edit3 className="h-4 w-4 mr-2" />
                     Edit Campaign
                   </Button>
-                  
+
                   <Button
                     variant="outline"
                     className="border-white/20 text-white hover:bg-white/10"
@@ -618,7 +687,7 @@ const AdvertiserDashboard: React.FC = () => {
                     <Copy className="h-4 w-4 mr-2" />
                     Duplicate
                   </Button>
-                  
+
                   <Button
                     variant="outline"
                     className="border-white/20 text-white hover:bg-white/10"

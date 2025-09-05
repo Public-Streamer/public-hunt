@@ -1,18 +1,13 @@
-import React, { useState, useEffect, useRef, Suspense } from "react";
-import {
-  useParams,
-  Navigate,
-  useSearchParams,
-  useNavigate,
-} from "react-router-dom";
-import { supabaseBrowser } from "@/lib/supabase/browser";
-import { getCurrentUser } from "@/lib/auth/whoami";
-import { useIdentityGuard } from "@/hooks/useIdentityGuard";
-import { LiveKitRoomLazy, RoomAudioRendererLazy } from "@/lib/livekitLazy";
-import "@livekit/components-styles";
-import { StreamerInterface } from "@/components/StreamerInterface";
-import { toast } from "sonner";
-import { useQuery } from "@tanstack/react-query";
+import React, { useState, useEffect, useRef, Suspense } from 'react';
+import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import { useQuery } from '@tanstack/react-query';
+import { supabaseBrowser } from '@/lib/supabase/browser';
+import { getCurrentUser } from '@/lib/auth/whoami';
+import { useIdentityGuard } from '@/hooks/useIdentityGuard';
+import { LiveKitRoomLazy, RoomAudioRendererLazy } from '@/lib/livekitLazy';
+import '@livekit/components-styles';
+import { StreamerInterface } from '@/components/StreamerInterface';
 
 const StagePage: React.FC = () => {
   const { eventId } = useParams<{ eventId: string }>();
@@ -25,40 +20,41 @@ const StagePage: React.FC = () => {
   // const [event, setEvent] = useState<any>(null);
   const [streamId, setStreamId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [userRole, setUserRole] = useState<"host" | "streamer" | null>(null);
+  const [userRole, setUserRole] = useState<'host' | 'streamer' | null>(null);
   const [user, setUser] = useState<any>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [serverUrl, setServerUrl] = useState<string>("");
+  const [serverUrl, setServerUrl] = useState<string>('');
   const [tokenLoading, setTokenLoading] = useState(false);
   const tokenGenerated = useRef(false);
   // Store access token for optional best-effort unload pings
   const accessTokenRef = useRef<string | null>(null);
-  const inviteToken = searchParams.get("token");
+  const inviteToken = searchParams.get('token');
 
   // Use React Query for event data
-  const { data: eventData, isLoading: isEventLoading } = useQuery({
-    queryKey: ["event", eventId],
+  const { data: eventData } = useQuery({
+    queryKey: ['event', eventId],
     queryFn: async () => {
       if (!eventId) {
-        toast.error("Event ID is required");
-        throw new Error("Event ID is required");
+        toast.error('Event ID is required');
+        throw new Error('Event ID is required');
       }
 
       const supabase = supabaseBrowser();
 
       // Import utility functions to handle both UUID and slug
-      const { parseEventIdentifier } = await import("@/lib/eventUtils");
+      const { parseEventIdentifier } = await import('@/lib/eventUtils');
       const { isUuid, identifier } = parseEventIdentifier(eventId);
 
       // Fetch event data by UUID or slug
       const eventQuery = isUuid
-        ? supabase.from("events").select("*").eq("id", identifier)
-        : supabase.from("events").select("*").eq("slug", identifier);
+        ? supabase.from('events').select('*').eq('id', identifier)
+        : supabase.from('events').select('*').eq('slug', identifier);
 
       const { data, error } = await eventQuery.single();
 
       if (error) {
-        toast.error("Event not found");
+        toast.error('Event not found');
+
         throw new Error(error.message);
       }
 
@@ -68,24 +64,20 @@ const StagePage: React.FC = () => {
   });
 
   const { data: streamData } = useQuery({
-    queryKey: ["stream", eventId],
+    queryKey: ['stream', eventId],
     queryFn: async () => {
       if (!eventData?.id) {
-        throw new Error("Event ID is required");
+        throw new Error('Event ID is required');
       }
 
       const supabase = supabaseBrowser();
       const streamQuery = supabase
-        .from("event_streams")
-        .select("id, streamer_counts")
-        .eq("event_id", eventData?.id);
+        .from('event_streams')
 
-      const { data, error } = await streamQuery.single();
+        .select('id, streamer_counts')
+        .eq('event_id', eventData?.id);
 
-      // if (error) {
-      //   toast.error("Stream not found");
-      //   throw new Error(error.message);
-      // }
+      const { data } = await streamQuery.single();
 
       return data;
     },
@@ -95,7 +87,6 @@ const StagePage: React.FC = () => {
   // Update local state when event data changes
   useEffect(() => {
     if (streamData) {
-      console.log("Stream data setting up:", streamData);
       setStreamId(streamData.id);
     }
   }, [streamData]);
@@ -105,13 +96,11 @@ const StagePage: React.FC = () => {
     const checkAuthAndAssignRole = async () => {
       try {
         // Force fresh authentication check by clearing any potentially stale state
-        console.log("StagePage - Starting fresh authentication check");
 
         // Get current user identity with fresh client
         const supabase = supabaseBrowser();
         const {
           data: { user: currentUser },
-          error,
         } = await supabase.auth.getUser();
 
         // if (error || !currentUser) {
@@ -120,31 +109,26 @@ const StagePage: React.FC = () => {
         //   return;
         // }
 
-        console.log(
-          "StagePage - Current authenticated user:",
-          currentUser.email
-        );
-
         // Force identity verification with getCurrentUser from whoami utility
         const verifiedUser = await getCurrentUser();
-        if (!verifiedUser || verifiedUser.email !== currentUser.email) {
-          console.error("Identity mismatch detected! Forcing fresh login.", {
-            supabaseUser: currentUser.email,
+        if (!verifiedUser || verifiedUser.email !== currentUser?.email) {
+          console.error('Identity mismatch detected! Forcing fresh login.', {
+            supabaseUser: currentUser?.email,
             verifiedUser: verifiedUser?.email,
           });
           // window.location.href = "/login";
           return;
         }
-        console.log("Identity verified:", verifiedUser.email);
+        console.log('Identity verified:', verifiedUser.email);
 
         const userForState = {
-          id: currentUser.id,
-          email: currentUser.email || "",
+          id: currentUser?.id,
+          email: currentUser?.email || '',
         };
         setUser(userForState);
 
         if (!eventId) {
-          toast.error("Event ID is required");
+          toast.error('Event ID is required');
           return;
         }
 
@@ -152,39 +136,39 @@ const StagePage: React.FC = () => {
         if (!eventData) return;
 
         // Check if user is host (event creator)
-        if (eventData?.created_by === currentUser.id) {
-          console.log("User is event host (creator)");
-          setUserRole("host");
+        if (eventData?.created_by === currentUser?.id) {
+          console.log('User is event host (creator)');
+          setUserRole('host');
           return;
         }
 
         // Check if user is assigned as streamer (use actual event UUID)
         const { data: streamerData } = await supabase
-          .from("event_streamers")
-          .select("*")
-          .eq("event_id", eventData?.id)
-          .eq("streamer_id", currentUser.id)
+          .from('event_streamers')
+          .select('*')
+          .eq('event_id', eventData?.id)
+          .eq('streamer_id', currentUser?.id)
           .single();
 
         if (streamerData) {
-          console.log("User is assigned streamer");
-          setUserRole("streamer");
+          console.log('User is assigned streamer');
+          setUserRole('streamer');
           return;
         }
 
         // If invite token is present, validate it and grant streamer access
         if (inviteToken) {
-          console.log("Validating invite token for streamer access");
-          setUserRole("streamer");
+          console.log('Validating invite token for streamer access');
+          setUserRole('streamer');
           return;
         }
 
         // User is not authorized to access stage
-        console.log("User is not authorized to access this stage");
-        toast.error("You are not authorized to access this stage");
+        console.log('User is not authorized to access this stage');
+        toast.error('You are not authorized to access this stage');
       } catch (error) {
-        console.error("Error checking access:", error);
-        toast.error("Failed to load stage");
+        console.error('Error checking access:', error);
+        toast.error('Failed to load stage');
       } finally {
         setLoading(false);
       }
@@ -197,23 +181,23 @@ const StagePage: React.FC = () => {
     // if (!eventData?.id || !userRole || !user || tokenGenerated.current) return;
 
     try {
-      console.log("generating livekit token from funccc");
+      console.log('generating livekit token from funccc');
       setTokenLoading(true);
 
       // If using invite token, validate it and create a proper user token with streamer permissions
-      if (inviteToken && userRole === "streamer") {
-        console.log("Using invite token for LiveKit connection");
+      if (inviteToken && userRole === 'streamer') {
+        console.log('Using invite token for LiveKit connection');
 
         try {
           // Basic validation that it looks like a JWT
-          const jwtParts = inviteToken.split(".");
+          const jwtParts = inviteToken.split('.');
           if (jwtParts.length !== 3) {
-            throw new Error("Invalid invite token format");
+            throw new Error('Invalid invite token format');
           }
 
           // Decode the JWT payload to validate it's for this event and get room info
           const payload = JSON.parse(atob(jwtParts[1]));
-          console.log("Invite token payload:", payload);
+          console.log('Invite token payload:', payload);
 
           // Get current user session
           const supabase = supabaseBrowser();
@@ -223,15 +207,15 @@ const StagePage: React.FC = () => {
           } = await supabase.auth.getSession();
 
           if (sessionError || !session) {
-            throw new Error("Please log in to use invite token");
+            throw new Error('Please log in to use invite token');
           }
 
           // Create a new edge function call to generate a user-specific streamer token
           const { data: tokenData, error: tokenError } =
-            await supabase.functions.invoke("create-livekit-token", {
+            await supabase.functions.invoke('create-livekit-token', {
               body: {
                 eventId: eventData?.id,
-                userRole: "streamer",
+                userRole: 'streamer',
                 permissions: {
                   roomJoin: true,
                   canPublish: true,
@@ -248,24 +232,23 @@ const StagePage: React.FC = () => {
 
           if (tokenError || !tokenData) {
             console.error(
-              "Failed to generate streamer token, falling back to invite token:",
+              'Failed to generate streamer token, falling back to invite token:',
               tokenError
             );
             // Fallback to using the invite token directly
             setToken(inviteToken);
-            setServerUrl(payload.iss || "wss://localhost:7880"); // Use server from payload or default
+            setServerUrl(payload.iss || 'wss://localhost:7880'); // Use server from payload or default
             return inviteToken; // Return the invite token
-          } else {
-            // Use the newly generated token with proper user identity
-            setToken(tokenData.token);
-            setServerUrl(tokenData.serverUrl);
-            // Save access token for optional keepalive usage
-            accessTokenRef.current = session.access_token;
-            return tokenData.token; // Return the generated token
           }
+          // Use the newly generated token with proper user identity
+          setToken(tokenData.token);
+          setServerUrl(tokenData.serverUrl);
+          // Save access token for optional keepalive usage
+          accessTokenRef.current = session.access_token;
+          return tokenData.token; // Return the generated token
         } catch (err) {
-          console.error("Invite token validation failed:", err);
-          throw new Error("Invalid or expired invite token");
+          console.error('Invite token validation failed:', err);
+          throw new Error('Invalid or expired invite token');
         }
       }
 
@@ -277,11 +260,11 @@ const StagePage: React.FC = () => {
       } = await supabase.auth.getSession();
 
       if (sessionError || !session) {
-        throw new Error("Please log in to access this stream");
+        throw new Error('Please log in to access this stream');
       }
 
       const { data, error } = await supabase.functions.invoke(
-        "create-livekit-token",
+        'create-livekit-token',
         {
           body: {
             eventId: eventData?.id,
@@ -294,11 +277,11 @@ const StagePage: React.FC = () => {
       );
 
       if (error) {
-        throw new Error(error.message || "Failed to generate token");
+        throw new Error(error.message || 'Failed to generate token');
       }
 
       if (!data?.token || !data?.serverUrl) {
-        throw new Error("Invalid token response");
+        throw new Error('Invalid token response');
       }
 
       setToken(data.token);
@@ -309,9 +292,9 @@ const StagePage: React.FC = () => {
       return data.token; // Return the generated token
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : "Failed to generate LiveKit token";
+        err instanceof Error ? err.message : 'Failed to generate LiveKit token';
       toast.error(errorMessage);
-      console.error("Token generation error:", err);
+      console.error('Token generation error:', err);
       // Reset flag on error to allow retry
       tokenGenerated.current = false;
       throw err; // Re-throw to maintain error handling
@@ -323,7 +306,7 @@ const StagePage: React.FC = () => {
   // Generate LiveKit token when event and user role are available
   useEffect(() => {
     if (!tokenGenerated.current && eventData?.id && userRole && user) {
-      console.log("Generating token...");
+      console.log('Generating token...');
       generateToken();
     }
   }, [eventData?.id, userRole, user]);
@@ -339,9 +322,9 @@ const StagePage: React.FC = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4" />
           <p className="text-muted-foreground">
-            {loading ? "Loading stage..." : "Connecting to live stream..."}
+            {loading ? 'Loading stage...' : 'Connecting to live stream...'}
           </p>
         </div>
       </div>
@@ -382,7 +365,7 @@ const StagePage: React.FC = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4" />
           <p className="text-muted-foreground">Preparing live stream...</p>
         </div>
       </div>
@@ -394,36 +377,36 @@ const StagePage: React.FC = () => {
       <LiveKitRoomLazy
         token={token}
         serverUrl={serverUrl}
-        connect={true}
+        connect
         connectOptions={{
           autoSubscribe: true,
         }}
         onConnected={() => {
-          console.log("LiveKit room connected");
-          toast.success("Connected to live stream");
+          console.log('LiveKit room connected');
+          toast.success('Connected to live stream');
         }}
         onDisconnected={(reason) => {
-          console.log("LiveKit room disconnected:", reason);
+          console.log('LiveKit room disconnected:', reason);
           toast.info(
-            "Disconnected from live stream. You can reconnect when ready."
+            'Disconnected from live stream. You can reconnect when ready.'
           );
         }}
         onError={(error) => {
-          console.error("LiveKit room error:", error);
-          toast.error("Live stream connection error: " + error.message);
+          console.error('LiveKit room error:', error);
+          toast.error(`Live stream connection error: ${error.message}`);
         }}
-        style={{ height: "100vh" }}
+        style={{ height: '100vh' }}
       >
         <RoomAudioRendererLazy />
         <StreamerInterface
           eventId={eventData?.id}
           eventTitle={eventData?.name}
-          isLive={eventData?.is_live}
+          isLive={eventData.is_live}
           userRole={userRole}
           userId={user?.id}
           eventHostId={eventData?.created_by}
           streamId={streamId}
-          autoGoLive={eventData?.is_live}
+          autoGoLive={eventData.is_live}
           generateToken={generateToken}
         />
       </LiveKitRoomLazy>

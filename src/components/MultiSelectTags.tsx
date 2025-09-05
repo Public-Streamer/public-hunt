@@ -1,9 +1,20 @@
 import React, { useState } from 'react';
+import { Hash, Calendar, X, Plus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Hash, Calendar, X, Plus } from 'lucide-react';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 
 interface Item {
   id: string;
@@ -21,7 +32,7 @@ const MultiSelectTags: React.FC<MultiSelectTagsProps> = ({
   type,
   allItems,
   selectedItems,
-  onSelectionChange
+  onSelectionChange,
 }) => {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -29,9 +40,10 @@ const MultiSelectTags: React.FC<MultiSelectTagsProps> = ({
   const icon = type === 'channels' ? Hash : Calendar;
   const IconComponent = icon;
 
-  const filteredItems = allItems.filter(item => 
-    !selectedItems.find(selected => selected.id === item.id) &&
-    item.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredItems = allItems.filter(
+    (item) =>
+      !selectedItems.find((selected) => selected.id === item.id) &&
+      item.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleSelect = (item: Item) => {
@@ -41,15 +53,19 @@ const MultiSelectTags: React.FC<MultiSelectTagsProps> = ({
   };
 
   const handleRemove = (itemId: string) => {
-    onSelectionChange(selectedItems.filter(item => item.id !== itemId));
+    onSelectionChange(selectedItems.filter((item) => item.id !== itemId));
   };
 
   return (
     <div className="space-y-2">
       {/* Selected items */}
       <div className="flex flex-wrap gap-2">
-        {selectedItems.map(item => (
-          <Badge key={item.id} variant="secondary" className="flex items-center gap-1">
+        {selectedItems.map((item) => (
+          <Badge
+            key={item.id}
+            variant="secondary"
+            className="flex items-center gap-1"
+          >
             <IconComponent className="h-3 w-3" />
             {item.name}
             <Button
@@ -67,22 +83,26 @@ const MultiSelectTags: React.FC<MultiSelectTagsProps> = ({
       {/* Add button */}
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <Button variant="outline" size="sm" className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+          >
             <Plus className="h-4 w-4" />
             Add {type === 'channels' ? 'Channel' : 'Event'}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-64 p-0">
           <Command>
-            <CommandInput 
-              placeholder={`Search ${type}...`} 
+            <CommandInput
+              placeholder={`Search ${type}...`}
               value={searchTerm}
               onValueChange={setSearchTerm}
             />
             <CommandList>
               <CommandEmpty>No {type} found.</CommandEmpty>
               <CommandGroup>
-                {filteredItems.map(item => (
+                {filteredItems.map((item) => (
                   <CommandItem
                     key={item.id}
                     onSelect={() => handleSelect(item)}

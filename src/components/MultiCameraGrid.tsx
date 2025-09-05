@@ -1,11 +1,11 @@
-import React, { lazy, Suspense, useEffect, useMemo, useState } from "react";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Video, VolumeX, ScreenShare } from "lucide-react";
+import React, { lazy, Suspense, useEffect, useMemo, useState } from 'react';
+import { Video, VolumeX, ScreenShare } from 'lucide-react';
+import type { TrackReference } from '@livekit/components-react';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 // ✅ types only — won’t pull the libs at build time
-import type { TrackReference } from "@livekit/components-react";
 
 // ---- Lazy one-off component wrapper for VideoTrack ----
 const LazyVideoTrack = ({
@@ -19,7 +19,7 @@ const LazyVideoTrack = ({
     () =>
       // React.lazy needs a default export; remap VideoTrack to default
       lazy(() =>
-        import("@livekit/components-react").then((m) => ({
+        import('@livekit/components-react').then((m) => ({
           default: m.VideoTrack,
         }))
       ),
@@ -38,7 +38,7 @@ function useLiveKitTrackEnum() {
   const [LK, setLK] = useState<null | { Track: any }>(null);
   useEffect(() => {
     let mounted = true;
-    import("livekit-client").then((m) => {
+    import('livekit-client').then((m) => {
       if (mounted) setLK({ Track: m.Track });
     });
     return () => {
@@ -80,10 +80,10 @@ const MultiCameraGrid: React.FC<MultiCameraGridProps> = ({
   }
 
   const getGridCols = (count: number) => {
-    if (count <= 2) return "grid-cols-1 md:grid-cols-2";
-    if (count <= 4) return "grid-cols-2";
-    if (count <= 6) return "grid-cols-2 md:grid-cols-3";
-    return "grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
+    if (count <= 2) return 'grid-cols-1 md:grid-cols-2';
+    if (count <= 4) return 'grid-cols-2';
+    if (count <= 6) return 'grid-cols-2 md:grid-cols-3';
+    return 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4';
   };
 
   // Single track
@@ -103,13 +103,13 @@ const MultiCameraGrid: React.FC<MultiCameraGridProps> = ({
           ) : (
             <Avatar className="h-6 w-6">
               <AvatarFallback className="text-xs">
-                {track.participant.name?.substring(0, 2).toUpperCase() || "U"}
+                {track.participant.name?.substring(0, 2).toUpperCase() || 'U'}
               </AvatarFallback>
             </Avatar>
           )}
           <span className="text-sm">
-            {track.participant.name || "Anonymous"}
-            {screen && " (Screen)"}
+            {track.participant.name || 'Anonymous'}
+            {screen && ' (Screen)'}
           </span>
         </div>
       </div>
@@ -129,7 +129,7 @@ const MultiCameraGrid: React.FC<MultiCameraGridProps> = ({
           <Card
             key={track.publication.trackSid}
             className={`relative overflow-hidden cursor-pointer transition-all duration-200 hover:ring-2 hover:ring-primary ${
-              selected ? "ring-2 ring-primary" : ""
+              selected ? 'ring-2 ring-primary' : ''
             }`}
             onClick={() => onTrackSelect(track.publication.trackSid)}
           >
@@ -141,11 +141,11 @@ const MultiCameraGrid: React.FC<MultiCameraGridProps> = ({
 
               <Badge
                 className={`absolute top-2 left-2 text-white text-xs ${
-                  screen ? "bg-blue-600" : "bg-red-600"
+                  screen ? 'bg-blue-600' : 'bg-red-600'
                 }`}
               >
                 <div className="w-1.5 h-1.5 bg-white rounded-full mr-1 animate-pulse" />
-                {screen ? "SCREEN" : "LIVE"}
+                {screen ? 'SCREEN' : 'LIVE'}
               </Badge>
 
               <div className="absolute top-2 right-2 bg-black/70 text-white p-1 rounded">
@@ -161,13 +161,13 @@ const MultiCameraGrid: React.FC<MultiCameraGridProps> = ({
                       <AvatarFallback className="text-xs">
                         {track.participant.name
                           ?.substring(0, 2)
-                          .toUpperCase() || "U"}
+                          .toUpperCase() || 'U'}
                       </AvatarFallback>
                     </Avatar>
                   )}
                   <div className="text-white text-sm truncate">
-                    {track.participant.name || "Anonymous"}
-                    {screen && " (Screen)"}
+                    {track.participant.name || 'Anonymous'}
+                    {screen && ' (Screen)'}
                   </div>
                 </div>
               </div>

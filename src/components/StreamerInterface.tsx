@@ -1,26 +1,9 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   useLocalParticipant,
   useParticipants,
   useTracks,
-} from "@livekit/components-react";
-import { VideoTrackLazy, useLiveKitTrackSource } from "@/lib/livekitLazy";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Input } from "@/components/ui/input";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+} from '@livekit/components-react';
 import {
   Video,
   VideoOff,
@@ -39,35 +22,52 @@ import {
   AlertTriangle,
   Lock,
   Unlock,
-} from "lucide-react";
-import { supabaseBrowser } from "@/lib/supabase/browser";
-import { useToast } from "@/hooks/use-toast";
-import { useStreamingControls } from "@/hooks/useStreamingControls";
-import StageShareMenu from "@/components/StageShareMenu";
-import EventSharePanel from "@/components/EventSharePanel";
-import { useScreenSize } from "@/hooks/use-mobile";
-import { useMobileMediaPermissions } from "@/hooks/useMobileMediaPermissions";
-import LiveStreamLogo from "@/components/ui/live-stream-logo";
-import TooltipWrapper from "@/components/ui/tooltip-wrapper";
-import CameraSwitchButton from "@/components/CameraSwitchButton";
-import TorchButton from "@/components/TorchButton";
-import { CoonhoundScorecardV2 } from "@/components/scorecard/CoonhoundScorecardV2";
-import { CustomScoreboard } from "@/components/CustomScoreboard";
-import { ScoreboardGameSelector } from "@/components/ScoreboardGameSelector";
-import { PinnedMessageSection } from "@/components/PinnedMessageSection";
-import EventProductionTeam from "@/components/EventProductionTeam";
-import { useScoreboardTeams } from "@/hooks/useScoreboardTeams";
-import { useEventScoreboardMeta } from "@/hooks/useEventScoreboardMeta";
-import InStreamChatOverlay from "./InStreamChatOverlay";
-import { EventSocialSection } from "./EventSocialSection";
-import { useStreamName } from "@/hooks/useStreamName";
-import { StreamNameEditor } from "@/components/StreamNameEditor";
+} from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { VideoTrackLazy, useLiveKitTrackSource } from '@/lib/livekitLazy';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { supabaseBrowser } from '@/lib/supabase/browser';
+import { useToast } from '@/hooks/use-toast';
+import { useStreamingControls } from '@/hooks/useStreamingControls';
+import StageShareMenu from '@/components/StageShareMenu';
+import EventSharePanel from '@/components/EventSharePanel';
+import { useScreenSize } from '@/hooks/use-mobile';
+import { useMobileMediaPermissions } from '@/hooks/useMobileMediaPermissions';
+import LiveStreamLogo from '@/components/ui/live-stream-logo';
+import TooltipWrapper from '@/components/ui/tooltip-wrapper';
+import CameraSwitchButton from '@/components/CameraSwitchButton';
+import TorchButton from '@/components/TorchButton';
+import { CoonhoundScorecardV2 } from '@/components/scorecard/CoonhoundScorecardV2';
+import { CustomScoreboard } from '@/components/CustomScoreboard';
+import { ScoreboardGameSelector } from '@/components/ScoreboardGameSelector';
+import { PinnedMessageSection } from '@/components/PinnedMessageSection';
+import EventProductionTeam from '@/components/EventProductionTeam';
+import { useScoreboardTeams } from '@/hooks/useScoreboardTeams';
+import { useEventScoreboardMeta } from '@/hooks/useEventScoreboardMeta';
+import InStreamChatOverlay from './InStreamChatOverlay';
+import { EventSocialSection } from './EventSocialSection';
+import { useStreamName } from '@/hooks/useStreamName';
+import { StreamNameEditor } from '@/components/StreamNameEditor';
 
 interface StreamerInterfaceProps {
   eventId: string;
   eventTitle: string;
-  isLive: boolean;
-  userRole?: "host" | "streamer";
+  isLive: boolean | null;
+  userRole?: 'host' | 'streamer';
   userId?: string;
   eventHostId?: string;
   streamId?: string;
@@ -78,7 +78,7 @@ interface StreamerInterfaceProps {
 export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   eventId,
   eventTitle,
-  isLive,
+
   userRole,
   userId,
   eventHostId,
@@ -87,7 +87,6 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   generateToken,
 }) => {
   const { localParticipant } = useLocalParticipant();
-  const participants = useParticipants();
   const controls = useStreamingControls(eventId, generateToken);
   const screenSize = useScreenSize();
   const { checkScreenShareSupport } = useMobileMediaPermissions();
@@ -117,7 +116,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   }, [controls.isStreaming]);
 
   // Real-time scoreboard metadata tracking
-  const { selectedGameType: realtimeGameType, scoreboardName } =
+  const { selectedGameType: realtimeGameType } =
     useEventScoreboardMeta(eventId);
 
   // Local state for game type (prioritize real-time data)
@@ -129,11 +128,11 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   // Real-time team count tracking
   const { hasTeams: hasCustomTeams } = useScoreboardTeams(
     eventId,
-    selectedGameType === "custom" ? "custom" : undefined
+    selectedGameType === 'custom' ? 'custom' : undefined
   );
   const { hasTeams: hasCoonHuntTeams } = useScoreboardTeams(
     eventId,
-    selectedGameType === "coon_hunt" ? "coon_hunt" : undefined
+    selectedGameType === 'coon_hunt' ? 'coon_hunt' : undefined
   );
 
   // Legacy state (kept for compatibility)
@@ -151,32 +150,32 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
         // event_participants (new)
         const { data: participantData, error: participantError } =
           await supabase
-            .from("event_participants")
-            .select("permissions")
-            .eq("event_id", eventId)
-            .eq("user_id", userId)
+            .from('event_participants')
+            .select('permissions')
+            .eq('event_id', eventId)
+            .eq('user_id', userId)
             .maybeSingle();
 
         if (!participantError && participantData?.permissions) {
           const hasJudgePermission = (
             participantData.permissions as string[]
-          ).includes("scorecard_judge");
+          ).includes('scorecard_judge');
           setIsJudge(hasJudgePermission);
           return;
         }
 
         // event_streamers (legacy)
         const { data: streamerData, error: streamerError } = await supabase
-          .from("event_streamers")
-          .select("permissions")
-          .eq("event_id", eventId)
-          .eq("streamer_id", userId)
+          .from('event_streamers')
+          .select('permissions')
+          .eq('event_id', eventId)
+          .eq('streamer_id', userId)
           .maybeSingle();
 
         if (!streamerError && streamerData?.permissions) {
           const hasJudgePermission = (
             streamerData.permissions as string[]
-          ).includes("scorecard_judge");
+          ).includes('scorecard_judge');
           setIsJudge(hasJudgePermission);
         } else {
           setIsJudge(false);
@@ -189,8 +188,8 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   }, [eventId, userId]);
 
   // Permission logic
-  const isEventCreator = userRole === "host";
-  const isStreamerWithJudgePermissions = userRole === "streamer" && isJudge;
+  const isEventCreator = userRole === 'host';
+  const isStreamerWithJudgePermissions = userRole === 'streamer' && isJudge;
   const canEdit = isEventCreator || isStreamerWithJudgePermissions;
   const canManageScoreboard = canEdit;
   const canSeeScoreboard = canManageScoreboard || !!selectedGameType;
@@ -203,18 +202,18 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     const participantsChannel = supabase
       .channel(`judge-perms-participants-${eventId}-${userId}`)
       .on(
-        "postgres_changes",
+        'postgres_changes',
         {
-          event: "UPDATE",
-          schema: "public",
-          table: "event_participants",
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'event_participants',
           filter: `event_id=eq.${eventId}`,
         },
         (payload) => {
           const row: any = payload.new;
           if (row.user_id === userId) {
             const perms = (row.permissions || []) as string[];
-            setIsJudge(perms.includes("scorecard_judge"));
+            setIsJudge(perms.includes('scorecard_judge'));
           }
         }
       )
@@ -223,18 +222,18 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     const streamersChannel = supabase
       .channel(`judge-perms-streamers-${eventId}-${userId}`)
       .on(
-        "postgres_changes",
+        'postgres_changes',
         {
-          event: "UPDATE",
-          schema: "public",
-          table: "event_streamers",
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'event_streamers',
           filter: `event_id=eq.${eventId}`,
         },
         (payload) => {
           const row: any = payload.new;
           if (row.streamer_id === userId) {
             const perms = (row.permissions || []) as string[];
-            setIsJudge(perms.includes("scorecard_judge"));
+            setIsJudge(perms.includes('scorecard_judge'));
           }
         }
       )
@@ -251,9 +250,9 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     try {
       const supabase = supabaseBrowser();
       const { data: event, error } = await supabase
-        .from("events")
-        .select("metadata")
-        .eq("id", eventId)
+        .from('events')
+        .select('metadata')
+        .eq('id', eventId)
         .single();
 
       if (error) throw error;
@@ -264,7 +263,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
         await fetchTeams(gameType);
       }
     } catch (error) {
-      console.error("Error loading event data:", error);
+      console.error('Error loading event data:', error);
     } finally {
       setLoadingScoreboard(false);
     }
@@ -278,15 +277,15 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     try {
       const supabase = supabaseBrowser();
       const { data, error } = await supabase.functions.invoke(
-        "scoreboard-operations",
+        'scoreboard-operations',
         {
-          body: { action: "fetch", eventId, scoreboardType },
+          body: { action: 'fetch', eventId, scoreboardType },
         }
       );
       if (error) throw error;
       setTeams(Array.isArray(data) ? data : (data as any)?.teams || []);
     } catch (error) {
-      console.error("Error fetching teams:", error);
+      console.error('Error fetching teams:', error);
     }
   };
 
@@ -296,12 +295,12 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
       try {
         const supabase = supabaseBrowser();
         const { error } = await supabase
-          .from("events")
+          .from('events')
           .update({ viewer_count: viewerCount })
-          .eq("id", eventId);
+          .eq('id', eventId);
         if (error) throw error;
       } catch (error) {
-        console.error("Error updating viewer count:", error);
+        console.error('Error updating viewer count:', error);
       }
     };
     updateViewerCount();
@@ -316,16 +315,16 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     try {
       const supabase = supabaseBrowser();
       const { error } = await supabase
-        .from("events")
+        .from('events')
         .update({ metadata: { selectedGameType: gameType } })
-        .eq("id", eventId);
+        .eq('id', eventId);
       if (error) throw error;
     } catch (error) {
-      console.error("Error saving scoreboard type", error);
+      console.error('Error saving scoreboard type', error);
       toast({
-        title: "Error",
-        description: "Failed to save scoreboard type",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to save scoreboard type',
+        variant: 'destructive',
       });
     }
   };
@@ -335,8 +334,8 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     saveGameTypeToEvent(gameType);
     setTeams([]);
     toast({
-      title: "Success",
-      description: "Scoreboard type selected successfully",
+      title: 'Success',
+      description: 'Scoreboard type selected successfully',
     });
   };
 
@@ -345,10 +344,10 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     try {
       const supabase = supabaseBrowser();
       const { error: fnError } = await supabase.functions.invoke(
-        "scoreboard-operations",
+        'scoreboard-operations',
         {
           body: {
-            action: "deleteAll",
+            action: 'deleteAll',
             eventId,
             scoreboardType: selectedGameType,
           },
@@ -356,20 +355,20 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
       );
       if (fnError) throw fnError;
 
-      await supabase.from("events").update({ metadata: {} }).eq("id", eventId);
+      await supabase.from('events').update({ metadata: {} }).eq('id', eventId);
 
       setLocalSelectedGameType(null);
       setTeams([]);
       toast({
-        title: "Success",
-        description: "Scoreboard deleted successfully",
+        title: 'Success',
+        description: 'Scoreboard deleted successfully',
       });
     } catch (error) {
-      console.error("Error deleting scoreboard:", error);
+      console.error('Error deleting scoreboard:', error);
       toast({
-        title: "Error",
-        description: "Failed to delete scoreboard",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to delete scoreboard',
+        variant: 'destructive',
       });
     }
   };
@@ -383,9 +382,9 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   const handleSaveClick = async () => {
     if (!editValue.trim()) {
       toast({
-        title: "Error",
-        description: "Event name cannot be empty",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Event name cannot be empty',
+        variant: 'destructive',
       });
       return;
     }
@@ -393,22 +392,22 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     try {
       const supabase = supabaseBrowser();
       const { error } = await supabase
-        .from("events")
+        .from('events')
         .update({ name: editValue.trim() })
-        .eq("id", eventId);
+        .eq('id', eventId);
       if (error) throw error;
 
       setIsEditing(false);
       toast({
-        title: "Success",
-        description: "Event name updated successfully",
+        title: 'Success',
+        description: 'Event name updated successfully',
       });
     } catch (error) {
-      console.error("Error updating event name:", error);
+      console.error('Error updating event name:', error);
       toast({
-        title: "Error",
-        description: "Failed to update event name",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to update event name',
+        variant: 'destructive',
       });
     } finally {
       setIsSaving(false);
@@ -421,8 +420,8 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") handleSaveClick();
-    else if (e.key === "Escape") handleCancelClick();
+    if (e.key === 'Enter') handleSaveClick();
+    else if (e.key === 'Escape') handleCancelClick();
   };
 
   // Get local camera track
@@ -446,7 +445,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   // Auto start stream when ready
   const autoStartAttemptedRef = useRef(false);
   useEffect(() => {
-    const allowedRole = userRole === "host" || userRole === "streamer";
+    const allowedRole = userRole === 'host' || userRole === 'streamer';
     if (
       autoGoLive &&
       allowedRole &&
@@ -474,15 +473,15 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
         if (cancelled) return;
         const supabase = supabaseBrowser();
         await supabase
-          .from("event_streams")
+          .from('event_streams')
           .update({
             is_active: true,
             updated_at: new Date().toISOString(),
             streamer_counts: totalTracksLength,
           })
-          .eq("id", streamId);
+          .eq('id', streamId);
       } catch (err) {
-        console.error("error in heartbeat ", err);
+        console.error('error in heartbeat ', err);
       }
     };
     sendHeartbeat();
@@ -527,9 +526,9 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                         />
                         <Button
                           size={
-                            screenSize === "mobile" || screenSize === "tablet"
-                              ? "xs"
-                              : "sm"
+                            screenSize === 'mobile' || screenSize === 'tablet'
+                              ? 'xs'
+                              : 'sm'
                           }
                           onClick={handleSaveClick}
                           disabled={isSaving}
@@ -539,9 +538,9 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                         </Button>
                         <Button
                           size={
-                            screenSize === "mobile" || screenSize === "tablet"
-                              ? "xs"
-                              : "sm"
+                            screenSize === 'mobile' || screenSize === 'tablet'
+                              ? 'xs'
+                              : 'sm'
                           }
                           variant="outline"
                           onClick={handleCancelClick}
@@ -556,12 +555,12 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                         <span className="truncate">
                           {editValue} - Streaming Controls
                         </span>
-                        {userRole === "host" && (
+                        {userRole === 'host' && (
                           <Button
                             size={
-                              screenSize === "mobile" || screenSize === "tablet"
-                                ? "xs"
-                                : "sm"
+                              screenSize === 'mobile' || screenSize === 'tablet'
+                                ? 'xs'
+                                : 'sm'
                             }
                             variant="ghost"
                             onClick={handleEditClick}
@@ -577,7 +576,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
               </div>
 
               <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
-                {userRole === "host" && isEditing && (
+                {userRole === 'host' && isEditing && (
                   <div>
                     <span className="text-xs text-muted-foreground flex items-center gap-2">
                       <AlertTriangle className="text-yellow-500 h-4 w-4" />
@@ -586,16 +585,16 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                   </div>
                 )}
                 <Badge
-                  variant={controls.isConnected ? "default" : "secondary"}
+                  variant={controls.isConnected ? 'default' : 'secondary'}
                   className="text-xs"
                 >
-                  {controls.isConnected ? "Connected" : "Disconnected"}
+                  {controls.isConnected ? 'Connected' : 'Disconnected'}
                 </Badge>
                 <div className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground">
                   <Users className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span>
-                    {controls.participantCount}{" "}
-                    {screenSize === "mobile" ? "" : "participants"}
+                    {controls.participantCount}{' '}
+                    {screenSize === 'mobile' ? '' : 'participants'}
                   </span>
                 </div>
               </div>
@@ -619,13 +618,13 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
 
         <div
           className={`grid gap-3 sm:gap-6 ${
-            screenSize === "desktop" ? "lg:grid-cols-3" : "grid-cols-1"
+            screenSize === 'desktop' ? 'lg:grid-cols-3' : 'grid-cols-1'
           }`}
         >
           {/* Video & Controls Column */}
           <div
             className={`space-y-3 sm:space-y-4 ${
-              screenSize === "desktop" ? "lg:col-span-2" : ""
+              screenSize === 'desktop' ? 'lg:col-span-2' : ''
             }`}
           >
             <Card>
@@ -698,8 +697,8 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                     <TooltipWrapper
                       content={
                         controlsLocked
-                          ? "Unlock to modify stream controls"
-                          : "Lock to prevent changes"
+                          ? 'Unlock to modify stream controls'
+                          : 'Lock to prevent changes'
                       }
                     >
                       <Button
@@ -714,7 +713,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                         ) : (
                           <Unlock className="h-4 w-4 mr-1" />
                         )}
-                        {controlsLocked ? "Locked" : "Unlock"}
+                        {controlsLocked ? 'Locked' : 'Unlock'}
                       </Button>
                     </TooltipWrapper>
                   )}
@@ -722,7 +721,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
               </CardHeader>
               <CardContent
                 className={`space-y-3 sm:space-y-4 p-3 sm:p-3 ${
-                  controlsLocked ? "pointer-events-none opacity-60" : ""
+                  controlsLocked ? 'pointer-events-none opacity-60' : ''
                 }`}
               >
                 {/* Go Live / Stop Stream */}
@@ -731,7 +730,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                     <Button
                       onClick={() => controls.startStream(totalTracksLength)}
                       className="w-full text-sm sm:text-base px-3 sm:px-4 py-3 sm:py-4 max-w-full"
-                      size={screenSize === "mobile" ? "sm" : "lg"}
+                      size={screenSize === 'mobile' ? 'sm' : 'lg'}
                       disabled={!controls.isConnected}
                     >
                       <LiveStreamLogo
@@ -750,8 +749,8 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                       <TooltipWrapper
                         content={
                           controlsLocked
-                            ? "Controls locked — unlock to stop your stream"
-                            : "Stop your personal stream"
+                            ? 'Controls locked — unlock to stop your stream'
+                            : 'Stop your personal stream'
                         }
                       >
                         <span className="block w-full">
@@ -759,7 +758,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                             onClick={controls.stopStream}
                             variant="destructive"
                             className="w-full text-xs sm:text-sm"
-                            size={screenSize === "mobile" ? "sm" : "lg"}
+                            size={screenSize === 'mobile' ? 'sm' : 'lg'}
                             disabled={
                               controlsLocked || controls.controlsLoading
                             }
@@ -773,12 +772,12 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                           </Button>
                         </span>
                       </TooltipWrapper>
-                      {userRole === "host" && (
+                      {userRole === 'host' && (
                         <Button
                           onClick={controls.stopEvent}
                           variant="destructive"
                           className="w-full text-xs sm:text-sm"
-                          size={screenSize === "mobile" ? "sm" : "lg"}
+                          size={screenSize === 'mobile' ? 'sm' : 'lg'}
                           disabled={controlsLocked || controls.controlsLoading}
                         >
                           <Square className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
@@ -798,51 +797,51 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                 {/* Media Controls */}
                 <div
                   className={`space-y-2 ${
-                    screenSize === "mobile"
-                      ? "grid grid-cols-2 gap-2 space-y-0"
-                      : ""
+                    screenSize === 'mobile'
+                      ? 'grid grid-cols-2 gap-2 space-y-0'
+                      : ''
                   }`}
                 >
                   <Button
                     onClick={controls.toggleVideo}
-                    variant={controls.isVideoEnabled ? "default" : "secondary"}
+                    variant={controls.isVideoEnabled ? 'default' : 'secondary'}
                     className="w-full text-xs sm:text-sm"
-                    size={screenSize === "mobile" ? "sm" : "default"}
+                    size={screenSize === 'mobile' ? 'sm' : 'default'}
                   >
                     {controls.isVideoEnabled ? (
                       <>
                         <Video className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                        {screenSize === "mobile" ? "Cam" : "Camera On"}
+                        {screenSize === 'mobile' ? 'Cam' : 'Camera On'}
                       </>
                     ) : (
                       <>
                         <VideoOff className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                        {screenSize === "mobile" ? "Cam" : "Camera Off"}
+                        {screenSize === 'mobile' ? 'Cam' : 'Camera Off'}
                       </>
                     )}
                   </Button>
 
                   <Button
                     onClick={controls.toggleAudio}
-                    variant={controls.isAudioEnabled ? "default" : "secondary"}
+                    variant={controls.isAudioEnabled ? 'default' : 'secondary'}
                     className="w-full text-xs sm:text-sm"
-                    size={screenSize === "mobile" ? "sm" : "default"}
+                    size={screenSize === 'mobile' ? 'sm' : 'default'}
                   >
                     {controls.isAudioEnabled ? (
                       <>
                         <Mic className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                        {screenSize === "mobile" ? "Mic" : "Mic On"}
+                        {screenSize === 'mobile' ? 'Mic' : 'Mic On'}
                       </>
                     ) : (
                       <>
                         <MicOff className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                        {screenSize === "mobile" ? "Mic" : "Mic Off"}
+                        {screenSize === 'mobile' ? 'Mic' : 'Mic Off'}
                       </>
                     )}
                   </Button>
 
                   {/* Camera Switch (mobile) */}
-                  {screenSize === "mobile" && (
+                  {screenSize === 'mobile' && (
                     <CameraSwitchButton
                       availableCameras={controls.availableCameras}
                       isSwitchingCamera={controls.isSwitchingCamera}
@@ -853,7 +852,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                   )}
 
                   {/* Torch (mobile) */}
-                  {screenSize === "mobile" && (
+                  {screenSize === 'mobile' && (
                     <TorchButton
                       isTorchEnabled={controls.isTorchEnabled}
                       isTorchSupported={controls.isTorchSupported}
@@ -868,24 +867,24 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                     <Button
                       onClick={controls.toggleScreenShare}
                       variant={
-                        controls.isScreenSharing ? "default" : "secondary"
+                        controls.isScreenSharing ? 'default' : 'secondary'
                       }
                       className={`w-full text-xs sm:text-sm ${
-                        screenSize === "mobile" ? "col-span-1" : ""
+                        screenSize === 'mobile' ? 'col-span-1' : ''
                       }`}
-                      size={screenSize === "mobile" ? "sm" : "default"}
+                      size={screenSize === 'mobile' ? 'sm' : 'default'}
                     >
                       {controls.isScreenSharing ? (
                         <>
                           <Monitor className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                          {screenSize === "mobile"
-                            ? "Stop Share"
-                            : "Stop Sharing"}
+                          {screenSize === 'mobile'
+                            ? 'Stop Share'
+                            : 'Stop Sharing'}
                         </>
                       ) : (
                         <>
                           <MonitorOff className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                          {screenSize === "mobile" ? "Share" : "Share Screen"}
+                          {screenSize === 'mobile' ? 'Share' : 'Share Screen'}
                         </>
                       )}
                     </Button>
@@ -893,7 +892,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                 </div>
 
                 {/* Camera Switch (desktop) */}
-                {screenSize !== "mobile" && (
+                {screenSize !== 'mobile' && (
                   <CameraSwitchButton
                     availableCameras={controls.availableCameras}
                     isSwitchingCamera={controls.isSwitchingCamera}
@@ -904,7 +903,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                 )}
 
                 {/* Torch (desktop) */}
-                {screenSize !== "mobile" && (
+                {screenSize !== 'mobile' && (
                   <TorchButton
                     isTorchEnabled={controls.isTorchEnabled}
                     isTorchSupported={controls.isTorchSupported}
@@ -927,7 +926,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                 <CardContent className="p-3 sm:p-3">
                   <div
                     className={`grid gap-2 sm:gap-4 ${
-                      screenSize === "mobile" ? "grid-cols-1" : "grid-cols-2"
+                      screenSize === 'mobile' ? 'grid-cols-1' : 'grid-cols-2'
                     }`}
                   >
                     {otherCameraTracks.map((trackRef) => (
@@ -970,7 +969,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
             {/* Pinned Message Section */}
             <PinnedMessageSection
               eventId={eventId}
-              isHost={userRole === "host"}
+              isHost={userRole === 'host'}
             />
 
             <EventSocialSection eventId={eventId} />
@@ -1000,12 +999,12 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                         />
                       </div>
                     </div>
-                  ) : selectedGameType === "coon_hunt" ? (
+                  ) : selectedGameType === 'coon_hunt' ? (
                     <CoonhoundScorecardV2
                       eventId={eventId}
                       isHost={canManageScoreboard}
                     />
-                  ) : selectedGameType === "custom" ? (
+                  ) : selectedGameType === 'custom' ? (
                     <CustomScoreboard
                       eventId={eventId}
                       isHost={canManageScoreboard}
@@ -1013,7 +1012,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                   ) : (
                     <div className="text-center py-8 text-muted-foreground">
                       <p>This game type is not yet supported.</p>
-                      {userRole === "host" && (
+                      {userRole === 'host' && (
                         <Button
                           variant="outline"
                           onClick={() => setLocalSelectedGameType(null)}
@@ -1029,7 +1028,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
             )}
 
             {/* Event Production Team - Only for hosts */}
-            {userRole === "host" && <EventProductionTeam eventId={eventId} />}
+            {userRole === 'host' && <EventProductionTeam eventId={eventId} />}
           </div>
 
           {/* Right panel */}
@@ -1046,7 +1045,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                     Status:
                   </span>
                   <span className="text-xs sm:text-sm font-medium">
-                    {controls.isStreaming ? "Live" : "Offline"}
+                    {controls.isStreaming ? 'Live' : 'Offline'}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -1062,7 +1061,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                     Connection:
                   </span>
                   <span className="text-xs sm:text-sm font-medium">
-                    {controls.isConnected ? "Connected" : "Disconnected"}
+                    {controls.isConnected ? 'Connected' : 'Disconnected'}
                   </span>
                 </div>
                 {controls.availableCameras.length > 1 && (
@@ -1078,11 +1077,11 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
               </CardContent>
             </Card>
 
-            {userRole === "host" && (
+            {userRole === 'host' && (
               <StageShareMenu eventId={eventId} eventTitle={eventTitle} />
             )}
 
-            {userRole === "host" && (
+            {userRole === 'host' && (
               <EventSharePanel eventId={eventId} eventTitle={eventTitle} />
             )}
           </div>

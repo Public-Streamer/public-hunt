@@ -2,12 +2,12 @@
  * Utilities for generating shareable event URLs with social media previews
  */
 
-import { supabase } from "@/integrations/supabase/client";
-import { brandName, brandUrl } from "./brand";
+import { supabase } from '@/integrations/supabase/client';
+import { brandName, brandUrl } from './brand';
 
 export function getShareableEventUrl(eventId: string, slug?: string): string {
   const functionsOrigin = brandUrl;
-  console.log("functionsOrigin", functionsOrigin)
+  console.log('functionsOrigin', functionsOrigin);
   const eventIdentifier = slug || eventId;
   // Return Edge Function URL for crawlers (serves meta tags) and redirects humans
   return `${functionsOrigin}/event/${eventIdentifier}`;
@@ -21,18 +21,16 @@ export function getDirectEventUrl(eventId: string, slug?: string): string {
   return `${baseUrl}/event/${eventIdentifier}`;
 }
 
-
-
 export async function generateEventShareData(eventId: string) {
   try {
     const { data: event, error } = await supabase
-      .from("events")
-      .select("*")
-      .eq("id", eventId)
+      .from('events')
+      .select('*')
+      .eq('id', eventId)
       .single();
 
     if (error || !event) {
-      throw new Error("Event not found");
+      throw new Error('Event not found');
     }
 
     const shareUrl = getShareableEventUrl(eventId, event.slug);
@@ -49,7 +47,7 @@ export async function generateEventShareData(eventId: string) {
         event?.media_urls?.[0] || `${window.location.origin}/placeholder.svg`,
     };
   } catch (error) {
-    console.error("Error generating share data:", error);
+    console.error('Error generating share data:', error);
     return null;
   }
 }

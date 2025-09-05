@@ -1,8 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Calendar,
   Clock,
@@ -14,12 +11,15 @@ import {
   Share2,
   Eye,
   Timer,
-} from "lucide-react";
-import SocialMediaSection from "./SocialMediaSection";
-import TicketPurchaseModal from "./TicketPurchaseModal";
-import { supabaseBrowser } from "@/lib/supabase/browser";
-import { useAppContext } from "@/contexts/AppContext";
-import MediaBackground from "./MediaBackground";
+} from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import SocialMediaSection from './SocialMediaSection';
+import TicketPurchaseModal from './TicketPurchaseModal';
+import { supabaseBrowser } from '@/lib/supabase/browser';
+import { useAppContext } from '@/contexts/AppContext';
+import MediaBackground from './MediaBackground';
 
 interface Event {
   id: string;
@@ -60,7 +60,7 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
     navigate(eventUrl);
 
     if (!isAuthenticated) {
-      navigate("/login");
+      navigate('/login');
       return;
     }
 
@@ -84,8 +84,8 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
   };
 
   const getButtonText = () => {
-    if (!isAuthenticated) return "Login to Purchase";
-    if (event.price === 0) return "Watch Event (Free)";
+    if (!isAuthenticated) return 'Login to Purchase';
+    if (event.price === 0) return 'Watch Event (Free)';
     return `Watch Event`;
   };
 
@@ -137,7 +137,7 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
                   {event.viewers}
                 </span>
                 <span className="flex items-center">
-                  {" "}
+                  {' '}
                   <Timer className="h-4 w-4 mr-1" /> {event.duration}
                 </span>
               </div>
@@ -154,12 +154,12 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
               onClick={handleAction}
               className={`w-full ${
                 event.isLive && event.price === 0
-                  ? "bg-red-600 hover:bg-red-700"
-                  : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                  ? 'bg-red-600 hover:bg-red-700'
+                  : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700'
               }`}
             >
               {event.isLive && event.price === 0
-                ? "Watch Now!"
+                ? 'Watch Now!'
                 : getButtonText()}
             </Button>
 

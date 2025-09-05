@@ -1,20 +1,20 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertTriangle, Calendar, Loader2, TriangleAlert } from "lucide-react";
-import MediaUploader from "@/components/MediaUploader";
-import StreamerSelector from "@/components/StreamerSelector";
-import PriceSlider from "@/components/PriceSlider";
-import CreateEventFormButtons from "@/components/CreateEventFormButtons";
+import React, { useCallback, useEffect, useState } from 'react';
+import { AlertTriangle, Calendar, Loader2, TriangleAlert } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import MediaUploader from '@/components/MediaUploader';
+import StreamerSelector from '@/components/StreamerSelector';
+import PriceSlider from '@/components/PriceSlider';
+import CreateEventFormButtons from '@/components/CreateEventFormButtons';
 // Channel functionality completely disabled to prevent infinite loops
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { useAppContext } from "@/contexts/AppContext";
-import { Link } from "react-router-dom";
-import { useFormValidation, validationRules } from "@/hooks/useFormValidation";
-import ValidationMessage from "@/components/ValidationMessage";
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAppContext } from '@/contexts/AppContext';
+import { useFormValidation, validationRules } from '@/hooks/useFormValidation';
+import ValidationMessage from '@/components/ValidationMessage';
 
 interface MediaFile {
   id: string;
@@ -82,13 +82,12 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
   // Validation helper function
   const getFieldValidationClass = (fieldName: string) => {
     const validation = getFieldValidation(fieldName);
-    if (!validation) return "";
+    if (!validation) return '';
 
     if (validation.isValid) {
-      return "border-green-500 bg-green-50 focus-visible:border-green-600";
-    } else {
-      return "border-red-500 bg-red-50 focus-visible:border-red-600";
+      return 'border-green-500 bg-green-50 focus-visible:border-green-600';
     }
+    return 'border-red-500 bg-red-50 focus-visible:border-red-600';
   };
 
   // Handle input change with validation
@@ -100,34 +99,34 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
 
     // Validate required fields
     switch (field) {
-      case "name":
-        validateField("name", value, [
-          validationRules.required("Event Name is required"),
+      case 'name':
+        validateField('name', value, [
+          validationRules.required('Event Name is required'),
         ]);
         break;
-      case "category":
-        validateField("category", value, [
-          validationRules.required("Category is required"),
+      case 'category':
+        validateField('category', value, [
+          validationRules.required('Category is required'),
         ]);
         break;
-      case "description":
-        validateField("description", value, [
-          validationRules.required("Description is required"),
+      case 'description':
+        validateField('description', value, [
+          validationRules.required('Description is required'),
         ]);
         break;
-      case "date":
+      case 'date':
         if (value) {
-          validateField("date", value, []);
+          validateField('date', value, []);
         }
         break;
-      case "time":
+      case 'time':
         if (value) {
-          validateField("time", value, []);
+          validateField('time', value, []);
         }
         break;
-      case "location":
+      case 'location':
         if (value) {
-          validateField("location", value, []);
+          validateField('location', value, []);
         }
         break;
     }
@@ -144,7 +143,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
   const handleTicketPriceChange = (value: number) => {
     const clampedValue = Math.max(0, Math.min(1000000, value));
     setTicketPrice(clampedValue);
-    onInputChange("ticketPrice", clampedValue);
+    onInputChange('ticketPrice', clampedValue);
   };
 
   // Channel functionality temporarily disabled
@@ -161,10 +160,10 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
     (files: MediaFile[]) => {
       setMediaFiles(files);
       onMediaUpload(files);
-      console.log("From HandleUpload", files);
+      console.log('From HandleUpload', files);
       if (files.length > 0) {
         toast({
-          title: "Media Uploaded",
+          title: 'Media Uploaded',
           description: `${files.length} file(s) uploaded successfully`,
         });
       }
@@ -174,11 +173,11 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
 
   const getRequiredFields = () => {
     const missing = [];
-    if (!formData.name?.trim()) missing.push("Event Name");
-    if (!formData.category?.trim()) missing.push("Category");
-    if (!formData.description?.trim()) missing.push("Description");
+    if (!formData.name?.trim()) missing.push('Event Name');
+    if (!formData.category?.trim()) missing.push('Category');
+    if (!formData.description?.trim()) missing.push('Description');
     if (ticketPrice === undefined || ticketPrice === null)
-      missing.push("Ticket Price");
+      missing.push('Ticket Price');
     return missing;
   };
 
@@ -226,15 +225,15 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
                 `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${position.coords.latitude}&longitude=${position.coords.longitude}&localityLanguage=en`
               );
               const data = await response.json();
-              resolve(data.city || data.locality || "Live Online");
+              resolve(data.city || data.locality || 'Live Online');
             } catch (error) {
-              resolve("Live Online");
+              resolve('Live Online');
             }
           },
-          () => resolve("Live Online")
+          () => resolve('Live Online')
         );
       } else {
-        resolve("Live Online");
+        resolve('Live Online');
       }
     });
   };
@@ -243,17 +242,17 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
     try {
       setLoading(true);
       const { data: stripeAccount } = await supabase
-        .from("host_stripe_accounts")
-        .select("stripe_account_id")
-        .eq("user_id", user?.id)
-        .eq("account_status", "active")
+        .from('host_stripe_accounts')
+        .select('stripe_account_id')
+        .eq('user_id', user?.id)
+        .eq('account_status', 'active')
         .single();
       // console.log(stripeAccount.stripe_account_id);
       const hostStripeAccountId = stripeAccount?.stripe_account_id || null;
       setHostStripeAccountId(hostStripeAccountId);
       setLoading(false);
     } catch (error) {
-      console.error("Error fetching Stripe account:", error);
+      console.error('Error fetching Stripe account:', error);
       setLoading(false);
     }
   };
@@ -264,29 +263,29 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
 
   const handleGoLiveNow = async () => {
     const now = new Date();
-    const today = now.toISOString().split("T")[0];
+    const today = now.toISOString().split('T')[0];
     const currentTime = now.toTimeString().slice(0, 5);
 
-    let location = formData.location;
+    let { location } = formData;
     if (!location?.trim()) {
       location = await getCurrentLocation();
     }
 
     if (!user) {
       toast({
-        title: "Authentication Required",
-        description: "You must be logged in to create events.",
-        variant: "destructive",
+        title: 'Authentication Required',
+        description: 'You must be logged in to create events.',
+        variant: 'destructive',
       });
       return;
     }
 
     if (ticketPrice > 0 && !hostStripeAccountId) {
-      console.log("Ticket price is greater than 0");
+      console.log('Ticket price is greater than 0');
       return toast({
-        title: "Paid Event is not available for you",
-        description: "You have to set up payment processing first.",
-        variant: "destructive",
+        title: 'Paid Event is not available for you',
+        description: 'You have to set up payment processing first.',
+        variant: 'destructive',
       });
     }
 
@@ -295,7 +294,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       description: formData.description,
       date: formData.date || today,
       time: formData.time || currentTime,
-      location: location,
+      location,
       category: formData.category,
       ticket_price: ticketPrice,
       media_urls: mediaFiles.map((f) => f.url).filter(Boolean),
@@ -308,13 +307,13 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
     };
 
     toast({
-      title: "Going Live Now!",
-      description: "Event is being set up to go live immediately.",
+      title: 'Going Live Now!',
+      description: 'Event is being set up to go live immediately.',
     });
 
     try {
       const { data, error } = await supabase
-        .from("events")
+        .from('events')
         .insert(eventData)
         .select()
         .single();
@@ -326,17 +325,17 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
           event_id: data.id,
           streamer_id: streamer.id,
           assigned_by: user.id,
-          role_type: "Streamers",
+          role_type: 'Streamers',
           permissions: streamer.permissions,
         }));
 
-        await supabase.from("event_streamers").insert(streamerData);
+        await supabase.from('event_streamers').insert(streamerData);
       }
 
       setTimeout(() => {
         toast({
-          title: "Event Live!",
-          description: "Your event is now live and streaming.",
+          title: 'Event Live!',
+          description: 'Your event is now live and streaming.',
         });
         // Navigate to the event page
         const stageUrl = data.slug
@@ -345,11 +344,11 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         window.location.href = stageUrl;
       }, 1000);
     } catch (error) {
-      console.error("Error creating live event:", error);
+      console.error('Error creating live event:', error);
       toast({
-        title: "Error",
-        description: "Failed to create live event. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to create live event. Please try again.',
+        variant: 'destructive',
       });
     }
   };
@@ -358,9 +357,9 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
 
   const handleCreateEvent = async (e: React.FormEvent) => {
     const now = new Date();
-    const today = now.toISOString().split("T")[0];
+    const today = now.toISOString().split('T')[0];
     const currentTime = now.toTimeString().slice(0, 5);
-    let location = formData.location;
+    let { location } = formData;
     if (!location?.trim()) {
       location = await getCurrentLocation();
     }
@@ -368,11 +367,11 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
     e.preventDefault();
 
     if (ticketPrice > 0 && !hostStripeAccountId) {
-      console.log("Ticket price is greater than 0");
+      console.log('Ticket price is greater than 0');
       return toast({
-        title: "Paid Event is not available for you",
-        description: "You have to set up payment processing first.",
-        variant: "destructive",
+        title: 'Paid Event is not available for you',
+        description: 'You have to set up payment processing first.',
+        variant: 'destructive',
       });
     }
 
@@ -380,18 +379,18 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       // Get current user
       if (!user) {
         toast({
-          title: "Authentication Required",
-          description: "You must be logged in to create events.",
-          variant: "destructive",
+          title: 'Authentication Required',
+          description: 'You must be logged in to create events.',
+          variant: 'destructive',
         });
         return;
       }
 
-      console.log("Creating event with user:", user.id);
-      console.log("Media Files:", mediaFiles);
+      console.log('Creating event with user:', user.id);
+      console.log('Media Files:', mediaFiles);
 
       const { data, error } = await supabase
-        .from("events")
+        .from('events')
         .insert({
           name: formData.name,
           description: formData.description,
@@ -419,11 +418,11 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
           event_id: data.id,
           streamer_id: streamer.id,
           assigned_by: user.id,
-          role_type: "Streamers",
+          role_type: 'Streamers',
           permissions: streamer.permissions,
         }));
 
-        await supabase.from("event_streamers").insert(streamerData);
+        await supabase.from('event_streamers').insert(streamerData);
       }
 
       // Channel assignment functionality temporarily disabled
@@ -456,19 +455,19 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       // }
 
       toast({
-        title: "Event Created!",
+        title: 'Event Created!',
         description:
-          "Your event has been created successfully. You will be redirected soon.",
+          'Your event has been created successfully. You will be redirected soon.',
       });
 
       const { data: slugData, error: slugError } = await supabase
-        .from("events")
-        .select("slug")
-        .eq("id", data.id)
+        .from('events')
+        .select('slug')
+        .eq('id', data.id)
         .single();
 
       if (slugError) throw slugError;
-      const slug = slugData.slug;
+      const { slug } = slugData;
 
       setTimeout(() => {
         window.location.href = `/event/${slug}`;
@@ -476,11 +475,11 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
 
       onSubmit(e);
     } catch (error) {
-      console.error("Error creating event:", error);
+      console.error('Error creating event:', error);
       toast({
-        title: "Error",
-        description: "Failed to create event. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to create event. Please try again.',
+        variant: 'destructive',
       });
     }
   };
@@ -501,13 +500,13 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
             <TriangleAlert className="text-red-400 text-2xl" />
             <span>
               To create a paid event, you need to set up payment processing
-              first. Please go to the{" "}
+              first. Please go to the{' '}
               <Link
                 className="underline font-bold text-blue-500"
                 to="/payments"
               >
                 payment page.
-              </Link>{" "}
+              </Link>{' '}
             </span>
           </span>
         </div>
@@ -532,23 +531,23 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
                 </Label>
                 <Input
                   id="eventName"
-                  value={formData.name || ""}
+                  value={formData.name || ''}
                   onChange={(e) =>
-                    handleInputChangeWithValidation("name", e.target.value)
+                    handleInputChangeWithValidation('name', e.target.value)
                   }
                   onBlur={(e) =>
-                    handleInputChangeWithValidation("name", e.target.value)
+                    handleInputChangeWithValidation('name', e.target.value)
                   }
                   required
                   className={`text-lg p-4 min-h-[48px] touch-manipulation ${getFieldValidationClass(
-                    "name"
+                    'name'
                   )}`}
                   placeholder="Enter event name"
                 />
-                {getFieldValidation("name") && (
+                {getFieldValidation('name') && (
                   <ValidationMessage
-                    type={getFieldValidation("name")!.type}
-                    message={getFieldValidation("name")!.message}
+                    type={getFieldValidation('name')!.type}
+                    message={getFieldValidation('name')!.message}
                     className="mt-1"
                   />
                 )}
@@ -562,23 +561,23 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
                 </Label>
                 <Input
                   id="eventCategory"
-                  value={formData.category || ""}
+                  value={formData.category || ''}
                   onChange={(e) =>
-                    handleInputChangeWithValidation("category", e.target.value)
+                    handleInputChangeWithValidation('category', e.target.value)
                   }
                   onBlur={(e) =>
-                    handleInputChangeWithValidation("category", e.target.value)
+                    handleInputChangeWithValidation('category', e.target.value)
                   }
                   required
                   className={`text-lg p-4 min-h-[48px] touch-manipulation ${getFieldValidationClass(
-                    "category"
+                    'category'
                   )}`}
                   placeholder="Enter event category"
                 />
-                {getFieldValidation("category") && (
+                {getFieldValidation('category') && (
                   <ValidationMessage
-                    type={getFieldValidation("category")!.type}
-                    message={getFieldValidation("category")!.message}
+                    type={getFieldValidation('category')!.type}
+                    message={getFieldValidation('category')!.message}
                     className="mt-1"
                   />
                 )}
@@ -593,24 +592,24 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
               </Label>
               <Textarea
                 id="eventDescription"
-                value={formData.description || ""}
+                value={formData.description || ''}
                 onChange={(e) =>
-                  handleInputChangeWithValidation("description", e.target.value)
+                  handleInputChangeWithValidation('description', e.target.value)
                 }
                 onBlur={(e) =>
-                  handleInputChangeWithValidation("description", e.target.value)
+                  handleInputChangeWithValidation('description', e.target.value)
                 }
                 rows={4}
                 required
                 className={`text-lg p-4 min-h-[120px] touch-manipulation resize-none ${getFieldValidationClass(
-                  "description"
+                  'description'
                 )}`}
                 placeholder="Describe your event"
               />
-              {getFieldValidation("description") && (
+              {getFieldValidation('description') && (
                 <ValidationMessage
-                  type={getFieldValidation("description")!.type}
-                  message={getFieldValidation("description")!.message}
+                  type={getFieldValidation('description')!.type}
+                  message={getFieldValidation('description')!.message}
                   className="mt-1"
                 />
               )}
@@ -638,7 +637,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
               <MediaUploader
                 onUpload={handleMediaUpload}
                 maxFiles={5}
-                acceptedTypes={["image/jpeg", "image/png", "image/gif"]}
+                acceptedTypes={['image/jpeg', 'image/png', 'image/gif']}
               />
             </div>
 
@@ -653,7 +652,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
                 onCreateEvent={handleCreateEvent}
                 isValid={isAllFieldsComplete()}
                 canCreateEvent={isAllFieldsComplete()}
-                showSoloButton={true}
+                showSoloButton
               />
             </div>
 
@@ -663,7 +662,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
                   htmlFor="eventDate"
                   className="text-base font-bold mb-2 block"
                 >
-                  Date{" "}
+                  Date{' '}
                   <span className="text-gray-500">
                     (optional for live events)
                   </span>
@@ -671,21 +670,21 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
                 <Input
                   id="eventDate"
                   type="date"
-                  value={formData.date || ""}
+                  value={formData.date || ''}
                   onChange={(e) =>
-                    handleInputChangeWithValidation("date", e.target.value)
+                    handleInputChangeWithValidation('date', e.target.value)
                   }
                   onBlur={(e) =>
-                    handleInputChangeWithValidation("date", e.target.value)
+                    handleInputChangeWithValidation('date', e.target.value)
                   }
                   className={`text-lg p-4 min-h-[48px] touch-manipulation ${getFieldValidationClass(
-                    "date"
+                    'date'
                   )}`}
                 />
-                {getFieldValidation("date") && (
+                {getFieldValidation('date') && (
                   <ValidationMessage
-                    type={getFieldValidation("date")!.type}
-                    message={getFieldValidation("date")!.message}
+                    type={getFieldValidation('date')!.type}
+                    message={getFieldValidation('date')!.message}
                     className="mt-1"
                   />
                 )}
@@ -695,7 +694,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
                   htmlFor="eventTime"
                   className="text-base font-bold mb-2 block"
                 >
-                  Time{" "}
+                  Time{' '}
                   <span className="text-gray-500">
                     (optional for live events)
                   </span>
@@ -703,21 +702,21 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
                 <Input
                   id="eventTime"
                   type="time"
-                  value={formData.time || ""}
+                  value={formData.time || ''}
                   onChange={(e) =>
-                    handleInputChangeWithValidation("time", e.target.value)
+                    handleInputChangeWithValidation('time', e.target.value)
                   }
                   onBlur={(e) =>
-                    handleInputChangeWithValidation("time", e.target.value)
+                    handleInputChangeWithValidation('time', e.target.value)
                   }
                   className={`text-lg p-4 min-h-[48px] touch-manipulation ${getFieldValidationClass(
-                    "time"
+                    'time'
                   )}`}
                 />
-                {getFieldValidation("time") && (
+                {getFieldValidation('time') && (
                   <ValidationMessage
-                    type={getFieldValidation("time")!.type}
-                    message={getFieldValidation("time")!.message}
+                    type={getFieldValidation('time')!.type}
+                    message={getFieldValidation('time')!.message}
                     className="mt-1"
                   />
                 )}
@@ -728,29 +727,29 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
                 htmlFor="eventLocation"
                 className="text-base font-bold mb-2 block"
               >
-                Location{" "}
+                Location{' '}
                 <span className="text-gray-500">
                   (optional - auto-detected if blank)
                 </span>
               </Label>
               <Input
                 id="eventLocation"
-                value={formData.location || ""}
+                value={formData.location || ''}
                 onChange={(e) =>
-                  handleInputChangeWithValidation("location", e.target.value)
+                  handleInputChangeWithValidation('location', e.target.value)
                 }
                 onBlur={(e) =>
-                  handleInputChangeWithValidation("location", e.target.value)
+                  handleInputChangeWithValidation('location', e.target.value)
                 }
                 className={`text-lg p-4 min-h-[48px] touch-manipulation ${getFieldValidationClass(
-                  "location"
+                  'location'
                 )}`}
                 placeholder="Enter event location or leave blank for auto-detection"
               />
-              {getFieldValidation("location") && (
+              {getFieldValidation('location') && (
                 <ValidationMessage
-                  type={getFieldValidation("location")!.type}
-                  message={getFieldValidation("location")!.message}
+                  type={getFieldValidation('location')!.type}
+                  message={getFieldValidation('location')!.message}
                   className="mt-1"
                 />
               )}

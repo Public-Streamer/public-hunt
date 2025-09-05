@@ -1,22 +1,22 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from 'react';
+import { Calendar, X } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, X } from "lucide-react";
-import PriceSlider from "@/components/PriceSlider";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import StreamerSelector from "@/components/StreamerSelector";
-import { useAppContext } from "@/contexts/AppContext";
-import MediaUploader from "@/components/MediaUploader";
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import PriceSlider from '@/components/PriceSlider';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import StreamerSelector from '@/components/StreamerSelector';
+import { useAppContext } from '@/contexts/AppContext';
+import MediaUploader from '@/components/MediaUploader';
 
 interface EditEventModalProps {
   isOpen: boolean;
@@ -52,12 +52,12 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
   onEventUpdated,
 }) => {
   const [formData, setFormData] = useState<EventData>({
-    name: "",
-    description: "",
-    date: "",
-    time: "",
-    location: "",
-    category: "",
+    name: '',
+    description: '',
+    date: '',
+    time: '',
+    location: '',
+    category: '',
     ticket_price: 0,
     media_urls: [],
   });
@@ -79,27 +79,27 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
     try {
       // Fetch event data
       const { data, error } = await supabase
-        .from("events")
-        .select("*")
-        .eq("id", eventId)
+        .from('events')
+        .select('*')
+        .eq('id', eventId)
         .single();
 
       if (error) throw error;
 
       setFormData({
-        name: data.name || "",
-        description: data.description || "",
-        date: data.date || "",
-        time: data.time || "",
-        location: data.location || "",
-        category: data.category || "",
+        name: data.name || '',
+        description: data.description || '',
+        date: data.date || '',
+        time: data.time || '',
+        location: data.location || '',
+        category: data.category || '',
         ticket_price: data.ticket_price || 0,
         media_urls: data.media_urls || [],
       });
 
       // Fetch existing streamers with user profile data
       const { data: streamersData, error: streamersError } = await supabase
-        .from("event_streamers")
+        .from('event_streamers')
         .select(
           `
           streamer_id,
@@ -107,20 +107,20 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
           role_type
         `
         )
-        .eq("event_id", eventId);
+        .eq('event_id', eventId);
 
       if (streamersError) {
-        console.error("Error fetching streamers:", streamersError);
+        console.error('Error fetching streamers:', streamersError);
       } else if (streamersData?.length > 0) {
         // Get user profiles for the streamers
         const streamerIds = streamersData.map((s) => s.streamer_id);
         const { data: profilesData, error: profilesError } = await supabase
-          .from("user_profiles")
-          .select("id, user_id, username, display_name, profile_picture_url")
-          .in("user_id", streamerIds);
+          .from('user_profiles')
+          .select('id, user_id, username, display_name, profile_picture_url')
+          .in('user_id', streamerIds);
 
         if (profilesError) {
-          console.error("Error fetching user profiles:", profilesError);
+          console.error('Error fetching user profiles:', profilesError);
         } else {
           // Transform streamers data to SelectedMember format
           const transformedStreamers: SelectedMember[] = streamersData.map(
@@ -131,8 +131,8 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
               return {
                 id: streamer.streamer_id,
                 name:
-                  profile?.display_name || profile?.username || "Unknown User",
-                email: profile?.username || "user@example.com",
+                  profile?.display_name || profile?.username || 'Unknown User',
+                email: profile?.username || 'user@example.com',
                 avatar: profile?.profile_picture_url,
                 permissions: streamer.permissions || [],
                 confirmed: true, // Existing streamers are already confirmed
@@ -145,11 +145,11 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
         }
       }
     } catch (error) {
-      console.error("Error fetching event data:", error);
+      console.error('Error fetching event data:', error);
       toast({
-        title: "Error",
-        description: "Failed to load event data.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to load event data.',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -181,18 +181,18 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
   };
 
   const validateForm = () => {
-    const requiredFields = ["name", "description", "category"];
+    const requiredFields = ['name', 'description', 'category'];
     const missing = requiredFields.filter(
       (field) => !formData[field as keyof EventData]?.toString().trim()
     );
 
     if (missing.length > 0) {
       toast({
-        title: "Validation Error",
+        title: 'Validation Error',
         description: `Please fill in all required fields: ${missing.join(
-          ", "
+          ', '
         )}`,
-        variant: "destructive",
+        variant: 'destructive',
       });
       return false;
     }
@@ -225,11 +225,11 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
     // Remove streamers
     if (streamersToRemove.length > 0) {
       const { error: removeError } = await supabase
-        .from("event_streamers")
+        .from('event_streamers')
         .delete()
-        .eq("event_id", eventId)
+        .eq('event_id', eventId)
         .in(
-          "streamer_id",
+          'streamer_id',
           streamersToRemove.map((s) => s.id)
         );
 
@@ -238,13 +238,13 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
 
     // Add new streamers
     if (streamersToAdd.length > 0) {
-      const { error: addError } = await supabase.from("event_streamers").insert(
+      const { error: addError } = await supabase.from('event_streamers').insert(
         streamersToAdd.map((streamer) => ({
           event_id: eventId,
           streamer_id: streamer.id,
           assigned_by: currentUserProfile.user_id,
           permissions: streamer.permissions,
-          role_type: "Streamers",
+          role_type: 'Streamers',
         }))
       );
 
@@ -255,10 +255,10 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
     if (streamersToUpdate.length > 0) {
       const updatePromises = streamersToUpdate.map((streamer) =>
         supabase
-          .from("event_streamers")
+          .from('event_streamers')
           .update({ permissions: streamer.permissions })
-          .eq("event_id", eventId)
-          .eq("streamer_id", streamer.id)
+          .eq('event_id', eventId)
+          .eq('streamer_id', streamer.id)
       );
 
       const results = await Promise.all(updatePromises);
@@ -276,7 +276,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
     try {
       // Update event data
       const { error: eventError } = await supabase
-        .from("events")
+        .from('events')
         .update({
           name: formData.name,
           description: formData.description,
@@ -288,7 +288,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
           media_urls: formData?.media_urls,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", eventId);
+        .eq('id', eventId);
 
       if (eventError) throw eventError;
 
@@ -296,18 +296,18 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
       await syncStreamers();
 
       toast({
-        title: "Success",
-        description: "Event and production team updated successfully!",
+        title: 'Success',
+        description: 'Event and production team updated successfully!',
       });
 
       onEventUpdated();
       onClose();
     } catch (error) {
-      console.error("Error updating event:", error);
+      console.error('Error updating event:', error);
       toast({
-        title: "Error",
-        description: "Failed to update event. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to update event. Please try again.',
+        variant: 'destructive',
       });
     } finally {
       setSaving(false);
@@ -320,8 +320,8 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
 
   const handleMediaUpload = useCallback((files: any[]) => {
     // Update media URLs to match current MediaUploader state
-    const currentUrls = files.map(f => f.url).filter(Boolean);
-    
+    const currentUrls = files.map((f) => f.url).filter(Boolean);
+
     setFormData((prev) => ({
       ...prev,
       media_urls: currentUrls,
@@ -340,7 +340,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
 
         {loading ? (
           <div className="flex justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
           </div>
         ) : (
           <div className="space-y-6">
@@ -361,7 +361,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
                   <Input
                     id="eventName"
                     value={formData.name}
-                    onChange={(e) => handleInputChange("name", e.target.value)}
+                    onChange={(e) => handleInputChange('name', e.target.value)}
                     placeholder="Enter event name"
                     className="w-full"
                   />
@@ -378,7 +378,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
                     id="eventCategory"
                     value={formData.category}
                     onChange={(e) =>
-                      handleInputChange("category", e.target.value)
+                      handleInputChange('category', e.target.value)
                     }
                     placeholder="Enter event category"
                     className="w-full"
@@ -396,7 +396,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
                     id="eventDescription"
                     value={formData.description}
                     onChange={(e) =>
-                      handleInputChange("description", e.target.value)
+                      handleInputChange('description', e.target.value)
                     }
                     rows={4}
                     placeholder="Describe your event"
@@ -427,7 +427,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
                       type="date"
                       value={formData.date}
                       onChange={(e) =>
-                        handleInputChange("date", e.target.value)
+                        handleInputChange('date', e.target.value)
                       }
                       className="w-full"
                     />
@@ -444,7 +444,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
                       type="time"
                       value={formData.time}
                       onChange={(e) =>
-                        handleInputChange("time", e.target.value)
+                        handleInputChange('time', e.target.value)
                       }
                       className="w-full"
                     />
@@ -462,7 +462,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
                     id="eventLocation"
                     value={formData.location}
                     onChange={(e) =>
-                      handleInputChange("location", e.target.value)
+                      handleInputChange('location', e.target.value)
                     }
                     placeholder="Enter event location"
                     className="w-full"
@@ -483,16 +483,16 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
                   onUpload={handleMediaUpload}
                   maxFiles={5}
                   acceptedTypes={[
-                    "image/jpeg",
-                    "image/png", 
-                    "image/gif",
-                    "video/mp4",
-                    "video/webm",
-                    "video/avi",
-                    "video/quicktime",
-                    "audio/mp3",
-                    "audio/wav",
-                    "audio/ogg",
+                    'image/jpeg',
+                    'image/png',
+                    'image/gif',
+                    'video/mp4',
+                    'video/webm',
+                    'video/avi',
+                    'video/quicktime',
+                    'audio/mp3',
+                    'audio/wav',
+                    'audio/ogg',
                   ]}
                   initialUrls={formData.media_urls}
                 />
@@ -514,7 +514,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
                 disabled={saving}
                 className="bg-green-600 hover:bg-green-700"
               >
-                {saving ? "Saving..." : "Update Event"}
+                {saving ? 'Saving...' : 'Update Event'}
               </Button>
             </div>
           </div>

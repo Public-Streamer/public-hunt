@@ -1,15 +1,10 @@
-
 import React, { useState } from 'react';
-import { useAppContext } from '@/contexts/AppContext';
-import { useIsMobile } from '@/hooks/use-mobile';
 import Header from './Header';
 import Hero from './Hero';
 import EventGrid from './EventGrid';
 import StageView from './StageView';
 
 const AppLayout: React.FC = () => {
-  const { sidebarOpen, toggleSidebar } = useAppContext();
-  const isMobile = useIsMobile();
   const [currentView, setCurrentView] = useState<'home' | 'stage'>('home');
   const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
 
@@ -26,7 +21,7 @@ const AppLayout: React.FC = () => {
       viewers: 1234,
       streamerCount: 4,
       isLive: true,
-      media_urls: []
+      media_urls: [],
     },
     {
       id: '2',
@@ -39,7 +34,7 @@ const AppLayout: React.FC = () => {
       viewers: 567,
       streamerCount: 3,
       isLive: false,
-      media_urls: []
+      media_urls: [],
     },
     {
       id: '3',
@@ -52,8 +47,8 @@ const AppLayout: React.FC = () => {
       viewers: 2345,
       streamerCount: 6,
       isLive: true,
-      media_urls: []
-    }
+      media_urls: [],
+    },
   ];
 
   const mockStreams = [
@@ -63,7 +58,7 @@ const AppLayout: React.FC = () => {
       streamer: 'Camera 1',
       viewers: 456,
       isLive: true,
-      thumbnail: ''
+      thumbnail: '',
     },
     {
       id: '2',
@@ -71,7 +66,7 @@ const AppLayout: React.FC = () => {
       streamer: 'Camera 2',
       viewers: 234,
       isLive: true,
-      thumbnail: ''
+      thumbnail: '',
     },
     {
       id: '3',
@@ -79,8 +74,8 @@ const AppLayout: React.FC = () => {
       streamer: 'Camera 3',
       viewers: 123,
       isLive: true,
-      thumbnail: ''
-    }
+      thumbnail: '',
+    },
   ];
 
   const handlePurchase = (eventId: string) => {
@@ -101,13 +96,13 @@ const AppLayout: React.FC = () => {
   };
 
   if (currentView === 'stage' && selectedEvent) {
-    const event = mockEvents.find(e => e.id === selectedEvent);
+    const event = mockEvents.find((e) => e.id === selectedEvent);
     return (
       <div className="min-h-screen">
         <Header onLoginClick={handleLogin} />
-        <StageView 
-          eventTitle={event?.title || 'Live Event'} 
-          streams={mockStreams} 
+        <StageView
+          eventTitle={event?.title || 'Live Event'}
+          streams={mockStreams}
         />
       </div>
     );
@@ -117,7 +112,7 @@ const AppLayout: React.FC = () => {
     <div className="min-h-screen bg-white">
       <Header onLoginClick={handleLogin} />
       <Hero onGetStarted={handleGetStarted} />
-      <EventGrid 
+      <EventGrid
         events={mockEvents}
         // Removed onPurchase and onWatch props to match updated EventGrid API
       />

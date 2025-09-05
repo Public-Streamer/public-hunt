@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface SearchResult {
   id: string;
@@ -51,7 +51,7 @@ export function useEventSearch(
 
       try {
         const { data, error: searchError } = await supabase
-          .from("events")
+          .from('events')
           .select(
             `
           id,
@@ -63,27 +63,27 @@ export function useEventSearch(
           )
         `
           )
-          .ilike("name", `%${searchQuery}%`)
+          .ilike('name', `%${searchQuery}%`)
           .limit(limit);
 
         if (searchError) {
           throw new Error(searchError.message);
         }
 
-      const searchResults: SearchResult[] = (data || []).map(event => ({
-        id: event.id,
-        slug: event.slug,
-        title: event.name,
-        media_urls: event.media_urls,
-        channelName: event.channels?.name || null,
-      }));
+        const searchResults: SearchResult[] = (data || []).map((event) => ({
+          id: event.id,
+          slug: event.slug,
+          title: event.name,
+          media_urls: event.media_urls,
+          channelName: event.channels?.name || null,
+        }));
 
         // Cache the results
         setCache((prev) => new Map(prev).set(searchQuery, searchResults));
         setResults(searchResults);
       } catch (err: any) {
-        if (err.name !== "AbortError") {
-          setError("Failed to search events");
+        if (err.name !== 'AbortError') {
+          setError('Failed to search events');
           setResults([]);
         }
       } finally {

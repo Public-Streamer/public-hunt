@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/lib/supabase";
-import { useToast } from "@/hooks/use-toast";
-import { UserPlus, UserCheck, MessageCircle, Users } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import { UserPlus, UserCheck, MessageCircle, Users } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/lib/supabase';
+import { useToast } from '@/hooks/use-toast';
 
 interface currentUserProfile {
   id: string;
@@ -51,9 +51,9 @@ const CurrentUserProfileCard: React.FC<currentUserProfileCardProps> = ({
     } = await supabase.auth.getUser();
     if (user) {
       const { data: currentUserProfile } = await supabase
-        .from("user_profiles")
-        .select("*")
-        .eq("user_id", user.id)
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', user.id)
         .single();
       setcurrentUserProfile(currentUserProfile);
     }
@@ -64,10 +64,10 @@ const CurrentUserProfileCard: React.FC<currentUserProfileCardProps> = ({
 
     try {
       const { data } = await supabase
-        .from("user_follows")
-        .select("id")
-        .eq("follower_id", currentUserProfile.id)
-        .eq("following_id", profile.id)
+        .from('user_follows')
+        .select('id')
+        .eq('follower_id', currentUserProfile.id)
+        .eq('following_id', profile.id)
         .single();
       setIsFollowing(!!data);
     } catch (error) {
@@ -82,29 +82,29 @@ const CurrentUserProfileCard: React.FC<currentUserProfileCardProps> = ({
     try {
       if (isFollowing) {
         await supabase
-          .from("user_follows")
+          .from('user_follows')
           .delete()
-          .eq("follower_id", currentUserProfile.id)
-          .eq("following_id", profile.id);
+          .eq('follower_id', currentUserProfile.id)
+          .eq('following_id', profile.id);
         setIsFollowing(false);
       } else {
-        await supabase.from("user_follows").insert({
+        await supabase.from('user_follows').insert({
           follower_id: currentUserProfile.id,
           following_id: profile.id,
         });
         setIsFollowing(true);
       }
       toast({
-        title: isFollowing ? "Unfollowed" : "Following",
+        title: isFollowing ? 'Unfollowed' : 'Following',
         description: `You are now ${
-          isFollowing ? "not following" : "following"
+          isFollowing ? 'not following' : 'following'
         } ${profile.display_name || profile.username}`,
       });
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to update follow status",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to update follow status',
+        variant: 'destructive',
       });
     }
   };
@@ -136,7 +136,7 @@ const CurrentUserProfileCard: React.FC<currentUserProfileCardProps> = ({
           currentUserProfile.id !== profile.id && (
             <Button
               size="sm"
-              variant={isFollowing ? "outline" : "default"}
+              variant={isFollowing ? 'outline' : 'default'}
               onClick={(e) => {
                 e.stopPropagation();
                 handleFollow();
@@ -196,7 +196,7 @@ const CurrentUserProfileCard: React.FC<currentUserProfileCardProps> = ({
             <div className="flex space-x-2 mt-4">
               <Button
                 size="sm"
-                variant={isFollowing ? "outline" : "default"}
+                variant={isFollowing ? 'outline' : 'default'}
                 onClick={handleFollow}
                 className="flex-1"
               >

@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import SocialPost from "@/components/SocialPost";
-import { useToast } from "@/hooks/use-toast";
-import { useAppContext } from "@/contexts/AppContext";
-import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { AlertCircle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import SocialPost from '@/components/SocialPost';
+import { useToast } from '@/hooks/use-toast';
+import { useAppContext } from '@/contexts/AppContext';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 
 interface UserPost {
   id: string;
@@ -50,7 +50,7 @@ const Post: React.FC = () => {
   useEffect(() => {
     const fetchPost = async () => {
       if (!postId) {
-        setError("No post ID provided");
+        setError('No post ID provided');
         setLoading(false);
         return;
       }
@@ -58,14 +58,14 @@ const Post: React.FC = () => {
       try {
         // First get the post
         const { data: postData, error: postError } = await supabase
-          .from("user_posts")
-          .select("*")
-          .eq("id", postId)
+          .from('user_posts')
+          .select('*')
+          .eq('id', postId)
           .maybeSingle();
 
         if (postError) throw postError;
         if (!postData) {
-          setError("Post not found");
+          setError('Post not found');
           setLoading(false);
           return;
         }
@@ -74,49 +74,52 @@ const Post: React.FC = () => {
         let eventData = null;
         if (postData.event_id) {
           const { data } = await supabase
-            .from("events")
-            .select("id, name, slug, is_live")
-            .eq("id", postData.event_id)
+            .from('events')
+            .select('id, name, slug, is_live')
+            .eq('id', postData.event_id)
             .single();
           eventData = data;
         }
 
-        // Get channel data if channel_id exists  
+        // Get channel data if channel_id exists
         let channelData = null;
         if (postData.channel_id) {
           const { data } = await supabase
-            .from("channels")
-            .select("id, name")
-            .eq("id", postData.channel_id)
+            .from('channels')
+            .select('id, name')
+            .eq('id', postData.channel_id)
             .single();
           channelData = data;
         }
 
         const data = { ...postData, events: eventData, channels: channelData };
 
-
         // Transform the data to match our interface
         if (data) {
           const transformedPost: UserPost = {
             ...data,
-            event: data.events ? {
-              id: data.events.id,
-              name: data.events.name,
-              slug: data.events.slug,
-              is_live: data.events.is_live
-            } : undefined,
-            channel: data.channels ? {
-              id: data.channels.id,
-              name: data.channels.name
-            } : undefined
+            event: data.events
+              ? {
+                  id: data.events.id,
+                  name: data.events.name,
+                  slug: data.events.slug,
+                  is_live: data.events.is_live,
+                }
+              : undefined,
+            channel: data.channels
+              ? {
+                  id: data.channels.id,
+                  name: data.channels.name,
+                }
+              : undefined,
           };
           setPost(transformedPost);
         } else {
           setPost(data);
         }
       } catch (err) {
-        console.error("Error fetching post:", err);
-        setError("Failed to load post");
+        console.error('Error fetching post:', err);
+        setError('Failed to load post');
       } finally {
         setLoading(false);
       }
@@ -133,7 +136,9 @@ const Post: React.FC = () => {
     }
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       // Check if user has already liked this post
@@ -163,16 +168,14 @@ const Post: React.FC = () => {
           .update({ likes: newLikeCount })
           .eq('id', postId);
 
-        setPost(prev => prev ? { ...prev, likes: newLikeCount } : null);
+        setPost((prev) => (prev ? { ...prev, likes: newLikeCount } : null));
       } else {
         // Like the post
-        const { error } = await supabase
-          .from('post_interactions')
-          .insert({
-            post_id: postId,
-            user_id: user.id,
-            interaction_type: 'like'
-          });
+        const { error } = await supabase.from('post_interactions').insert({
+          post_id: postId,
+          user_id: user.id,
+          interaction_type: 'like',
+        });
 
         if (error) throw error;
 
@@ -183,19 +186,19 @@ const Post: React.FC = () => {
           .update({ likes: newLikeCount })
           .eq('id', postId);
 
-        setPost(prev => prev ? { ...prev, likes: newLikeCount } : null);
+        setPost((prev) => (prev ? { ...prev, likes: newLikeCount } : null));
       }
 
       toast({
-        title: "Success",
-        description: "Post like status updated.",
+        title: 'Success',
+        description: 'Post like status updated.',
       });
     } catch (error) {
       console.error('Error handling like:', error);
       toast({
-        title: "Error",
-        description: "Failed to update like status.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to update like status.',
+        variant: 'destructive',
       });
     }
   };
@@ -208,12 +211,14 @@ const Post: React.FC = () => {
     }
     try {
       // Get current user profile for comment creation
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         toast({
-          title: "Authentication required",
-          description: "Please log in to comment.",
-          variant: "destructive",
+          title: 'Authentication required',
+          description: 'Please log in to comment.',
+          variant: 'destructive',
         });
         return;
       }
@@ -226,50 +231,50 @@ const Post: React.FC = () => {
 
       if (!profile) {
         toast({
-          title: "Profile not found",
-          description: "User profile is required to comment.",
-          variant: "destructive",
+          title: 'Profile not found',
+          description: 'User profile is required to comment.',
+          variant: 'destructive',
         });
         return;
       }
 
       // Insert comment into database
-      const { error } = await supabase
-        .from('comments')
-        .insert({
-          content: comment,
-          post_id: postId,
-          user_profile_id: profile.id,
-          author_name: profile.display_name || profile.username,
-          author_username: profile.username,
-          author_avatar: profile.profile_picture_url
-        });
+      const { error } = await supabase.from('comments').insert({
+        content: comment,
+        post_id: postId,
+        user_profile_id: profile.id,
+        author_name: profile.display_name || profile.username,
+        author_username: profile.username,
+        author_avatar: profile.profile_picture_url,
+      });
 
       if (error) {
-        console.error("Error adding comment:", error);
+        console.error('Error adding comment:', error);
         toast({
-          title: "Failed to add comment",
-          description: "There was an error posting your comment.",
-          variant: "destructive",
+          title: 'Failed to add comment',
+          description: 'There was an error posting your comment.',
+          variant: 'destructive',
         });
         return;
       }
 
       // Update comment count in post
       if (post) {
-        setPost(prev => prev ? { ...prev, comments: prev.comments + 1 } : null);
+        setPost((prev) =>
+          prev ? { ...prev, comments: prev.comments + 1 } : null
+        );
       }
 
       toast({
-        title: "Comment added",
-        description: "Your comment has been posted.",
+        title: 'Comment added',
+        description: 'Your comment has been posted.',
       });
     } catch (error) {
-      console.error("Error in handleComment:", error);
+      console.error('Error in handleComment:', error);
       toast({
-        title: "Error",
-        description: "An unexpected error occurred.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'An unexpected error occurred.',
+        variant: 'destructive',
       });
     }
   };
@@ -285,29 +290,29 @@ const Post: React.FC = () => {
 
     try {
       await navigator.clipboard.writeText(postUrl);
-      
+
       // Increment shares count in database
       const { error } = await supabase
-        .from("user_posts")
+        .from('user_posts')
         .update({ shares: (post?.shares || 0) + 1 })
-        .eq("id", postId);
+        .eq('id', postId);
 
       if (error) {
-        console.error("Error updating shares count:", error);
+        console.error('Error updating shares count:', error);
       } else {
         // Update local state to reflect the change
-        setPost(prev => prev ? { ...prev, shares: prev.shares + 1 } : null);
+        setPost((prev) => (prev ? { ...prev, shares: prev.shares + 1 } : null));
       }
-      
+
       toast({
-        title: "Link copied",
-        description: "Post link copied to clipboard!",
+        title: 'Link copied',
+        description: 'Post link copied to clipboard!',
       });
     } catch (err) {
       toast({
-        title: "Share failed",
-        description: "Could not copy link to clipboard.",
-        variant: "destructive",
+        title: 'Share failed',
+        description: 'Could not copy link to clipboard.',
+        variant: 'destructive',
       });
     }
   };
@@ -329,10 +334,10 @@ const Post: React.FC = () => {
       <div className="container mx-auto px-4 py-8 max-w-2xl">
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error || "Post not found"}</AlertDescription>
+          <AlertDescription>{error || 'Post not found'}</AlertDescription>
         </Alert>
         <div className="mt-4">
-          <Button onClick={() => navigate("/")} variant="outline">
+          <Button onClick={() => navigate('/')} variant="outline">
             Go Home
           </Button>
         </div>
@@ -357,7 +362,7 @@ const Post: React.FC = () => {
         comments={post.comments}
         shares={post.shares}
         media_url={post.media_url}
-        media_type={post.media_type as "image" | "video"}
+        media_type={post.media_type as 'image' | 'video'}
         isOwnPost={false} // Individual post view doesn't allow editing
         onLike={handleLike}
         onComment={handleComment}

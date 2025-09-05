@@ -1,2 +1,3 @@
+echo "\033[0;31mBrother, you are not using eslint for now but don't forget to add it and remove this message when this PR is ready for review\033[0m"
 echo "\033[0;32mWell done brother! We are finally committing!\033[0m"
 npx lint-staged

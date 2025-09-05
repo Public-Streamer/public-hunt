@@ -1,12 +1,12 @@
-import React from "react";
+import React from 'react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 
 interface ErrorDialogProps {
   title: string;
@@ -26,7 +26,7 @@ const ErrorDialog: React.FC<ErrorDialogProps> = ({
   onResetPassword,
 }) => {
   return (
-    <Dialog open={open} onOpenChange={onClose} modal={true}>
+    <Dialog open={open} onOpenChange={onClose} modal>
       <DialogContent className="sm:max-w-[425px] border-2 border-destructive z-[9999]">
         <DialogHeader>
           <DialogTitle className="text-destructive text-xl font-bold">
