@@ -185,7 +185,7 @@ const SocialShareMenu: React.FC<SocialShareMenuProps> = ({
           });
           break;
 
-        case "facebook":
+        case "facebook": {
           const fbQuote = createShareMessage("facebook");
           shareToUrl(
             `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
@@ -197,16 +197,18 @@ const SocialShareMenu: React.FC<SocialShareMenuProps> = ({
             description: "Share the event on your Facebook timeline",
           });
           break;
+        }
 
-        case "instagram":
+        case "instagram": {
           await copyToClipboard(url);
           toast({
             title: "Link copied for Instagram!",
             description: "Paste the link in your Instagram story or bio",
           });
           break;
+        }
 
-        case "x":
+        case "x": {
           const tweetText = createShareMessage("x").replace(url, "").trim();
           shareToUrl(
             `https://twitter.com/intent/tweet?text=${encodeURIComponent(
@@ -218,8 +220,9 @@ const SocialShareMenu: React.FC<SocialShareMenuProps> = ({
             description: "Share the event with your followers",
           });
           break;
+        }
 
-        case "email":
+        case "email": {
           const emailData = createEmailData();
           shareToUrl(
             `mailto:?subject=${encodeURIComponent(
@@ -231,8 +234,9 @@ const SocialShareMenu: React.FC<SocialShareMenuProps> = ({
             description: "Send the event details via email",
           });
           break;
+        }
 
-        case "sms":
+        case "sms": {
           shareToUrl(
             `sms:?body=${encodeURIComponent(createShareMessage("sms"))}`
           );
@@ -241,8 +245,9 @@ const SocialShareMenu: React.FC<SocialShareMenuProps> = ({
             description: "Send the event details via text message",
           });
           break;
+        }
 
-        case "youtube":
+        case "youtube": {
           await copyToClipboard(url);
           toast({
             title: "Link copied for YouTube!",
@@ -250,10 +255,12 @@ const SocialShareMenu: React.FC<SocialShareMenuProps> = ({
               "Paste the link in your YouTube video description, community post, or comments",
           });
           break;
+        }
 
-        case "copy":
+        case "copy": {
           await copyToClipboard(url);
           break;
+        }
 
         default:
           break;

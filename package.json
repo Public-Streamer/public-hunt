@@ -14,8 +14,14 @@
     "deploy:publicstreamer": "bun run build:publicstreamer && rsync -av --delete dist-publicstreamer/ /var/www/publicstreamer/",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "lint:fix": "eslint . --fix",
+    "preview": "vite preview",
+    "prepare": "husky"
   },
+ "lint-staged": {
+  "*.{js,ts,jsx,tsx}": ["npm run lint:fix"]
+}
+,
   "dependencies": {
     "@emoji-mart/data": "^1.2.1",
     "@emoji-mart/react": "^1.1.1",
@@ -84,22 +90,24 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@eslint/js": "^9.9.0",
+    "@eslint/js": "^9.34.0",
     "@tailwindcss/typography": "^0.5.16",
     "@types/node": "^22.5.5",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react-swc": "^3.5.0",
     "autoprefixer": "^10.4.20",
-    "eslint": "^9.9.0",
+    "eslint": "^9.34.0",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.9",
     "globals": "^15.9.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.5",
     "postcss": "^8.4.47",
     "rollup-plugin-visualizer": "^6.0.3",
     "tailwindcss": "^3.4.11",
     "typescript": "^5.5.3",
-    "typescript-eslint": "^8.0.1",
+    "typescript-eslint": "^8.41.0",
     "vite": "^5.4.1"
   }
 }

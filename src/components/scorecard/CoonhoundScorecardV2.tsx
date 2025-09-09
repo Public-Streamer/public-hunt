@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -71,23 +72,7 @@ function toPayload(d: DogData) {
   } as const;
 }
 
-/**
- * CoonhoundScorecardHost - Host/Streamer Interface for Coon Hunt Scoreboards
- *
- * This is the PRIMARY scoreboard interface for hosts and streamers managing
- * coon hunt competitions. It provides full editing capabilities including:
- * - Dog registration and management
- * - Real-time scoring with strike/tree/circle entries
- * - Timer controls (hunt, track, shine, individual dog timers)
- * - Judge notes and disqualification management
- *
- * Data Storage: Uses scoreboard_type = 'coon_hunt' in event_scoreboard table
- * Viewer Interface: See CoonhoundScorecardViewer for read-only viewer experience
- */
-export const CoonhoundScorecardHost: React.FC<Props> = ({
-  eventId,
-  isHost,
-}) => {
+export const CoonhoundScorecardV2: React.FC<Props> = ({ eventId, isHost }) => {
   const [dogs, setDogs] = useState<DogData[]>([]);
   const [loading, setLoading] = useState(false);
   const [huntMinutes, setHuntMinutes] = useState<number>(120);
@@ -240,10 +225,10 @@ export const CoonhoundScorecardHost: React.FC<Props> = ({
     s === "running"
       ? "bg-primary/10 text-primary"
       : s === "paused"
-        ? "bg-accent/10 text-accent-foreground"
-        : s === "finished"
-          ? "bg-destructive/10 text-destructive"
-          : "bg-muted text-muted-foreground";
+      ? "bg-accent/10 text-accent-foreground"
+      : s === "finished"
+      ? "bg-destructive/10 text-destructive"
+      : "bg-muted text-muted-foreground";
 
   // Setup realtime channel defined below; syncCastTimers moved after timers
 
@@ -256,8 +241,8 @@ export const CoonhoundScorecardHost: React.FC<Props> = ({
       if (typeof navigator !== "undefined" && "vibrate" in navigator) {
         try {
           (navigator as any).vibrate?.(200);
-        } catch (error) {
-          console.error(error);
+        } catch (e) {
+          console.error(e);
         }
       }
     },
@@ -271,8 +256,8 @@ export const CoonhoundScorecardHost: React.FC<Props> = ({
       if (typeof navigator !== "undefined" && "vibrate" in navigator) {
         try {
           (navigator as any).vibrate?.(200);
-        } catch (error) {
-          console.error(error);
+        } catch (e) {
+          console.error(e);
         }
       }
     },
@@ -286,8 +271,8 @@ export const CoonhoundScorecardHost: React.FC<Props> = ({
       if (typeof navigator !== "undefined" && "vibrate" in navigator) {
         try {
           (navigator as any).vibrate?.(200);
-        } catch (error) {
-          console.error(error);
+        } catch (e) {
+          console.error(e);
         }
       }
     },
@@ -301,8 +286,8 @@ export const CoonhoundScorecardHost: React.FC<Props> = ({
       if (typeof navigator !== "undefined" && "vibrate" in navigator) {
         try {
           (navigator as any).vibrate?.(200);
-        } catch (error) {
-          console.error(error);
+        } catch (e) {
+          console.error(e);
         }
       }
     },
@@ -325,12 +310,12 @@ export const CoonhoundScorecardHost: React.FC<Props> = ({
           p?.updateKind === "+"
             ? "success"
             : p?.updateKind === "-"
-              ? "danger"
-              : p?.updateKind === "o"
-                ? "warning"
-                : p?.updateKind === "pending"
-                  ? "info"
-                  : "pending";
+            ? "danger"
+            : p?.updateKind === "o"
+            ? "warning"
+            : p?.updateKind === "pending"
+            ? "info"
+            : "pending";
         if (p?.teamId) triggerGlow(`dog:${p.teamId}`, variant);
         triggerGlow("summary", variant);
         triggerGlow("details", variant);
@@ -437,8 +422,8 @@ export const CoonhoundScorecardHost: React.FC<Props> = ({
             t.babbling?.status ?? babbleMainTimer.status
           );
         }
-      } catch {
-        console.error("Failed to sync cast timers");
+      } catch (e) {
+        console.error(e);
       }
     })();
   }, [eventId]);
@@ -488,10 +473,6 @@ export const CoonhoundScorecardHost: React.FC<Props> = ({
     globalShineTimer.status,
     babbleMainTimer.remaining,
     babbleMainTimer.status,
-    huntTimer.start,
-    trackTimer.start,
-    globalShineTimer.start,
-    babbleMainTimer.start,
   ]);
 
   // Save handler that updates score and custom_fields
@@ -937,12 +918,12 @@ export const CoonhoundScorecardHost: React.FC<Props> = ({
                     glow[`dog:${d.id}`]!.variant === "success"
                       ? "glow-success"
                       : glow[`dog:${d.id}`]!.variant === "danger"
-                        ? "glow-danger"
-                        : glow[`dog:${d.id}`]!.variant === "warning"
-                          ? "glow-warning"
-                          : glow[`dog:${d.id}`]!.variant === "info"
-                            ? "glow-info"
-                            : "glow-pending"
+                      ? "glow-danger"
+                      : glow[`dog:${d.id}`]!.variant === "warning"
+                      ? "glow-warning"
+                      : glow[`dog:${d.id}`]!.variant === "info"
+                      ? "glow-info"
+                      : "glow-pending"
                   }`
                 : ""
             }`}

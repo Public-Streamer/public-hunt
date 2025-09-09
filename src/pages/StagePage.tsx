@@ -193,7 +193,7 @@ const StagePage: React.FC = () => {
     checkAuthAndAssignRole();
   }, [eventId, eventData, inviteToken, navigate]);
 
-  const generateToken = async () => {
+  const generateToken = async (): Promise<string> => {
     // if (!eventData?.id || !userRole || !user || tokenGenerated.current) return;
 
     try {
@@ -254,20 +254,15 @@ const StagePage: React.FC = () => {
             // Fallback to using the invite token directly
             setToken(inviteToken);
             setServerUrl(payload.iss || "wss://localhost:7880"); // Use server from payload or default
+            return inviteToken; // Return the invite token
           } else {
             // Use the newly generated token with proper user identity
             setToken(tokenData.token);
             setServerUrl(tokenData.serverUrl);
+            // Save access token for optional keepalive usage
+            accessTokenRef.current = session.access_token;
+            return tokenData.token; // Return the generated token
           }
-
-          // tokenGenerated.current = true;
-          console.log(
-            "Generated streamer token for invited user:",
-            user?.email
-          );
-          // Save access token for optional keepalive usage
-          accessTokenRef.current = session.access_token;
-          return;
         } catch (err) {
           console.error("Invite token validation failed:", err);
           throw new Error("Invalid or expired invite token");
@@ -311,6 +306,7 @@ const StagePage: React.FC = () => {
       tokenGenerated.current = true;
       // Save access token for optional keepalive usage
       accessTokenRef.current = session.access_token;
+      return data.token; // Return the generated token
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to generate LiveKit token";
@@ -318,6 +314,7 @@ const StagePage: React.FC = () => {
       console.error("Token generation error:", err);
       // Reset flag on error to allow retry
       tokenGenerated.current = false;
+      throw err; // Re-throw to maintain error handling
     } finally {
       setTokenLoading(false);
     }

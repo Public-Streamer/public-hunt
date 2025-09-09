@@ -729,7 +729,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
   };
 
   const formContent = (
-    <div className="space-y-6 max-w-2xl mx-auto px-2">
+    <div className="space-y-6 max-w-xs sm:max-w-2xl mx-auto px-2">
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Account Type Section */}
         <div className="space-y-3">
@@ -918,7 +918,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
         )}
 
         {/* Basic Account Information */}
-        <div className="space-y-4">
+        <div className="space-y-4 ">
           <h3 className="text-lg font-semibold">Account Information</h3>
 
           <div className="space-y-2">

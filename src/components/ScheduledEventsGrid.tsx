@@ -24,7 +24,7 @@ interface ScheduledEvent {
 interface ScheduledEventsGridProps {
   events: ScheduledEvent[];
   searchTerm: string;
-  memberSearch: string;
+  memberSearch?: string;
   sortBy: string;
 }
 
