@@ -95,14 +95,14 @@ export const CoonhoundScorecardHost: React.FC<Props> = ({
   const [showCustomInput, setShowCustomInput] = useState<boolean>(false);
   const [timerOverview, setTimerOverview] = useState<Record<string, any>>({});
 
-  // Server-authoritative control lock (auto-acquire, host override)
-  const { isOwner, lockedByName, acquire, release } = useEventControlLock({
-    eventId,
-    enabled: isHost,
-    autoAcquire: true,
-    overrideIfHost: true,
-    renewIntervalMs: 9000,
-  });
+  // // Server-authoritative control lock (auto-acquire, host override)
+  // const { isOwner, lockedByName, acquire, release } = useEventControlLock({
+  //   eventId,
+  //   enabled: isHost,
+  //   autoAcquire: true,
+  //   overrideIfHost: true,
+  //   renewIntervalMs: 9000,
+  // });
 
   // Judges and event creators always have edit permissions, regardless of lock state
   const canEditScoreboard = isHost;
@@ -309,85 +309,79 @@ export const CoonhoundScorecardHost: React.FC<Props> = ({
   });
   // Babbling one-minute timer should start each time Main Hunt starts
   useEffect(() => {
-    const channel = supabase.channel(`event:${eventId}:scorecard`, {
+    const channelName = `event:${eventId}:scorecard`;
+    const channel = supabase.channel(channelName, {
       config: {
         broadcast: { self: false },
         presence: { key: clientIdRef.current },
       },
     });
 
-    channel
-      .on("broadcast", { event: "score_update" }, (p: any) => {
-        setOpenSummary(true);
-        setOpenDetails(true);
-        if (p?.teamId) setOpenDogIds((prev) => ({ ...prev, [p.teamId]: true }));
-        const variant =
-          p?.updateKind === "+"
-            ? "success"
-            : p?.updateKind === "-"
-              ? "danger"
-              : p?.updateKind === "o"
-                ? "warning"
-                : p?.updateKind === "pending"
-                  ? "info"
-                  : "pending";
-        if (p?.teamId) triggerGlow(`dog:${p.teamId}`, variant);
-        triggerGlow("summary", variant);
-        triggerGlow("details", variant);
-        fetchTeams();
-      })
-      .on("broadcast", { event: "dog_timer_update" }, (p: any) => {
-        if (p?.teamId) setOpenDogIds((prev) => ({ ...prev, [p.teamId]: true }));
-        if (p?.teamId) triggerGlow(`dog:${p.teamId}`, "warning");
-        // Refresh timer overview to sync across all viewers
-        fetchTimerOverview();
-      })
-      .on("broadcast", { event: "cast_timer_update" }, (p: any) => {
-        setOpenHunt(true);
-        triggerGlow("hunt", "warning");
-        const t = p?.timers;
-        if (t) {
-          huntTimer.syncTo(
-            t.mainHunt?.remaining ?? huntTimer.remaining,
-            t.mainHunt?.status ?? huntTimer.status
-          );
-          trackTimer.syncTo(
-            t.track?.remaining ?? trackTimer.remaining,
-            t.track?.status ?? trackTimer.status
-          );
-          globalShineTimer.syncTo(
-            t.globalShine?.remaining ?? globalShineTimer.remaining,
-            t.globalShine?.status ?? globalShineTimer.status
-          );
-          babbleMainTimer.syncTo(
-            t.babbling?.remaining ?? babbleMainTimer.remaining,
-            t.babbling?.status ?? babbleMainTimer.status
-          );
-        }
-      })
-      .on("broadcast", { event: "dog_created" }, () => {
-        setOpenDetails(true);
-        triggerGlow("details", "info");
-        fetchTeams();
-      });
+    // channel
+    //   .on("broadcast", { event: "score_update" }, (p: any) => {
+    //     setOpenSummary(true);
+    //     setOpenDetails(true);
+    //     if (p?.teamId) setOpenDogIds((prev) => ({ ...prev, [p.teamId]: true }));
+    //     const variant =
+    //       p?.updateKind === "+"
+    //         ? "success"
+    //         : p?.updateKind === "-"
+    //           ? "danger"
+    //           : p?.updateKind === "o"
+    //             ? "warning"
+    //             : p?.updateKind === "pending"
+    //               ? "info"
+    //               : "pending";
+    //     if (p?.teamId) triggerGlow(`dog:${p.teamId}`, variant);
+    //     triggerGlow("summary", variant);
+    //     triggerGlow("details", variant);
+    //     fetchTeams();
+    //   })
+    //   .on("broadcast", { event: "dog_timer_update" }, (p: any) => {
+    //     if (p?.teamId) setOpenDogIds((prev) => ({ ...prev, [p.teamId]: true }));
+    //     if (p?.teamId) triggerGlow(`dog:${p.teamId}`, "warning");
+    //     // Refresh timer overview to sync across all viewers
+    //     fetchTimerOverview();
+    //   })
+    //   .on("broadcast", { event: "cast_timer_update" }, (p: any) => {
+    //     console.log("Cast timer update", p);
+    //     setOpenHunt(true);
+    //     triggerGlow("hunt", "warning");
+    //     const t = p?.timers;
+    //     if (t) {
+    //       huntTimer.syncTo(
+    //         t.mainHunt?.remaining ?? huntTimer.remaining,
+    //         t.mainHunt?.status ?? huntTimer.status
+    //       );
+    //       trackTimer.syncTo(
+    //         t.track?.remaining ?? trackTimer.remaining,
+    //         t.track?.status ?? trackTimer.status
+    //       );
+    //       globalShineTimer.syncTo(
+    //         t.globalShine?.remaining ?? globalShineTimer.remaining,
+    //         t.globalShine?.status ?? globalShineTimer.status
+    //       );
+    //       babbleMainTimer.syncTo(
+    //         t.babbling?.remaining ?? babbleMainTimer.remaining,
+    //         t.babbling?.status ?? babbleMainTimer.status
+    //       );
+    //     }
+    //   })
+    //   .on("broadcast", { event: "dog_created" }, () => {
+    //     setOpenDetails(true);
+    //     triggerGlow("details", "info");
+    //     fetchTeams();
+    //   });
 
-    channel.subscribe(() => {});
+    console.log("Host subscribing to channel:", channelName, "client:", clientIdRef.current);
+    channel.subscribe((status) => console.log("Host channel status:", status));
     rtChannelRef.current = channel;
     return () => {
       if (rtChannelRef.current) supabase.removeChannel(rtChannelRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    eventId,
-    huntTimer.status,
-    huntTimer.remaining,
-    trackTimer.status,
-    trackTimer.remaining,
-    globalShineTimer.status,
-    globalShineTimer.remaining,
-    babbleMainTimer.status,
-    babbleMainTimer.remaining,
-  ]);
+    // Keep subscription stable; we do not need to recreate it for timer ticks
+  }, [eventId]);
 
   const fetchTeams = async () => {
     try {
@@ -406,44 +400,52 @@ export const CoonhoundScorecardHost: React.FC<Props> = ({
     }
   };
 
-  // Ensure existing teams are loaded on entry so panels are visible immediately
-  useEffect(() => {
-    fetchTeams();
-    // Fetch timer overview for all viewers
-    fetchTimerOverview();
-    // Try to hydrate timers if server provides state
-    (async () => {
-      try {
-        const { data } = await supabase.functions.invoke(
-          "scoreboard-operations",
-          { body: { action: "getCastTimers", eventId } }
-        );
-        const t = (data as any)?.timers;
-        if (t) {
-          huntTimer.syncTo(
-            t.mainHunt?.remaining ?? huntTimer.remaining,
-            t.mainHunt?.status ?? huntTimer.status
-          );
-          trackTimer.syncTo(
-            t.track?.remaining ?? trackTimer.remaining,
-            t.track?.status ?? trackTimer.status
-          );
-          globalShineTimer.syncTo(
-            t.globalShine?.remaining ?? globalShineTimer.remaining,
-            t.globalShine?.status ?? globalShineTimer.status
-          );
-          babbleMainTimer.syncTo(
-            t.babbling?.remaining ?? babbleMainTimer.remaining,
-            t.babbling?.status ?? babbleMainTimer.status
-          );
-        }
-      } catch {
-        console.error("Failed to sync cast timers");
-      }
-    })();
-  }, [eventId]);
+  // // Ensure existing teams are loaded on entry so panels are visible immediately
+  // useEffect(() => {
+  //   fetchTeams();
+  //   // Fetch timer overview for all viewers
+  //   fetchTimerOverview();
+  //   // Try to hydrate timers if server provides state
+  //   (async () => {
+  //     try {
+  //       const { data } = await supabase.functions.invoke(
+  //         "scoreboard-operations",
+  //         { body: { action: "getCastTimers", eventId } }
+  //       );
+  //       const t = (data as any)?.timers;
+  //       if (t) {
+  //         huntTimer.syncTo(
+  //           t.mainHunt?.remaining ?? huntTimer.remaining,
+  //           t.mainHunt?.status ?? huntTimer.status
+  //         );
+  //         trackTimer.syncTo(
+  //           t.track?.remaining ?? trackTimer.remaining,
+  //           t.track?.status ?? trackTimer.status
+  //         );
+  //         globalShineTimer.syncTo(
+  //           t.globalShine?.remaining ?? globalShineTimer.remaining,
+  //           t.globalShine?.status ?? globalShineTimer.status
+  //         );
+  //         babbleMainTimer.syncTo(
+  //           t.babbling?.remaining ?? babbleMainTimer.remaining,
+  //           t.babbling?.status ?? babbleMainTimer.status
+  //         );
+  //       }
+  //     } catch {
+  //       console.error("Failed to sync cast timers");
+  //     }
+  //   })();
+  // }, [eventId]);
 
-  const syncCastTimers = useCallback(async () => {
+  const syncCastTimers = useCallback(
+    async (
+      overrides?: Partial<
+        Record<
+          "mainHunt" | "track" | "globalShine" | "babbling",
+          { status: TimerStatus; remaining: number }
+        >
+      >
+    ) => {
     if (!canEditScoreboard) {
       toast({
         title: "Access Denied",
@@ -454,21 +456,29 @@ export const CoonhoundScorecardHost: React.FC<Props> = ({
     }
     try {
       const timers = {
-        mainHunt: { status: huntTimer.status, remaining: huntTimer.remaining },
-        track: { status: trackTimer.status, remaining: trackTimer.remaining },
+        mainHunt: {
+          status: overrides?.mainHunt?.status ?? huntTimer.status,
+          remaining: overrides?.mainHunt?.remaining ?? huntTimer.remaining,
+        },
+        track: {
+          status: overrides?.track?.status ?? trackTimer.status,
+          remaining: overrides?.track?.remaining ?? trackTimer.remaining,
+        },
         globalShine: {
-          status: globalShineTimer.status,
-          remaining: globalShineTimer.remaining,
+          status: overrides?.globalShine?.status ?? globalShineTimer.status,
+          remaining:
+            overrides?.globalShine?.remaining ?? globalShineTimer.remaining,
         },
         babbling: {
-          status: babbleMainTimer.status,
-          remaining: babbleMainTimer.remaining,
+          status: overrides?.babbling?.status ?? babbleMainTimer.status,
+          remaining: overrides?.babbling?.remaining ?? babbleMainTimer.remaining,
         },
         mainHuntMinutes: huntMinutes,
-      };
+      } as const;
       await supabase.functions.invoke("scoreboard-operations", {
         body: { action: "updateCastTimers", eventId, timers },
       });
+      console.log("Host broadcasting cast_timer_update to", `event:${eventId}:scorecard`, timers);
       rtChannelRef.current?.send({
         type: "broadcast",
         event: "cast_timer_update",
@@ -488,10 +498,6 @@ export const CoonhoundScorecardHost: React.FC<Props> = ({
     globalShineTimer.status,
     babbleMainTimer.remaining,
     babbleMainTimer.status,
-    huntTimer.start,
-    trackTimer.start,
-    globalShineTimer.start,
-    babbleMainTimer.start,
   ]);
 
   // Save handler that updates score and custom_fields
@@ -795,15 +801,47 @@ export const CoonhoundScorecardHost: React.FC<Props> = ({
                     huntTimer.start();
                     babbleMainTimer.reset();
                     babbleMainTimer.start();
-                    syncCastTimers();
+                    // Broadcast explicit running state to avoid race with setState
+                    setTimeout(
+                      () =>
+                        syncCastTimers({
+                          mainHunt: {
+                            status: "running",
+                            remaining: huntTimer.remaining,
+                          },
+                          babbling: {
+                            status: "running",
+                            remaining: babbleMainTimer.remaining,
+                          },
+                        }),
+                      0
+                    );
                   }}
                   onPause={() => {
                     huntTimer.pause();
-                    syncCastTimers();
+                    setTimeout(
+                      () =>
+                        syncCastTimers({
+                          mainHunt: {
+                            status: "paused",
+                            remaining: huntTimer.remaining,
+                          },
+                        }),
+                      0
+                    );
                   }}
                   onReset={() => {
                     huntTimer.reset(huntMinutes * 60);
-                    syncCastTimers();
+                    setTimeout(
+                      () =>
+                        syncCastTimers({
+                          mainHunt: {
+                            status: "idle",
+                            remaining: huntMinutes * 60,
+                          },
+                        }),
+                      0
+                    );
                   }}
                 />
               </div>
@@ -815,15 +853,33 @@ export const CoonhoundScorecardHost: React.FC<Props> = ({
                   status={trackTimer.status}
                   onStart={() => {
                     trackTimer.start();
-                    syncCastTimers();
+                    setTimeout(
+                      () =>
+                        syncCastTimers({
+                          track: { status: "running", remaining: trackTimer.remaining },
+                        }),
+                      0
+                    );
                   }}
                   onPause={() => {
                     trackTimer.pause();
-                    syncCastTimers();
+                    setTimeout(
+                      () =>
+                        syncCastTimers({
+                          track: { status: "paused", remaining: trackTimer.remaining },
+                        }),
+                      0
+                    );
                   }}
                   onReset={() => {
                     trackTimer.reset();
-                    syncCastTimers();
+                    setTimeout(
+                      () =>
+                        syncCastTimers({
+                          track: { status: "idle", remaining: 6 * 60 },
+                        }),
+                      0
+                    );
                   }}
                 />
               </div>
@@ -835,15 +891,39 @@ export const CoonhoundScorecardHost: React.FC<Props> = ({
                   status={globalShineTimer.status}
                   onStart={() => {
                     globalShineTimer.start();
-                    syncCastTimers();
+                    setTimeout(
+                      () =>
+                        syncCastTimers({
+                          globalShine: {
+                            status: "running",
+                            remaining: globalShineTimer.remaining,
+                          },
+                        }),
+                      0
+                    );
                   }}
                   onPause={() => {
                     globalShineTimer.pause();
-                    syncCastTimers();
+                    setTimeout(
+                      () =>
+                        syncCastTimers({
+                          globalShine: {
+                            status: "paused",
+                            remaining: globalShineTimer.remaining,
+                          },
+                        }),
+                      0
+                    );
                   }}
                   onReset={() => {
                     globalShineTimer.reset();
-                    syncCastTimers();
+                    setTimeout(
+                      () =>
+                        syncCastTimers({
+                          globalShine: { status: "idle", remaining: 8 * 60 },
+                        }),
+                      0
+                    );
                   }}
                 />
               </div>
@@ -855,15 +935,39 @@ export const CoonhoundScorecardHost: React.FC<Props> = ({
                   status={babbleMainTimer.status}
                   onStart={() => {
                     babbleMainTimer.start();
-                    syncCastTimers();
+                    setTimeout(
+                      () =>
+                        syncCastTimers({
+                          babbling: {
+                            status: "running",
+                            remaining: babbleMainTimer.remaining,
+                          },
+                        }),
+                      0
+                    );
                   }}
                   onPause={() => {
                     babbleMainTimer.pause();
-                    syncCastTimers();
+                    setTimeout(
+                      () =>
+                        syncCastTimers({
+                          babbling: {
+                            status: "paused",
+                            remaining: babbleMainTimer.remaining,
+                          },
+                        }),
+                      0
+                    );
                   }}
                   onReset={() => {
                     babbleMainTimer.reset();
-                    syncCastTimers();
+                    setTimeout(
+                      () =>
+                        syncCastTimers({
+                          babbling: { status: "idle", remaining: 60 },
+                        }),
+                      0
+                    );
                   }}
                 />
               </div>

@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import { useCountdown } from "@/hooks/useCountdown";
 import type { TimerStatus } from "@/hooks/useCountdown";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,6 +12,7 @@ import {
 } from "@/components/ui/collapsible";
 import { ChevronDown } from "lucide-react";
 import { ScorecardSummary } from "./ScorecardSummary";
+import type { CastTimerBlock } from "./ScorecardSummary";
 import type { DogData } from "./DogCard";
 import { ProcessedTimer, useTimerOverview } from "./timer";
 
@@ -119,7 +121,62 @@ export const CoonhoundScorecardViewer: React.FC<Props> = ({
     finishedTimers,
     setFinishedTimers,
   } = useTimerOverview(eventId);
-  const [tick, setTick] = useState(0);
+  // Smooth local UI timers that sync to broadcasts
+  const viewHuntTimer = useCountdown(0);
+  const viewTrackTimer = useCountdown(6 * 60);
+  const viewShineTimer = useCountdown(8 * 60);
+  const viewBabbleTimer = useCountdown(60);
+
+  // Debug: verify local viewer timers are advancing
+  useEffect(() => {
+    console.log("[viewer timers] hunt:", viewHuntTimer.status, viewHuntTimer.formatted,
+      "track:", viewTrackTimer.status, viewTrackTimer.formatted,
+      "shine:", viewShineTimer.status, viewShineTimer.formatted,
+      "babble:", viewBabbleTimer.status, viewBabbleTimer.formatted);
+  }, [
+    viewHuntTimer.formatted,
+    viewHuntTimer.status,
+    viewTrackTimer.formatted,
+    viewTrackTimer.status,
+    viewShineTimer.formatted,
+    viewShineTimer.status,
+    viewBabbleTimer.formatted,
+    viewBabbleTimer.status,
+  ]);
+
+  // Realtime channel helpers
+  const getClientId = () => {
+    // Use sessionStorage so each tab gets a unique presence key
+    try {
+      const key = "ps-client-id-viewer";
+      let id = sessionStorage.getItem(key);
+      if (!id) {
+        id = crypto.randomUUID();
+        sessionStorage.setItem(key, id);
+      }
+      return id;
+    } catch {
+      return crypto.randomUUID();
+    }
+  };
+  const clientIdRef = React.useRef<string>(getClientId());
+
+  // Fetch teams via server function (authoritative source) on broadcast events
+  const fetchTeams = useCallback(async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke(
+        "scoreboard-operations",
+        {
+          body: { action: "fetch", eventId, scoreboardType: "coon_hunt" },
+        }
+      );
+      if (error) throw error;
+      const arr = Array.isArray(data) ? data : data?.teams || [];
+      setTeams(arr as TeamRow[]);
+    } catch (e) {
+      console.error("Failed to fetch teams:", e);
+    }
+  }, [eventId]);
 
   // Collapsible open states (open by default for viewers to see content)
   const [openHunt, setOpenHunt] = useState(true);
@@ -147,89 +204,6 @@ export const CoonhoundScorecardViewer: React.FC<Props> = ({
     }));
   };
 
-  // Fetch timer overview for ScorecardSummary component
-  // const fetchTimerOverview = async () => {
-  //   try {
-  //     const { data, error } = await supabase.functions.invoke(
-  //       "scoreboard-operations",
-  //       {
-  //         body: { action: "fetch", eventId, scoreboardType: "coon_hunt" },
-  //       }
-  //     );
-  //     if (error) throw error;
-  //     const arr = Array.isArray(data) ? data : data?.teams || [];
-  //     const overview: Record<string, Record<string, any>> = {};
-
-  //     for (const team of arr) {
-  //       const timers = team.custom_fields?.timers;
-  //       if (timers) {
-  //         const uiTimers: Record<string, any> = {};
-  //         for (const [key, timer] of Object.entries(timers)) {
-  //           if (
-  //             timer &&
-  //             typeof timer === "object" &&
-  //             "status" in timer &&
-  //             "remaining" in timer
-  //           ) {
-  //             const remaining = Math.max(
-  //               0,
-  //               Math.floor((timer as any).remaining || 0)
-  //             ); // Use Math.floor to remove decimals
-  //             const minutes = Math.floor(remaining / 60);
-  //             const seconds = remaining % 60;
-  //             const status = (timer as any).status || "idle";
-
-  //             // Include timer if it's running, paused, or finished (for strobing effect)
-  //             if (status === "running" || status === "paused") {
-  //               uiTimers[key] = {
-  //                 formatted: `${minutes
-  //                   .toString()
-  //                   .padStart(2, "0")}:${Math.floor(seconds)
-  //                   .toString()
-  //                   .padStart(2, "0")}`,
-  //                 status: status,
-  //                 remaining: remaining,
-  //               };
-  //             } else if (status === "finished" && remaining === 0) {
-  //               // Check if this finished timer should still be visible (within 1 minute)
-  //               const finishedAt = finishedTimers[team.id]?.[key];
-  //               const oneMinute = 60 * 1000;
-  //               const now = Date.now();
-
-  //               if (!finishedAt) {
-  //                 // First time seeing this finished timer, track it
-  //                 setFinishedTimers((prev) => ({
-  //                   ...prev,
-  //                   [team.id]: {
-  //                     ...prev[team.id],
-  //                     [key]: now,
-  //                   },
-  //                 }));
-
-  //                 uiTimers[key] = {
-  //                   formatted: "00:00",
-  //                   status: status,
-  //                   remaining: 0,
-  //                 };
-  //               } else if (now - finishedAt < oneMinute) {
-  //                 // Still within the 1-minute strobing window
-  //                 uiTimers[key] = {
-  //                   formatted: "00:00",
-  //                   status: status,
-  //                   remaining: 0,
-  //                 };
-  //               }
-  //             }
-  //           }
-  //         }
-  //         overview[team.id] = uiTimers;
-  //       }
-  //     }
-  //     setTimerOverview(overview);
-  //   } catch (e) {
-  //     console.error("Failed to fetch timer overview:", e);
-  //   }
-  // };
 
   useEffect(() => {
     const cleanup = setInterval(() => {
@@ -295,17 +269,7 @@ export const CoonhoundScorecardViewer: React.FC<Props> = ({
     return () => clearInterval(cleanup);
   }, [fetchTimerOverview]); // Add dependency
 
-  // Tick for smooth display of running timers and refresh timer overview frequently
-  useEffect(() => {
-    const iv = setInterval(() => {
-      setTick((t) => (t + 1) % 1000000);
-      // Refresh timer overview every 2 seconds to catch newly started timers quickly
-      if ((tick + 1) % 2 === 0) {
-        fetchTimerOverview();
-      }
-    }, 1000);
-    return () => clearInterval(iv);
-  }, [tick, fetchTimerOverview]);
+
 
   // Initial fetch
   useEffect(() => {
@@ -317,7 +281,21 @@ export const CoonhoundScorecardViewer: React.FC<Props> = ({
         .maybeSingle();
       const ct = (ev?.metadata as any)?.scorecard_cast_timers as CastTimers;
       console.log("Initial cast timers loaded:", ct);
-      if (ct) setCastTimers(ct);
+      if (ct) {
+        setCastTimers(ct);
+        // Sync local countdowns so viewer shows correct values immediately
+        if (ct.mainHunt)
+          viewHuntTimer.syncTo(ct.mainHunt.remaining, ct.mainHunt.status);
+        if (ct.track)
+          viewTrackTimer.syncTo(ct.track.remaining, ct.track.status);
+        if (ct.globalShine)
+          viewShineTimer.syncTo(
+            ct.globalShine.remaining,
+            ct.globalShine.status
+          );
+        if (ct.babbling)
+          viewBabbleTimer.syncTo(ct.babbling.remaining, ct.babbling.status);
+      }
 
       const { data: rows } = await supabase
         .from("event_scoreboard")
@@ -329,154 +307,94 @@ export const CoonhoundScorecardViewer: React.FC<Props> = ({
     })();
   }, [eventId]);
 
-  // Realtime subscriptions
+  const rtChannelRef = React.useRef<ReturnType<typeof supabase.channel> | null>(
+    null
+  );
   useEffect(() => {
-    const ch = supabase
-      .channel(`scoreboard-viewer-${eventId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "events",
-          filter: `id=eq.${eventId}`,
-        },
-        (payload) => {
-          const meta = (payload.new as any)?.metadata;
-          const ct = meta?.scorecard_cast_timers as CastTimers | undefined;
+    const channelName = `event:${eventId}:scorecard`;
+    const channel = supabase.channel(channelName, {
+      config: {
+        broadcast: { self: false },
+        presence: { key: clientIdRef.current },
+      },
+    });
 
-          console.log("Cast timers update received:", {
-            fullMetadata: meta,
-            castTimers: ct,
-            timestamp: new Date().toISOString(),
+    channel
+      .on("broadcast", { event: "score_update" }, (p: any) => {
+        const payload = p?.payload || p; // supabase client sends {payload}
+        console.log("score update broadcast (viewer)", payload);
+        // Visual cues
+        setOpenSummary(true);
+        setOpenDetails(true);
+        const variant =
+          payload?.updateKind === "+"
+            ? "success"
+            : payload?.updateKind === "-"
+              ? "danger"
+              : payload?.updateKind === "o"
+                ? "warning"
+                : "info";
+        if (payload?.teamId) triggerGlow(`dog:${payload.teamId}`, variant);
+        triggerGlow("summary", variant);
+        triggerGlow("details", variant);
+        // Refresh teams from server (authoritative)
+        fetchTeams();
+      })
+      .on("broadcast", { event: "dog_timer_update" }, (p: any) => {
+        const payload = p?.payload || p;
+        console.log("dog timer update broadcast (viewer)", payload);
+        if (payload?.teamId) triggerGlow(`dog:${payload.teamId}`, "warning");
+        setOpenDetails(true);
+        // Refresh dog timers snapshot
+        fetchTimerOverview();
+      })
+      .on("broadcast", { event: "cast_timer_update" }, (p: any) => {
+        const payload = p?.payload || p;
+        console.log("Cast timer update (viewer)", payload);
+        const t = payload?.timers;
+        if (t) {
+          // Sync local countdown hooks for smooth UI
+          if (t.mainHunt)
+            viewHuntTimer.syncTo(t.mainHunt.remaining, t.mainHunt.status);
+          if (t.track) viewTrackTimer.syncTo(t.track.remaining, t.track.status);
+          if (t.globalShine)
+            viewShineTimer.syncTo(
+              t.globalShine.remaining,
+              t.globalShine.status
+            );
+          if (t.babbling)
+            viewBabbleTimer.syncTo(t.babbling.remaining, t.babbling.status);
+          setCastTimers({
+            ...t,
+            server_updated_at: new Date().toISOString(),
           });
-
-          if (ct) {
-            // Validate and clean the cast timer data
-            const cleanedTimers: CastTimers = {
-              mainHuntMinutes: ct.mainHuntMinutes,
-              server_updated_at: ct.server_updated_at,
-            };
-
-            // Validate each timer and only include valid ones
-            if (
-              ct.mainHunt &&
-              typeof ct.mainHunt === "object" &&
-              typeof ct.mainHunt.status === "string" &&
-              typeof ct.mainHunt.remaining === "number"
-            ) {
-              cleanedTimers.mainHunt = ct.mainHunt;
-            }
-
-            if (
-              ct.track &&
-              typeof ct.track === "object" &&
-              typeof ct.track.status === "string" &&
-              typeof ct.track.remaining === "number"
-            ) {
-              cleanedTimers.track = ct.track;
-            }
-
-            if (
-              ct.globalShine &&
-              typeof ct.globalShine === "object" &&
-              typeof ct.globalShine.status === "string" &&
-              typeof ct.globalShine.remaining === "number"
-            ) {
-              cleanedTimers.globalShine = ct.globalShine;
-            }
-
-            if (
-              ct.babbling &&
-              typeof ct.babbling === "object" &&
-              typeof ct.babbling.status === "string" &&
-              typeof ct.babbling.remaining === "number"
-            ) {
-              cleanedTimers.babbling = ct.babbling;
-            }
-
-            console.log("Setting cleaned cast timers:", cleanedTimers);
-            setCastTimers(cleanedTimers);
-            setOpenHunt(true);
-            triggerGlow("hunt", "warning");
-          }
+          console.log("Viewer setCastTimers ->", t);
+          setOpenHunt(true);
+          triggerGlow("hunt", "warning");
         }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "event_scoreboard",
-          filter: `event_id=eq.${eventId}`,
-        },
-        (payload) => {
-          setTeams((prev) => [...prev, payload.new as TeamRow]);
-          setOpenSummary(true);
-          setOpenDetails(true);
-          triggerGlow("summary", "info");
-          triggerGlow("details", "info");
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "event_scoreboard",
-          filter: `event_id=eq.${eventId}`,
-        },
-        (payload) => {
-          const oldCF = (payload.old as any)?.custom_fields || {};
-          const newCF = (payload.new as any)?.custom_fields || {};
-          setTeams((prev) =>
-            prev.map((t) =>
-              t.id === (payload.new as any).id ? (payload.new as TeamRow) : t
-            )
-          );
-          // Detect entry outcome change
-          const oldEntries = Array.isArray(oldCF.entries) ? oldCF.entries : [];
-          const newEntries = Array.isArray(newCF.entries) ? newCF.entries : [];
-          let variant: "success" | "danger" | "warning" | "info" | "pending" =
-            "info";
-          for (const e of newEntries) {
-            const before = oldEntries.find((x: any) => x.id === e.id);
-            if (before && before.outcome !== e.outcome) {
-              if (e.outcome === "+") variant = "success";
-              else if (e.outcome === "-") variant = "danger";
-              else if (e.outcome === "o") variant = "warning";
-              else if (e.outcome === "pending") variant = "info";
-              break;
-            }
-          }
-          setOpenSummary(true);
-          setOpenDetails(true);
-          triggerGlow("summary", variant);
-          triggerGlow("details", variant);
-          triggerGlow(`dog:${(payload.new as any).id}`, variant);
-          // Refresh timer overview when team updates
-          fetchTimerOverview();
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "DELETE",
-          schema: "public",
-          table: "event_scoreboard",
-          filter: `event_id=eq.${eventId}`,
-        },
-        (payload) =>
-          setTeams((prev) =>
-            prev.filter((t) => t.id !== (payload.old as any).id)
-          )
-      )
-      .subscribe();
+      })
+      .on("broadcast", { event: "dog_created" }, () => {
+        setOpenDetails(true);
+        triggerGlow("details", "info");
+        fetchTeams();
+      });
 
+    console.log(
+      "Viewer subscribing to channel:",
+      channelName,
+      "client:",  
+      clientIdRef.current
+    );
+    channel.subscribe((status) => {
+      console.log("Viewer channel status:", status);
+    });
+    rtChannelRef.current = channel;
     return () => {
-      supabase.removeChannel(ch);
+      if (rtChannelRef.current) supabase.removeChannel(rtChannelRef.current);
     };
-  }, [eventId, fetchTimerOverview]);
+    // Intentionally only depend on eventId to keep a stable subscription
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventId]);
 
   const runningDogTimers = (t: TeamRow) => {
     const timers = timerOverview[t.id] || {};
@@ -524,122 +442,57 @@ export const CoonhoundScorecardViewer: React.FC<Props> = ({
   const dogsData = useMemo(() => teams.map(fromTeamRow), [teams]);
 
   // Convert cast timers to format expected by ScorecardSummary
+  // Use local countdown hooks so UI updates smoothly between broadcasts
   const castTimersForSummary = useMemo(() => {
-    console.log("castTimersForSummary recalculating with:", castTimers);
-    const results = [];
+    const results: CastTimerBlock[] = [];
+    const huntMinutes = castTimers.mainHuntMinutes || 120;
+    const include = new Set(["running", "paused", "finished"]);
 
-    // Main Hunt Timer - include all valid statuses
-    if (
-      castTimers.mainHunt &&
-      castTimers.mainHunt.status &&
-      typeof castTimers.mainHunt.remaining === "number" &&
-      (castTimers.mainHunt.status === "running" ||
-        castTimers.mainHunt.status === "paused" ||
-        castTimers.mainHunt.status === "finished")
-    ) {
-      const remaining = liveRemaining(
-        castTimers.mainHunt.remaining,
-        castTimers.server_updated_at,
-        castTimers.mainHunt.status
-      );
-      const huntMinutes = castTimers.mainHuntMinutes || 120;
-      const timer = {
-        key: "hunt",
+    if (include.has(viewHuntTimer.status)) {
+      results.push({
+        key: "mainHunt",
         label: `Main Hunt ${huntMinutes} minutes`,
-        status: castTimers.mainHunt.status,
-        formatted:
-          castTimers.mainHunt.status === "finished" && remaining <= 0
-            ? "00:00"
-            : formatMMSS(remaining),
-      };
-      console.log("Adding main hunt timer:", timer);
-      results.push(timer);
+        status: viewHuntTimer.status,
+        formatted: viewHuntTimer.formatted,
+      });
     }
-
-    // Track Timer - include all valid statuses
-    if (
-      castTimers.track &&
-      castTimers.track.status &&
-      typeof castTimers.track.remaining === "number" &&
-      (castTimers.track.status === "running" ||
-        castTimers.track.status === "paused" ||
-        castTimers.track.status === "finished")
-    ) {
-      const remaining = liveRemaining(
-        castTimers.track.remaining,
-        castTimers.server_updated_at,
-        castTimers.track.status
-      );
-      const timer = {
+    if (include.has(viewTrackTimer.status)) {
+      results.push({
         key: "track",
         label: "Track 6 minutes",
-        status: castTimers.track.status,
-        formatted:
-          castTimers.track.status === "finished" && remaining <= 0
-            ? "00:00"
-            : formatMMSS(remaining),
-      };
-      console.log("Adding track timer:", timer);
-      results.push(timer);
+        status: viewTrackTimer.status,
+        formatted: viewTrackTimer.formatted,
+      });
     }
-
-    // Global Shine Timer - include all valid statuses
-    if (
-      castTimers.globalShine &&
-      castTimers.globalShine.status &&
-      typeof castTimers.globalShine.remaining === "number" &&
-      (castTimers.globalShine.status === "running" ||
-        castTimers.globalShine.status === "paused" ||
-        castTimers.globalShine.status === "finished")
-    ) {
-      const remaining = liveRemaining(
-        castTimers.globalShine.remaining,
-        castTimers.server_updated_at,
-        castTimers.globalShine.status
-      );
-      const timer = {
+    if (include.has(viewShineTimer.status)) {
+      results.push({
         key: "globalShine",
         label: "Global Shine 8 minutes",
-        status: castTimers.globalShine.status,
-        formatted:
-          castTimers.globalShine.status === "finished" && remaining <= 0
-            ? "00:00"
-            : formatMMSS(remaining),
-      };
-      console.log("Adding global shine timer:", timer);
-      results.push(timer);
+        status: viewShineTimer.status,
+        formatted: viewShineTimer.formatted,
+      });
     }
-
-    // Babbling Timer - include all valid statuses
-    if (
-      castTimers.babbling &&
-      castTimers.babbling.status &&
-      typeof castTimers.babbling.remaining === "number" &&
-      (castTimers.babbling.status === "running" ||
-        castTimers.babbling.status === "paused" ||
-        castTimers.babbling.status === "finished")
-    ) {
-      const remaining = liveRemaining(
-        castTimers.babbling.remaining,
-        castTimers.server_updated_at,
-        castTimers.babbling.status
-      );
-      const timer = {
+    if (include.has(viewBabbleTimer.status)) {
+      results.push({
         key: "babbling",
         label: "Babbling 1 Minute",
-        status: castTimers.babbling.status,
-        formatted:
-          castTimers.babbling.status === "finished" && remaining <= 0
-            ? "00:00"
-            : formatMMSS(remaining),
-      };
-      console.log("Adding babbling timer:", timer);
-      results.push(timer);
+        status: viewBabbleTimer.status,
+        formatted: viewBabbleTimer.formatted,
+      });
     }
 
-    console.log("Final cast timers for summary:", results);
     return results;
-  }, [castTimers, tick]);
+  }, [
+    castTimers.mainHuntMinutes,
+    viewHuntTimer.formatted,
+    viewHuntTimer.status,
+    viewTrackTimer.formatted,
+    viewTrackTimer.status,
+    viewShineTimer.formatted,
+    viewShineTimer.status,
+    viewBabbleTimer.formatted,
+    viewBabbleTimer.status,
+  ]);
 
   return (
     <div className="space-y-4">

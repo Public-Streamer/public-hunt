@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Trophy, Users, Clock } from 'lucide-react';
-import type { Scorecard } from '@/lib/viewerState';
-import { FullScorecardGrid } from '@/components/Scorecard/FullScorecardGrid';
-import type { FullScorecardDTO } from '@/lib/types';
-import { supabase } from '@/integrations/supabase/client';
+import React, { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Trophy, Users, Clock } from "lucide-react";
+import type { Scorecard } from "@/lib/viewerState";
+import { FullScorecardGrid } from "@/components/scorecard/FullScorecardGrid";
+import type { FullScorecardDTO } from "@/lib/types";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ScorecardsPanelProps {
   scorecards: Scorecard[];
@@ -18,12 +18,13 @@ interface ScorecardItemProps {
 
 const ScorecardItem: React.FC<ScorecardItemProps> = ({ scorecard }) => {
   const { fields } = scorecard;
-  const teamName = fields.teamName as string || 'Unknown Team';
-  const teamColor = fields.teamColor as string || '#3b82f6';
-  const score = fields.score as number || 0;
-  const customFields = (typeof fields.customFields === 'object' && fields.customFields !== null) 
-    ? fields.customFields as Record<string, any> 
-    : {};
+  const teamName = (fields.teamName as string) || "Unknown Team";
+  const teamColor = (fields.teamColor as string) || "#3b82f6";
+  const score = (fields.score as number) || 0;
+  const customFields =
+    typeof fields.customFields === "object" && fields.customFields !== null
+      ? (fields.customFields as Record<string, any>)
+      : {};
 
   // Format last updated time
   const lastUpdated = new Date(scorecard.lastUpdatedAt);
@@ -34,7 +35,7 @@ const ScorecardItem: React.FC<ScorecardItemProps> = ({ scorecard }) => {
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <div 
+            <div
               className="w-3 h-3 rounded-full"
               style={{ backgroundColor: teamColor }}
             />
@@ -53,7 +54,7 @@ const ScorecardItem: React.FC<ScorecardItemProps> = ({ scorecard }) => {
               <span>{scorecard.division}</span>
             </div>
           )}
-          
+
           {scorecard.heat && (
             <div className="flex items-center gap-1">
               <Users className="h-3 w-3" />
@@ -64,7 +65,9 @@ const ScorecardItem: React.FC<ScorecardItemProps> = ({ scorecard }) => {
           {/* Custom fields */}
           {Object.entries(customFields).map(([key, value]) => (
             <div key={key} className="flex justify-between">
-              <span className="capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}:</span>
+              <span className="capitalize">
+                {key.replace(/([A-Z])/g, " $1").trim()}:
+              </span>
               <span className="font-medium">{String(value)}</span>
             </div>
           ))}
@@ -88,7 +91,7 @@ function getTimeAgo(date: Date): string {
   const diffHours = Math.floor(diffMins / 60);
 
   if (diffSecs < 60) {
-    return 'just now';
+    return "just now";
   } else if (diffMins < 60) {
     return `${diffMins}m ago`;
   } else if (diffHours < 24) {
@@ -98,9 +101,9 @@ function getTimeAgo(date: Date): string {
   }
 }
 
-export const ScorecardsPanel: React.FC<ScorecardsPanelProps> = ({ 
-  scorecards, 
-  eventId 
+export const ScorecardsPanel: React.FC<ScorecardsPanelProps> = ({
+  scorecards,
+  eventId,
 }) => {
   const [fullScorecards, setFullScorecards] = useState<FullScorecardDTO[]>([]);
   const [loading, setLoading] = useState(true);
@@ -109,7 +112,9 @@ export const ScorecardsPanel: React.FC<ScorecardsPanelProps> = ({
   useEffect(() => {
     const fetchFullScorecards = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
         if (!session) {
           setLoading(false);
           return;
@@ -117,19 +122,22 @@ export const ScorecardsPanel: React.FC<ScorecardsPanelProps> = ({
 
         const response = await fetch(`/api/events/${eventId}/scorecards/full`, {
           headers: {
-            'Authorization': `Bearer ${session.access_token}`,
-            'Content-Type': 'application/json'
-          }
+            Authorization: `Bearer ${session.access_token}`,
+            "Content-Type": "application/json",
+          },
         });
 
         if (response.ok) {
           const data = await response.json();
           setFullScorecards(data);
         } else {
-          console.error('Failed to fetch full scorecards:', response.statusText);
+          console.error(
+            "Failed to fetch full scorecards:",
+            response.statusText
+          );
         }
       } catch (error) {
-        console.error('Error fetching full scorecards:', error);
+        console.error("Error fetching full scorecards:", error);
       } finally {
         setLoading(false);
       }
@@ -146,13 +154,15 @@ export const ScorecardsPanel: React.FC<ScorecardsPanelProps> = ({
   const sortedScorecards = [...scorecards].sort((a, b) => {
     const scoreA = (a.fields.score as number) || 0;
     const scoreB = (b.fields.score as number) || 0;
-    
+
     if (scoreA !== scoreB) {
       return scoreB - scoreA; // Higher scores first
     }
-    
+
     // If scores are equal, sort by most recently updated
-    return new Date(b.lastUpdatedAt).getTime() - new Date(a.lastUpdatedAt).getTime();
+    return (
+      new Date(b.lastUpdatedAt).getTime() - new Date(a.lastUpdatedAt).getTime()
+    );
   });
 
   if (scorecards.length === 0) {
@@ -188,7 +198,7 @@ export const ScorecardsPanel: React.FC<ScorecardsPanelProps> = ({
           </Badge>
         </CardTitle>
       </CardHeader>
-      
+
       <CardContent className="p-3">
         <div className="space-y-3 overflow-y-auto max-h-[60vh]">
           {sortedScorecards.map((scorecard, index) => (
@@ -196,18 +206,20 @@ export const ScorecardsPanel: React.FC<ScorecardsPanelProps> = ({
               {/* Ranking badge for top 3 */}
               {index < 3 && (
                 <div className="absolute -left-2 -top-2 z-10">
-                  <Badge 
+                  <Badge
                     className={`h-6 w-6 rounded-full p-0 flex items-center justify-center text-xs font-bold ${
-                      index === 0 ? 'bg-yellow-500' : 
-                      index === 1 ? 'bg-gray-400' : 
-                      'bg-amber-600'
+                      index === 0
+                        ? "bg-yellow-500"
+                        : index === 1
+                          ? "bg-gray-400"
+                          : "bg-amber-600"
                     }`}
                   >
                     {index + 1}
                   </Badge>
                 </div>
               )}
-              
+
               <ScorecardItem scorecard={scorecard} />
             </div>
           ))}
