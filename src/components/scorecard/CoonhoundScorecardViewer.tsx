@@ -89,10 +89,10 @@ const statusCls = (s: TimerStatus) =>
   s === "running"
     ? "bg-primary/10 text-primary"
     : s === "paused"
-    ? "bg-accent/10 text-accent-foreground"
-    : s === "finished"
-    ? "bg-destructive/10 text-destructive"
-    : "bg-muted text-muted-foreground";
+      ? "bg-accent/10 text-accent-foreground"
+      : s === "finished"
+        ? "bg-destructive/10 text-destructive"
+        : "bg-muted text-muted-foreground";
 
 /**
  * CoonhoundScorecardViewer - Read-Only Viewer Interface for Coon Hunt Scoreboards
@@ -476,7 +476,7 @@ export const CoonhoundScorecardViewer: React.FC<Props> = ({
     return () => {
       supabase.removeChannel(ch);
     };
-  }, [eventId]);
+  }, [eventId, fetchTimerOverview]);
 
   const runningDogTimers = (t: TeamRow) => {
     const timers = timerOverview[t.id] || {};
@@ -780,12 +780,12 @@ export const CoonhoundScorecardViewer: React.FC<Props> = ({
                               glow[`dog:${t.id}`]!.variant === "success"
                                 ? "glow-success"
                                 : glow[`dog:${t.id}`]!.variant === "danger"
-                                ? "glow-danger"
-                                : glow[`dog:${t.id}`]!.variant === "warning"
-                                ? "glow-warning"
-                                : glow[`dog:${t.id}`]!.variant === "info"
-                                ? "glow-info"
-                                : "glow-pending"
+                                  ? "glow-danger"
+                                  : glow[`dog:${t.id}`]!.variant === "warning"
+                                    ? "glow-warning"
+                                    : glow[`dog:${t.id}`]!.variant === "info"
+                                      ? "glow-info"
+                                      : "glow-pending"
                             }`
                           : ""
                       }`}
@@ -834,10 +834,10 @@ export const CoonhoundScorecardViewer: React.FC<Props> = ({
                               e.outcome === "+"
                                 ? "bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-800/40"
                                 : e.outcome === "-"
-                                ? "bg-red-50 border-red-200 dark:bg-red-950/20 dark:border-red-800/40"
-                                : e.outcome === "o"
-                                ? "bg-yellow-50 border-yellow-200 dark:bg-yellow-950/20 dark:border-yellow-800/40"
-                                : "bg-muted/20 border-muted/40";
+                                  ? "bg-red-50 border-red-200 dark:bg-red-950/20 dark:border-red-800/40"
+                                  : e.outcome === "o"
+                                    ? "bg-yellow-50 border-yellow-200 dark:bg-yellow-950/20 dark:border-yellow-800/40"
+                                    : "bg-muted/20 border-muted/40";
 
                             const typeColor =
                               e.type === "strike"
@@ -872,17 +872,17 @@ export const CoonhoundScorecardViewer: React.FC<Props> = ({
                                       e.outcome === "+"
                                         ? "text-green-600 text-lg"
                                         : e.outcome === "-"
-                                        ? "text-red-600 text-base"
-                                        : "text-muted-foreground"
+                                          ? "text-red-600 text-base"
+                                          : "text-muted-foreground"
                                     }`}
                                   >
                                     {e.outcome === "+"
                                       ? "+"
                                       : e.outcome === "-"
-                                      ? "–"
-                                      : e.outcome === "/"
-                                      ? "╱"
-                                      : "…"}
+                                        ? "–"
+                                        : e.outcome === "/"
+                                          ? "╱"
+                                          : "…"}
                                   </div>
                                 )}
                               </div>

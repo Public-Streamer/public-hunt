@@ -240,10 +240,10 @@ export const CoonhoundScorecardHost: React.FC<Props> = ({
     s === "running"
       ? "bg-primary/10 text-primary"
       : s === "paused"
-      ? "bg-accent/10 text-accent-foreground"
-      : s === "finished"
-      ? "bg-destructive/10 text-destructive"
-      : "bg-muted text-muted-foreground";
+        ? "bg-accent/10 text-accent-foreground"
+        : s === "finished"
+          ? "bg-destructive/10 text-destructive"
+          : "bg-muted text-muted-foreground";
 
   // Setup realtime channel defined below; syncCastTimers moved after timers
 
@@ -256,7 +256,9 @@ export const CoonhoundScorecardHost: React.FC<Props> = ({
       if (typeof navigator !== "undefined" && "vibrate" in navigator) {
         try {
           (navigator as any).vibrate?.(200);
-        } catch {}
+        } catch (error) {
+          console.error(error);
+        }
       }
     },
   });
@@ -269,7 +271,9 @@ export const CoonhoundScorecardHost: React.FC<Props> = ({
       if (typeof navigator !== "undefined" && "vibrate" in navigator) {
         try {
           (navigator as any).vibrate?.(200);
-        } catch {}
+        } catch (error) {
+          console.error(error);
+        }
       }
     },
   });
@@ -282,7 +286,9 @@ export const CoonhoundScorecardHost: React.FC<Props> = ({
       if (typeof navigator !== "undefined" && "vibrate" in navigator) {
         try {
           (navigator as any).vibrate?.(200);
-        } catch {}
+        } catch (error) {
+          console.error(error);
+        }
       }
     },
   });
@@ -295,7 +301,9 @@ export const CoonhoundScorecardHost: React.FC<Props> = ({
       if (typeof navigator !== "undefined" && "vibrate" in navigator) {
         try {
           (navigator as any).vibrate?.(200);
-        } catch {}
+        } catch (error) {
+          console.error(error);
+        }
       }
     },
   });
@@ -317,12 +325,12 @@ export const CoonhoundScorecardHost: React.FC<Props> = ({
           p?.updateKind === "+"
             ? "success"
             : p?.updateKind === "-"
-            ? "danger"
-            : p?.updateKind === "o"
-            ? "warning"
-            : p?.updateKind === "pending"
-            ? "info"
-            : "pending";
+              ? "danger"
+              : p?.updateKind === "o"
+                ? "warning"
+                : p?.updateKind === "pending"
+                  ? "info"
+                  : "pending";
         if (p?.teamId) triggerGlow(`dog:${p.teamId}`, variant);
         triggerGlow("summary", variant);
         triggerGlow("details", variant);
@@ -478,6 +486,10 @@ export const CoonhoundScorecardHost: React.FC<Props> = ({
     globalShineTimer.status,
     babbleMainTimer.remaining,
     babbleMainTimer.status,
+    huntTimer.start,
+    trackTimer.start,
+    globalShineTimer.start,
+    babbleMainTimer.start,
   ]);
 
   // Save handler that updates score and custom_fields
@@ -923,12 +935,12 @@ export const CoonhoundScorecardHost: React.FC<Props> = ({
                     glow[`dog:${d.id}`]!.variant === "success"
                       ? "glow-success"
                       : glow[`dog:${d.id}`]!.variant === "danger"
-                      ? "glow-danger"
-                      : glow[`dog:${d.id}`]!.variant === "warning"
-                      ? "glow-warning"
-                      : glow[`dog:${d.id}`]!.variant === "info"
-                      ? "glow-info"
-                      : "glow-pending"
+                        ? "glow-danger"
+                        : glow[`dog:${d.id}`]!.variant === "warning"
+                          ? "glow-warning"
+                          : glow[`dog:${d.id}`]!.variant === "info"
+                            ? "glow-info"
+                            : "glow-pending"
                   }`
                 : ""
             }`}
