@@ -102,7 +102,10 @@ const App = () => {
                       element={<SetNewPassword />}
                     />
                     <Route path="/payments" element={<PaymentSetup />} />
-                    <Route path="/past-events" element={<PastEvents events={[]} />} />
+                    <Route
+                      path="/past-events"
+                      element={<PastEvents events={[]} />}
+                    />
                     <Route path="/my-ads" element={<MyAds />} />
                     <Route path="/advertisers" element={<Advertisers />} />
                     <Route path="/create-ad" element={<CreateAd />} />
