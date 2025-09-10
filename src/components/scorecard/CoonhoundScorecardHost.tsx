@@ -240,10 +240,10 @@ export const CoonhoundScorecardHost: React.FC<Props> = ({
     s === "running"
       ? "bg-primary/10 text-primary"
       : s === "paused"
-        ? "bg-accent/10 text-accent-foreground"
-        : s === "finished"
-          ? "bg-destructive/10 text-destructive"
-          : "bg-muted text-muted-foreground";
+      ? "bg-accent/10 text-accent-foreground"
+      : s === "finished"
+      ? "bg-destructive/10 text-destructive"
+      : "bg-muted text-muted-foreground";
 
   // Setup realtime channel defined below; syncCastTimers moved after timers
 
@@ -373,13 +373,18 @@ export const CoonhoundScorecardHost: React.FC<Props> = ({
     //     fetchTeams();
     //   });
 
-    console.log("Host subscribing to channel:", channelName, "client:", clientIdRef.current);
+    console.log(
+      "Host subscribing to channel:",
+      channelName,
+      "client:",
+      clientIdRef.current
+    );
     channel.subscribe((status) => console.log("Host channel status:", status));
     rtChannelRef.current = channel;
     return () => {
       if (rtChannelRef.current) supabase.removeChannel(rtChannelRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
     // Keep subscription stable; we do not need to recreate it for timer ticks
   }, [eventId]);
 
@@ -446,59 +451,66 @@ export const CoonhoundScorecardHost: React.FC<Props> = ({
         >
       >
     ) => {
-    if (!canEditScoreboard) {
-      toast({
-        title: "Access Denied",
-        description: "You do not have permission to edit scores.",
-        variant: "destructive",
-      });
-      return;
-    }
-    try {
-      const timers = {
-        mainHunt: {
-          status: overrides?.mainHunt?.status ?? huntTimer.status,
-          remaining: overrides?.mainHunt?.remaining ?? huntTimer.remaining,
-        },
-        track: {
-          status: overrides?.track?.status ?? trackTimer.status,
-          remaining: overrides?.track?.remaining ?? trackTimer.remaining,
-        },
-        globalShine: {
-          status: overrides?.globalShine?.status ?? globalShineTimer.status,
-          remaining:
-            overrides?.globalShine?.remaining ?? globalShineTimer.remaining,
-        },
-        babbling: {
-          status: overrides?.babbling?.status ?? babbleMainTimer.status,
-          remaining: overrides?.babbling?.remaining ?? babbleMainTimer.remaining,
-        },
-        mainHuntMinutes: huntMinutes,
-      } as const;
-      await supabase.functions.invoke("scoreboard-operations", {
-        body: { action: "updateCastTimers", eventId, timers },
-      });
-      console.log("Host broadcasting cast_timer_update to", `event:${eventId}:scorecard`, timers);
-      rtChannelRef.current?.send({
-        type: "broadcast",
-        event: "cast_timer_update",
-        payload: { eventId, timers },
-      });
-    } catch (e) {
-      console.warn("Failed to sync cast timers", e);
-    }
-  }, [
-    eventId,
-    huntMinutes,
-    huntTimer.remaining,
-    huntTimer.status,
-    trackTimer.remaining,
-    trackTimer.status,
-    globalShineTimer.remaining,
-    globalShineTimer.status,
-    babbleMainTimer.remaining,
-    babbleMainTimer.status,
-  ]);
+      if (!canEditScoreboard) {
+        toast({
+          title: "Access Denied",
+          description: "You do not have permission to edit scores.",
+          variant: "destructive",
+        });
+        return;
+      }
+      try {
+        const timers = {
+          mainHunt: {
+            status: overrides?.mainHunt?.status ?? huntTimer.status,
+            remaining: overrides?.mainHunt?.remaining ?? huntTimer.remaining,
+          },
+          track: {
+            status: overrides?.track?.status ?? trackTimer.status,
+            remaining: overrides?.track?.remaining ?? trackTimer.remaining,
+          },
+          globalShine: {
+            status: overrides?.globalShine?.status ?? globalShineTimer.status,
+            remaining:
+              overrides?.globalShine?.remaining ?? globalShineTimer.remaining,
+          },
+          babbling: {
+            status: overrides?.babbling?.status ?? babbleMainTimer.status,
+            remaining:
+              overrides?.babbling?.remaining ?? babbleMainTimer.remaining,
+          },
+          mainHuntMinutes: huntMinutes,
+        } as const;
+        await supabase.functions.invoke("scoreboard-operations", {
+          body: { action: "updateCastTimers", eventId, timers },
+        });
+        console.log(
+          "Host broadcasting cast_timer_update to",
+          `event:${eventId}:scorecard`,
+          timers
+        );
+        rtChannelRef.current?.send({
+          type: "broadcast",
+          event: "cast_timer_update",
+          payload: { eventId, timers },
+        });
+      } catch (e) {
+        console.warn("Failed to sync cast timers", e);
+      }
+    },
+    [
+      eventId,
+      huntMinutes,
+      huntTimer.remaining,
+      huntTimer.status,
+      trackTimer.remaining,
+      trackTimer.status,
+      globalShineTimer.remaining,
+      globalShineTimer.status,
+      babbleMainTimer.remaining,
+      babbleMainTimer.status,
+    ]
+  );
 
   // Save handler that updates score and custom_fields
   const handleDogChange = async (dog: DogData, newTotal: number) => {
@@ -799,7 +811,7 @@ export const CoonhoundScorecardHost: React.FC<Props> = ({
                   status={huntTimer.status}
                   onStart={() => {
                     huntTimer.start();
-                    babbleMainTimer.reset();
+                    // babbleMainTimer.reset();
                     babbleMainTimer.start();
                     // Broadcast explicit running state to avoid race with setState
                     setTimeout(
@@ -819,12 +831,19 @@ export const CoonhoundScorecardHost: React.FC<Props> = ({
                   }}
                   onPause={() => {
                     huntTimer.pause();
+                    if (babbleMainTimer.status === "running") {
+                      babbleMainTimer.pause();
+                    }
                     setTimeout(
                       () =>
                         syncCastTimers({
                           mainHunt: {
                             status: "paused",
                             remaining: huntTimer.remaining,
+                          },
+                          babbling: {
+                            status: "paused",
+                            remaining: babbleMainTimer.remaining,
                           },
                         }),
                       0
@@ -856,7 +875,10 @@ export const CoonhoundScorecardHost: React.FC<Props> = ({
                     setTimeout(
                       () =>
                         syncCastTimers({
-                          track: { status: "running", remaining: trackTimer.remaining },
+                          track: {
+                            status: "running",
+                            remaining: trackTimer.remaining,
+                          },
                         }),
                       0
                     );
@@ -866,7 +888,10 @@ export const CoonhoundScorecardHost: React.FC<Props> = ({
                     setTimeout(
                       () =>
                         syncCastTimers({
-                          track: { status: "paused", remaining: trackTimer.remaining },
+                          track: {
+                            status: "paused",
+                            remaining: trackTimer.remaining,
+                          },
                         }),
                       0
                     );
@@ -1041,12 +1066,12 @@ export const CoonhoundScorecardHost: React.FC<Props> = ({
                     glow[`dog:${d.id}`]!.variant === "success"
                       ? "glow-success"
                       : glow[`dog:${d.id}`]!.variant === "danger"
-                        ? "glow-danger"
-                        : glow[`dog:${d.id}`]!.variant === "warning"
-                          ? "glow-warning"
-                          : glow[`dog:${d.id}`]!.variant === "info"
-                            ? "glow-info"
-                            : "glow-pending"
+                      ? "glow-danger"
+                      : glow[`dog:${d.id}`]!.variant === "warning"
+                      ? "glow-warning"
+                      : glow[`dog:${d.id}`]!.variant === "info"
+                      ? "glow-info"
+                      : "glow-pending"
                   }`
                 : ""
             }`}

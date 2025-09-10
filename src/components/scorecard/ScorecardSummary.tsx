@@ -106,7 +106,8 @@ export const ScorecardSummary: React.FC<ScorecardSummaryProps> = ({
   glowClassName,
 }) => {
   const activeCast = useMemo(
-    () => castTimers.filter((c) => c.status === "running"),
+    () =>
+      castTimers.filter((c) => c.status === "running" || c.status === "paused"),
     [castTimers]
   );
   const [uncontrolledOpen, setUncontrolledOpen] = useState<boolean>(
