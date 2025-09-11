@@ -48,7 +48,10 @@ export function useCountdown(initialSeconds: number, opts: UseCountdownOptions =
   const start = useCallback(() => {
     if (status === "running" || remaining <= 0) return;
     setStatus("running");
-    baseRemainingAtStart.current = remaining; // snapshot current remaining
+    if (status !== "paused") {    
+      baseRemainingAtStart.current = remaining;
+      carried.current = 0;
+    }
     startedAt.current = performance.now();
     raf.current = requestAnimationFrame(tick);
   }, [status, remaining, tick]);
@@ -59,8 +62,11 @@ export function useCountdown(initialSeconds: number, opts: UseCountdownOptions =
     if (raf.current) cancelAnimationFrame(raf.current);
     raf.current = null;
     if (startedAt.current != null) {
-      carried.current += (performance.now() - startedAt.current) / 1000;
+      const elapsed = (performance.now() - startedAt.current) / 1000;
+      carried.current += elapsed;
       startedAt.current = null;
+      const newRemaining = Math.max(0, baseRemainingAtStart.current - carried.current);
+      setRemaining(newRemaining);
     }
   }, [status]);
 

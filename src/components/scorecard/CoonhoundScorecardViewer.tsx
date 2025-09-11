@@ -91,10 +91,10 @@ const statusCls = (s: TimerStatus) =>
   s === "running"
     ? "bg-primary/10 text-primary"
     : s === "paused"
-      ? "bg-accent/10 text-accent-foreground"
-      : s === "finished"
-        ? "bg-destructive/10 text-destructive"
-        : "bg-muted text-muted-foreground";
+    ? "bg-accent/10 text-accent-foreground"
+    : s === "finished"
+    ? "bg-destructive/10 text-destructive"
+    : "bg-muted text-muted-foreground";
 
 /**
  * CoonhoundScorecardViewer - Read-Only Viewer Interface for Coon Hunt Scoreboards
@@ -129,10 +129,20 @@ export const CoonhoundScorecardViewer: React.FC<Props> = ({
 
   // Debug: verify local viewer timers are advancing
   useEffect(() => {
-    console.log("[viewer timers] hunt:", viewHuntTimer.status, viewHuntTimer.formatted,
-      "track:", viewTrackTimer.status, viewTrackTimer.formatted,
-      "shine:", viewShineTimer.status, viewShineTimer.formatted,
-      "babble:", viewBabbleTimer.status, viewBabbleTimer.formatted);
+    console.log(
+      "[viewer timers] hunt:",
+      viewHuntTimer.status,
+      viewHuntTimer.formatted,
+      "track:",
+      viewTrackTimer.status,
+      viewTrackTimer.formatted,
+      "shine:",
+      viewShineTimer.status,
+      viewShineTimer.formatted,
+      "babble:",
+      viewBabbleTimer.status,
+      viewBabbleTimer.formatted
+    );
   }, [
     viewHuntTimer.formatted,
     viewHuntTimer.status,
@@ -204,7 +214,6 @@ export const CoonhoundScorecardViewer: React.FC<Props> = ({
     }));
   };
 
-
   useEffect(() => {
     const cleanup = setInterval(() => {
       const now = Date.now();
@@ -269,8 +278,6 @@ export const CoonhoundScorecardViewer: React.FC<Props> = ({
     return () => clearInterval(cleanup);
   }, [fetchTimerOverview]); // Add dependency
 
-
-
   // Initial fetch
   useEffect(() => {
     (async () => {
@@ -330,10 +337,10 @@ export const CoonhoundScorecardViewer: React.FC<Props> = ({
           payload?.updateKind === "+"
             ? "success"
             : payload?.updateKind === "-"
-              ? "danger"
-              : payload?.updateKind === "o"
-                ? "warning"
-                : "info";
+            ? "danger"
+            : payload?.updateKind === "o"
+            ? "warning"
+            : "info";
         if (payload?.teamId) triggerGlow(`dog:${payload.teamId}`, variant);
         triggerGlow("summary", variant);
         triggerGlow("details", variant);
@@ -382,7 +389,7 @@ export const CoonhoundScorecardViewer: React.FC<Props> = ({
     console.log(
       "Viewer subscribing to channel:",
       channelName,
-      "client:",  
+      "client:",
       clientIdRef.current
     );
     channel.subscribe((status) => {
@@ -420,7 +427,7 @@ export const CoonhoundScorecardViewer: React.FC<Props> = ({
     const snap = (castTimers as any)[b.key] as
       | { status: TimerStatus; remaining: number }
       | undefined;
-    return snap?.status === "running";
+    return snap?.status === "running" || snap?.status === "paused";
   });
 
   const calcTotals = (entries: any[]) => {
@@ -633,12 +640,12 @@ export const CoonhoundScorecardViewer: React.FC<Props> = ({
                               glow[`dog:${t.id}`]!.variant === "success"
                                 ? "glow-success"
                                 : glow[`dog:${t.id}`]!.variant === "danger"
-                                  ? "glow-danger"
-                                  : glow[`dog:${t.id}`]!.variant === "warning"
-                                    ? "glow-warning"
-                                    : glow[`dog:${t.id}`]!.variant === "info"
-                                      ? "glow-info"
-                                      : "glow-pending"
+                                ? "glow-danger"
+                                : glow[`dog:${t.id}`]!.variant === "warning"
+                                ? "glow-warning"
+                                : glow[`dog:${t.id}`]!.variant === "info"
+                                ? "glow-info"
+                                : "glow-pending"
                             }`
                           : ""
                       }`}
@@ -687,10 +694,10 @@ export const CoonhoundScorecardViewer: React.FC<Props> = ({
                               e.outcome === "+"
                                 ? "bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-800/40"
                                 : e.outcome === "-"
-                                  ? "bg-red-50 border-red-200 dark:bg-red-950/20 dark:border-red-800/40"
-                                  : e.outcome === "o"
-                                    ? "bg-yellow-50 border-yellow-200 dark:bg-yellow-950/20 dark:border-yellow-800/40"
-                                    : "bg-muted/20 border-muted/40";
+                                ? "bg-red-50 border-red-200 dark:bg-red-950/20 dark:border-red-800/40"
+                                : e.outcome === "o"
+                                ? "bg-yellow-50 border-yellow-200 dark:bg-yellow-950/20 dark:border-yellow-800/40"
+                                : "bg-muted/20 border-muted/40";
 
                             const typeColor =
                               e.type === "strike"
@@ -725,17 +732,17 @@ export const CoonhoundScorecardViewer: React.FC<Props> = ({
                                       e.outcome === "+"
                                         ? "text-green-600 text-lg"
                                         : e.outcome === "-"
-                                          ? "text-red-600 text-base"
-                                          : "text-muted-foreground"
+                                        ? "text-red-600 text-base"
+                                        : "text-muted-foreground"
                                     }`}
                                   >
                                     {e.outcome === "+"
                                       ? "+"
                                       : e.outcome === "-"
-                                        ? "–"
-                                        : e.outcome === "/"
-                                          ? "╱"
-                                          : "…"}
+                                      ? "–"
+                                      : e.outcome === "/"
+                                      ? "╱"
+                                      : "…"}
                                   </div>
                                 )}
                               </div>
