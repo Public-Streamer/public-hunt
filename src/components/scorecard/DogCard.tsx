@@ -29,6 +29,7 @@ import {
 import { useCountdown, TimerStatus } from "@/hooks/useCountdown";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Badge } from "../ui/badge";
 export type EntryOutcome = "pending" | "+" | "-" | "o" | "/"; // plus / minus / circle / slash
 export type EntryType = "strike" | "tree";
 
