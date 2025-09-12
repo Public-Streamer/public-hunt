@@ -7,6 +7,7 @@ import { Calendar, Clock, Star, Eye, DollarSign } from "lucide-react";
 import TooltipWrapper from "@/components/ui/tooltip-wrapper";
 import TicketPurchaseModal from "./TicketPurchaseModal";
 import MediaBackground from "./MediaBackground";
+import { ViewerCountDisplay } from "./ViewerCountDisplay";
 
 interface ScheduledEvent {
   id: string;
@@ -99,6 +100,16 @@ const ScheduledEventCard: React.FC<ScheduledEventCardProps> = ({
               </TooltipWrapper>
             </div>
 
+            <div className="flex items-center justify-between text-xs text-gray-400 mb-2">
+              <ViewerCountDisplay 
+                eventId={event.id}
+                variant="text" 
+                showIcon={true}
+                size="sm"
+                className="text-xs text-gray-500"
+              />
+            </div>
+            
             <Button
               onClick={handleClick}
               className="w-full my-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"

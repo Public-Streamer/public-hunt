@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Video, VolumeX, ScreenShare } from "lucide-react";
+import { ViewerCountDisplay } from "./ViewerCountDisplay";
 
 // ✅ types only — won’t pull the libs at build time
 import type { TrackReference } from "@livekit/components-react";
@@ -52,12 +53,14 @@ interface MultiCameraGridProps {
   tracks: TrackReference[];
   onTrackSelect: (trackId: string | null) => void;
   selectedTrack: string | null;
+  eventId?: string;
 }
 
 const MultiCameraGrid: React.FC<MultiCameraGridProps> = ({
   tracks,
   onTrackSelect,
   selectedTrack,
+  eventId,
 }) => {
   const TrackEnum = useLiveKitTrackEnum();
 
@@ -111,6 +114,15 @@ const MultiCameraGrid: React.FC<MultiCameraGridProps> = ({
             {track.participant.name || "Anonymous"}
             {screen && " (Screen)"}
           </span>
+          {eventId && (
+            <ViewerCountDisplay 
+              eventId={eventId}
+              variant="text" 
+              showIcon={true}
+              size="sm"
+              className="text-xs text-white/80 ml-2"
+            />
+          )}
         </div>
       </div>
     );

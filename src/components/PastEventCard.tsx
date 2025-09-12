@@ -7,6 +7,7 @@ import { Play, Eye, Clock, DollarSign, Calendar } from "lucide-react";
 import TooltipWrapper from "@/components/ui/tooltip-wrapper";
 import TicketPurchaseModal from "./TicketPurchaseModal";
 import MediaBackground from "./MediaBackground";
+import { ViewerCountDisplay } from "./ViewerCountDisplay";
 
 interface PastEvent {
   id: string;
@@ -141,9 +142,13 @@ const PastEventCard: React.FC<PastEventCardProps> = ({
 
             <div className="flex items-center justify-between text-xs text-gray-400">
               <div className="flex items-center gap-2">
-                <span>{event.views} views</span>
-                {/* <span>•</span> */}
-                {/* <span>{event.rating} ★</span> */}
+                <ViewerCountDisplay 
+                  eventId={event.id}
+                  variant="text" 
+                  showIcon={true}
+                  size="sm"
+                  className="text-xs text-gray-400"
+                />
               </div>
               <span>Streamed on {formatDate(event.startDate)}</span>
             </div>

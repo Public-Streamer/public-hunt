@@ -61,6 +61,7 @@ import { useEventScoreboardMeta } from "@/hooks/useEventScoreboardMeta";
 import InStreamChatOverlay from "./InStreamChatOverlay";
 import { EventSocialSection } from "./EventSocialSection";
 import { useStreamName } from "@/hooks/useStreamName";
+import { useRealtimeViewerCount } from "@/hooks/useRealtimeViewerCount";
 import { StreamNameEditor } from "@/components/StreamNameEditor";
 
 interface StreamerInterfaceProps {
@@ -290,22 +291,13 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     }
   };
 
-  const viewerCount = controls.participantCount - 1;
-  useEffect(() => {
-    const updateViewerCount = async () => {
-      try {
-        const supabase = supabaseBrowser();
-        const { error } = await supabase
-          .from("events")
-          .update({ viewer_count: viewerCount })
-          .eq("id", eventId);
-        if (error) throw error;
-      } catch (error) {
-        console.error("Error updating viewer count:", error);
-      }
-    };
-    updateViewerCount();
-  }, [viewerCount, eventId]);
+  // Use the new real-time viewer count system
+  const { viewerCount } = useRealtimeViewerCount({
+    eventId,
+    participantCount: controls.participantCount,
+    streamerCount: 1, // Current user is a streamer
+    debounceMs: 1500
+  });
 
   useEffect(() => {
     loadEventData();
@@ -593,10 +585,10 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                 </Badge>
                 <div className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground">
                   <Users className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span>
-                    {controls.participantCount}{" "}
-                    {screenSize === "mobile" ? "" : "participants"}
-                  </span>
+                    <span>
+                      {controls.participantCount}{" "}
+                      {screenSize === "mobile" ? "" : "total"}
+                    </span>
                 </div>
               </div>
             </div>
@@ -680,7 +672,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                       className="flex items-center gap-1 text-xs"
                     >
                       <Eye className="h-3 w-3" />
-                      {controls.participantCount - 1}
+                      {viewerCount}
                     </Badge>
                   </div>
                 </div>
@@ -1054,7 +1046,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                     Viewers:
                   </span>
                   <span className="text-xs sm:text-sm font-medium">
-                    {Math.max(0, controls.participantCount - 1)}
+                    {viewerCount}
                   </span>
                 </div>
                 <div className="flex justify-between">

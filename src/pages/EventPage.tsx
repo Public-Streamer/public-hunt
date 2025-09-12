@@ -42,6 +42,8 @@ import { patchEvent } from "@/lib/eventStore";
 import { useEventSelector } from "@/hooks/useEventData";
 import { useQuery } from "@tanstack/react-query";
 import LiveDiscussionSection from "@/components/LiveDiscussionSection";
+import TrendingAnalyticsPanel from "@/components/TrendingAnalyticsPanel";
+import { ViewerCountDisplay } from "@/components/ViewerCountDisplay";
 
 type EventData = Database["public"]["Tables"]["events"]["Row"];
 
@@ -754,7 +756,12 @@ const EventPage: React.FC = () => {
                   <div className="flex items-center text-xs sm:text-sm">
                     <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 text-gray-500 flex-shrink-0" />
                     <span className="truncate">
-                      {eventData?.viewer_count || 0} viewers
+                      <ViewerCountDisplay 
+                        eventId={eventId}
+                        variant="text" 
+                        size="sm"
+                        className="text-muted-foreground"
+                      />
                     </span>
                   </div>
                   <div className="flex items-center text-xs sm:text-sm">

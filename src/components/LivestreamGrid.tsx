@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Maximize2, Minimize2, Video, Volume2, VolumeX } from 'lucide-react';
+import { ViewerCountDisplay } from './ViewerCountDisplay';
 
 interface Livestream {
   id: string;
@@ -52,7 +53,13 @@ const LivestreamGrid: React.FC<LivestreamGridProps> = ({ streams }) => {
               LIVE
             </Badge>
             <span className="font-medium">{stream.streamerName}</span>
-            <span className="text-sm">{stream.viewers} viewers</span>
+            <ViewerCountDisplay 
+              eventId={stream.id}
+              variant="text" 
+              showIcon={false}
+              size="sm"
+              className="text-sm text-white"
+            />
           </div>
           
           <div className="absolute top-4 right-4 flex space-x-2">
@@ -93,7 +100,13 @@ const LivestreamGrid: React.FC<LivestreamGridProps> = ({ streams }) => {
             )}
             
             <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
-              {stream.viewers} viewers
+              <ViewerCountDisplay 
+                eventId={stream.id}
+                variant="text" 
+                showIcon={false}
+                size="sm"
+                className="text-xs text-white"
+              />
             </div>
             
             <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-2">

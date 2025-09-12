@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { Calendar, Clock, DollarSign, ExternalLink, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { ViewerCountDisplay } from './ViewerCountDisplay';
 
 interface Event {
   id: string;
@@ -150,7 +151,12 @@ const UserEventsList: React.FC<UserEventsListProps> = ({ userId }) => {
                       <DollarSign className="w-4 h-4" />
                       <span>${event.ticket_price}</span>
                     </div>
-                    <span>{event.viewer_count || 0} viewers</span>
+                    <ViewerCountDisplay 
+                      eventId={event.id}
+                      variant="text" 
+                      showIcon={true}
+                      size="sm"
+                    />
                   </div>
                   <div className="flex items-center space-x-2">
                     <Link to={event.slug ? `/event/${event.slug}` : `/event/${event.id}`}>

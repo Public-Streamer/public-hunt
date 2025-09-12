@@ -1084,32 +1084,32 @@ export type Database = {
         Row: {
           assigned_at: string | null
           assigned_by: string
+          camera_name: string | null
           event_id: string
           id: string
           permissions: string[] | null
           role_type: string | null
           streamer_id: string
-          camera_name: string | null
         }
         Insert: {
           assigned_at?: string | null
           assigned_by: string
+          camera_name?: string | null
           event_id: string
           id?: string
           permissions?: string[] | null
           role_type?: string | null
           streamer_id: string
-          camera_name?: string | null
         }
         Update: {
           assigned_at?: string | null
           assigned_by?: string
+          camera_name?: string | null
           event_id?: string
           id?: string
           permissions?: string[] | null
           role_type?: string | null
           streamer_id?: string
-          camera_name?: string | null
         }
         Relationships: []
       }
@@ -1870,6 +1870,7 @@ export type Database = {
           occupation: string | null
           profile_picture_url: string | null
           relationship_status: string | null
+          stream_name: string | null
           updated_at: string | null
           user_id: string | null
           username: string
@@ -1894,6 +1895,7 @@ export type Database = {
           occupation?: string | null
           profile_picture_url?: string | null
           relationship_status?: string | null
+          stream_name?: string | null
           updated_at?: string | null
           user_id?: string | null
           username: string
@@ -1918,6 +1920,7 @@ export type Database = {
           occupation?: string | null
           profile_picture_url?: string | null
           relationship_status?: string | null
+          stream_name?: string | null
           updated_at?: string | null
           user_id?: string | null
           username?: string
@@ -1985,6 +1988,10 @@ export type Database = {
         Args: { event_name: string }
         Returns: string
       }
+      get_event_viewer_count: {
+        Args: { event_id_param: string }
+        Returns: number
+      }
       get_user_admin_role: {
         Args: { user_email: string }
         Returns: Database["public"]["Enums"]["admin_role"]
@@ -2004,6 +2011,14 @@ export type Database = {
           live_participants_count: number
           should_close_room: boolean
         }[]
+      }
+      update_event_viewer_count_filtered: {
+        Args: {
+          event_id_param: string
+          participant_count: number
+          streamer_count?: number
+        }
+        Returns: undefined
       }
       update_stripe_account_status: {
         Args: {
