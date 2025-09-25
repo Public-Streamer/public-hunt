@@ -232,38 +232,37 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
               </div>
 
               {/* YouTube-Style Ad Overlay */}
-              {showAd && (
+                {showAd && (
                 <div 
-                  className="absolute inset-0 bg-black/80"
+                  className="absolute inset-0 bg-black/80 cursor-pointer"
                   onMouseEnter={() => setShowControls(true)}
                   onMouseLeave={() => setShowControls(false)}
+                  onClick={togglePlay}
                 >
                   {/* Ad Video - Fullscreen */}
                   <video
                     ref={videoRef}
                     src={adData.videoUrl}
                     autoPlay
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover pointer-events-none"
                     controls={false}
                   />
 
                   {/* Ad Indicator */}
-                  <div className="absolute top-2 left-2 md:top-4 md:left-4 bg-yellow-500 text-black px-2 py-1 text-xs font-medium rounded">
+                  <div className="absolute top-2 left-2 md:top-4 md:left-4 bg-yellow-500 text-black px-2 py-1 text-xs font-medium rounded z-30">
                     Ad
                   </div>
 
-                  {/* Ad Title - Top Left */}
-                  <div className="absolute top-2 left-2 md:top-4 md:left-4 z-30 max-w-[280px] md:max-w-sm">
-                    <div className="bg-black/80 backdrop-blur-sm rounded-lg px-3 py-2">
-                      <h3 className="text-white font-semibold text-sm md:text-lg">
-                        {adData.title}
-                      </h3>
-                    </div>
+                  {/* Ad Title - Top Left (No Background) */}
+                  <div className="absolute top-12 left-2 md:top-16 md:left-4 z-30 max-w-[280px] md:max-w-sm">
+                    <h3 className="text-white font-semibold text-sm md:text-lg drop-shadow-lg">
+                      {adData.title}
+                    </h3>
                   </div>
 
-                  {/* Sponsored Indicator & Description - Bottom Left */}
-                  <div className="absolute bottom-16 left-2 md:bottom-20 md:left-4 max-w-[280px] md:max-w-sm z-30">
-                    <div className="bg-black/80 backdrop-blur-sm rounded-lg p-2 md:p-3">
+                  {/* Sponsored Section - Bottom with Float Animation */}
+                  <div className={`absolute bottom-0 left-0 right-0 max-w-[280px] md:max-w-sm ml-2 md:ml-4 z-30 transition-transform duration-300 ${showControls ? 'transform -translate-y-16' : 'transform translate-y-0'}`}>
+                    <div className="bg-black/80 backdrop-blur-sm rounded-lg p-2 md:p-3 mb-2">
                       <div className="text-white/70 text-xs mb-1">Sponsored</div>
                       <p className="text-white text-xs md:text-sm line-clamp-2 mb-2">
                         {adData.description}
@@ -273,7 +272,10 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
                       {adData.ctaLabel && adData.ctaUrl && (
                         <Button
                           size="sm"
-                          onClick={handleCtaClick}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCtaClick();
+                          }}
                           className="bg-blue-600 hover:bg-blue-700 text-white px-3 md:px-4 py-1.5 text-xs md:text-sm font-medium rounded-md shadow-lg min-h-[32px] touch-manipulation"
                         >
                           {adData.ctaLabel}
@@ -283,7 +285,10 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
                   </div>
 
                   {/* Video Controls */}
-                  <div className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 md:p-4 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'} z-40`}>
+                  <div 
+                    className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 md:p-4 transition-all duration-300 ${showControls ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-2'} z-40`}
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     {/* Progress Bar */}
                     <div className="mb-2">
                       <Slider
@@ -302,7 +307,10 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={togglePlay}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            togglePlay();
+                          }}
                           className="text-white hover:bg-white/20 p-1 h-8 w-8"
                         >
                           {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
@@ -313,7 +321,10 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={toggleMute}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleMute();
+                            }}
                             className="text-white hover:bg-white/20 p-1 h-8 w-8"
                           >
                             {isMuted || volume === 0 ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
@@ -345,10 +356,13 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
                     />
                   </div>
 
-                  {/* Skip Button - Bottom Right */}
-                  <div className="absolute bottom-2 right-2 md:bottom-4 md:right-4">
+                  {/* Skip Button - Bottom Right with Float Animation */}
+                  <div className={`absolute bottom-2 right-2 md:bottom-4 md:right-4 z-30 transition-transform duration-300 ${showControls ? 'transform -translate-y-16' : 'transform translate-y-0'}`}>
                     <Button
-                      onClick={handleSkipAd}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSkipAd();
+                      }}
                       disabled={!canSkip}
                       variant="secondary"
                       size="sm"
