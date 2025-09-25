@@ -708,4 +708,10 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
+
+  // Add default return for unhandled cases
+  return new Response(JSON.stringify({ error: "Invalid request" }), {
+    status: 400,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
 });

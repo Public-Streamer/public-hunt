@@ -57,8 +57,8 @@ serve(async (req) => {
       console.error("Error fetching live events:", liveEventsErr);
       throw liveEventsErr;
     }
-    const closed = [];
-    const stillLive = [];
+    const closed: string[] = [];
+    const stillLive: string[] = [];
     // 3) For each live event, check if it has active streams
     for (const ev of liveEvents ?? []) {
       const { data: activeStreams, error: activeErr } = await admin
