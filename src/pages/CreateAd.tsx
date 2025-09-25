@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Upload, Video, X, FileText, Settings, Eye, Info, Sparkles, Lightbulb, ArrowRight } from 'lucide-react';
+import AdPreview from '@/components/AdPreview';
 
 const CreateAd = () => {
   const [title, setTitle] = useState('');
@@ -17,6 +18,7 @@ const CreateAd = () => {
   const [videoUrl, setVideoUrl] = useState('');
   const [uploading, setUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   const handleVideoUpload = async (file: File) => {
     if (!file) return;
@@ -133,6 +135,19 @@ const CreateAd = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleGeneratePreview = () => {
+    if (!videoFile || !description || !title) {
+      toast.error('Please fill in the title, description, and upload a video first');
+      return;
+    }
+    
+    setShowPreview(true);
+  };
+
+  const handleClosePreview = () => {
+    setShowPreview(false);
   };
 
   return (
@@ -347,6 +362,7 @@ const CreateAd = () => {
                   <Button 
                     className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
                     disabled={!videoFile || !description || !title}
+                    onClick={handleGeneratePreview}
                   >
                     <Sparkles className="h-4 w-4 mr-2" />
                     Generate Ad Preview for Me
@@ -387,6 +403,19 @@ const CreateAd = () => {
           </div>
         </div>
       </div>
+
+      {/* Ad Preview Modal */}
+      {showPreview && (
+        <AdPreview
+          adData={{
+            title,
+            description,
+            videoUrl,
+            budget
+          }}
+          onClose={handleClosePreview}
+        />
+      )}
     </div>
   );
 };
