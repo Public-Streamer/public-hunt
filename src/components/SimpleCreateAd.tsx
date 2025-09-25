@@ -88,7 +88,7 @@ export function SimpleCreateAd() {
     e.preventDefault();
     
     if (!title || !description || !budget || !videoUrl) {
-      toast.error('Please fill in all fields and upload a video');
+      toast.error('Please fill in all fields and upload a video file');
       return;
     }
 
@@ -140,31 +140,31 @@ export function SimpleCreateAd() {
       <CardHeader>
         <CardTitle>Create Advertising Campaign</CardTitle>
         <CardDescription>
-          Reach thousands of viewers across our streaming platform. Simple setup, real results.
+          Reach thousands of viewers across our streaming platform. Upload your video ad to get started.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Video Upload Section */}
           <div className="space-y-2">
-            <Label htmlFor="video-upload">Upload Your Ad Content</Label>
+            <Label htmlFor="video-upload">Upload Your Video Ad</Label>
             <div className="border-2 border-dashed border-gray-200 rounded-lg p-6">
               {!videoFile ? (
                 <div className="text-center">
                   <Video className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-2">Upload your ad content</p>
-                  <p className="text-sm text-gray-500 mb-4">Support for MP4, JPG, PNG, GIF files up to 50MB</p>
+                  <p className="text-gray-600 mb-2">Upload your video advertisement</p>
+                  <p className="text-sm text-gray-500 mb-4">Only video files are supported (MP4, MOV, AVI, etc.) up to 50MB</p>
                   <label className="cursor-pointer">
                     <input
                       type="file"
-                      accept="video/*,image/*"
+                      accept="video/*"
                       onChange={handleFileChange}
                       className="hidden"
                       disabled={uploading}
                     />
                     <Button type="button" disabled={uploading} className="pointer-events-none">
                       <Upload className="h-4 w-4 mr-2" />
-                      {uploading ? 'Uploading...' : 'Choose File'}
+                      {uploading ? 'Uploading...' : 'Choose Video File'}
                     </Button>
                   </label>
                 </div>
