@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { X, Users, Eye, MessageCircle, Share2 } from 'lucide-react';
+import { X, Users, MessageCircle, Share2, Edit2, VideoOff, Waves, Eye } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 
 interface AdPreviewProps {
@@ -39,151 +39,210 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-6xl h-full max-h-[90vh] bg-gray-900 rounded-lg overflow-hidden relative">
-        {/* Close Button */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onClose}
-          className="absolute top-4 right-4 z-50 text-white hover:bg-white/20"
-        >
-          <X className="h-5 w-5" />
-        </Button>
+    <div className="fixed inset-0 bg-gray-100 z-50 flex flex-col">
+      {/* Close Button */}
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={onClose}
+        className="absolute top-4 right-4 z-50 hover:bg-gray-200"
+      >
+        <X className="h-5 w-5" />
+      </Button>
 
-        {/* Mock Event Page Header */}
-        <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-4 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold">Live Hunt Competition</h1>
-              <p className="text-white/80">Championship Round • Live Now</p>
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 p-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="w-8 h-8 bg-gray-300 rounded flex items-center justify-center">
+              <Waves className="h-4 w-4" />
             </div>
-            <div className="flex items-center space-x-4 text-sm">
-              <div className="flex items-center space-x-1">
-                <Users className="h-4 w-4" />
-                <span>1,247 viewers</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <Eye className="h-4 w-4" />
-                <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-                <span>LIVE</span>
-              </div>
+            <div>
+              <h1 className="text-lg font-semibold text-gray-900">Yoga Summer Batch 2025 - Streaming Controls</h1>
+            </div>
+            <Edit2 className="h-4 w-4 text-gray-400" />
+          </div>
+          <div className="flex items-center space-x-4">
+            <div className="bg-blue-600 text-white px-3 py-1 rounded-md text-sm font-medium">
+              Connected
+            </div>
+            <div className="flex items-center space-x-2 text-sm text-gray-600">
+              <Users className="h-4 w-4" />
+              <span>2 total</span>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Main Content Area */}
-        <div className="flex h-[calc(100%-80px)]">
-          {/* Video Area */}
-          <div className="flex-1 relative bg-black">
-            {/* Mock Live Stream Background */}
-            <div className="w-full h-full bg-gradient-to-br from-green-800 via-green-600 to-green-900 flex items-center justify-center">
-              <div className="text-center text-white/80">
-                <div className="text-6xl mb-4">🐕</div>
-                <p className="text-xl">Mock Live Stream</p>
-                <p className="text-sm">Championship Hunt in Progress</p>
+      {/* Main Content */}
+      <div className="flex-1 flex max-w-7xl mx-auto w-full">
+        {/* Left Side - Video Area */}
+        <div className="flex-1 p-4">
+          <div className="bg-white rounded-lg border border-gray-200 h-full relative">
+            {/* User Info */}
+            <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+              <span className="text-gray-700">billuthemowtother@mail.com</span>
+              <div className="flex items-center space-x-2">
+                <Edit2 className="h-4 w-4 text-gray-400" />
+                <div className="flex items-center space-x-1 text-sm text-gray-600">
+                  <Eye className="h-4 w-4" />
+                  <span>2</span>
+                </div>
               </div>
             </div>
 
-            {/* Ad Overlay */}
-            {showAd && (
-              <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                <Card className="bg-black/80 backdrop-blur-sm border-white/20 max-w-2xl w-full mx-4">
-                  <CardContent className="p-6">
-                    <div className="space-y-4">
-                      {/* Ad Video */}
-                      <div className="relative">
-                        <video
-                          src={adData.videoUrl}
-                          autoPlay
-                          muted
-                          className="w-full rounded-lg max-h-96"
-                          controls={false}
-                        />
-                        
-                        {/* Progress Bar */}
-                        <div className="absolute bottom-2 left-2 right-16 bg-black/50 rounded-full h-1">
-                          <div 
-                            className="bg-white h-full rounded-full transition-all duration-1000"
-                            style={{ width: `${adProgress}%` }}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Ad Info */}
-                      <div className="text-white">
-                        <h3 className="font-bold text-lg">{adData.title}</h3>
-                        <p className="text-white/80 text-sm line-clamp-2">{adData.description}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Skip Button - Bottom Right */}
-                <Button
-                  onClick={handleSkipAd}
-                  variant="secondary"
-                  size="sm"
-                  className="absolute bottom-6 right-6 bg-black/70 hover:bg-black/90 text-white border-white/20"
-                >
-                  Skip Ad
-                </Button>
-              </div>
-            )}
-
-            {/* Live Stream UI Elements */}
-            <div className="absolute top-4 left-4">
-              <div className="bg-red-600 text-white px-2 py-1 rounded text-sm font-medium">
+            {/* Video Content */}
+            <div className="flex-1 relative bg-gray-50 flex items-center justify-center min-h-[400px]">
+              {/* Live Badge */}
+              <div className="absolute top-4 left-4 bg-red-600 text-white px-2 py-1 rounded text-sm font-medium">
                 🔴 LIVE
               </div>
+
+              {/* Camera Off State */}
+              <div className="text-center text-gray-500">
+                <VideoOff className="h-16 w-16 mx-auto mb-2" />
+                <p className="text-lg">Camera is off</p>
+              </div>
+
+              {/* Ad Overlay */}
+              {showAd && (
+                <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
+                  <Card className="bg-white max-w-2xl w-full mx-4">
+                    <CardContent className="p-6">
+                      <div className="space-y-4">
+                        {/* Ad Video */}
+                        <div className="relative">
+                          <video
+                            src={adData.videoUrl}
+                            autoPlay
+                            muted
+                            className="w-full rounded-lg max-h-96"
+                            controls={false}
+                          />
+                          
+                          {/* Progress Bar */}
+                          <div className="absolute bottom-2 left-2 right-16 bg-black/50 rounded-full h-1">
+                            <div 
+                              className="bg-white h-full rounded-full transition-all duration-1000"
+                              style={{ width: `${adProgress}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Ad Info */}
+                        <div>
+                          <h3 className="font-bold text-lg text-gray-900">{adData.title}</h3>
+                          <p className="text-gray-600 text-sm line-clamp-2">{adData.description}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Skip Button - Bottom Right */}
+                  <Button
+                    onClick={handleSkipAd}
+                    variant="secondary"
+                    size="sm"
+                    className="absolute bottom-6 right-6"
+                  >
+                    Skip Ad
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            {/* Show Chat Button */}
+            <div className="absolute bottom-4 left-4">
+              <Button variant="secondary" size="sm" className="bg-gray-700 text-white hover:bg-gray-800">
+                <MessageCircle className="h-4 w-4 mr-2" />
+                Show Chat
+              </Button>
             </div>
           </div>
+        </div>
 
-          {/* Chat Sidebar */}
-          <div className="w-80 bg-gray-800 border-l border-gray-700">
-            <div className="p-4 border-b border-gray-700">
-              <h3 className="text-white font-medium flex items-center space-x-2">
-                <MessageCircle className="h-4 w-4" />
-                <span>Live Chat</span>
+        {/* Right Sidebar */}
+        <div className="w-80 p-4 space-y-4">
+          {/* Stream Information */}
+          <Card>
+            <CardContent className="p-4">
+              <h3 className="font-semibold text-gray-900 mb-4">Stream Information</h3>
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Status:</span>
+                  <span className="text-gray-900 font-medium">Live</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Viewers:</span>
+                  <span className="text-gray-900 font-medium">2</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Connection:</span>
+                  <span className="text-gray-900 font-medium">Connected</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Invite Other Streamers */}
+          <Card>
+            <CardContent className="p-4">
+              <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
+                <Share2 className="h-4 w-4 mr-2" />
+                Invite Other Streamers
               </h3>
-            </div>
-            
-            <div className="p-4 space-y-3 text-sm">
-              {/* Mock Chat Messages */}
-              <div className="text-gray-300">
-                <span className="text-blue-400 font-medium">HunterMike:</span> Great competition tonight!
+              <p className="text-sm text-gray-600 mb-4">
+                Share this stage link to invite other streamers to join your event:
+              </p>
+              
+              <div className="bg-gray-50 p-2 rounded text-xs text-gray-700 mb-4 font-mono">
+                http://localhost:8080/stage/yoga-summer...
               </div>
-              <div className="text-gray-300">
-                <span className="text-green-400 font-medium">DogLover:</span> Amazing dogs this year
-              </div>
-              <div className="text-gray-300">
-                <span className="text-purple-400 font-medium">StreamFan:</span> Who's leading?
-              </div>
-              <div className="text-gray-300">
-                <span className="text-orange-400 font-medium">CompetitorX:</span> This is intense! 🔥
-              </div>
-            </div>
 
-            <div className="absolute bottom-4 left-4 right-4">
-              <div className="flex space-x-2">
-                <input 
-                  type="text" 
-                  placeholder="Type a message..."
-                  className="flex-1 bg-gray-700 text-white px-3 py-2 rounded text-sm"
-                  disabled
-                />
-                <Button size="sm" variant="ghost" className="text-white">
-                  <Share2 className="h-4 w-4" />
+              <div className="grid grid-cols-2 gap-2">
+                <Button variant="outline" size="sm" className="justify-start">
+                  <div className="w-4 h-4 bg-green-500 rounded mr-2" />
+                  WhatsApp
+                </Button>
+                <Button variant="outline" size="sm" className="justify-start">
+                  <div className="w-4 h-4 bg-blue-600 rounded mr-2" />
+                  Facebook Messe...
+                </Button>
+                <Button variant="outline" size="sm" className="justify-start">
+                  <div className="w-4 h-4 bg-pink-500 rounded mr-2" />
+                  Instagram
+                </Button>
+                <Button variant="outline" size="sm" className="justify-start">
+                  <div className="w-4 h-4 bg-black rounded mr-2" />
+                  TikTok
+                </Button>
+                <Button variant="outline" size="sm" className="justify-start">
+                  <div className="w-4 h-4 bg-black rounded mr-2" />
+                  X (Twitter)
+                </Button>
+                <Button variant="outline" size="sm" className="justify-start">
+                  <div className="w-4 h-4 bg-gray-600 rounded mr-2" />
+                  Copy Secure Link
                 </Button>
               </div>
-            </div>
-          </div>
-        </div>
 
-        {/* Preview Label */}
-        <div className="absolute top-20 left-4 bg-yellow-600 text-black px-3 py-1 rounded-full text-sm font-medium">
-          🎬 Ad Preview Mode
+              <Button variant="outline" size="sm" className="w-full mt-2 justify-start">
+                <div className="w-4 h-4 bg-purple-500 rounded mr-2" />
+                Copy Message
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Bottom text */}
+          <p className="text-xs text-gray-500 text-center">
+            Unlock to modify stream controls
+          </p>
         </div>
+      </div>
+
+      {/* Preview Label */}
+      <div className="absolute top-20 left-4 bg-yellow-500 text-black px-3 py-1 rounded-full text-sm font-medium">
+        🎬 Ad Preview Mode
       </div>
     </div>
   );
