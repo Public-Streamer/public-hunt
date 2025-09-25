@@ -164,7 +164,7 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
-    <div className="fixed inset-0 bg-gray-100 z-50 flex flex-col">
+    <div className="fixed inset-0 bg-white z-50 flex flex-col">
       {/* Close Button */}
       <Button
         variant="ghost"
@@ -175,307 +175,290 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
         <X className="h-5 w-5" />
       </Button>
 
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 p-3 md:p-4">
-        <div className="w-full flex flex-col md:flex-row md:items-center justify-between space-y-2 md:space-y-0">
-          <div className="flex items-center space-x-2 md:space-x-4">
-            <div className="w-6 h-6 md:w-8 md:h-8 bg-gray-300 rounded flex items-center justify-center">
-              <Waves className="h-3 w-3 md:h-4 md:w-4" />
-            </div>
-            <div>
-              <h1 className="text-sm md:text-lg font-semibold text-gray-900">
-                Yoga Summer Batch 2025 - Streaming Controls
-              </h1>
-            </div>
-            <Edit2 className="h-3 w-3 md:h-4 md:w-4 text-gray-400" />
-          </div>
-          <div className="flex items-center space-x-2 md:space-x-4">
-            <div className="bg-blue-600 text-white px-2 md:px-3 py-1 rounded-md text-xs md:text-sm font-medium">
-              Connected
-            </div>
-            <div className="flex items-center space-x-1 md:space-x-2 text-xs md:text-sm text-gray-600">
-              <Users className="h-3 w-3 md:h-4 md:w-4" />
-              <span>2 total</span>
-            </div>
-          </div>
-        </div>
+      {/* Page Title */}
+      <div className="text-center py-4 border-b border-gray-200">
+        <h1 className="text-xl md:text-2xl font-semibold text-gray-900">Test Event 1</h1>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col lg:flex-row w-full">
-        {/* Video Area */}
-        <div className="flex-1 p-2 md:p-4">
-          <div className="bg-white rounded-lg border border-gray-200 h-[40vh] md:h-[60vh] lg:h-full relative">
-            {/* User Info */}
-            <div className="p-2 md:p-4 border-b border-gray-200 flex items-center justify-between">
-              <span className="text-xs md:text-sm text-gray-700">billuthemowtother@mail.com</span>
-              <div className="flex items-center space-x-1 md:space-x-2">
-                <Edit2 className="h-3 w-3 md:h-4 md:w-4 text-gray-400" />
-                <div className="flex items-center space-x-1 text-xs md:text-sm text-gray-600">
-                  <Eye className="h-3 w-3 md:h-4 md:w-4" />
-                  <span>2</span>
-                </div>
+      <div className="flex-1 flex flex-col lg:flex-row max-w-7xl mx-auto w-full p-4 gap-6">
+        {/* Left Content */}
+        <div className="flex-1 space-y-4">
+          {/* Video Area */}
+          <div className="bg-black rounded-lg relative aspect-video">
+            {/* Live Badge */}
+            <div className="absolute top-4 left-4 bg-red-600 text-white px-3 py-1 rounded text-sm font-medium z-30">
+              🔴 LIVE
+            </div>
+
+            {/* Camera Off State */}
+            <div className="absolute inset-0 flex items-center justify-center text-center text-white">
+              <div>
+                <VideoOff className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+                <p className="text-lg text-gray-300">Camera/Screen is Off</p>
               </div>
             </div>
 
-            {/* Video Content */}
-            <div className="flex-1 relative bg-gray-50 flex items-center justify-center min-h-[300px] md:min-h-[400px]">
-              {/* Live Badge */}
-              <div className="absolute top-2 left-2 md:top-4 md:left-4 bg-red-600 text-white px-2 py-1 rounded text-xs md:text-sm font-medium">
-                🔴 LIVE
-              </div>
+            {/* YouTube-Style Ad Overlay */}
+            {showAd && (
+              <div 
+                className="absolute inset-0 bg-black/80 cursor-pointer"
+                onMouseEnter={() => setShowControls(true)}
+                onMouseLeave={() => setShowControls(false)}
+                onClick={togglePlay}
+              >
+                {/* Ad Video - Fullscreen */}
+                <video
+                  ref={videoRef}
+                  src={adData.videoUrl}
+                  autoPlay
+                  className="w-full h-full object-cover pointer-events-none"
+                  controls={false}
+                />
 
-              {/* Camera Off State */}
-              <div className="text-center text-gray-500">
-                <VideoOff className="h-12 w-12 md:h-16 md:w-16 mx-auto mb-2" />
-                <p className="text-sm md:text-lg">Camera is off</p>
-              </div>
+                {/* Ad Indicator */}
+                <div className="absolute top-2 left-2 md:top-4 md:left-4 bg-yellow-500 text-black px-2 py-1 text-xs font-medium rounded z-30">
+                  Ad
+                </div>
 
-              {/* YouTube-Style Ad Overlay */}
-                {showAd && (
+                {/* Ad Title - Top Left (No Background) */}
+                <div className="absolute top-12 left-2 md:top-16 md:left-4 z-30 max-w-[280px] md:max-w-sm">
+                  <h3 className="text-white font-semibold text-sm md:text-lg drop-shadow-lg">
+                    {adData.title}
+                  </h3>
+                </div>
+
+                {/* Sponsored Section - Bottom with Float Animation */}
+                <div className={`absolute bottom-0 left-0 right-0 max-w-[280px] md:max-w-sm ml-2 md:ml-4 z-30 transition-transform duration-300 ${showControls ? 'transform -translate-y-16' : 'transform translate-y-0'}`}>
+                  <div className="bg-black/80 backdrop-blur-sm rounded-lg p-2 md:p-3 mb-2">
+                    <div className="text-white/70 text-xs mb-1">Sponsored</div>
+                    <p className="text-white text-xs md:text-sm line-clamp-2 mb-2">
+                      {adData.description}
+                    </p>
+                    
+                    {/* CTA Button */}
+                    {adData.ctaLabel && adData.ctaUrl && (
+                      <Button
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCtaClick();
+                        }}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 md:px-4 py-1.5 text-xs md:text-sm font-medium rounded-md shadow-lg min-h-[32px] touch-manipulation"
+                      >
+                        {adData.ctaLabel}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Video Controls */}
                 <div 
-                  className="absolute inset-0 bg-black/80 cursor-pointer"
-                  onMouseEnter={() => setShowControls(true)}
-                  onMouseLeave={() => setShowControls(false)}
-                  onClick={togglePlay}
+                  className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 md:p-4 transition-all duration-300 ${showControls ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-2'} z-40`}
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  {/* Ad Video - Fullscreen */}
-                  <video
-                    ref={videoRef}
-                    src={adData.videoUrl}
-                    autoPlay
-                    className="w-full h-full object-cover pointer-events-none"
-                    controls={false}
-                  />
-
-                  {/* Ad Indicator */}
-                  <div className="absolute top-2 left-2 md:top-4 md:left-4 bg-yellow-500 text-black px-2 py-1 text-xs font-medium rounded z-30">
-                    Ad
+                  {/* Progress Bar */}
+                  <div className="mb-2">
+                    <Slider
+                      value={[currentTime]}
+                      max={duration}
+                      step={0.1}
+                      onValueChange={handleSeek}
+                      className="w-full"
+                    />
                   </div>
 
-                  {/* Ad Title - Top Left (No Background) */}
-                  <div className="absolute top-12 left-2 md:top-16 md:left-4 z-30 max-w-[280px] md:max-w-sm">
-                    <h3 className="text-white font-semibold text-sm md:text-lg drop-shadow-lg">
-                      {adData.title}
-                    </h3>
-                  </div>
+                  {/* Control Bar */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2 md:space-x-4">
+                      {/* Play/Pause Button */}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          togglePlay();
+                        }}
+                        className="text-white hover:bg-white/20 p-1 h-8 w-8"
+                      >
+                        {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                      </Button>
 
-                  {/* Sponsored Section - Bottom with Float Animation */}
-                  <div className={`absolute bottom-0 left-0 right-0 max-w-[280px] md:max-w-sm ml-2 md:ml-4 z-30 transition-transform duration-300 ${showControls ? 'transform -translate-y-16' : 'transform translate-y-0'}`}>
-                    <div className="bg-black/80 backdrop-blur-sm rounded-lg p-2 md:p-3 mb-2">
-                      <div className="text-white/70 text-xs mb-1">Sponsored</div>
-                      <p className="text-white text-xs md:text-sm line-clamp-2 mb-2">
-                        {adData.description}
-                      </p>
-                      
-                      {/* CTA Button */}
-                      {adData.ctaLabel && adData.ctaUrl && (
-                        <Button
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleCtaClick();
-                          }}
-                          className="bg-blue-600 hover:bg-blue-700 text-white px-3 md:px-4 py-1.5 text-xs md:text-sm font-medium rounded-md shadow-lg min-h-[32px] touch-manipulation"
-                        >
-                          {adData.ctaLabel}
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Video Controls */}
-                  <div 
-                    className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 md:p-4 transition-all duration-300 ${showControls ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-2'} z-40`}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {/* Progress Bar */}
-                    <div className="mb-2">
-                      <Slider
-                        value={[currentTime]}
-                        max={duration}
-                        step={0.1}
-                        onValueChange={handleSeek}
-                        className="w-full"
-                      />
-                    </div>
-
-                    {/* Control Bar */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2 md:space-x-4">
-                        {/* Play/Pause Button */}
+                      {/* Volume Control */}
+                      <div className="flex items-center space-x-2">
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={(e) => {
                             e.stopPropagation();
-                            togglePlay();
+                            toggleMute();
                           }}
                           className="text-white hover:bg-white/20 p-1 h-8 w-8"
                         >
-                          {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                          {isMuted || volume === 0 ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
                         </Button>
-
-                        {/* Volume Control */}
-                        <div className="flex items-center space-x-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleMute();
-                            }}
-                            className="text-white hover:bg-white/20 p-1 h-8 w-8"
-                          >
-                            {isMuted || volume === 0 ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-                          </Button>
-                          <div className="hidden md:block w-20">
-                            <Slider
-                              value={[volume]}
-                              max={1}
-                              step={0.1}
-                              onValueChange={handleVolumeChange}
-                              className="w-full"
-                            />
-                          </div>
+                        <div className="hidden md:block w-20">
+                          <Slider
+                            value={[volume]}
+                            max={1}
+                            step={0.1}
+                            onValueChange={handleVolumeChange}
+                            className="w-full"
+                          />
                         </div>
+                      </div>
 
-                        {/* Time Display */}
-                        <div className="text-white text-xs md:text-sm">
-                          {formatTime(currentTime)} / {formatTime(duration)}
-                        </div>
+                      {/* Time Display */}
+                      <div className="text-white text-xs md:text-sm">
+                        {formatTime(currentTime)} / {formatTime(duration)}
                       </div>
                     </div>
                   </div>
-
-                  {/* Simple Progress Bar (always visible) */}
-                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20 z-30">
-                    <div
-                      className="bg-yellow-500 h-full transition-all duration-300"
-                      style={{ width: `${progress}%` }}
-                    />
-                  </div>
-
-                  {/* Skip Button - Bottom Right with Float Animation */}
-                  <div className={`absolute bottom-2 right-2 md:bottom-4 md:right-4 z-30 transition-transform duration-300 ${showControls ? 'transform -translate-y-16' : 'transform translate-y-0'}`}>
-                    <Button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSkipAd();
-                      }}
-                      disabled={!canSkip}
-                      variant="secondary"
-                      size="sm"
-                      className={`${
-                        canSkip
-                          ? "bg-white text-black hover:bg-gray-100"
-                          : "bg-gray-600/80 text-white cursor-not-allowed"
-                      } text-xs md:text-sm px-2 md:px-3 py-1 font-medium min-h-[36px] touch-manipulation`}
-                    >
-                      {canSkip ? "Skip Ad" : `Skip Ad in ${skipTimer}`}
-                    </Button>
-                  </div>
                 </div>
-              )}
-            </div>
 
-            {/* Show Chat Button */}
-            <div className="absolute bottom-2 left-2 md:bottom-4 md:left-4">
-              <Button
-                variant="secondary"
-                size="sm"
-                className="bg-gray-700 text-white hover:bg-gray-800 text-xs md:text-sm min-h-[36px] touch-manipulation"
-              >
-                <MessageCircle className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
-                Show Chat
-              </Button>
+                {/* Simple Progress Bar (always visible) */}
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20 z-30">
+                  <div
+                    className="bg-yellow-500 h-full transition-all duration-300"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+
+                {/* Skip Button - Bottom Right with Float Animation */}
+                <div className={`absolute bottom-2 right-2 md:bottom-4 md:right-4 z-30 transition-transform duration-300 ${showControls ? 'transform -translate-y-16' : 'transform translate-y-0'}`}>
+                  <Button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSkipAd();
+                    }}
+                    disabled={!canSkip}
+                    variant="secondary"
+                    size="sm"
+                    className={`${
+                      canSkip
+                        ? "bg-white text-black hover:bg-gray-100"
+                        : "bg-gray-600/80 text-white cursor-not-allowed"
+                    } text-xs md:text-sm px-2 md:px-3 py-1 font-medium min-h-[36px] touch-manipulation`}
+                  >
+                    {canSkip ? "Skip Ad" : `Skip Ad in ${skipTimer}`}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Like and Comment Buttons */}
+          <div className="flex gap-2 mt-4">
+            <Button variant="outline" className="flex-1 text-gray-600 hover:text-gray-900">
+              ❤️ Like
+            </Button>
+            <Button variant="outline" className="flex-1 text-gray-600 hover:text-gray-900">
+              💬 Comment
+            </Button>
+          </div>
+
+          {/* Live Discussion Section */}
+          <div className="mt-6">
+            <div className="flex items-center gap-2 mb-4">
+              <MessageCircle className="h-5 w-5 text-gray-600" />
+              <h3 className="text-lg font-semibold text-gray-900">Live Discussion (0)</h3>
+            </div>
+            
+            <div className="border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 bg-gray-300 rounded-full"></div>
+                <span className="text-sm text-gray-600">No messages yet...</span>
+              </div>
+              
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Join the live discussion..."
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <Button className="bg-blue-500 hover:bg-blue-600 text-white px-6">
+                  Send
+                </Button>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Sidebar */}
-        <div className="w-full lg:w-80 p-2 md:p-4 space-y-3 md:space-y-4">
-          {/* Stream Information */}
-          <Card>
-            <CardContent className="p-3 md:p-4">
-              <h3 className="font-semibold text-gray-900 mb-3 md:mb-4 text-sm md:text-base">
-                Stream Information
-              </h3>
-              <div className="space-y-2 md:space-y-3 text-xs md:text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Status:</span>
-                  <span className="text-gray-900 font-medium">Live</span>
+        {/* Right Sidebar */}
+        <div className="w-full lg:w-80 space-y-4">
+          {/* Event Info Card */}
+          <Card className="border border-gray-200">
+            <CardContent className="p-4">
+              <h3 className="font-semibold text-gray-900 mb-4">Test Event 1</h3>
+              <div className="space-y-3 text-sm">
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-600">Podcast</span>
+                  <span className="bg-red-500 text-white px-2 py-1 rounded text-xs">🔴 LIVE</span>
+                  <span className="bg-green-500 text-white px-2 py-1 rounded text-xs">Full Access (Free Event)</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Viewers:</span>
-                  <span className="text-gray-900 font-medium">2</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Connection:</span>
-                  <span className="text-gray-900 font-medium">Connected</span>
+                <div className="text-gray-600">tst</div>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <div className="text-gray-600">📅 2025-09-20</div>
+                    <div className="text-gray-600">👤 Error</div>
+                  </div>
+                  <div>
+                    <div className="text-gray-600">🕐 12:50:00</div>
+                    <div className="text-gray-600">📍 Khulna</div>
+                  </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Invite Other Streamers */}
-          <Card>
-            <CardContent className="p-3 md:p-4">
-              <h3 className="font-semibold text-gray-900 mb-2 flex items-center text-sm md:text-base">
-                <Share2 className="h-3 w-3 md:h-4 md:w-4 mr-2" />
-                Invite Other Streamers
-              </h3>
-              <p className="text-xs md:text-sm text-gray-600 mb-3 md:mb-4">
-                Share this stage link to invite other streamers to join your
-                event:
-              </p>
-
-              <div className="bg-gray-50 p-2 rounded text-xs text-gray-700 mb-3 md:mb-4 font-mono overflow-hidden">
-                http://localhost:8080/stage/yoga-summer...
+          {/* Share Event Card */}
+          <Card className="border border-gray-200">
+            <CardContent className="p-4">
+              <h3 className="font-semibold text-gray-900 mb-4">Share Event</h3>
+              <div className="mb-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Share2 className="h-4 w-4 text-gray-600" />
+                  <span className="text-sm font-medium">Share Promotional Link</span>
+                </div>
+                <div className="grid grid-cols-4 gap-2">
+                  <Button variant="outline" size="sm" className="p-2">
+                    <div className="w-6 h-6 bg-green-500 rounded flex items-center justify-center text-white text-xs">W</div>
+                  </Button>
+                  <Button variant="outline" size="sm" className="p-2">
+                    <div className="w-6 h-6 bg-blue-600 rounded flex items-center justify-center text-white text-xs">f</div>
+                  </Button>
+                  <Button variant="outline" size="sm" className="p-2">
+                    <div className="w-6 h-6 bg-pink-500 rounded flex items-center justify-center text-white text-xs">📷</div>
+                  </Button>
+                  <Button variant="outline" size="sm" className="p-2">
+                    <div className="w-6 h-6 bg-black rounded flex items-center justify-center text-white text-xs">X</div>
+                  </Button>
+                  <Button variant="outline" size="sm" className="p-2">
+                    <div className="w-6 h-6 bg-red-500 rounded flex items-center justify-center text-white text-xs">📺</div>
+                  </Button>
+                  <Button variant="outline" size="sm" className="p-2">
+                    <div className="w-6 h-6 bg-blue-500 rounded flex items-center justify-center text-white text-xs">📧</div>
+                  </Button>
+                  <Button variant="outline" size="sm" className="p-2">
+                    <div className="w-6 h-6 bg-green-600 rounded flex items-center justify-center text-white text-xs">📱</div>
+                  </Button>
+                  <Button variant="outline" size="sm" className="p-2">
+                    <div className="w-6 h-6 bg-gray-600 rounded flex items-center justify-center text-white text-xs">📋</div>
+                  </Button>
+                </div>
               </div>
+            </CardContent>
+          </Card>
 
-              <div className="grid grid-cols-2 gap-2">
-                <Button variant="outline" size="sm" className="justify-start text-xs min-h-[40px] touch-manipulation">
-                  <div className="w-3 h-3 md:w-4 md:h-4 bg-green-500 rounded mr-1 md:mr-2" />
-                  WhatsApp
-                </Button>
-                <Button variant="outline" size="sm" className="justify-start text-xs min-h-[40px] touch-manipulation">
-                  <div className="w-3 h-3 md:w-4 md:h-4 bg-blue-600 rounded mr-1 md:mr-2" />
-                  Facebook
-                </Button>
-                <Button variant="outline" size="sm" className="justify-start text-xs min-h-[40px] touch-manipulation">
-                  <div className="w-3 h-3 md:w-4 md:h-4 bg-pink-500 rounded mr-1 md:mr-2" />
-                  Instagram
-                </Button>
-                <Button variant="outline" size="sm" className="justify-start text-xs min-h-[40px] touch-manipulation">
-                  <div className="w-3 h-3 md:w-4 md:h-4 bg-black rounded mr-1 md:mr-2" />
-                  TikTok
-                </Button>
-                <Button variant="outline" size="sm" className="justify-start text-xs min-h-[40px] touch-manipulation">
-                  <div className="w-3 h-3 md:w-4 md:h-4 bg-black rounded mr-1 md:mr-2" />
-                  X (Twitter)
-                </Button>
-                <Button variant="outline" size="sm" className="justify-start text-xs min-h-[40px] touch-manipulation">
-                  <div className="w-3 h-3 md:w-4 md:h-4 bg-gray-600 rounded mr-1 md:mr-2" />
-                  Copy Link
-                </Button>
-              </div>
-
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full mt-2 justify-start text-xs min-h-[40px] touch-manipulation"
-              >
-                <div className="w-3 h-3 md:w-4 md:h-4 bg-purple-500 rounded mr-1 md:mr-2" />
-                Copy Message
+          {/* Report Event Card */}
+          <Card className="border border-gray-200">
+            <CardContent className="p-4">
+              <h3 className="font-semibold text-gray-900 mb-4">Report Event</h3>
+              <Button variant="outline" className="w-full">
+                🚨 Report Event
               </Button>
             </CardContent>
           </Card>
-
-          {/* Bottom text */}
-          <p className="text-xs text-gray-500 text-center">
-            Unlock to modify stream controls
-          </p>
         </div>
       </div>
 
