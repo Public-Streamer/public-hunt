@@ -156,9 +156,9 @@ const CreateAd = () => {
                 <Info className="text-blue-300 h-6 w-6 mt-1 flex-shrink-0" />
                 <div className="text-white/90 text-left">
                   <p className="text-lg leading-relaxed">
-                    <strong>Not sure how to advertise or where to start? Need help creating an ad?</strong> That's what this page is for! 
-                    Just upload your media, tell us what your ad is about, and we'll help you create a professional-looking ad 
-                    you can run immediately on Public Streamer channels and events — and even save for future use.
+                    <strong>Create professional video ads in minutes.</strong> Upload your video content, set your budget, 
+                    and target specific channels or let our system find the best placement for your ad. Your ads will appear 
+                    on live streams and events across the Public Streamer network, reaching engaged audiences in real-time.
                   </p>
                 </div>
               </div>
