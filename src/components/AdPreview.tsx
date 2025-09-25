@@ -16,26 +16,46 @@ interface AdPreviewProps {
 const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
   const [showAd, setShowAd] = useState(true);
   const [adProgress, setAdProgress] = useState(0);
+  const [skipTimer, setSkipTimer] = useState(5);
+  const [canSkip, setCanSkip] = useState(false);
   const adDuration = 30; // 30 seconds for demo
 
   useEffect(() => {
     if (!showAd) return;
 
-    const interval = setInterval(() => {
+    // Ad progress timer
+    const progressInterval = setInterval(() => {
       setAdProgress((prev) => {
         if (prev >= 100) {
-          clearInterval(interval);
+          clearInterval(progressInterval);
           return 100;
         }
         return prev + (100 / adDuration);
       });
     }, 1000);
 
-    return () => clearInterval(interval);
+    // Skip timer countdown
+    const skipInterval = setInterval(() => {
+      setSkipTimer((prev) => {
+        if (prev <= 1) {
+          setCanSkip(true);
+          clearInterval(skipInterval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      clearInterval(progressInterval);
+      clearInterval(skipInterval);
+    };
   }, [showAd]);
 
   const handleSkipAd = () => {
-    setShowAd(false);
+    if (canSkip) {
+      setShowAd(false);
+    }
   };
 
   return (
@@ -104,47 +124,53 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
                 <p className="text-lg">Camera is off</p>
               </div>
 
-            {/* Ad Overlay */}
+            {/* YouTube-Style Ad Overlay */}
             {showAd && (
-              <div className="absolute inset-4 flex items-center justify-center">
-                <Card className="bg-white max-w-xl w-full mx-4 shadow-2xl">
-                  <CardContent className="p-0">
-                    {/* Ad Video */}
-                    <div className="relative">
-                      <video
-                        src={adData.videoUrl}
-                        autoPlay
-                        muted
-                        className="w-full rounded-t-lg max-h-80"
-                        controls={false}
-                      />
-                      
-                      {/* Progress Bar */}
-                      <div className="absolute bottom-2 left-2 right-2 bg-black/50 rounded-full h-1">
-                        <div 
-                          className="bg-white h-full rounded-full transition-all duration-1000"
-                          style={{ width: `${adProgress}%` }}
-                        />
-                      </div>
+              <div className="absolute inset-0 bg-black/80">
+                {/* Ad Video - Fullscreen */}
+                <video
+                  src={adData.videoUrl}
+                  autoPlay
+                  muted
+                  className="w-full h-full object-cover"
+                  controls={false}
+                />
 
-                      {/* Skip Button - positioned in bottom right of video */}
-                      <Button
-                        onClick={handleSkipAd}
-                        variant="secondary"
-                        size="sm"
-                        className="absolute bottom-2 right-2 bg-gray-700 text-white hover:bg-gray-800 text-xs px-2 py-1"
-                      >
-                        Skip Ad
-                      </Button>
-                    </div>
+                {/* Ad Indicator */}
+                <div className="absolute top-4 left-4 bg-yellow-500 text-black px-2 py-1 text-xs font-medium rounded">
+                  Ad
+                </div>
 
-                    {/* Ad Info */}
-                    <div className="p-4">
-                      <h3 className="font-bold text-lg text-gray-900">{adData.title}</h3>
-                      <p className="text-gray-600 text-sm line-clamp-2">{adData.description}</p>
-                    </div>
-                  </CardContent>
-                </Card>
+                {/* Progress Bar - YouTube Style */}
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
+                  <div 
+                    className="bg-yellow-500 h-full transition-all duration-1000"
+                    style={{ width: `${adProgress}%` }}
+                  />
+                </div>
+
+                {/* Ad Info - Bottom Left */}
+                <div className="absolute bottom-4 left-4 max-w-md">
+                  <h3 className="text-white font-semibold text-lg mb-1">{adData.title}</h3>
+                  <p className="text-white/90 text-sm line-clamp-2">{adData.description}</p>
+                </div>
+
+                {/* Skip Button - Bottom Right */}
+                <div className="absolute bottom-4 right-4">
+                  <Button
+                    onClick={handleSkipAd}
+                    disabled={!canSkip}
+                    variant="secondary"
+                    size="sm"
+                    className={`${
+                      canSkip 
+                        ? 'bg-white text-black hover:bg-gray-100' 
+                        : 'bg-gray-600/80 text-white cursor-not-allowed'
+                    } text-sm px-3 py-1 font-medium`}
+                  >
+                    {canSkip ? 'Skip Ad' : `Skip Ad in ${skipTimer}`}
+                  </Button>
+                </div>
               </div>
             )}
             </div>
