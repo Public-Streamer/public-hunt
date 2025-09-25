@@ -252,11 +252,13 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
                     Ad
                   </div>
 
-                  {/* Ad Title - Top Center */}
-                  <div className="absolute top-2 left-1/2 transform -translate-x-1/2 md:top-4 z-30">
-                    <h3 className="text-white font-semibold text-sm md:text-lg text-center drop-shadow-lg">
-                      {adData.title}
-                    </h3>
+                  {/* Ad Title - Top Left */}
+                  <div className="absolute top-2 left-2 md:top-4 md:left-4 z-30 max-w-[280px] md:max-w-sm">
+                    <div className="bg-black/80 backdrop-blur-sm rounded-lg px-3 py-2">
+                      <h3 className="text-white font-semibold text-sm md:text-lg">
+                        {adData.title}
+                      </h3>
+                    </div>
                   </div>
 
                   {/* Sponsored Indicator & Description - Bottom Left */}
