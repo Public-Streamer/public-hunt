@@ -106,10 +106,14 @@ const MobileNav: React.FC<MobileNavProps> = ({
             <span className="font-medium">Events</span>
           </Link>
 
-          {/* <Link to="/advertisers" onClick={onClose} className="flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-gray-100 transition-colors">
+          <Link
+            to="/advertisers"
+            onClick={onClose}
+            className="flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-gray-100 transition-colors"
+          >
             <Target className="h-5 w-5 text-gray-600" />
             <span className="font-medium">Advertisers</span>
-          </Link> */}
+          </Link>
 
           <Link
             to={`/profile/${user?.id}`}
@@ -139,7 +143,9 @@ const MobileNav: React.FC<MobileNavProps> = ({
           </Link>
         </nav>
         <div className="mt-6">
-          <h4 className="text-xs uppercase tracking-wider text-gray-500 mb-2">Legal</h4>
+          <h4 className="text-xs uppercase tracking-wider text-gray-500 mb-2">
+            Legal
+          </h4>
           <Link
             to="/terms"
             onClick={onClose}
