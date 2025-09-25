@@ -315,8 +315,8 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
                     />
                   </div>
 
-                  {/* Ad Info - Bottom Left */}
-                  <div className="absolute bottom-2 left-2 md:bottom-4 md:left-4 max-w-[200px] md:max-w-xs">
+                  {/* Ad Info - Top Left */}
+                  <div className="absolute top-12 left-2 md:top-16 md:left-4 max-w-[200px] md:max-w-xs z-30">
                     <div className="bg-black/80 p-2 md:p-4 rounded-xl">
                       <h3 className="text-white font-semibold text-xs md:text-sm mb-1">
                         {adData.title}
