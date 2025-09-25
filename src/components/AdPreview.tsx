@@ -33,7 +33,7 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
   const [showAd, setShowAd] = useState(true);
   const [skipTimer, setSkipTimer] = useState(5);
   const [canSkip, setCanSkip] = useState(false);
-  
+
   // Video control states
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(false);
@@ -41,7 +41,7 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [showControls, setShowControls] = useState(false);
-  
+
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -89,18 +89,18 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
       setShowAd(false);
     };
 
-    video.addEventListener('timeupdate', handleTimeUpdate);
-    video.addEventListener('loadedmetadata', handleLoadedMetadata);
-    video.addEventListener('play', handlePlay);
-    video.addEventListener('pause', handlePause);
-    video.addEventListener('ended', handleEnded);
+    video.addEventListener("timeupdate", handleTimeUpdate);
+    video.addEventListener("loadedmetadata", handleLoadedMetadata);
+    video.addEventListener("play", handlePlay);
+    video.addEventListener("pause", handlePause);
+    video.addEventListener("ended", handleEnded);
 
     return () => {
-      video.removeEventListener('timeupdate', handleTimeUpdate);
-      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      video.removeEventListener('play', handlePlay);
-      video.removeEventListener('pause', handlePause);
-      video.removeEventListener('ended', handleEnded);
+      video.removeEventListener("timeupdate", handleTimeUpdate);
+      video.removeEventListener("loadedmetadata", handleLoadedMetadata);
+      video.removeEventListener("play", handlePlay);
+      video.removeEventListener("pause", handlePause);
+      video.removeEventListener("ended", handleEnded);
     };
   }, [showAd]);
 
@@ -158,7 +158,7 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
@@ -176,8 +176,8 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
       </Button>
 
       {/* Page Title */}
-      <div className="text-center py-4 border-b border-gray-200">
-        <h1 className="text-xl md:text-2xl font-semibold text-gray-900">Test Event 1</h1>
+      <div className="text-center py-4 border-b border-gray-200  bg-yellow-500 text-black px-2 md:px-3 text-xs md:text-sm font-medium">
+        🎬 Ad Preview Mode
       </div>
 
       {/* Main Content */}
@@ -187,21 +187,23 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
           {/* Video Area */}
           <div className="bg-black rounded-lg relative aspect-video overflow-hidden">
             {/* Live Badge */}
-            <div className="absolute top-3 left-3 sm:top-4 sm:left-4 bg-red-600 text-white px-2 sm:px-3 py-1 rounded text-xs sm:text-sm font-medium z-10">
+            {/* <div className="absolute top-3 left-3 sm:top-4 sm:left-4 bg-red-600 text-white px-2 sm:px-3 py-1 rounded text-xs sm:text-sm font-medium z-10">
               🔴 LIVE
-            </div>
+            </div> */}
 
             {/* Camera Off State */}
             <div className="absolute inset-0 flex items-center justify-center text-center text-white">
               <div className="px-4">
                 <VideoOff className="h-12 sm:h-16 w-12 sm:w-16 mx-auto mb-3 sm:mb-4 text-gray-300" />
-                <p className="text-base sm:text-lg text-gray-300">Camera/Screen is Off</p>
+                <p className="text-base sm:text-lg text-gray-300">
+                  Camera/Screen is Off
+                </p>
               </div>
             </div>
 
             {/* YouTube-Style Ad Overlay */}
             {showAd && (
-              <div 
+              <div
                 className="absolute inset-0 bg-black cursor-pointer"
                 onMouseEnter={() => setShowControls(true)}
                 onMouseLeave={() => setShowControls(false)}
@@ -216,26 +218,29 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
                   controls={false}
                 />
 
-                {/* Ad Indicator */}
-                <div className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-yellow-500 text-black px-2 py-1 text-xs font-medium rounded z-50">
-                  Ad
-                </div>
-
                 {/* Ad Title - Top Left (No Background) */}
-                <div className="absolute top-10 sm:top-12 left-2 sm:left-3 z-40 max-w-[250px] sm:max-w-[320px] lg:max-w-sm">
+                <div className="absolute top-0  left-0 z-40  bg-black/15 w-full sm:px-2">
                   <h3 className="text-white font-semibold text-sm sm:text-base lg:text-lg drop-shadow-2xl leading-tight">
                     {adData.title}
                   </h3>
                 </div>
 
                 {/* Sponsored Section - Bottom Left with proper spacing */}
-                <div className={`absolute bottom-0 left-2 sm:left-3 z-30 max-w-[280px] sm:max-w-[350px] lg:max-w-md transition-all duration-300 ease-in-out ${showControls ? 'transform -translate-y-20 sm:-translate-y-24' : 'transform translate-y-0'}`}>
+                <div
+                  className={`absolute bottom-0 left-2 sm:left-3 z-30 max-w-[280px] sm:max-w-[350px] lg:max-w-md transition-all duration-300 ease-in-out ${
+                    showControls
+                      ? "transform -translate-y-20 sm:-translate-y-24"
+                      : "transform translate-y-0"
+                  }`}
+                >
                   <div className="bg-black/85 backdrop-blur-sm rounded-lg p-3 sm:p-4 mb-2 sm:mb-3 shadow-lg">
-                    <div className="text-white/70 text-xs mb-1.5">Sponsored</div>
-                    <p className="text-white text-xs sm:text-sm leading-relaxed line-clamp-2 mb-3">
+                    <div className="text-white/70 text-xs mb-1.5">
+                      Sponsored
+                    </div>
+                    <p className="text-white text-xs sm:text-sm leading-relaxed line-clamp-2 mb-3 hidden">
                       {adData.description}
                     </p>
-                    
+
                     {/* CTA Button */}
                     {adData.ctaLabel && adData.ctaUrl && (
                       <Button
@@ -253,8 +258,12 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
                 </div>
 
                 {/* Video Controls - Higher z-index to stay on top */}
-                <div 
-                  className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-3 sm:p-4 transition-all duration-300 ease-in-out ${showControls ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-2'} z-50`}
+                <div
+                  className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-3 sm:p-4 transition-all duration-300 ease-in-out ${
+                    showControls
+                      ? "opacity-100 transform translate-y-0"
+                      : "opacity-0 transform translate-y-2"
+                  } z-50`}
                   onClick={(e) => e.stopPropagation()}
                 >
                   {/* Progress Bar */}
@@ -281,7 +290,11 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
                         }}
                         className="text-white hover:bg-white/20 p-1.5 h-8 w-8 sm:h-10 sm:w-10 rounded-full transition-colors duration-200 min-h-[44px] touch-manipulation"
                       >
-                        {isPlaying ? <Pause className="h-4 w-4 sm:h-5 sm:w-5" /> : <Play className="h-4 w-4 sm:h-5 sm:w-5" />}
+                        {isPlaying ? (
+                          <Pause className="h-4 w-4 sm:h-5 sm:w-5" />
+                        ) : (
+                          <Play className="h-4 w-4 sm:h-5 sm:w-5" />
+                        )}
                       </Button>
 
                       {/* Volume Control */}
@@ -295,7 +308,11 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
                           }}
                           className="text-white hover:bg-white/20 p-1.5 h-8 w-8 sm:h-10 sm:w-10 rounded-full transition-colors duration-200 min-h-[44px] touch-manipulation"
                         >
-                          {isMuted || volume === 0 ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                          {isMuted || volume === 0 ? (
+                            <VolumeX className="h-4 w-4" />
+                          ) : (
+                            <Volume2 className="h-4 w-4" />
+                          )}
                         </Button>
                         <div className="hidden md:block w-16 lg:w-20">
                           <Slider
@@ -325,7 +342,13 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
                 </div>
 
                 {/* Skip Button - Bottom Right with proper spacing and z-index */}
-                <div className={`absolute bottom-2 right-2 sm:bottom-3 sm:right-3 z-40 transition-all duration-300 ease-in-out ${showControls ? 'transform -translate-y-20 sm:-translate-y-24' : 'transform translate-y-0'}`}>
+                <div
+                  className={`absolute bottom-2 right-2 sm:bottom-3 sm:right-3 z-40 transition-all duration-300 ease-in-out ${
+                    showControls
+                      ? "transform -translate-y-20 sm:-translate-y-24"
+                      : "transform translate-y-0"
+                  }`}
+                >
                   <Button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -349,13 +372,19 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
 
           {/* Like and Comment Buttons */}
           <div className="flex gap-2 sm:gap-3">
-            <Button variant="outline" className="flex-1 text-gray-600 hover:text-gray-900 hover:border-gray-400 min-h-[44px] touch-manipulation transition-colors duration-200">
+            <Button
+              variant="outline"
+              className="flex-1 text-gray-600 hover:text-gray-900 hover:border-gray-400 min-h-[44px] touch-manipulation transition-colors duration-200"
+            >
               <span className="flex items-center gap-2">
                 <span>❤️</span>
                 <span className="hidden sm:inline">Like</span>
               </span>
             </Button>
-            <Button variant="outline" className="flex-1 text-gray-600 hover:text-gray-900 hover:border-gray-400 min-h-[44px] touch-manipulation transition-colors duration-200">
+            <Button
+              variant="outline"
+              className="flex-1 text-gray-600 hover:text-gray-900 hover:border-gray-400 min-h-[44px] touch-manipulation transition-colors duration-200"
+            >
               <span className="flex items-center gap-2">
                 <span>💬</span>
                 <span className="hidden sm:inline">Comment</span>
@@ -367,16 +396,20 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
           <div className="space-y-4">
             <div className="flex items-center gap-2 sm:gap-3">
               <MessageCircle className="h-5 w-5 text-gray-600 flex-shrink-0" />
-              <h3 className="text-lg font-semibold text-gray-900">Live Discussion (0)</h3>
+              <h3 className="text-lg font-semibold text-gray-900">
+                Live Discussion (0)
+              </h3>
             </div>
-            
+
             <Card className="border border-gray-200 shadow-sm">
               <CardContent className="p-4 sm:p-5">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-8 h-8 bg-gray-300 rounded-full flex-shrink-0"></div>
-                  <span className="text-sm text-gray-600">No messages yet...</span>
+                  <span className="text-sm text-gray-600">
+                    No messages yet...
+                  </span>
                 </div>
-                
+
                 <div className="flex gap-2 sm:gap-3">
                   <input
                     type="text"
@@ -401,8 +434,12 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
               <div className="space-y-3 text-sm">
                 <div className="flex items-center gap-2">
                   <span className="text-gray-600">Podcast</span>
-                  <span className="bg-red-500 text-white px-2 py-1 rounded text-xs">🔴 LIVE</span>
-                  <span className="bg-green-500 text-white px-2 py-1 rounded text-xs">Full Access (Free Event)</span>
+                  <span className="bg-red-500 text-white px-2 py-1 rounded text-xs">
+                    🔴 LIVE
+                  </span>
+                  <span className="bg-green-500 text-white px-2 py-1 rounded text-xs">
+                    Full Access (Free Event)
+                  </span>
                 </div>
                 <div className="text-gray-600">tst</div>
                 <div className="grid grid-cols-2 gap-4 text-sm">
@@ -426,32 +463,50 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
               <div className="mb-4">
                 <div className="flex items-center gap-2 mb-3">
                   <Share2 className="h-4 w-4 text-gray-600" />
-                  <span className="text-sm font-medium">Share Promotional Link</span>
+                  <span className="text-sm font-medium">
+                    Share Promotional Link
+                  </span>
                 </div>
                 <div className="grid grid-cols-4 gap-2">
                   <Button variant="outline" size="sm" className="p-2">
-                    <div className="w-6 h-6 bg-green-500 rounded flex items-center justify-center text-white text-xs">W</div>
+                    <div className="w-6 h-6 bg-green-500 rounded flex items-center justify-center text-white text-xs">
+                      W
+                    </div>
                   </Button>
                   <Button variant="outline" size="sm" className="p-2">
-                    <div className="w-6 h-6 bg-blue-600 rounded flex items-center justify-center text-white text-xs">f</div>
+                    <div className="w-6 h-6 bg-blue-600 rounded flex items-center justify-center text-white text-xs">
+                      f
+                    </div>
                   </Button>
                   <Button variant="outline" size="sm" className="p-2">
-                    <div className="w-6 h-6 bg-pink-500 rounded flex items-center justify-center text-white text-xs">📷</div>
+                    <div className="w-6 h-6 bg-pink-500 rounded flex items-center justify-center text-white text-xs">
+                      📷
+                    </div>
                   </Button>
                   <Button variant="outline" size="sm" className="p-2">
-                    <div className="w-6 h-6 bg-black rounded flex items-center justify-center text-white text-xs">X</div>
+                    <div className="w-6 h-6 bg-black rounded flex items-center justify-center text-white text-xs">
+                      X
+                    </div>
                   </Button>
                   <Button variant="outline" size="sm" className="p-2">
-                    <div className="w-6 h-6 bg-red-500 rounded flex items-center justify-center text-white text-xs">📺</div>
+                    <div className="w-6 h-6 bg-red-500 rounded flex items-center justify-center text-white text-xs">
+                      📺
+                    </div>
                   </Button>
                   <Button variant="outline" size="sm" className="p-2">
-                    <div className="w-6 h-6 bg-blue-500 rounded flex items-center justify-center text-white text-xs">📧</div>
+                    <div className="w-6 h-6 bg-blue-500 rounded flex items-center justify-center text-white text-xs">
+                      📧
+                    </div>
                   </Button>
                   <Button variant="outline" size="sm" className="p-2">
-                    <div className="w-6 h-6 bg-green-600 rounded flex items-center justify-center text-white text-xs">📱</div>
+                    <div className="w-6 h-6 bg-green-600 rounded flex items-center justify-center text-white text-xs">
+                      📱
+                    </div>
                   </Button>
                   <Button variant="outline" size="sm" className="p-2">
-                    <div className="w-6 h-6 bg-gray-600 rounded flex items-center justify-center text-white text-xs">📋</div>
+                    <div className="w-6 h-6 bg-gray-600 rounded flex items-center justify-center text-white text-xs">
+                      📋
+                    </div>
                   </Button>
                 </div>
               </div>
@@ -471,9 +526,6 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
       </div>
 
       {/* Preview Label */}
-      <div className="absolute top-16 md:top-20 left-2 md:left-4 bg-yellow-500 text-black px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-medium">
-        🎬 Ad Preview Mode
-      </div>
     </div>
   );
 };
