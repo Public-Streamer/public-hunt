@@ -252,8 +252,36 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
                     Ad
                   </div>
 
+                  {/* Ad Title - Top Center */}
+                  <div className="absolute top-2 left-1/2 transform -translate-x-1/2 md:top-4 z-30">
+                    <h3 className="text-white font-semibold text-sm md:text-lg text-center drop-shadow-lg">
+                      {adData.title}
+                    </h3>
+                  </div>
+
+                  {/* Sponsored Indicator & Description - Bottom Left */}
+                  <div className="absolute bottom-16 left-2 md:bottom-20 md:left-4 max-w-[280px] md:max-w-sm z-30">
+                    <div className="bg-black/80 backdrop-blur-sm rounded-lg p-2 md:p-3">
+                      <div className="text-white/70 text-xs mb-1">Sponsored</div>
+                      <p className="text-white text-xs md:text-sm line-clamp-2 mb-2">
+                        {adData.description}
+                      </p>
+                      
+                      {/* CTA Button */}
+                      {adData.ctaLabel && adData.ctaUrl && (
+                        <Button
+                          size="sm"
+                          onClick={handleCtaClick}
+                          className="bg-blue-600 hover:bg-blue-700 text-white px-3 md:px-4 py-1.5 text-xs md:text-sm font-medium rounded-md shadow-lg min-h-[32px] touch-manipulation"
+                        >
+                          {adData.ctaLabel}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+
                   {/* Video Controls */}
-                  <div className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 md:p-4 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
+                  <div className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 md:p-4 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'} z-40`}>
                     {/* Progress Bar */}
                     <div className="mb-2">
                       <Slider
@@ -308,34 +336,11 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
                   </div>
 
                   {/* Simple Progress Bar (always visible) */}
-                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20 z-30">
                     <div
                       className="bg-yellow-500 h-full transition-all duration-300"
                       style={{ width: `${progress}%` }}
                     />
-                  </div>
-
-                  {/* Ad Info - Top Left */}
-                  <div className="absolute top-12 left-2 md:top-16 md:left-4 max-w-[200px] md:max-w-xs z-30">
-                    <div className="bg-black/80 p-2 md:p-4 rounded-xl">
-                      <h3 className="text-white font-semibold text-xs md:text-sm mb-1">
-                        {adData.title}
-                      </h3>
-                      <p className="text-white/90 text-xs line-clamp-2">
-                        {adData.description}
-                      </p>
-                    </div>
-
-                    {/* CTA Button */}
-                    {adData.ctaLabel && adData.ctaUrl && (
-                      <Button
-                        size="sm"
-                        onClick={handleCtaClick}
-                        className="mt-2 md:mt-3 bg-blue-600 hover:bg-blue-700 text-white px-3 md:px-4 py-2 text-xs md:text-sm font-medium rounded-md shadow-lg min-h-[36px] touch-manipulation"
-                      >
-                        {adData.ctaLabel}
-                      </Button>
-                    )}
                   </div>
 
                   {/* Skip Button - Bottom Right */}
