@@ -107,12 +107,12 @@ const MobileNav: React.FC<MobileNavProps> = ({
           </Link>
 
           <Link
-            to="/advertisers"
+            to="/advertise"
             onClick={onClose}
             className="flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-gray-100 transition-colors"
           >
             <Target className="h-5 w-5 text-gray-600" />
-            <span className="font-medium">Advertisers</span>
+            <span className="font-medium">Advertise</span>
           </Link>
 
           <Link

@@ -23,7 +23,7 @@ import WithdrawFunds from "./pages/WithdrawFunds";
 import QA from "./pages/QA";
 import PastEvents from "./pages/PastEvents";
 import MyAds from "./pages/MyAds";
-import Advertisers from "./pages/Advertisers";
+import Advertise from "./pages/Advertise";
 import CreateAd from "./pages/CreateAd";
 import AdLibrary from "./pages/AdLibrary";
 import AdvertiserDashboard from "./pages/AdvertiserDashboard";
@@ -107,7 +107,7 @@ const App = () => {
                       element={<PastEvents events={[]} />}
                     />
                     <Route path="/my-ads" element={<MyAds />} />
-                    <Route path="/advertisers" element={<Advertisers />} />
+                    <Route path="/advertise" element={<Advertise />} />
                     <Route path="/create-ad" element={<CreateAd />} />
                     <Route path="/ad-library" element={<AdLibrary />} />
                     <Route
