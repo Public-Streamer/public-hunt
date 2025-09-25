@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
 import {
   X,
   Users,
@@ -9,6 +10,10 @@ import {
   VideoOff,
   Waves,
   Eye,
+  Play,
+  Pause,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -26,24 +31,21 @@ interface AdPreviewProps {
 
 const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
   const [showAd, setShowAd] = useState(true);
-  const [adProgress, setAdProgress] = useState(0);
   const [skipTimer, setSkipTimer] = useState(5);
   const [canSkip, setCanSkip] = useState(false);
-  const adDuration = 30; // 30 seconds for demo
+  
+  // Video control states
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [isMuted, setIsMuted] = useState(false);
+  const [volume, setVolume] = useState(1);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [showControls, setShowControls] = useState(false);
+  
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     if (!showAd) return;
-
-    // Ad progress timer
-    const progressInterval = setInterval(() => {
-      setAdProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(progressInterval);
-          return 100;
-        }
-        return prev + 100 / adDuration;
-      });
-    }, 1000);
 
     // Skip timer countdown
     const skipInterval = setInterval(() => {
@@ -58,8 +60,47 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
     }, 1000);
 
     return () => {
-      clearInterval(progressInterval);
       clearInterval(skipInterval);
+    };
+  }, [showAd]);
+
+  // Video event handlers
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handleTimeUpdate = () => {
+      setCurrentTime(video.currentTime);
+    };
+
+    const handleLoadedMetadata = () => {
+      setDuration(video.duration);
+    };
+
+    const handlePlay = () => {
+      setIsPlaying(true);
+    };
+
+    const handlePause = () => {
+      setIsPlaying(false);
+    };
+
+    const handleEnded = () => {
+      setShowAd(false);
+    };
+
+    video.addEventListener('timeupdate', handleTimeUpdate);
+    video.addEventListener('loadedmetadata', handleLoadedMetadata);
+    video.addEventListener('play', handlePlay);
+    video.addEventListener('pause', handlePause);
+    video.addEventListener('ended', handleEnded);
+
+    return () => {
+      video.removeEventListener('timeupdate', handleTimeUpdate);
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      video.removeEventListener('play', handlePlay);
+      video.removeEventListener('pause', handlePause);
+      video.removeEventListener('ended', handleEnded);
     };
   }, [showAd]);
 
@@ -74,6 +115,53 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
       window.open(adData.ctaUrl, "_blank", "noopener,noreferrer");
     }
   };
+
+  // Video control functions
+  const togglePlay = () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (isPlaying) {
+      video.pause();
+    } else {
+      video.play();
+    }
+  };
+
+  const toggleMute = () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.muted = !video.muted;
+    setIsMuted(video.muted);
+  };
+
+  const handleVolumeChange = (value: number[]) => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const newVolume = value[0];
+    video.volume = newVolume;
+    setVolume(newVolume);
+    setIsMuted(newVolume === 0);
+  };
+
+  const handleSeek = (value: number[]) => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const newTime = value[0];
+    video.currentTime = newTime;
+    setCurrentTime(newTime);
+  };
+
+  const formatTime = (time: number) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
     <div className="fixed inset-0 bg-gray-100 z-50 flex flex-col">
@@ -145,9 +233,14 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
 
               {/* YouTube-Style Ad Overlay */}
               {showAd && (
-                <div className="absolute inset-0 bg-black/80">
+                <div 
+                  className="absolute inset-0 bg-black/80"
+                  onMouseEnter={() => setShowControls(true)}
+                  onMouseLeave={() => setShowControls(false)}
+                >
                   {/* Ad Video - Fullscreen */}
                   <video
+                    ref={videoRef}
                     src={adData.videoUrl}
                     autoPlay
                     className="w-full h-full object-cover"
@@ -159,11 +252,66 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
                     Ad
                   </div>
 
-                  {/* Progress Bar - YouTube Style */}
-                  <div className="absolute bottom-0 left-0 right-0 h-1">
+                  {/* Video Controls */}
+                  <div className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 md:p-4 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
+                    {/* Progress Bar */}
+                    <div className="mb-2">
+                      <Slider
+                        value={[currentTime]}
+                        max={duration}
+                        step={0.1}
+                        onValueChange={handleSeek}
+                        className="w-full"
+                      />
+                    </div>
+
+                    {/* Control Bar */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2 md:space-x-4">
+                        {/* Play/Pause Button */}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={togglePlay}
+                          className="text-white hover:bg-white/20 p-1 h-8 w-8"
+                        >
+                          {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                        </Button>
+
+                        {/* Volume Control */}
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={toggleMute}
+                            className="text-white hover:bg-white/20 p-1 h-8 w-8"
+                          >
+                            {isMuted || volume === 0 ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                          </Button>
+                          <div className="hidden md:block w-20">
+                            <Slider
+                              value={[volume]}
+                              max={1}
+                              step={0.1}
+                              onValueChange={handleVolumeChange}
+                              className="w-full"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Time Display */}
+                        <div className="text-white text-xs md:text-sm">
+                          {formatTime(currentTime)} / {formatTime(duration)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Simple Progress Bar (always visible) */}
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
                     <div
-                      className="bg-yellow-500 h-full transition-all duration-1000"
-                      style={{ width: `${adProgress}%` }}
+                      className="bg-yellow-500 h-full transition-all duration-300"
+                      style={{ width: `${progress}%` }}
                     />
                   </div>
 
