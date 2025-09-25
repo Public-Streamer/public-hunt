@@ -181,28 +181,28 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col lg:flex-row max-w-7xl mx-auto w-full p-4 gap-6">
+      <div className="flex-1 flex flex-col xl:flex-row max-w-7xl mx-auto w-full p-3 sm:p-4 lg:p-6 gap-4 lg:gap-6">
         {/* Left Content */}
-        <div className="flex-1 space-y-4">
+        <div className="flex-1 space-y-4 lg:space-y-6">
           {/* Video Area */}
-          <div className="bg-black rounded-lg relative aspect-video">
+          <div className="bg-black rounded-lg relative aspect-video overflow-hidden">
             {/* Live Badge */}
-            <div className="absolute top-4 left-4 bg-red-600 text-white px-3 py-1 rounded text-sm font-medium z-30">
+            <div className="absolute top-3 left-3 sm:top-4 sm:left-4 bg-red-600 text-white px-2 sm:px-3 py-1 rounded text-xs sm:text-sm font-medium z-10">
               🔴 LIVE
             </div>
 
             {/* Camera Off State */}
             <div className="absolute inset-0 flex items-center justify-center text-center text-white">
-              <div>
-                <VideoOff className="h-16 w-16 mx-auto mb-4 text-gray-300" />
-                <p className="text-lg text-gray-300">Camera/Screen is Off</p>
+              <div className="px-4">
+                <VideoOff className="h-12 sm:h-16 w-12 sm:w-16 mx-auto mb-3 sm:mb-4 text-gray-300" />
+                <p className="text-base sm:text-lg text-gray-300">Camera/Screen is Off</p>
               </div>
             </div>
 
             {/* YouTube-Style Ad Overlay */}
             {showAd && (
               <div 
-                className="absolute inset-0 bg-black/80 cursor-pointer"
+                className="absolute inset-0 bg-black cursor-pointer"
                 onMouseEnter={() => setShowControls(true)}
                 onMouseLeave={() => setShowControls(false)}
                 onClick={togglePlay}
@@ -217,22 +217,22 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
                 />
 
                 {/* Ad Indicator */}
-                <div className="absolute top-2 left-2 md:top-4 md:left-4 bg-yellow-500 text-black px-2 py-1 text-xs font-medium rounded z-30">
+                <div className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-yellow-500 text-black px-2 py-1 text-xs font-medium rounded z-50">
                   Ad
                 </div>
 
                 {/* Ad Title - Top Left (No Background) */}
-                <div className="absolute top-12 left-2 md:top-16 md:left-4 z-30 max-w-[280px] md:max-w-sm">
-                  <h3 className="text-white font-semibold text-sm md:text-lg drop-shadow-lg">
+                <div className="absolute top-10 sm:top-12 left-2 sm:left-3 z-40 max-w-[250px] sm:max-w-[320px] lg:max-w-sm">
+                  <h3 className="text-white font-semibold text-sm sm:text-base lg:text-lg drop-shadow-2xl leading-tight">
                     {adData.title}
                   </h3>
                 </div>
 
-                {/* Sponsored Section - Bottom with Float Animation */}
-                <div className={`absolute bottom-0 left-0 right-0 max-w-[280px] md:max-w-sm ml-2 md:ml-4 z-30 transition-transform duration-300 ${showControls ? 'transform -translate-y-16' : 'transform translate-y-0'}`}>
-                  <div className="bg-black/80 backdrop-blur-sm rounded-lg p-2 md:p-3 mb-2">
-                    <div className="text-white/70 text-xs mb-1">Sponsored</div>
-                    <p className="text-white text-xs md:text-sm line-clamp-2 mb-2">
+                {/* Sponsored Section - Bottom Left with proper spacing */}
+                <div className={`absolute bottom-0 left-2 sm:left-3 z-30 max-w-[280px] sm:max-w-[350px] lg:max-w-md transition-all duration-300 ease-in-out ${showControls ? 'transform -translate-y-20 sm:-translate-y-24' : 'transform translate-y-0'}`}>
+                  <div className="bg-black/85 backdrop-blur-sm rounded-lg p-3 sm:p-4 mb-2 sm:mb-3 shadow-lg">
+                    <div className="text-white/70 text-xs mb-1.5">Sponsored</div>
+                    <p className="text-white text-xs sm:text-sm leading-relaxed line-clamp-2 mb-3">
                       {adData.description}
                     </p>
                     
@@ -244,7 +244,7 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
                           e.stopPropagation();
                           handleCtaClick();
                         }}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 md:px-4 py-1.5 text-xs md:text-sm font-medium rounded-md shadow-lg min-h-[32px] touch-manipulation"
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md shadow-lg min-h-[36px] sm:min-h-[40px] touch-manipulation transition-colors duration-200"
                       >
                         {adData.ctaLabel}
                       </Button>
@@ -252,13 +252,13 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
                   </div>
                 </div>
 
-                {/* Video Controls */}
+                {/* Video Controls - Higher z-index to stay on top */}
                 <div 
-                  className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 md:p-4 transition-all duration-300 ${showControls ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-2'} z-40`}
+                  className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-3 sm:p-4 transition-all duration-300 ease-in-out ${showControls ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-2'} z-50`}
                   onClick={(e) => e.stopPropagation()}
                 >
                   {/* Progress Bar */}
-                  <div className="mb-2">
+                  <div className="mb-3">
                     <Slider
                       value={[currentTime]}
                       max={duration}
@@ -270,7 +270,7 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
 
                   {/* Control Bar */}
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2 md:space-x-4">
+                    <div className="flex items-center space-x-2 sm:space-x-3 lg:space-x-4">
                       {/* Play/Pause Button */}
                       <Button
                         variant="ghost"
@@ -279,9 +279,9 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
                           e.stopPropagation();
                           togglePlay();
                         }}
-                        className="text-white hover:bg-white/20 p-1 h-8 w-8"
+                        className="text-white hover:bg-white/20 p-1.5 h-8 w-8 sm:h-10 sm:w-10 rounded-full transition-colors duration-200 min-h-[44px] touch-manipulation"
                       >
-                        {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                        {isPlaying ? <Pause className="h-4 w-4 sm:h-5 sm:w-5" /> : <Play className="h-4 w-4 sm:h-5 sm:w-5" />}
                       </Button>
 
                       {/* Volume Control */}
@@ -293,11 +293,11 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
                             e.stopPropagation();
                             toggleMute();
                           }}
-                          className="text-white hover:bg-white/20 p-1 h-8 w-8"
+                          className="text-white hover:bg-white/20 p-1.5 h-8 w-8 sm:h-10 sm:w-10 rounded-full transition-colors duration-200 min-h-[44px] touch-manipulation"
                         >
                           {isMuted || volume === 0 ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
                         </Button>
-                        <div className="hidden md:block w-20">
+                        <div className="hidden md:block w-16 lg:w-20">
                           <Slider
                             value={[volume]}
                             max={1}
@@ -309,23 +309,23 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
                       </div>
 
                       {/* Time Display */}
-                      <div className="text-white text-xs md:text-sm">
+                      <div className="text-white text-xs sm:text-sm font-medium">
                         {formatTime(currentTime)} / {formatTime(duration)}
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Simple Progress Bar (always visible) */}
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20 z-30">
+                {/* Simple Progress Bar (always visible) - Lower z-index */}
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/30 z-10">
                   <div
-                    className="bg-yellow-500 h-full transition-all duration-300"
+                    className="bg-yellow-500 h-full transition-all duration-300 ease-out"
                     style={{ width: `${progress}%` }}
                   />
                 </div>
 
-                {/* Skip Button - Bottom Right with Float Animation */}
-                <div className={`absolute bottom-2 right-2 md:bottom-4 md:right-4 z-30 transition-transform duration-300 ${showControls ? 'transform -translate-y-16' : 'transform translate-y-0'}`}>
+                {/* Skip Button - Bottom Right with proper spacing and z-index */}
+                <div className={`absolute bottom-2 right-2 sm:bottom-3 sm:right-3 z-40 transition-all duration-300 ease-in-out ${showControls ? 'transform -translate-y-20 sm:-translate-y-24' : 'transform translate-y-0'}`}>
                   <Button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -336,9 +336,9 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
                     size="sm"
                     className={`${
                       canSkip
-                        ? "bg-white text-black hover:bg-gray-100"
-                        : "bg-gray-600/80 text-white cursor-not-allowed"
-                    } text-xs md:text-sm px-2 md:px-3 py-1 font-medium min-h-[36px] touch-manipulation`}
+                        ? "bg-white text-black hover:bg-gray-100 shadow-lg"
+                        : "bg-gray-600/90 text-white cursor-not-allowed"
+                    } text-xs sm:text-sm px-3 sm:px-4 py-2 font-medium rounded-lg min-h-[36px] sm:min-h-[40px] touch-manipulation transition-all duration-200 backdrop-blur-sm`}
                   >
                     {canSkip ? "Skip Ad" : `Skip Ad in ${skipTimer}`}
                   </Button>
@@ -348,44 +348,52 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
           </div>
 
           {/* Like and Comment Buttons */}
-          <div className="flex gap-2 mt-4">
-            <Button variant="outline" className="flex-1 text-gray-600 hover:text-gray-900">
-              ❤️ Like
+          <div className="flex gap-2 sm:gap-3">
+            <Button variant="outline" className="flex-1 text-gray-600 hover:text-gray-900 hover:border-gray-400 min-h-[44px] touch-manipulation transition-colors duration-200">
+              <span className="flex items-center gap-2">
+                <span>❤️</span>
+                <span className="hidden sm:inline">Like</span>
+              </span>
             </Button>
-            <Button variant="outline" className="flex-1 text-gray-600 hover:text-gray-900">
-              💬 Comment
+            <Button variant="outline" className="flex-1 text-gray-600 hover:text-gray-900 hover:border-gray-400 min-h-[44px] touch-manipulation transition-colors duration-200">
+              <span className="flex items-center gap-2">
+                <span>💬</span>
+                <span className="hidden sm:inline">Comment</span>
+              </span>
             </Button>
           </div>
 
           {/* Live Discussion Section */}
-          <div className="mt-6">
-            <div className="flex items-center gap-2 mb-4">
-              <MessageCircle className="h-5 w-5 text-gray-600" />
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <MessageCircle className="h-5 w-5 text-gray-600 flex-shrink-0" />
               <h3 className="text-lg font-semibold text-gray-900">Live Discussion (0)</h3>
             </div>
             
-            <div className="border border-gray-200 rounded-lg p-4">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 bg-gray-300 rounded-full"></div>
-                <span className="text-sm text-gray-600">No messages yet...</span>
-              </div>
-              
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="Join the live discussion..."
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <Button className="bg-blue-500 hover:bg-blue-600 text-white px-6">
-                  Send
-                </Button>
-              </div>
-            </div>
+            <Card className="border border-gray-200 shadow-sm">
+              <CardContent className="p-4 sm:p-5">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-8 h-8 bg-gray-300 rounded-full flex-shrink-0"></div>
+                  <span className="text-sm text-gray-600">No messages yet...</span>
+                </div>
+                
+                <div className="flex gap-2 sm:gap-3">
+                  <input
+                    type="text"
+                    placeholder="Join the live discussion..."
+                    className="flex-1 px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 min-h-[44px]"
+                  />
+                  <Button className="bg-blue-500 hover:bg-blue-600 text-white px-4 sm:px-6 py-2.5 rounded-lg min-h-[44px] touch-manipulation transition-colors duration-200">
+                    Send
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
 
         {/* Right Sidebar */}
-        <div className="w-full lg:w-80 space-y-4">
+        <div className="w-full xl:w-80 space-y-4 lg:space-y-5">
           {/* Event Info Card */}
           <Card className="border border-gray-200">
             <CardContent className="p-4">
