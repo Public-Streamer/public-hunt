@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Upload, Video, X } from 'lucide-react';
+import { Upload, Video, X, FileText, Settings, Eye, Info, Sparkles, Lightbulb, ArrowRight } from 'lucide-react';
 
 const CreateAd = () => {
   const [title, setTitle] = useState('');
@@ -136,123 +136,258 @@ const CreateAd = () => {
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle>Create Advertising Campaign</CardTitle>
-        <CardDescription>
-          Reach thousands of viewers across our streaming platform. Upload your video ad to get started.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Video Upload Section */}
-          <div className="space-y-2">
-            <Label htmlFor="video-upload">Upload Your Video Ad</Label>
-            <div className="border-2 border-dashed border-gray-200 rounded-lg p-6">
-              {!videoFile ? (
-                <div className="text-center">
-                  <Video className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-2">Upload your video advertisement</p>
-                  <p className="text-sm text-gray-500 mb-4">Only video files are supported (MP4, MOV, AVI, etc.) up to 50MB</p>
-                  <label className="cursor-pointer">
-                    <input
-                      type="file"
-                      accept="video/*"
-                      onChange={handleFileChange}
-                      className="hidden"
-                      disabled={uploading}
-                    />
-                    <Button type="button" disabled={uploading} className="pointer-events-none">
-                      <Upload className="h-4 w-4 mr-2" />
-                      {uploading ? 'Uploading...' : 'Choose Video File'}
-                    </Button>
-                  </label>
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 relative overflow-hidden">
+      {/* Background Effects */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,_rgba(120,_119,_198,_0.3),_transparent_50%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,_rgba(255,_255,_255,_0.1),_transparent_50%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_40%_40%,_rgba(120,_119,_198,_0.2),_transparent_50%)]" />
+
+      <div className="relative z-10 container mx-auto px-4 py-8 max-w-6xl">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
+            Create Your Ad
+          </h1>
+          
+          {/* Introduction Message */}
+          <Card className="bg-white/10 backdrop-blur-sm border-white/20 mb-8">
+            <CardContent className="p-6">
+              <div className="flex items-start space-x-3">
+                <Info className="text-blue-300 h-6 w-6 mt-1 flex-shrink-0" />
+                <div className="text-white/90 text-left">
+                  <p className="text-lg leading-relaxed">
+                    <strong>Not sure how to advertise or where to start? Need help creating an ad?</strong> That's what this page is for! 
+                    Just upload your media, tell us what your ad is about, and we'll help you create a professional-looking ad 
+                    you can run immediately on Public Streamer channels and events — and even save for future use.
+                  </p>
                 </div>
-              ) : (
-                <div className="relative">
-                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded">
-                    <div className="flex items-center space-x-3">
-                      <Video className="h-6 w-6 text-blue-600" />
-                      <span className="text-sm font-medium">{videoFile.name}</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Progress Steps */}
+        <div className="flex justify-center mb-8">
+          <div className="flex items-center space-x-4">
+            {[
+              { step: 1, label: "Upload Media", icon: Upload },
+              { step: 2, label: "Describe Ad", icon: FileText },
+              { step: 3, label: "Customize", icon: Settings },
+              { step: 4, label: "Preview & Save", icon: Eye }
+            ].map(({ step, label, icon: Icon }, index) => (
+              <div key={step} className="flex items-center">
+                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <span className="ml-2 text-sm text-white">
+                  {label}
+                </span>
+                {index < 3 && (
+                  <ArrowRight className="h-4 w-4 text-white/40 mx-3" />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Left Column - Upload & Configuration */}
+          <div className="space-y-6">
+            {/* Step 1: Media Upload */}
+            <Card className="bg-white/10 backdrop-blur-sm border-white/20">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center space-x-2">
+                  <Upload className="h-5 w-5" />
+                  <span>1. Upload Your Media</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="border-2 border-dashed border-white/30 rounded-lg p-8 text-center hover:border-white/50 transition-colors">
+                  {!videoFile ? (
+                    <>
+                      <input
+                        type="file"
+                        accept="video/*"
+                        onChange={handleFileChange}
+                        className="hidden"
+                        id="media-upload"
+                        disabled={uploading}
+                      />
+                      <label htmlFor="media-upload" className="cursor-pointer">
+                        <div className="space-y-3">
+                          <div className="flex justify-center">
+                            <div className="bg-gradient-to-r from-blue-500 to-purple-500 p-3 rounded-full">
+                              <Upload className="h-8 w-8 text-white" />
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-white font-medium">Click to upload or drag and drop</p>
+                            <p className="text-white/60 text-sm">MP4, MOV, JPG, PNG, GIF (max 50MB)</p>
+                          </div>
+                        </div>
+                      </label>
+                    </>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between p-4 bg-white/5 rounded">
+                        <div className="flex items-center space-x-3">
+                          <Video className="h-6 w-6 text-blue-300" />
+                          <span className="text-white text-sm font-medium">{videoFile.name}</span>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={removeVideo}
+                          className="text-red-300 hover:text-red-200 hover:bg-red-500/20"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      {videoUrl && (
+                        <video 
+                          src={videoUrl} 
+                          controls 
+                          className="w-full rounded-lg max-h-64"
+                        />
+                      )}
                     </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={removeVideo}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  {videoUrl && (
-                    <video 
-                      src={videoUrl} 
-                      controls 
-                      className="w-full mt-4 rounded-lg max-h-64"
-                    />
                   )}
                 </div>
-              )}
-            </div>
+              </CardContent>
+            </Card>
+
+            {/* Step 2: Ad Description */}
+            <Card className="bg-white/10 backdrop-blur-sm border-white/20">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center space-x-2">
+                  <FileText className="h-5 w-5" />
+                  <span>2. What is your ad about?</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <Textarea
+                    placeholder="Tell us about your product, service, or offer. What makes it special? Who is it for? Include any key details like pricing, benefits, or special offers..."
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="min-h-[120px] bg-white/10 border-white/20 text-white placeholder:text-white/50 resize-none"
+                    required
+                  />
+                  <p className="text-white/60 text-xs">
+                    {description.length}/500 characters
+                  </p>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <Label className="text-white">Ad Title</Label>
+                      <Input
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        placeholder="Enter your ad title"
+                        className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label className="text-white">Budget ($)</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="1"
+                        value={budget}
+                        onChange={(e) => setBudget(e.target.value)}
+                        placeholder="Enter your budget"
+                        className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="text-white">Target Channels (Optional)</Label>
+                      <Input
+                        value={targetChannels}
+                        onChange={(e) => setTargetChannels(e.target.value)}
+                        placeholder="Enter channel IDs separated by commas"
+                        className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                      />
+                    </div>
+
+                    <Button 
+                      type="submit" 
+                      className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white" 
+                      disabled={isSubmitting || uploading || !videoUrl}
+                    >
+                      {isSubmitting ? 'Creating Campaign...' : 'Create Campaign'}
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="title">Ad Title</Label>
-            <Input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter your ad title"
-              required
-            />
-          </div>
+          {/* Right Column - Magic & Tips */}
+          <div className="space-y-6">
+            {/* Ready to Create Magic */}
+            <Card className="bg-white/10 backdrop-blur-sm border-white/20">
+              <CardContent className="p-6 text-center">
+                <div className="space-y-4">
+                  <div className="flex justify-center">
+                    <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-4 rounded-full">
+                      <Sparkles className="h-8 w-8 text-white" />
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-white text-xl font-bold mb-2">Ready to Create Magic?</h3>
+                    <p className="text-white/80 text-sm">
+                      We'll combine your media with professional effects and create an amazing ad in seconds!
+                    </p>
+                  </div>
+                  <Button 
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+                    disabled={!videoFile || !description || !title}
+                  >
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Generate Ad Preview for Me
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
 
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Describe your ad campaign"
-              rows={3}
-              required
-            />
+            {/* Pro Tips */}
+            <Card className="bg-white/10 backdrop-blur-sm border-white/20">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center space-x-2">
+                  <Lightbulb className="h-5 w-5 text-yellow-400" />
+                  <span>Pro Tips</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3 text-white/80 text-sm">
+                  <div className="flex items-start space-x-2">
+                    <span className="text-green-400">•</span>
+                    <span>Use high-quality images and videos for best results</span>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <span className="text-green-400">•</span>
+                    <span>Keep your description clear and compelling</span>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <span className="text-green-400">•</span>
+                    <span>Square or landscape formats work best for ads</span>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <span className="text-green-400">•</span>
+                    <span>Background music can increase engagement by 40%</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="budget">Budget ($)</Label>
-            <Input
-              id="budget"
-              type="number"
-              step="0.01"
-              min="1"
-              value={budget}
-              onChange={(e) => setBudget(e.target.value)}
-              placeholder="Enter your budget"
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="target-channels">Target Channels (Optional)</Label>
-            <Input
-              id="target-channels"
-              value={targetChannels}
-              onChange={(e) => setTargetChannels(e.target.value)}
-              placeholder="Enter channel IDs separated by commas"
-            />
-          </div>
-
-          <Button 
-            type="submit" 
-            className="w-full" 
-            disabled={isSubmitting || uploading || !videoUrl}
-          >
-            {isSubmitting ? 'Creating Campaign...' : 'Create Campaign'}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+        </div>
+      </div>
+    </div>
   );
 };
 
