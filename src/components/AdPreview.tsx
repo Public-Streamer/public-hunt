@@ -9,6 +9,8 @@ interface AdPreviewProps {
     description: string;
     videoUrl: string;
     budget: string;
+    ctaLabel?: string;
+    ctaUrl?: string;
   };
   onClose: () => void;
 }
@@ -55,6 +57,12 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
   const handleSkipAd = () => {
     if (canSkip) {
       setShowAd(false);
+    }
+  };
+
+  const handleCtaClick = () => {
+    if (adData.ctaUrl) {
+      window.open(adData.ctaUrl, '_blank', 'noopener,noreferrer');
     }
   };
 
@@ -153,6 +161,16 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
                 <div className="absolute bottom-4 left-4 max-w-md">
                   <h3 className="text-white font-semibold text-lg mb-1">{adData.title}</h3>
                   <p className="text-white/90 text-sm line-clamp-2">{adData.description}</p>
+                  
+                  {/* CTA Button */}
+                  {adData.ctaLabel && adData.ctaUrl && (
+                    <Button
+                      onClick={handleCtaClick}
+                      className="mt-3 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-medium rounded-md shadow-lg"
+                    >
+                      {adData.ctaLabel}
+                    </Button>
+                  )}
                 </div>
 
                 {/* Skip Button - Bottom Right */}

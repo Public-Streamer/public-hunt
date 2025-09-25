@@ -14,6 +14,8 @@ const CreateAd = () => {
   const [description, setDescription] = useState('');
   const [budget, setBudget] = useState('');
   const [targetChannels, setTargetChannels] = useState('');
+  const [ctaLabel, setCtaLabel] = useState('');
+  const [ctaUrl, setCtaUrl] = useState('');
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoPreviewUrl, setVideoPreviewUrl] = useState('');
   const [uploading, setUploading] = useState(false);
@@ -116,6 +118,8 @@ const CreateAd = () => {
           video_url: videoUrl,
           user_id: user.id,
           target_channels: targetChannels ? targetChannels.split(',').map(id => id.trim()) : [],
+          cta_label: ctaLabel || null,
+          cta_url: ctaUrl || null,
           status: 'draft',
           campaign_status: 'draft'
         });
@@ -136,6 +140,8 @@ const CreateAd = () => {
       setDescription('');
       setBudget('');
       setTargetChannels('');
+      setCtaLabel('');
+      setCtaUrl('');
       setVideoFile(null);
       setVideoPreviewUrl('');
     } catch (error) {
@@ -338,6 +344,31 @@ const CreateAd = () => {
                       />
                     </div>
 
+                    <div>
+                      <Label className="text-white">Call-to-Action Button Text (Optional)</Label>
+                      <Input
+                        value={ctaLabel}
+                        onChange={(e) => setCtaLabel(e.target.value)}
+                        placeholder="e.g., Learn More, Shop Now, Sign Up"
+                        maxLength={25}
+                        className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                      />
+                      <p className="text-white/60 text-xs mt-1">
+                        {ctaLabel.length}/25 characters
+                      </p>
+                    </div>
+
+                    <div>
+                      <Label className="text-white">CTA URL (Optional)</Label>
+                      <Input
+                        type="url"
+                        value={ctaUrl}
+                        onChange={(e) => setCtaUrl(e.target.value)}
+                        placeholder="https://your-website.com"
+                        className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                      />
+                    </div>
+
                     <Button 
                       type="submit" 
                       className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white" 
@@ -420,7 +451,9 @@ const CreateAd = () => {
             title,
             description,
             videoUrl: videoPreviewUrl,
-            budget
+            budget,
+            ctaLabel,
+            ctaUrl
           }}
           onClose={handleClosePreview}
         />
