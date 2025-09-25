@@ -15,12 +15,12 @@ const CreateAd = () => {
   const [budget, setBudget] = useState('');
   const [targetChannels, setTargetChannels] = useState('');
   const [videoFile, setVideoFile] = useState<File | null>(null);
-  const [videoUrl, setVideoUrl] = useState('');
+  const [videoPreviewUrl, setVideoPreviewUrl] = useState('');
   const [uploading, setUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
 
-  const handleVideoUpload = async (file: File) => {
+  const handleFileSelection = (file: File) => {
     if (!file) return;
 
     // Validate file size (50MB limit)
@@ -35,61 +35,60 @@ const CreateAd = () => {
       return;
     }
 
-    setUploading(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error('You must be logged in to upload videos');
-        return;
-      }
+    // Store file locally and create preview URL
+    setVideoFile(file);
+    const previewUrl = URL.createObjectURL(file);
+    setVideoPreviewUrl(previewUrl);
+    toast.success('Video selected successfully!');
+  };
 
-      // Create unique filename with user folder structure
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-
-      // Upload to Supabase Storage
-      const { data, error } = await supabase.storage
-        .from('ad-videos')
-        .upload(fileName, file);
-
-      if (error) {
-        console.error('Upload error:', error);
-        toast.error('Failed to upload video: ' + error.message);
-        return;
-      }
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('ad-videos')
-        .getPublicUrl(data.path);
-
-      setVideoUrl(publicUrl);
-      setVideoFile(file);
-      toast.success('Video uploaded successfully!');
-    } catch (error) {
-      console.error('Upload error:', error);
-      toast.error('Failed to upload video');
-    } finally {
-      setUploading(false);
+  const uploadVideoToStorage = async (file: File): Promise<string> => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('You must be logged in to upload videos');
     }
+
+    // Create unique filename with user folder structure
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+
+    // Upload to Supabase Storage
+    const { data, error } = await supabase.storage
+      .from('ad-videos')
+      .upload(fileName, file);
+
+    if (error) {
+      throw new Error('Failed to upload video: ' + error.message);
+    }
+
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('ad-videos')
+      .getPublicUrl(data.path);
+
+    return publicUrl;
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      handleVideoUpload(file);
+      handleFileSelection(file);
     }
   };
 
   const removeVideo = () => {
+    // Clean up preview URL to prevent memory leaks
+    if (videoPreviewUrl) {
+      URL.revokeObjectURL(videoPreviewUrl);
+    }
     setVideoFile(null);
-    setVideoUrl('');
+    setVideoPreviewUrl('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!title || !description || !budget || !videoUrl) {
+    if (!title || !description || !budget || !videoFile) {
       toast.error('Please fill in all fields and upload a video file');
       return;
     }
@@ -102,6 +101,12 @@ const CreateAd = () => {
         return;
       }
 
+      // First upload the video to storage
+      toast.info('Uploading video...');
+      const videoUrl = await uploadVideoToStorage(videoFile);
+      
+      // Then create the ad record with the uploaded video URL
+      toast.info('Creating ad campaign...');
       const { error } = await supabase
         .from('ads')
         .insert({
@@ -121,17 +126,21 @@ const CreateAd = () => {
         return;
       }
 
-      toast.success('Ad created successfully!');
-      // Reset form
+      toast.success('Ad campaign created successfully!');
+      
+      // Clean up preview URL and reset form
+      if (videoPreviewUrl) {
+        URL.revokeObjectURL(videoPreviewUrl);
+      }
       setTitle('');
       setDescription('');
       setBudget('');
       setTargetChannels('');
       setVideoFile(null);
-      setVideoUrl('');
+      setVideoPreviewUrl('');
     } catch (error) {
       console.error('Error creating ad:', error);
-      toast.error('Failed to create ad');
+      toast.error('Failed to create ad: ' + (error instanceof Error ? error.message : 'Unknown error'));
     } finally {
       setIsSubmitting(false);
     }
@@ -259,9 +268,9 @@ const CreateAd = () => {
                           <X className="h-4 w-4" />
                         </Button>
                       </div>
-                      {videoUrl && (
+                      {videoPreviewUrl && (
                         <video 
-                          src={videoUrl} 
+                          src={videoPreviewUrl} 
                           controls 
                           className="w-full rounded-lg max-h-64"
                         />
@@ -332,7 +341,7 @@ const CreateAd = () => {
                     <Button 
                       type="submit" 
                       className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white" 
-                      disabled={isSubmitting || uploading || !videoUrl}
+                      disabled={isSubmitting || !videoFile}
                     >
                       {isSubmitting ? 'Creating Campaign...' : 'Create Campaign'}
                     </Button>
@@ -410,7 +419,7 @@ const CreateAd = () => {
           adData={{
             title,
             description,
-            videoUrl,
+            videoUrl: videoPreviewUrl,
             budget
           }}
           onClose={handleClosePreview}
