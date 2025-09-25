@@ -82,31 +82,31 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
         variant="ghost"
         size="sm"
         onClick={onClose}
-        className="absolute top-4 right-4 z-50 hover:bg-gray-200"
+        className="absolute top-2 right-2 md:top-4 md:right-4 z-50 hover:bg-gray-200 min-h-[44px] touch-manipulation"
       >
         <X className="h-5 w-5" />
       </Button>
 
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 p-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="w-8 h-8 bg-gray-300 rounded flex items-center justify-center">
-              <Waves className="h-4 w-4" />
+      <div className="bg-white border-b border-gray-200 p-3 md:p-4">
+        <div className="w-full flex flex-col md:flex-row md:items-center justify-between space-y-2 md:space-y-0">
+          <div className="flex items-center space-x-2 md:space-x-4">
+            <div className="w-6 h-6 md:w-8 md:h-8 bg-gray-300 rounded flex items-center justify-center">
+              <Waves className="h-3 w-3 md:h-4 md:w-4" />
             </div>
             <div>
-              <h1 className="text-lg font-semibold text-gray-900">
+              <h1 className="text-sm md:text-lg font-semibold text-gray-900">
                 Yoga Summer Batch 2025 - Streaming Controls
               </h1>
             </div>
-            <Edit2 className="h-4 w-4 text-gray-400" />
+            <Edit2 className="h-3 w-3 md:h-4 md:w-4 text-gray-400" />
           </div>
-          <div className="flex items-center space-x-4">
-            <div className="bg-blue-600 text-white px-3 py-1 rounded-md text-sm font-medium">
+          <div className="flex items-center space-x-2 md:space-x-4">
+            <div className="bg-blue-600 text-white px-2 md:px-3 py-1 rounded-md text-xs md:text-sm font-medium">
               Connected
             </div>
-            <div className="flex items-center space-x-2 text-sm text-gray-600">
-              <Users className="h-4 w-4" />
+            <div className="flex items-center space-x-1 md:space-x-2 text-xs md:text-sm text-gray-600">
+              <Users className="h-3 w-3 md:h-4 md:w-4" />
               <span>2 total</span>
             </div>
           </div>
@@ -114,33 +114,33 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex max-w-7xl mx-auto w-full">
-        {/* Left Side - Video Area */}
-        <div className="flex-1 p-4">
-          <div className="bg-white rounded-lg border border-gray-200 h-full relative">
+      <div className="flex-1 flex flex-col lg:flex-row w-full">
+        {/* Video Area */}
+        <div className="flex-1 p-2 md:p-4">
+          <div className="bg-white rounded-lg border border-gray-200 h-[40vh] md:h-[60vh] lg:h-full relative">
             {/* User Info */}
-            <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-              <span className="text-gray-700">billuthemowtother@mail.com</span>
-              <div className="flex items-center space-x-2">
-                <Edit2 className="h-4 w-4 text-gray-400" />
-                <div className="flex items-center space-x-1 text-sm text-gray-600">
-                  <Eye className="h-4 w-4" />
+            <div className="p-2 md:p-4 border-b border-gray-200 flex items-center justify-between">
+              <span className="text-xs md:text-sm text-gray-700">billuthemowtother@mail.com</span>
+              <div className="flex items-center space-x-1 md:space-x-2">
+                <Edit2 className="h-3 w-3 md:h-4 md:w-4 text-gray-400" />
+                <div className="flex items-center space-x-1 text-xs md:text-sm text-gray-600">
+                  <Eye className="h-3 w-3 md:h-4 md:w-4" />
                   <span>2</span>
                 </div>
               </div>
             </div>
 
             {/* Video Content */}
-            <div className="flex-1 relative bg-gray-50 flex items-center justify-center min-h-[400px]">
+            <div className="flex-1 relative bg-gray-50 flex items-center justify-center min-h-[300px] md:min-h-[400px]">
               {/* Live Badge */}
-              <div className="absolute top-4 left-4 bg-red-600 text-white px-2 py-1 rounded text-sm font-medium">
+              <div className="absolute top-2 left-2 md:top-4 md:left-4 bg-red-600 text-white px-2 py-1 rounded text-xs md:text-sm font-medium">
                 🔴 LIVE
               </div>
 
               {/* Camera Off State */}
               <div className="text-center text-gray-500">
-                <VideoOff className="h-16 w-16 mx-auto mb-2" />
-                <p className="text-lg">Camera is off</p>
+                <VideoOff className="h-12 w-12 md:h-16 md:w-16 mx-auto mb-2" />
+                <p className="text-sm md:text-lg">Camera is off</p>
               </div>
 
               {/* YouTube-Style Ad Overlay */}
@@ -150,18 +150,17 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
                   <video
                     src={adData.videoUrl}
                     autoPlay
-                    muted
                     className="w-full h-full object-cover"
                     controls={false}
                   />
 
                   {/* Ad Indicator */}
-                  <div className="absolute top-4 left-4 bg-yellow-500 text-black px-2 py-1 text-xs font-medium rounded">
+                  <div className="absolute top-2 left-2 md:top-4 md:left-4 bg-yellow-500 text-black px-2 py-1 text-xs font-medium rounded">
                     Ad
                   </div>
 
                   {/* Progress Bar - YouTube Style */}
-                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
+                  <div className="absolute bottom-0 left-0 right-0 h-1">
                     <div
                       className="bg-yellow-500 h-full transition-all duration-1000"
                       style={{ width: `${adProgress}%` }}
@@ -169,9 +168,9 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
                   </div>
 
                   {/* Ad Info - Bottom Left */}
-                  <div className="absolute bottom-4 left-4 max-w-xs ">
-                    <div className="bg-black/80 p-4 rounded-xl">
-                      <h3 className="text-white font-semibold text-sm mb-1">
+                  <div className="absolute bottom-2 left-2 md:bottom-4 md:left-4 max-w-[200px] md:max-w-xs">
+                    <div className="bg-black/80 p-2 md:p-4 rounded-xl">
+                      <h3 className="text-white font-semibold text-xs md:text-sm mb-1">
                         {adData.title}
                       </h3>
                       <p className="text-white/90 text-xs line-clamp-2">
@@ -184,7 +183,7 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
                       <Button
                         size="sm"
                         onClick={handleCtaClick}
-                        className="mt-3 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-medium rounded-md shadow-lg"
+                        className="mt-2 md:mt-3 bg-blue-600 hover:bg-blue-700 text-white px-3 md:px-4 py-2 text-xs md:text-sm font-medium rounded-md shadow-lg min-h-[36px] touch-manipulation"
                       >
                         {adData.ctaLabel}
                       </Button>
@@ -192,7 +191,7 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
                   </div>
 
                   {/* Skip Button - Bottom Right */}
-                  <div className="absolute bottom-4 right-4">
+                  <div className="absolute bottom-2 right-2 md:bottom-4 md:right-4">
                     <Button
                       onClick={handleSkipAd}
                       disabled={!canSkip}
@@ -200,9 +199,9 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
                       size="sm"
                       className={`${
                         canSkip
-                          ? "bg-white text-white hover:bg-gray-100"
+                          ? "bg-white text-black hover:bg-gray-100"
                           : "bg-gray-600/80 text-white cursor-not-allowed"
-                      } text-sm px-3 py-1 font-medium`}
+                      } text-xs md:text-sm px-2 md:px-3 py-1 font-medium min-h-[36px] touch-manipulation`}
                     >
                       {canSkip ? "Skip Ad" : `Skip Ad in ${skipTimer}`}
                     </Button>
@@ -212,28 +211,28 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
             </div>
 
             {/* Show Chat Button */}
-            <div className="absolute bottom-4 left-4">
+            <div className="absolute bottom-2 left-2 md:bottom-4 md:left-4">
               <Button
                 variant="secondary"
                 size="sm"
-                className="bg-gray-700 text-white hover:bg-gray-800"
+                className="bg-gray-700 text-white hover:bg-gray-800 text-xs md:text-sm min-h-[36px] touch-manipulation"
               >
-                <MessageCircle className="h-4 w-4 mr-2" />
+                <MessageCircle className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
                 Show Chat
               </Button>
             </div>
           </div>
         </div>
 
-        {/* Right Sidebar */}
-        <div className="w-80 p-4 space-y-4">
+        {/* Sidebar */}
+        <div className="w-full lg:w-80 p-2 md:p-4 space-y-3 md:space-y-4">
           {/* Stream Information */}
           <Card>
-            <CardContent className="p-4">
-              <h3 className="font-semibold text-gray-900 mb-4">
+            <CardContent className="p-3 md:p-4">
+              <h3 className="font-semibold text-gray-900 mb-3 md:mb-4 text-sm md:text-base">
                 Stream Information
               </h3>
-              <div className="space-y-3 text-sm">
+              <div className="space-y-2 md:space-y-3 text-xs md:text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Status:</span>
                   <span className="text-gray-900 font-medium">Live</span>
@@ -252,52 +251,53 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
 
           {/* Invite Other Streamers */}
           <Card>
-            <CardContent className="p-4">
-              <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
-                <Share2 className="h-4 w-4 mr-2" />
+            <CardContent className="p-3 md:p-4">
+              <h3 className="font-semibold text-gray-900 mb-2 flex items-center text-sm md:text-base">
+                <Share2 className="h-3 w-3 md:h-4 md:w-4 mr-2" />
                 Invite Other Streamers
               </h3>
-              <p className="text-sm text-gray-600 mb-4">
+              <p className="text-xs md:text-sm text-gray-600 mb-3 md:mb-4">
                 Share this stage link to invite other streamers to join your
                 event:
               </p>
 
-              <div className="bg-gray-50 p-2 rounded text-xs text-gray-700 mb-4 font-mono">
+              <div className="bg-gray-50 p-2 rounded text-xs text-gray-700 mb-3 md:mb-4 font-mono overflow-hidden">
                 http://localhost:8080/stage/yoga-summer...
               </div>
 
               <div className="grid grid-cols-2 gap-2">
-                <Button variant="outline" size="sm" className="justify-start">
-                  <div className="w-4 h-4 bg-green-500 rounded mr-2" />
+                <Button variant="outline" size="sm" className="justify-start text-xs min-h-[40px] touch-manipulation">
+                  <div className="w-3 h-3 md:w-4 md:h-4 bg-green-500 rounded mr-1 md:mr-2" />
                   WhatsApp
                 </Button>
-                <Button variant="outline" size="sm" className="justify-start">
-                  <div className="w-4 h-4 bg-blue-600 rounded mr-2" />
-                  Facebook Messe...
+                <Button variant="outline" size="sm" className="justify-start text-xs min-h-[40px] touch-manipulation">
+                  <div className="w-3 h-3 md:w-4 md:h-4 bg-blue-600 rounded mr-1 md:mr-2" />
+                  Facebook
                 </Button>
-                <Button variant="outline" size="sm" className="justify-start">
-                  <div className="w-4 h-4 bg-pink-500 rounded mr-2" />
+                <Button variant="outline" size="sm" className="justify-start text-xs min-h-[40px] touch-manipulation">
+                  <div className="w-3 h-3 md:w-4 md:h-4 bg-pink-500 rounded mr-1 md:mr-2" />
                   Instagram
                 </Button>
-                <Button variant="outline" size="sm" className="justify-start">
-                  <div className="w-4 h-4 bg-black rounded mr-2" />
+                <Button variant="outline" size="sm" className="justify-start text-xs min-h-[40px] touch-manipulation">
+                  <div className="w-3 h-3 md:w-4 md:h-4 bg-black rounded mr-1 md:mr-2" />
                   TikTok
                 </Button>
-                <Button variant="outline" size="sm" className="justify-start">
-                  <div className="w-4 h-4 bg-black rounded mr-2" />X (Twitter)
+                <Button variant="outline" size="sm" className="justify-start text-xs min-h-[40px] touch-manipulation">
+                  <div className="w-3 h-3 md:w-4 md:h-4 bg-black rounded mr-1 md:mr-2" />
+                  X (Twitter)
                 </Button>
-                <Button variant="outline" size="sm" className="justify-start">
-                  <div className="w-4 h-4 bg-gray-600 rounded mr-2" />
-                  Copy Secure Link
+                <Button variant="outline" size="sm" className="justify-start text-xs min-h-[40px] touch-manipulation">
+                  <div className="w-3 h-3 md:w-4 md:h-4 bg-gray-600 rounded mr-1 md:mr-2" />
+                  Copy Link
                 </Button>
               </div>
 
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full mt-2 justify-start"
+                className="w-full mt-2 justify-start text-xs min-h-[40px] touch-manipulation"
               >
-                <div className="w-4 h-4 bg-purple-500 rounded mr-2" />
+                <div className="w-3 h-3 md:w-4 md:h-4 bg-purple-500 rounded mr-1 md:mr-2" />
                 Copy Message
               </Button>
             </CardContent>
@@ -311,7 +311,7 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
       </div>
 
       {/* Preview Label */}
-      <div className="absolute top-20 left-4 bg-yellow-500 text-black px-3 py-1 rounded-full text-sm font-medium">
+      <div className="absolute top-16 md:top-20 left-2 md:left-4 bg-yellow-500 text-black px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-medium">
         🎬 Ad Preview Mode
       </div>
     </div>
