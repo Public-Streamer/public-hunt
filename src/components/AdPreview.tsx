@@ -1,7 +1,16 @@
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { X, Users, MessageCircle, Share2, Edit2, VideoOff, Waves, Eye } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  X,
+  Users,
+  MessageCircle,
+  Share2,
+  Edit2,
+  VideoOff,
+  Waves,
+  Eye,
+} from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface AdPreviewProps {
   adData: {
@@ -32,7 +41,7 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
           clearInterval(progressInterval);
           return 100;
         }
-        return prev + (100 / adDuration);
+        return prev + 100 / adDuration;
       });
     }, 1000);
 
@@ -62,7 +71,7 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
 
   const handleCtaClick = () => {
     if (adData.ctaUrl) {
-      window.open(adData.ctaUrl, '_blank', 'noopener,noreferrer');
+      window.open(adData.ctaUrl, "_blank", "noopener,noreferrer");
     }
   };
 
@@ -86,7 +95,9 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
               <Waves className="h-4 w-4" />
             </div>
             <div>
-              <h1 className="text-lg font-semibold text-gray-900">Yoga Summer Batch 2025 - Streaming Controls</h1>
+              <h1 className="text-lg font-semibold text-gray-900">
+                Yoga Summer Batch 2025 - Streaming Controls
+              </h1>
             </div>
             <Edit2 className="h-4 w-4 text-gray-400" />
           </div>
@@ -132,70 +143,81 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
                 <p className="text-lg">Camera is off</p>
               </div>
 
-            {/* YouTube-Style Ad Overlay */}
-            {showAd && (
-              <div className="absolute inset-0 bg-black/80">
-                {/* Ad Video - Fullscreen */}
-                <video
-                  src={adData.videoUrl}
-                  autoPlay
-                  muted
-                  className="w-full h-full object-cover"
-                  controls={false}
-                />
-
-                {/* Ad Indicator */}
-                <div className="absolute top-4 left-4 bg-yellow-500 text-black px-2 py-1 text-xs font-medium rounded">
-                  Ad
-                </div>
-
-                {/* Progress Bar - YouTube Style */}
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
-                  <div 
-                    className="bg-yellow-500 h-full transition-all duration-1000"
-                    style={{ width: `${adProgress}%` }}
+              {/* YouTube-Style Ad Overlay */}
+              {showAd && (
+                <div className="absolute inset-0 bg-black/80">
+                  {/* Ad Video - Fullscreen */}
+                  <video
+                    src={adData.videoUrl}
+                    autoPlay
+                    muted
+                    className="w-full h-full object-cover"
+                    controls={false}
                   />
-                </div>
 
-                {/* Ad Info - Bottom Left */}
-                <div className="absolute bottom-4 left-4 max-w-md">
-                  <h3 className="text-white font-semibold text-lg mb-1">{adData.title}</h3>
-                  <p className="text-white/90 text-sm line-clamp-2">{adData.description}</p>
-                  
-                  {/* CTA Button */}
-                  {adData.ctaLabel && adData.ctaUrl && (
+                  {/* Ad Indicator */}
+                  <div className="absolute top-4 left-4 bg-yellow-500 text-black px-2 py-1 text-xs font-medium rounded">
+                    Ad
+                  </div>
+
+                  {/* Progress Bar - YouTube Style */}
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
+                    <div
+                      className="bg-yellow-500 h-full transition-all duration-1000"
+                      style={{ width: `${adProgress}%` }}
+                    />
+                  </div>
+
+                  {/* Ad Info - Bottom Left */}
+                  <div className="absolute bottom-4 left-4 max-w-xs ">
+                    <div className="bg-black/80 p-4 rounded-xl">
+                      <h3 className="text-white font-semibold text-sm mb-1">
+                        {adData.title}
+                      </h3>
+                      <p className="text-white/90 text-xs line-clamp-2">
+                        {adData.description}
+                      </p>
+                    </div>
+
+                    {/* CTA Button */}
+                    {adData.ctaLabel && adData.ctaUrl && (
+                      <Button
+                        size="sm"
+                        onClick={handleCtaClick}
+                        className="mt-3 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-medium rounded-md shadow-lg"
+                      >
+                        {adData.ctaLabel}
+                      </Button>
+                    )}
+                  </div>
+
+                  {/* Skip Button - Bottom Right */}
+                  <div className="absolute bottom-4 right-4">
                     <Button
-                      onClick={handleCtaClick}
-                      className="mt-3 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-medium rounded-md shadow-lg"
+                      onClick={handleSkipAd}
+                      disabled={!canSkip}
+                      variant="secondary"
+                      size="sm"
+                      className={`${
+                        canSkip
+                          ? "bg-white text-white hover:bg-gray-100"
+                          : "bg-gray-600/80 text-white cursor-not-allowed"
+                      } text-sm px-3 py-1 font-medium`}
                     >
-                      {adData.ctaLabel}
+                      {canSkip ? "Skip Ad" : `Skip Ad in ${skipTimer}`}
                     </Button>
-                  )}
+                  </div>
                 </div>
-
-                {/* Skip Button - Bottom Right */}
-                <div className="absolute bottom-4 right-4">
-                  <Button
-                    onClick={handleSkipAd}
-                    disabled={!canSkip}
-                    variant="secondary"
-                    size="sm"
-                    className={`${
-                      canSkip 
-                        ? 'bg-white text-black hover:bg-gray-100' 
-                        : 'bg-gray-600/80 text-white cursor-not-allowed'
-                    } text-sm px-3 py-1 font-medium`}
-                  >
-                    {canSkip ? 'Skip Ad' : `Skip Ad in ${skipTimer}`}
-                  </Button>
-                </div>
-              </div>
-            )}
+              )}
             </div>
 
             {/* Show Chat Button */}
             <div className="absolute bottom-4 left-4">
-              <Button variant="secondary" size="sm" className="bg-gray-700 text-white hover:bg-gray-800">
+              <Button
+                variant="secondary"
+                size="sm"
+                className="bg-gray-700 text-white hover:bg-gray-800"
+              >
                 <MessageCircle className="h-4 w-4 mr-2" />
                 Show Chat
               </Button>
@@ -208,7 +230,9 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
           {/* Stream Information */}
           <Card>
             <CardContent className="p-4">
-              <h3 className="font-semibold text-gray-900 mb-4">Stream Information</h3>
+              <h3 className="font-semibold text-gray-900 mb-4">
+                Stream Information
+              </h3>
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Status:</span>
@@ -234,9 +258,10 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
                 Invite Other Streamers
               </h3>
               <p className="text-sm text-gray-600 mb-4">
-                Share this stage link to invite other streamers to join your event:
+                Share this stage link to invite other streamers to join your
+                event:
               </p>
-              
+
               <div className="bg-gray-50 p-2 rounded text-xs text-gray-700 mb-4 font-mono">
                 http://localhost:8080/stage/yoga-summer...
               </div>
@@ -259,8 +284,7 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
                   TikTok
                 </Button>
                 <Button variant="outline" size="sm" className="justify-start">
-                  <div className="w-4 h-4 bg-black rounded mr-2" />
-                  X (Twitter)
+                  <div className="w-4 h-4 bg-black rounded mr-2" />X (Twitter)
                 </Button>
                 <Button variant="outline" size="sm" className="justify-start">
                   <div className="w-4 h-4 bg-gray-600 rounded mr-2" />
@@ -268,7 +292,11 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
                 </Button>
               </div>
 
-              <Button variant="outline" size="sm" className="w-full mt-2 justify-start">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full mt-2 justify-start"
+              >
                 <div className="w-4 h-4 bg-purple-500 rounded mr-2" />
                 Copy Message
               </Button>
