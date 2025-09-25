@@ -104,51 +104,49 @@ const AdPreview = ({ adData, onClose }: AdPreviewProps) => {
                 <p className="text-lg">Camera is off</p>
               </div>
 
-              {/* Ad Overlay */}
-              {showAd && (
-                <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
-                  <Card className="bg-white max-w-2xl w-full mx-4">
-                    <CardContent className="p-6">
-                      <div className="space-y-4">
-                        {/* Ad Video */}
-                        <div className="relative">
-                          <video
-                            src={adData.videoUrl}
-                            autoPlay
-                            muted
-                            className="w-full rounded-lg max-h-96"
-                            controls={false}
-                          />
-                          
-                          {/* Progress Bar */}
-                          <div className="absolute bottom-2 left-2 right-16 bg-black/50 rounded-full h-1">
-                            <div 
-                              className="bg-white h-full rounded-full transition-all duration-1000"
-                              style={{ width: `${adProgress}%` }}
-                            />
-                          </div>
-                        </div>
-
-                        {/* Ad Info */}
-                        <div>
-                          <h3 className="font-bold text-lg text-gray-900">{adData.title}</h3>
-                          <p className="text-gray-600 text-sm line-clamp-2">{adData.description}</p>
-                        </div>
+            {/* Ad Overlay */}
+            {showAd && (
+              <div className="absolute inset-4 flex items-center justify-center">
+                <Card className="bg-white max-w-xl w-full mx-4 shadow-2xl">
+                  <CardContent className="p-0">
+                    {/* Ad Video */}
+                    <div className="relative">
+                      <video
+                        src={adData.videoUrl}
+                        autoPlay
+                        muted
+                        className="w-full rounded-t-lg max-h-80"
+                        controls={false}
+                      />
+                      
+                      {/* Progress Bar */}
+                      <div className="absolute bottom-2 left-2 right-2 bg-black/50 rounded-full h-1">
+                        <div 
+                          className="bg-white h-full rounded-full transition-all duration-1000"
+                          style={{ width: `${adProgress}%` }}
+                        />
                       </div>
-                    </CardContent>
-                  </Card>
 
-                  {/* Skip Button - Bottom Right */}
-                  <Button
-                    onClick={handleSkipAd}
-                    variant="secondary"
-                    size="sm"
-                    className="absolute bottom-6 right-6"
-                  >
-                    Skip Ad
-                  </Button>
-                </div>
-              )}
+                      {/* Skip Button - positioned in bottom right of video */}
+                      <Button
+                        onClick={handleSkipAd}
+                        variant="secondary"
+                        size="sm"
+                        className="absolute bottom-2 right-2 bg-gray-700 text-white hover:bg-gray-800 text-xs px-2 py-1"
+                      >
+                        Skip Ad
+                      </Button>
+                    </div>
+
+                    {/* Ad Info */}
+                    <div className="p-4">
+                      <h3 className="font-bold text-lg text-gray-900">{adData.title}</h3>
+                      <p className="text-gray-600 text-sm line-clamp-2">{adData.description}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
             </div>
 
             {/* Show Chat Button */}
