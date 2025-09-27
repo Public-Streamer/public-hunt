@@ -683,6 +683,10 @@ const EventPage: React.FC = () => {
                         hasAccess={hasTicket || canEnterStage}
                         isLoggedIn={!!currentUser}
                         eventId={eventData?.id}
+                        currentAd={currentAd}
+                        onAdComplete={handleAdComplete}
+                        viewerCount={eventData?.viewer_count || 0}
+                        eventHostId={eventData?.created_by}
                       />
                       
                       {/* Ad Display Overlay */}

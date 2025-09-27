@@ -35,6 +35,10 @@ const StagePage: React.FC = () => {
   const accessTokenRef = useRef<string | null>(null);
   const inviteToken = searchParams.get("token");
 
+  // Ad state for streamer interface
+  const [currentAd, setCurrentAd] = useState<any>(null);
+  const [adSessionId, setAdSessionId] = useState<string | null>(null);
+
   // Use React Query for event data
   const { data: eventData, isLoading: isEventLoading } = useQuery({
     queryKey: ["event", eventId],
@@ -348,22 +352,42 @@ const StagePage: React.FC = () => {
     );
   }
 
-  // if (!user) {
-  //   const redirectUrl = window.location.pathname + window.location.search;
+  // Ad handling functions
+  const handleAdTriggered = (ad: any, sessionId: string) => {
+    setCurrentAd(ad);
+    setAdSessionId(sessionId);
+  };
 
-  //   const redirectWithToken = inviteToken
-  //     ? `${redirectUrl}${
-  //         redirectUrl.includes("?") ? "&" : "?"
-  //       }token=${inviteToken}`
-  //     : redirectUrl;
+  const handleAdComplete = async (adId: string, durationWatched: number) => {
+    try {
+      if (!adSessionId) return;
 
-  //   return (
-  //     <Navigate
-  //       to={`/login?redirect=${encodeURIComponent(redirectWithToken)}`}
-  //       replace
-  //     />
-  //   );
-  // }
+      const supabase = supabaseBrowser();
+      // Process billing
+      await supabase.functions.invoke('process-ad-billing', {
+        body: {
+          adSessionId,
+          durationSeconds: durationWatched,
+          viewerCount: eventData?.viewer_count || 0
+        }
+      });
+
+      // Clear current ad
+      setCurrentAd(null);
+      setAdSessionId(null);
+
+      // Broadcast ad end to all viewers
+      const channel = supabase.channel(`event-ads-${eventData?.id}`);
+      await channel.send({
+        type: 'broadcast',
+        event: 'ad_ended',
+        payload: { adId }
+      });
+
+    } catch (error) {
+      console.error('Error completing ad:', error);
+    }
+  };
 
   if (!eventData || !userRole) {
     return (
@@ -425,6 +449,8 @@ const StagePage: React.FC = () => {
           streamId={streamId}
           autoGoLive={eventData?.is_live}
           generateToken={generateToken}
+          ticketPrice={eventData?.ticket_price || 0}
+          onAdTriggered={handleAdTriggered}
         />
       </LiveKitRoomLazy>
     </Suspense>

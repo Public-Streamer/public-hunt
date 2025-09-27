@@ -6,6 +6,7 @@ import { Eye } from "lucide-react";
 import { useStreamName } from '@/hooks/useStreamName';
 import MediaBackground from "./MediaBackground";
 import InStreamChatOverlay from "./InStreamChatOverlay";
+import EventAdDisplay from "./EventAdDisplay";
 
 interface MainStreamPreviewProps {
   track?: TrackReference;
@@ -17,6 +18,9 @@ interface MainStreamPreviewProps {
   eventId: string;
   mediaUrls: string[];
   eventHostId?: string;
+  currentAd?: any;
+  onAdComplete?: (adId: string, duration: number) => void;
+  viewerCount?: number;
 }
 
 const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
@@ -29,6 +33,9 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
   eventId,
   mediaUrls,
   eventHostId,
+  currentAd,
+  onAdComplete,
+  viewerCount = 0,
 }) => {
   const videoContainerRef = useRef<HTMLDivElement>(null);
   const videoElementRef = useRef<HTMLVideoElement>(null);
@@ -328,7 +335,7 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
             className="flex items-center gap-1 text-xs"
           >
             <Eye className="h-3 w-3" />
-                    {0}
+            {viewerCount}
           </Badge>
         </div>
 
@@ -351,6 +358,15 @@ const MainStreamPreview: React.FC<MainStreamPreviewProps> = ({
             {streamName || 'Unknown'}
           </Badge>
         </div>
+
+        {/* Ad Display Overlay */}
+        {currentAd && onAdComplete && (
+          <EventAdDisplay
+            adData={currentAd}
+            onAdComplete={onAdComplete}
+            viewerCount={viewerCount}
+          />
+        )}
       </div>
     </>
   );
