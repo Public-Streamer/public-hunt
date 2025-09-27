@@ -136,6 +136,42 @@ const MyAds: React.FC = () => {
     }
   };
 
+const validateAdForPublishing = (ad: Ad): { isValid: boolean; errors: string[] } => {
+    const errors: string[] = [];
+    
+    if (!ad.media_urls || ad.media_urls.length === 0) {
+      errors.push('Video content is required');
+    }
+    
+    if (!ad.budget || ad.budget <= 0) {
+      errors.push('Budget must be greater than $0');
+    }
+    
+    if (!ad.target_channels || ad.target_channels.length === 0) {
+      errors.push('At least one target channel is required');
+    }
+    
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  };
+
+  const publishAd = async (ad: Ad) => {
+    const validation = validateAdForPublishing(ad);
+    
+    if (!validation.isValid) {
+      toast({
+        title: "Cannot Publish Ad",
+        description: validation.errors.join(', '),
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    await updateAdStatus(ad.id, 'active');
+  };
+
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
       case 'active':
@@ -146,6 +182,8 @@ const MyAds: React.FC = () => {
         return 'outline';
       case 'pending_approval':
         return 'destructive';
+      case 'draft':
+        return 'outline';
       default:
         return 'secondary';
     }
@@ -177,10 +215,13 @@ const MyAds: React.FC = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="all">All ({ads.length})</TabsTrigger>
             <TabsTrigger value="active">
               Active ({ads.filter(ad => ad.status === 'active').length})
+            </TabsTrigger>
+            <TabsTrigger value="draft">
+              Draft ({ads.filter(ad => ad.status === 'draft').length})
             </TabsTrigger>
             <TabsTrigger value="paused">
               Paused ({ads.filter(ad => ad.status === 'paused').length})
@@ -237,7 +278,12 @@ const MyAds: React.FC = () => {
                               <BarChart3 className="h-4 w-4 mr-2" />
                               Analytics
                             </DropdownMenuItem>
-                            {ad.status === 'active' ? (
+                            {ad.status === 'draft' ? (
+                              <DropdownMenuItem onClick={() => publishAd(ad)}>
+                                <Play className="h-4 w-4 mr-2" />
+                                Publish
+                              </DropdownMenuItem>
+                            ) : ad.status === 'active' ? (
                               <DropdownMenuItem onClick={() => updateAdStatus(ad.id, 'paused')}>
                                 <Pause className="h-4 w-4 mr-2" />
                                 Pause

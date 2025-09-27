@@ -210,6 +210,38 @@ const AdvertiserDashboard: React.FC = () => {
     }
   };
 
+  const validateCampaignForPublishing = (campaign: Campaign): { isValid: boolean; errors: string[] } => {
+    const errors: string[] = [];
+    
+    if (!campaign.media_urls || campaign.media_urls.length === 0) {
+      errors.push('Video content is required');
+    }
+    
+    if (!campaign.budget || campaign.budget <= 0) {
+      errors.push('Budget must be greater than $0');
+    }
+    
+    if (!campaign.target_channels || campaign.target_channels.length === 0) {
+      errors.push('At least one target channel is required');
+    }
+    
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  };
+
+  const publishCampaign = async (campaign: Campaign) => {
+    const validation = validateCampaignForPublishing(campaign);
+    
+    if (!validation.isValid) {
+      toast.error(`Cannot publish campaign: ${validation.errors.join(', ')}`);
+      return;
+    }
+    
+    await updateCampaignStatus(campaign.id, 'active');
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return 'bg-green-500';
@@ -288,7 +320,17 @@ const AdvertiserDashboard: React.FC = () => {
 
           {/* Action Buttons */}
           <div className="flex space-x-2">
-            {campaign.status === 'active' ? (
+            {campaign.status === 'draft' ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => publishCampaign(campaign)}
+                className="flex-1 border-green-500/50 text-green-300 hover:bg-green-500/20"
+              >
+                <Play className="h-4 w-4 mr-1" />
+                Publish
+              </Button>
+            ) : campaign.status === 'active' ? (
               <Button
                 variant="outline"
                 size="sm"
