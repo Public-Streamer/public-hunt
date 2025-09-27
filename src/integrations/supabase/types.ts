@@ -738,6 +738,66 @@ export type Database = {
           },
         ]
       }
+      event_ad_sessions: {
+        Row: {
+          ad_id: string
+          billing_amount: number | null
+          created_at: string
+          duration_seconds: number | null
+          event_id: string
+          id: string
+          session_end: string | null
+          session_start: string
+          status: string | null
+          triggered_by: string
+          updated_at: string
+          viewer_count: number | null
+        }
+        Insert: {
+          ad_id: string
+          billing_amount?: number | null
+          created_at?: string
+          duration_seconds?: number | null
+          event_id: string
+          id?: string
+          session_end?: string | null
+          session_start?: string
+          status?: string | null
+          triggered_by: string
+          updated_at?: string
+          viewer_count?: number | null
+        }
+        Update: {
+          ad_id?: string
+          billing_amount?: number | null
+          created_at?: string
+          duration_seconds?: number | null
+          event_id?: string
+          id?: string
+          session_end?: string | null
+          session_start?: string
+          status?: string | null
+          triggered_by?: string
+          updated_at?: string
+          viewer_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_ad_sessions_ad_id_fkey"
+            columns: ["ad_id"]
+            isOneToOne: false
+            referencedRelation: "ads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_ad_sessions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_channel_requests: {
         Row: {
           channel_id: string
@@ -1274,6 +1334,60 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "user_profiles"
             referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      host_earnings: {
+        Row: {
+          ad_session_id: string
+          created_at: string
+          earning_amount: number
+          earning_percentage: number
+          event_id: string
+          host_user_id: string
+          id: string
+          payout_date: string | null
+          payout_status: string | null
+          updated_at: string
+        }
+        Insert: {
+          ad_session_id: string
+          created_at?: string
+          earning_amount?: number
+          earning_percentage?: number
+          event_id: string
+          host_user_id: string
+          id?: string
+          payout_date?: string | null
+          payout_status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ad_session_id?: string
+          created_at?: string
+          earning_amount?: number
+          earning_percentage?: number
+          event_id?: string
+          host_user_id?: string
+          id?: string
+          payout_date?: string | null
+          payout_status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "host_earnings_ad_session_id_fkey"
+            columns: ["ad_session_id"]
+            isOneToOne: false
+            referencedRelation: "event_ad_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "host_earnings_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
           },
         ]
       }

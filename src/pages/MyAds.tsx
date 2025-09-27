@@ -59,7 +59,13 @@ const MyAds: React.FC = () => {
 
       const { data, error } = await supabase
         .from('ads')
-        .select('*')
+        .select(`
+          *,
+          spend_amount,
+          budget_remaining,
+          actual_impressions,
+          estimated_impressions
+        `)
         .eq('user_id', userData.user.id)
         .order('created_at', { ascending: false });
 
@@ -261,15 +267,46 @@ const MyAds: React.FC = () => {
                           </p>
                         )}
                         
-                        <div className="flex items-center gap-2 text-sm">
-                          <DollarSign className="h-4 w-4 text-green-600" />
-                          <span className="font-medium">${ad.budget.toFixed(2)}</span>
-                          <span className="text-gray-500">budget</span>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 text-sm">
+                            <DollarSign className="h-4 w-4 text-green-600" />
+                            <span className="font-medium">${(ad as any).budget_remaining?.toFixed(2) || ad.budget.toFixed(2)}</span>
+                            <span className="text-gray-500">remaining</span>
+                          </div>
+                          
+                          {/* Budget Progress Bar */}
+                          {(ad as any).spend_amount !== undefined && (
+                            <div className="space-y-1">
+                              <div className="flex justify-between text-xs text-gray-500">
+                                <span>Spent: ${((ad as any).spend_amount || 0).toFixed(2)}</span>
+                                <span>Budget: ${ad.budget.toFixed(2)}</span>
+                              </div>
+                              <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div 
+                                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                  style={{ 
+                                    width: `${Math.min(100, (((ad as any).spend_amount || 0) / ad.budget) * 100)}%` 
+                                  }}
+                                />
+                              </div>
+                              {((ad as any).spend_amount || 0) / ad.budget > 0.8 && (
+                                <div className="flex items-center gap-1 text-xs text-amber-600">
+                                  <span>⚠️ Low budget remaining</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
 
-                        <div className="flex items-center gap-2 text-sm">
-                          <Target className="h-4 w-4 text-blue-600" />
-                          <span>{ad.target_channels.length} channels</span>
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          <div className="flex items-center gap-1">
+                            <Target className="h-4 w-4 text-blue-600" />
+                            <span>{ad.target_channels.length} channels</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Eye className="h-4 w-4 text-purple-600" />
+                            <span>{(ad as any).actual_impressions || 0} views</span>
+                          </div>
                         </div>
 
                         {ad.start_date && (

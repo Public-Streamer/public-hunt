@@ -41,6 +41,11 @@ interface Campaign {
   target_channels: string[];
   created_at: string;
   updated_at: string;
+  spend_amount?: number;
+  budget_remaining?: number;
+  actual_impressions?: number;
+  estimated_impressions?: number;
+  cpm_rate?: number;
 }
 
 interface CampaignMetrics {
@@ -60,15 +65,15 @@ const AdvertiserDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'billing' | 'notifications'>('overview');
   
-  // Mock metrics data - in real app, this would come from analytics table
-  const getMetricsForCampaign = (campaignId: string): CampaignMetrics => ({
-    impressions: Math.floor(Math.random() * 10000) + 1000,
-    views: Math.floor(Math.random() * 5000) + 500,
-    clicks: Math.floor(Math.random() * 200) + 20,
-    spend: Math.floor(Math.random() * 100) + 10,
-    ctr: (Math.random() * 5 + 1),
-    cpm: (Math.random() * 10 + 2),
-    viewDuration: Math.floor(Math.random() * 60) + 15
+  // Get real metrics from database
+  const getMetricsForCampaign = (campaign: Campaign): CampaignMetrics => ({
+    impressions: campaign.actual_impressions || 0,
+    views: campaign.actual_impressions || 0,
+    clicks: Math.floor((campaign.actual_impressions || 0) * 0.02), // Estimated 2% CTR
+    spend: campaign.spend_amount || 0,
+    ctr: campaign.actual_impressions > 0 ? 2.0 : 0, // Estimated CTR
+    cpm: campaign.cpm_rate || 5.00,
+    viewDuration: 30 // Estimated average view duration
   });
 
   const [realTimeMetrics, setRealTimeMetrics] = useState({
@@ -92,7 +97,14 @@ const AdvertiserDashboard: React.FC = () => {
 
       const { data, error } = await supabase
         .from('ads')
-        .select('*')
+        .select(`
+          *,
+          spend_amount,
+          budget_remaining,
+          actual_impressions,
+          estimated_impressions,
+          cpm_rate
+        `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
@@ -100,19 +112,17 @@ const AdvertiserDashboard: React.FC = () => {
 
       setCampaigns(data || []);
       
-      // Calculate real-time metrics
+      // Calculate real-time metrics from actual data
       const totalSpend = (data || []).reduce((sum, campaign) => {
-        const metrics = getMetricsForCampaign(campaign.id);
-        return sum + metrics.spend;
+        return sum + (campaign.spend_amount || 0);
       }, 0);
       
       const totalViews = (data || []).reduce((sum, campaign) => {
-        const metrics = getMetricsForCampaign(campaign.id);
-        return sum + metrics.views;
+        return sum + (campaign.actual_impressions || 0);
       }, 0);
       
       const activeCampaigns = (data || []).filter(c => c.status === 'active').length;
-      const averageCPM = totalSpend > 0 ? (totalSpend / totalViews * 1000) : 0;
+      const averageCPM = totalViews > 0 ? (totalSpend / totalViews * 1000) : 0;
 
       setRealTimeMetrics({
         totalSpend,
@@ -211,7 +221,7 @@ const AdvertiserDashboard: React.FC = () => {
   };
 
   const CampaignCard = ({ campaign }: { campaign: Campaign }) => {
-    const metrics = getMetricsForCampaign(campaign.id);
+    const metrics = getMetricsForCampaign(campaign);
     const budgetUsed = (metrics.spend / campaign.budget) * 100;
 
     return (
@@ -578,7 +588,7 @@ const AdvertiserDashboard: React.FC = () => {
                 <div>
                   <h3 className="text-white font-medium mb-3">Performance Analytics</h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {Object.entries(getMetricsForCampaign(selectedCampaign.id)).map(([key, value]) => (
+                    {Object.entries(getMetricsForCampaign(selectedCampaign)).map(([key, value]) => (
                       <div key={key} className="text-center p-3 bg-white/5 rounded-lg">
                         <p className="text-white font-bold text-lg">
                           {typeof value === 'number' 
