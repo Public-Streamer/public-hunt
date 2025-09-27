@@ -107,7 +107,7 @@ const MobileNav: React.FC<MobileNavProps> = ({
           </Link>
 
           <Link
-            to="/advertise"
+            to="/advertiser-dashboard"
             onClick={onClose}
             className="flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-gray-100 transition-colors"
           >
