@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Play, Clock, Zap } from 'lucide-react';
+import { Play, Clock, Zap, RefreshCw } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 import { useToast } from '@/hooks/use-toast';
 
@@ -34,29 +35,89 @@ export const StreamerAdControls: React.FC<StreamerAdControlsProps> = ({
   const [scheduledAds, setScheduledAds] = useState<{ [key: string]: number }>({});
   const { toast } = useToast();
 
-  // Fetch available ads
+  // Fetch available ads with enhanced debugging
   const fetchAvailableAds = async () => {
+    console.log('🔍 Fetching ads for event:', eventId, 'isEventFree:', isEventFree);
+    setIsLoading(true);
+    
     try {
       const supabase = supabaseBrowser();
+      
+      // Check authentication
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        console.error('❌ Authentication error:', authError);
+        toast({
+          title: "Authentication required",
+          description: "Please log in to manage ads",
+          variant: "destructive"
+        });
+        setIsLoading(false);
+        return;
+      }
+      
+      console.log('✅ User authenticated:', user.email);
+      
       const { data, error } = await supabase
         .from('ads')
         .select('*')
         .eq('campaign_status', 'active')
         .gt('budget_remaining', 0);
 
-      if (error) throw error;
+      console.log('📊 Ad query result:', { data, error, count: data?.length || 0 });
 
-      setAvailableAds(data || []);
+      if (error) {
+        console.error('❌ Database error:', error);
+        toast({
+          title: "Error loading ads",
+          description: error.message,
+          variant: "destructive"
+        });
+        throw error;
+      }
+
+      const validAds = data || [];
+      console.log('✅ Valid ads found:', validAds.map(ad => ({ 
+        id: ad.id, 
+        title: ad.title, 
+        budget_remaining: ad.budget_remaining,
+        campaign_status: ad.campaign_status 
+      })));
+      
+      setAvailableAds(validAds);
+      
+      if (validAds.length === 0) {
+        toast({
+          title: "No ads available",
+          description: "No active ads with remaining budget found",
+        });
+      }
     } catch (error) {
-      console.error('Error fetching ads:', error);
+      console.error('💥 Error fetching ads:', error);
+      toast({
+        title: "Failed to load ads",
+        description: "Unable to fetch available advertisements",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
+    console.log('🎯 StreamerAdControls effect:', { 
+      isEventFree, 
+      eventId, 
+      viewerCount,
+      componentMounted: true 
+    });
+    
     if (isEventFree) {
       fetchAvailableAds();
+    } else {
+      console.log('⚠️ Event is not free, hiding ad controls');
     }
-  }, [isEventFree]);
+  }, [isEventFree, eventId]);
 
   // Get random active ad
   const getRandomAd = (): Ad | null => {
@@ -183,6 +244,15 @@ export const StreamerAdControls: React.FC<StreamerAdControlsProps> = ({
         <CardTitle className="text-sm font-medium flex items-center gap-2">
           <Play className="h-4 w-4" />
           Ad Controls
+          <Button
+            onClick={fetchAvailableAds}
+            variant="ghost"
+            size="sm"
+            className="ml-auto h-6 w-6 p-0"
+            disabled={isLoading}
+          >
+            <RefreshCw className={cn("h-3 w-3", isLoading && "animate-spin")} />
+          </Button>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -192,6 +262,12 @@ export const StreamerAdControls: React.FC<StreamerAdControlsProps> = ({
           </Badge>
           <span>•</span>
           <span>{viewerCount} viewers</span>
+          {isLoading && (
+            <>
+              <span>•</span>
+              <span className="text-primary">Loading...</span>
+            </>
+          )}
         </div>
 
         <div className="grid grid-cols-1 gap-2">
