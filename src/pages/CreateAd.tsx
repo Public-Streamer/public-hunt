@@ -13,7 +13,6 @@ const CreateAd = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [budget, setBudget] = useState('');
-  const [targetChannels, setTargetChannels] = useState('');
   const [ctaLabel, setCtaLabel] = useState('');
   const [ctaUrl, setCtaUrl] = useState('');
   const [videoFile, setVideoFile] = useState<File | null>(null);
@@ -117,7 +116,6 @@ const CreateAd = () => {
           budget: parseFloat(budget),
           video_url: videoUrl,
           user_id: user.id,
-          target_channels: targetChannels ? targetChannels.split(',').map(id => id.trim()) : [],
           cta_label: ctaLabel || null,
           cta_url: ctaUrl || null,
           status: 'draft',
@@ -139,7 +137,6 @@ const CreateAd = () => {
       setTitle('');
       setDescription('');
       setBudget('');
-      setTargetChannels('');
       setCtaLabel('');
       setCtaUrl('');
       setVideoFile(null);
@@ -325,22 +322,12 @@ const CreateAd = () => {
                       <Input
                         type="number"
                         step="0.01"
-                        min="1"
+                        min="5"
                         value={budget}
                         onChange={(e) => setBudget(e.target.value)}
-                        placeholder="Enter your budget"
+                        placeholder="Enter your budget (minimum $5)"
                         className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
                         required
-                      />
-                    </div>
-
-                    <div>
-                      <Label className="text-white">Target Channels (Optional)</Label>
-                      <Input
-                        value={targetChannels}
-                        onChange={(e) => setTargetChannels(e.target.value)}
-                        placeholder="Enter channel IDs separated by commas"
-                        className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
                       />
                     </div>
 
