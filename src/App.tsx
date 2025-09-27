@@ -106,7 +106,7 @@ const App = () => {
                       path="/past-events"
                       element={<PastEvents events={[]} />}
                     />
-                    <Route path="/my-ads" element={<MyAds />} />
+                    <Route path="/my-ads" element={<AdvertiserDashboard />} />
                     <Route path="/advertise" element={<Advertise />} />
                     <Route path="/create-ad" element={<CreateAd />} />
                     <Route path="/ad-library" element={<AdLibrary />} />

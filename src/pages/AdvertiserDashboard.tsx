@@ -38,6 +38,7 @@ interface Campaign {
   start_date: string;
   end_date: string;
   media_urls: string[];
+  video_url?: string;
   target_channels: string[];
   created_at: string;
   updated_at: string;
@@ -63,7 +64,7 @@ const AdvertiserDashboard: React.FC = () => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'billing' | 'notifications'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'my-campaigns' | 'billing' | 'notifications'>('overview');
   
   // Get real metrics from database
   const getMetricsForCampaign = (campaign: Campaign): CampaignMetrics => ({
@@ -213,16 +214,12 @@ const AdvertiserDashboard: React.FC = () => {
   const validateCampaignForPublishing = (campaign: Campaign): { isValid: boolean; errors: string[] } => {
     const errors: string[] = [];
     
-    if (!campaign.media_urls || campaign.media_urls.length === 0) {
+    if (!campaign.video_url) {
       errors.push('Video content is required');
     }
     
     if (!campaign.budget || campaign.budget <= 0) {
       errors.push('Budget must be greater than $0');
-    }
-    
-    if (!campaign.target_channels || campaign.target_channels.length === 0) {
-      errors.push('At least one target channel is required');
     }
     
     return {
@@ -480,6 +477,7 @@ const AdvertiserDashboard: React.FC = () => {
         <div className="flex space-x-4 mb-6">
           {[
             { id: 'overview', label: 'Campaign Overview', icon: BarChart3 },
+            { id: 'my-campaigns', label: 'My Campaigns', icon: Target },
             { id: 'billing', label: 'Billing History', icon: FileText },
             { id: 'notifications', label: 'Notifications', icon: Bell }
           ].map(({ id, label, icon: Icon }) => (
@@ -512,6 +510,47 @@ const AdvertiserDashboard: React.FC = () => {
                   </p>
                   <Button
                     onClick={() => navigate('/create')}
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                  >
+                    Create Your First Campaign
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {campaigns.map((campaign) => (
+                  <CampaignCard key={campaign.id} campaign={campaign} />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'my-campaigns' && (
+          <div className="space-y-6">
+            <div className="flex space-x-4 mb-6">
+              {['all', 'active', 'draft', 'paused', 'pending_approval', 'completed'].map((status) => (
+                <Button
+                  key={status}
+                  variant="outline"
+                  size="sm"
+                  className="border-white/20 text-white hover:bg-white/10 capitalize"
+                >
+                  {status.replace('_', ' ')} ({campaigns.filter(c => status === 'all' || c.status === status).length})
+                </Button>
+              ))}
+            </div>
+
+            {campaigns.length === 0 ? (
+              <Card className="bg-white/10 backdrop-blur-sm border-white/20">
+                <CardContent className="p-12 text-center">
+                  <Target className="h-16 w-16 text-white/40 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-white mb-2">No Campaigns Yet</h3>
+                  <p className="text-white/70 mb-6">
+                    You haven't created any campaigns yet. Create your first campaign to get started.
+                  </p>
+                  <Button
+                    onClick={() => navigate('/create?tab=ad')}
                     className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
                   >
                     Create Your First Campaign

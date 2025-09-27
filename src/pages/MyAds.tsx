@@ -139,16 +139,12 @@ const MyAds: React.FC = () => {
 const validateAdForPublishing = (ad: Ad): { isValid: boolean; errors: string[] } => {
     const errors: string[] = [];
     
-    if (!ad.media_urls || ad.media_urls.length === 0) {
+    if (!(ad as any).video_url) {
       errors.push('Video content is required');
     }
     
     if (!ad.budget || ad.budget <= 0) {
       errors.push('Budget must be greater than $0');
-    }
-    
-    if (!ad.target_channels || ad.target_channels.length === 0) {
-      errors.push('At least one target channel is required');
     }
     
     return {
