@@ -359,7 +359,7 @@ const CreateAd = () => {
                     <Button 
                       type="submit" 
                       className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white" 
-                      disabled={isSubmitting || !videoFile}
+                      disabled={isSubmitting || !videoFile || parseFloat(budget) < 5 || !budget}
                     >
                       {isSubmitting ? 'Creating Campaign...' : 'Create Campaign'}
                     </Button>
