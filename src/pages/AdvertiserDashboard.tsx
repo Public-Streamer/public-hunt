@@ -33,7 +33,7 @@ interface Campaign {
   title: string;
   description: string;
   ad_type: string;
-  status: string;
+  campaign_status: string;
   budget: number;
   start_date: string;
   end_date: string;
@@ -122,7 +122,7 @@ const AdvertiserDashboard: React.FC = () => {
         return sum + (campaign.actual_impressions || 0);
       }, 0);
       
-      const activeCampaigns = (data || []).filter(c => c.status === 'active').length;
+      const activeCampaigns = (data || []).filter(c => c.campaign_status === 'active').length;
       const averageCPM = totalViews > 0 ? (totalSpend / totalViews * 1000) : 0;
 
       setRealTimeMetrics({
@@ -144,7 +144,7 @@ const AdvertiserDashboard: React.FC = () => {
     try {
       const { error } = await supabase
         .from('ads')
-        .update({ status: newStatus, updated_at: new Date().toISOString() })
+        .update({ campaign_status: newStatus, updated_at: new Date().toISOString() })
         .eq('id', campaignId);
 
       if (error) throw error;
@@ -171,7 +171,7 @@ const AdvertiserDashboard: React.FC = () => {
       const newCampaign = {
         ...campaign,
         title: `${campaign.title} (Copy)`,
-        status: 'draft',
+        campaign_status: 'draft',
         user_id: user.id,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
@@ -258,14 +258,14 @@ const AdvertiserDashboard: React.FC = () => {
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className={`w-3 h-3 rounded-full ${getStatusColor(campaign.status)}`} />
+              <div className={`w-3 h-3 rounded-full ${getStatusColor(campaign.campaign_status)}`} />
               <div>
                 <CardTitle className="text-white text-lg">{campaign.title}</CardTitle>
                 <p className="text-white/60 text-sm capitalize">{campaign.ad_type} Ad</p>
               </div>
             </div>
             <Badge variant="secondary" className="text-xs">
-              {campaign.status}
+              {campaign.campaign_status}
             </Badge>
           </div>
         </CardHeader>
@@ -317,7 +317,7 @@ const AdvertiserDashboard: React.FC = () => {
 
           {/* Action Buttons */}
           <div className="flex space-x-2">
-            {campaign.status === 'draft' ? (
+            {campaign.campaign_status === 'draft' ? (
               <Button
                 variant="outline"
                 size="sm"
@@ -327,7 +327,7 @@ const AdvertiserDashboard: React.FC = () => {
                 <Play className="h-4 w-4 mr-1" />
                 Publish
               </Button>
-            ) : campaign.status === 'active' ? (
+            ) : campaign.campaign_status === 'active' ? (
               <Button
                 variant="outline"
                 size="sm"
@@ -337,7 +337,7 @@ const AdvertiserDashboard: React.FC = () => {
                 <Pause className="h-4 w-4 mr-1" />
                 Pause
               </Button>
-            ) : campaign.status === 'paused' ? (
+            ) : campaign.campaign_status === 'paused' ? (
               <Button
                 variant="outline"
                 size="sm"
@@ -536,7 +536,7 @@ const AdvertiserDashboard: React.FC = () => {
                   size="sm"
                   className="border-white/20 text-white hover:bg-white/10 capitalize"
                 >
-                  {status.replace('_', ' ')} ({campaigns.filter(c => status === 'all' || c.status === status).length})
+                  {status.replace('_', ' ')} ({campaigns.filter(c => status === 'all' || c.campaign_status === status).length})
                 </Button>
               ))}
             </div>
@@ -603,7 +603,7 @@ const AdvertiserDashboard: React.FC = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {campaigns.filter(c => c.status === 'active').length > 0 ? (
+              {campaigns.filter(c => c.campaign_status === 'active').length > 0 ? (
                 <div className="space-y-3">
                   <div className="flex items-start space-x-3 p-4 bg-blue-500/20 rounded-lg border-l-4 border-blue-400">
                     <AlertCircle className="h-5 w-5 text-blue-300 mt-0.5" />

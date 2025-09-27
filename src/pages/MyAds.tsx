@@ -28,7 +28,7 @@ interface Ad {
   ad_type: string;
   start_date: string;
   end_date: string;
-  status: string;
+  campaign_status: string;
   target_channels: string[];
   media_urls: string[];
   created_at: string;
@@ -87,7 +87,7 @@ const MyAds: React.FC = () => {
     try {
       const { error } = await supabase
         .from('ads')
-        .update({ status: newStatus, updated_at: new Date().toISOString() })
+        .update({ campaign_status: newStatus, updated_at: new Date().toISOString() })
         .eq('id', adId);
 
       if (error) throw error;
@@ -187,7 +187,7 @@ const validateAdForPublishing = (ad: Ad): { isValid: boolean; errors: string[] }
 
   const filteredAds = ads.filter(ad => {
     if (activeTab === 'all') return true;
-    return ad.status === activeTab;
+    return ad.campaign_status === activeTab;
   });
 
   if (loading) {
@@ -214,19 +214,19 @@ const validateAdForPublishing = (ad: Ad): { isValid: boolean; errors: string[] }
           <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="all">All ({ads.length})</TabsTrigger>
             <TabsTrigger value="active">
-              Active ({ads.filter(ad => ad.status === 'active').length})
+              Active ({ads.filter(ad => ad.campaign_status === 'active').length})
             </TabsTrigger>
             <TabsTrigger value="draft">
-              Draft ({ads.filter(ad => ad.status === 'draft').length})
+              Draft ({ads.filter(ad => ad.campaign_status === 'draft').length})
             </TabsTrigger>
             <TabsTrigger value="paused">
-              Paused ({ads.filter(ad => ad.status === 'paused').length})
+              Paused ({ads.filter(ad => ad.campaign_status === 'paused').length})
             </TabsTrigger>
             <TabsTrigger value="pending_approval">
-              Pending ({ads.filter(ad => ad.status === 'pending_approval').length})
+              Pending ({ads.filter(ad => ad.campaign_status === 'pending_approval').length})
             </TabsTrigger>
             <TabsTrigger value="completed">
-              Completed ({ads.filter(ad => ad.status === 'completed').length})
+              Completed ({ads.filter(ad => ad.campaign_status === 'completed').length})
             </TabsTrigger>
           </TabsList>
 
@@ -255,8 +255,8 @@ const validateAdForPublishing = (ad: Ad): { isValid: boolean; errors: string[] }
                       <div className="flex justify-between items-start">
                         <div>
                           <CardTitle className="text-lg line-clamp-2">{ad.title}</CardTitle>
-                          <Badge variant={getStatusBadgeVariant(ad.status)} className="mt-2">
-                            {ad.status.replace('_', ' ').toUpperCase()}
+                          <Badge variant={getStatusBadgeVariant(ad.campaign_status)} className="mt-2">
+                            {ad.campaign_status.replace('_', ' ').toUpperCase()}
                           </Badge>
                         </div>
                         <DropdownMenu>
@@ -274,17 +274,17 @@ const validateAdForPublishing = (ad: Ad): { isValid: boolean; errors: string[] }
                               <BarChart3 className="h-4 w-4 mr-2" />
                               Analytics
                             </DropdownMenuItem>
-                            {ad.status === 'draft' ? (
+                            {ad.campaign_status === 'draft' ? (
                               <DropdownMenuItem onClick={() => publishAd(ad)}>
                                 <Play className="h-4 w-4 mr-2" />
                                 Publish
                               </DropdownMenuItem>
-                            ) : ad.status === 'active' ? (
+                            ) : ad.campaign_status === 'active' ? (
                               <DropdownMenuItem onClick={() => updateAdStatus(ad.id, 'paused')}>
                                 <Pause className="h-4 w-4 mr-2" />
                                 Pause
                               </DropdownMenuItem>
-                            ) : ad.status === 'paused' ? (
+                            ) : ad.campaign_status === 'paused' ? (
                               <DropdownMenuItem onClick={() => updateAdStatus(ad.id, 'active')}>
                                 <Play className="h-4 w-4 mr-2" />
                                 Resume

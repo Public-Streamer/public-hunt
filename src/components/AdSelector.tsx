@@ -48,7 +48,7 @@ const AdSelector = ({ eventId, onAdSelected, disabled }: AdSelectorProps) => {
       const { data, error } = await supabase
         .from('ads')
         .select('id, title, description, video_url, budget_remaining, cpm_rate, cta_label, cta_url')
-        .eq('status', 'active')
+        .eq('campaign_status', 'active')
         .gt('budget_remaining', 0)
         .order('created_at', { ascending: false });
 
