@@ -214,7 +214,10 @@ export const StreamerAdControls: React.FC<StreamerAdControlsProps> = ({
         type: "broadcast",
         event: "ad_started",
         payload: {
-          ad,
+          ad: {
+            ...ad,
+            event_id: eventId,
+          },
           sessionId: data.sessionId,
         },
       });

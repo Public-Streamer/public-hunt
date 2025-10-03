@@ -36,7 +36,7 @@ serve(async (req) => {
         ads (
           id, 
           user_id, 
-          cmp_rate, 
+          cpm_rate, 
           budget_remaining, 
           spend_amount, 
           actual_impressions
@@ -59,8 +59,11 @@ serve(async (req) => {
     // Get actual impression data from ad_impressions table
     const { data: impressions, error: impressionsError } = await supabase
       .from('ad_impressions')
-      .select('view_duration_seconds, viewed_at_2s')
-      .eq('viewer_session_id', adSessionId);
+      .select('view_duration_seconds, viewed_at_2s, impression_time')
+      .eq('ad_id', adSession.ad_id)
+      .eq('event_id', adSession.event_id)
+      .gte('impression_time', adSession.session_start)
+      .lte('impression_time', adSession.session_end || new Date().toISOString());
 
     if (impressionsError) {
       console.error('Error fetching impressions:', impressionsError);
