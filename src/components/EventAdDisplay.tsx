@@ -70,10 +70,8 @@ const EventAdDisplay = ({ adData, onAdComplete, viewerCount }: EventAdDisplayPro
     video.addEventListener("pause", handlePause);
     video.addEventListener("ended", handleEnded);
 
-    // Start tracking when video starts playing
-    if (isPlaying) {
-      startTracking();
-    }
+    // Start tracking once when component mounts
+    startTracking();
 
     return () => {
       video.removeEventListener("timeupdate", handleTimeUpdate);
@@ -83,7 +81,7 @@ const EventAdDisplay = ({ adData, onAdComplete, viewerCount }: EventAdDisplayPro
       video.removeEventListener("ended", handleEnded);
       cleanup();
     };
-  }, [isPlaying, adData.id, onAdComplete]);
+  }, [adData.id, onAdComplete, startTracking, cleanup]);
 
   // Track 2-second threshold
   useEffect(() => {
