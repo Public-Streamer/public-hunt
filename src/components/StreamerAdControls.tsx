@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Play, Clock, Zap, RefreshCw } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { supabaseBrowser } from '@/lib/supabase/browser';
-import { useToast } from '@/hooks/use-toast';
+import React, { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Play, Clock, Zap, RefreshCw } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { supabaseBrowser } from "@/lib/supabase/browser";
+import { useToast } from "@/hooks/use-toast";
 
 interface Ad {
   id: string;
@@ -28,64 +28,81 @@ export const StreamerAdControls: React.FC<StreamerAdControlsProps> = ({
   eventId,
   onAdTriggered,
   isEventFree,
-  viewerCount
+  viewerCount,
 }) => {
   const [availableAds, setAvailableAds] = useState<Ad[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [scheduledAds, setScheduledAds] = useState<{ [key: string]: number }>({});
+  const [scheduledAds, setScheduledAds] = useState<{ [key: string]: number }>(
+    {}
+  );
   const { toast } = useToast();
 
   // Fetch available ads with enhanced debugging
   const fetchAvailableAds = async () => {
-    console.log('🔍 Fetching ads for event:', eventId, 'isEventFree:', isEventFree);
+    console.log(
+      "🔍 Fetching ads for event:",
+      eventId,
+      "isEventFree:",
+      isEventFree
+    );
     setIsLoading(true);
-    
+
     try {
       const supabase = supabaseBrowser();
-      
+
       // Check authentication
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
       if (authError || !user) {
-        console.error('❌ Authentication error:', authError);
+        console.error("❌ Authentication error:", authError);
         toast({
           title: "Authentication required",
           description: "Please log in to manage ads",
-          variant: "destructive"
+          variant: "destructive",
         });
         setIsLoading(false);
         return;
       }
-      
-      console.log('✅ User authenticated:', user.email);
-      
-      const { data, error } = await supabase
-        .from('ads')
-        .select('*')
-        .eq('campaign_status', 'active')
-        .gt('budget_remaining', 0);
 
-      console.log('📊 Ad query result:', { data, error, count: data?.length || 0 });
+      console.log("✅ User authenticated:", user.email);
+
+      const { data, error } = await supabase
+        .from("ads")
+        .select("*")
+        .eq("campaign_status", "active")
+        .gt("budget", 0); //NOTE: This is a temporary fix, budget_remaining is not being updated and we should use it
+
+      console.log("📊 Ad query result:", {
+        data,
+        error,
+        count: data?.length || 0,
+      });
 
       if (error) {
-        console.error('❌ Database error:', error);
+        console.error("❌ Database error:", error);
         toast({
           title: "Error loading ads",
           description: error.message,
-          variant: "destructive"
+          variant: "destructive",
         });
         throw error;
       }
 
       const validAds = data || [];
-      console.log('✅ Valid ads found:', validAds.map(ad => ({ 
-        id: ad.id, 
-        title: ad.title, 
-        budget_remaining: ad.budget_remaining,
-        campaign_status: ad.campaign_status 
-      })));
-      
+      console.log(
+        "✅ Valid ads found:",
+        validAds.map((ad) => ({
+          id: ad.id,
+          title: ad.title,
+          budget_remaining: ad.budget_remaining,
+          campaign_status: ad.campaign_status,
+        }))
+      );
+
       setAvailableAds(validAds);
-      
+
       if (validAds.length === 0) {
         toast({
           title: "No ads available",
@@ -93,11 +110,11 @@ export const StreamerAdControls: React.FC<StreamerAdControlsProps> = ({
         });
       }
     } catch (error) {
-      console.error('💥 Error fetching ads:', error);
+      console.error("💥 Error fetching ads:", error);
       toast({
         title: "Failed to load ads",
         description: "Unable to fetch available advertisements",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -105,17 +122,17 @@ export const StreamerAdControls: React.FC<StreamerAdControlsProps> = ({
   };
 
   useEffect(() => {
-    console.log('🎯 StreamerAdControls effect:', { 
-      isEventFree, 
-      eventId, 
+    console.log("🎯 StreamerAdControls effect:", {
+      isEventFree,
+      eventId,
       viewerCount,
-      componentMounted: true 
+      componentMounted: true,
     });
-    
+
     if (isEventFree) {
       fetchAvailableAds();
     } else {
-      console.log('⚠️ Event is not free, hiding ad controls');
+      console.log("⚠️ Event is not free, hiding ad controls");
     }
   }, [isEventFree, eventId]);
 
@@ -133,7 +150,7 @@ export const StreamerAdControls: React.FC<StreamerAdControlsProps> = ({
       toast({
         title: "No ads available",
         description: "There are no active ads available to display",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -144,21 +161,23 @@ export const StreamerAdControls: React.FC<StreamerAdControlsProps> = ({
       // Schedule ad
       const timeoutId = setTimeout(async () => {
         await triggerAdNow(ad);
-        setScheduledAds(prev => {
+        setScheduledAds((prev) => {
           const newScheduled = { ...prev };
           delete newScheduled[ad.id];
           return newScheduled;
         });
       }, delay * 1000);
 
-      setScheduledAds(prev => ({
+      setScheduledAds((prev) => ({
         ...prev,
-        [ad.id]: Date.now() + (delay * 1000)
+        [ad.id]: Date.now() + delay * 1000,
       }));
 
       toast({
         title: "Ad scheduled",
-        description: `"${ad.title}" will play in ${delay === 60 ? '1 minute' : '5 minutes'}`,
+        description: `"${ad.title}" will play in ${
+          delay === 60 ? "1 minute" : "5 minutes"
+        }`,
       });
 
       setIsLoading(false);
@@ -171,15 +190,18 @@ export const StreamerAdControls: React.FC<StreamerAdControlsProps> = ({
   const triggerAdNow = async (ad: Ad) => {
     try {
       const supabase = supabaseBrowser();
-      
+
       // Create ad session
-      const { data, error } = await supabase.functions.invoke('create-ad-session', {
-        body: {
-          eventId,
-          adId: ad.id,
-          viewerCount
+      const { data, error } = await supabase.functions.invoke(
+        "create-ad-session",
+        {
+          body: {
+            eventId,
+            adId: ad.id,
+            viewerCount,
+          },
         }
-      });
+      );
 
       if (error) throw error;
 
@@ -189,25 +211,24 @@ export const StreamerAdControls: React.FC<StreamerAdControlsProps> = ({
       // Broadcast to all viewers via real-time
       const channel = supabase.channel(`event-ads-${eventId}`);
       await channel.send({
-        type: 'broadcast',
-        event: 'ad_started',
+        type: "broadcast",
+        event: "ad_started",
         payload: {
           ad,
-          sessionId: data.sessionId
-        }
+          sessionId: data.sessionId,
+        },
       });
 
       toast({
         title: "Ad started",
         description: `"${ad.title}" is now playing for all viewers`,
       });
-
     } catch (error) {
-      console.error('Error triggering ad:', error);
+      console.error("Error triggering ad:", error);
       toast({
         title: "Error",
         description: "Failed to start ad",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -219,10 +240,13 @@ export const StreamerAdControls: React.FC<StreamerAdControlsProps> = ({
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCountdowns(prev => {
+      setCountdowns((prev) => {
         const newCountdowns: { [key: string]: number } = {};
         Object.entries(scheduledAds).forEach(([adId, targetTime]) => {
-          const remaining = Math.max(0, Math.ceil((targetTime - Date.now()) / 1000));
+          const remaining = Math.max(
+            0,
+            Math.ceil((targetTime - Date.now()) / 1000)
+          );
           if (remaining > 0) {
             newCountdowns[adId] = remaining;
           }
@@ -288,8 +312,7 @@ export const StreamerAdControls: React.FC<StreamerAdControlsProps> = ({
             size="sm"
             className="w-full justify-start"
           >
-            <Clock className="h-3 w-3 mr-2" />
-            1 Minute Later
+            <Clock className="h-3 w-3 mr-2" />1 Minute Later
           </Button>
 
           <Button
@@ -299,27 +322,31 @@ export const StreamerAdControls: React.FC<StreamerAdControlsProps> = ({
             size="sm"
             className="w-full justify-start"
           >
-            <Clock className="h-3 w-3 mr-2" />
-            5 Minutes Later
+            <Clock className="h-3 w-3 mr-2" />5 Minutes Later
           </Button>
         </div>
 
         {/* Show scheduled ads with countdown */}
         {Object.keys(scheduledAds).length > 0 && (
           <div className="space-y-2">
-            <div className="text-xs font-medium text-muted-foreground">Scheduled:</div>
+            <div className="text-xs font-medium text-muted-foreground">
+              Scheduled:
+            </div>
             {Object.entries(countdowns).map(([adId, remaining]) => {
-              const ad = availableAds.find(a => a.id === adId);
+              const ad = availableAds.find((a) => a.id === adId);
               if (!ad || remaining <= 0) return null;
-              
+
               const minutes = Math.floor(remaining / 60);
               const seconds = remaining % 60;
-              
+
               return (
-                <div key={adId} className="flex items-center justify-between text-xs">
+                <div
+                  key={adId}
+                  className="flex items-center justify-between text-xs"
+                >
                   <span className="truncate max-w-24">{ad.title}</span>
                   <Badge variant="outline" className="text-xs">
-                    {minutes}:{seconds.toString().padStart(2, '0')}
+                    {minutes}:{seconds.toString().padStart(2, "0")}
                   </Badge>
                 </div>
               );
