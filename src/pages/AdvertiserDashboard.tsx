@@ -37,7 +37,7 @@ interface Campaign {
   budget: number;
   start_date: string;
   end_date: string;
-  media_urls: string[];
+  media_urls?: string[]; // Optional - not stored in ads table
   video_url?: string;
   target_channels: string[];
   created_at: string;

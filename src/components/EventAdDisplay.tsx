@@ -1,11 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Slider } from "@/components/ui/slider";
-import {
-  Play,
-  Pause,
-  Volume2,
-  VolumeX,
-} from "lucide-react";
+import { Play, Pause, Volume2, VolumeX } from "lucide-react";
+import { useAdImpressionTracking } from '@/hooks/useAdImpressionTracking';
 
 interface EventAdDisplayProps {
   adData: {
@@ -15,6 +11,7 @@ interface EventAdDisplayProps {
     video_url: string;
     cta_label?: string;
     cta_url?: string;
+    event_id?: string;
   };
   onAdComplete: (adId: string, durationWatched: number) => void;
   viewerCount: number;
@@ -28,8 +25,18 @@ const EventAdDisplay = ({ adData, onAdComplete, viewerCount }: EventAdDisplayPro
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [showControls, setShowControls] = useState(false);
+  const [twoSecondMarked, setTwoSecondMarked] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Initialize ad impression tracking
+  const {
+    startTracking,
+    markTwoSecondThreshold,
+    updateDuration,
+    completeTracking,
+    cleanup,
+  } = useAdImpressionTracking(adData.id, adData.event_id || '');
 
   // Video event handlers
   useEffect(() => {
@@ -52,8 +59,8 @@ const EventAdDisplay = ({ adData, onAdComplete, viewerCount }: EventAdDisplayPro
       setIsPlaying(false);
     };
 
-    const handleEnded = () => {
-      // Ad completed, notify parent with full duration
+    const handleEnded = async () => {
+      await completeTracking(video.duration);
       onAdComplete(adData.id, video.duration);
     };
 
@@ -63,14 +70,39 @@ const EventAdDisplay = ({ adData, onAdComplete, viewerCount }: EventAdDisplayPro
     video.addEventListener("pause", handlePause);
     video.addEventListener("ended", handleEnded);
 
+    // Start tracking when video starts playing
+    if (isPlaying) {
+      startTracking();
+    }
+
     return () => {
       video.removeEventListener("timeupdate", handleTimeUpdate);
       video.removeEventListener("loadedmetadata", handleLoadedMetadata);
       video.removeEventListener("play", handlePlay);
       video.removeEventListener("pause", handlePause);
       video.removeEventListener("ended", handleEnded);
+      cleanup();
     };
-  }, [adData.id, onAdComplete]);
+  }, [isPlaying, adData.id, onAdComplete]);
+
+  // Track 2-second threshold
+  useEffect(() => {
+    if (currentTime >= 2 && !twoSecondMarked) {
+      markTwoSecondThreshold();
+      setTwoSecondMarked(true);
+    }
+  }, [currentTime, twoSecondMarked, markTwoSecondThreshold]);
+
+  // Heartbeat interval for duration updates
+  useEffect(() => {
+    if (!isPlaying) return;
+
+    const heartbeatInterval = setInterval(() => {
+      updateDuration(currentTime);
+    }, 5000);
+
+    return () => clearInterval(heartbeatInterval);
+  }, [isPlaying, currentTime, updateDuration]);
 
   const handleCtaClick = () => {
     if (adData.cta_url) {

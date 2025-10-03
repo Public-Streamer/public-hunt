@@ -36,6 +36,9 @@ verify_jwt = true
 [functions.process-ad-billing]
 verify_jwt = true
 
+[functions.record-ad-impression]
+verify_jwt = false
+
 [[edge_functions]]
 function = "event"
 pattern = "/event/**"

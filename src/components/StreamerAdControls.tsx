@@ -72,7 +72,7 @@ export const StreamerAdControls: React.FC<StreamerAdControlsProps> = ({
         .from("ads")
         .select("*")
         .eq("campaign_status", "active")
-        .gt("budget", 0); //NOTE: This is a temporary fix, budget_remaining is not being updated and we should use it
+        .gt("budget_remaining", 0); // Only get ads with remaining budget
 
       console.log("📊 Ad query result:", {
         data,

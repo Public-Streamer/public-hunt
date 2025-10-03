@@ -56,17 +56,45 @@ serve(async (req) => {
       );
     }
 
-    // Calculate billing amount based on CPM and duration
-    // CPM = Cost Per Mille (1000 impressions)
-    // Formula: (duration_minutes / 60) * (cmp_rate / 1000) * viewer_count
-    const durationMinutes = durationSeconds / 60;
-    const billingAmount = (durationMinutes) * (adSession.ads.cmp_rate / 1000) * viewerCount;
+    // Get actual impression data from ad_impressions table
+    const { data: impressions, error: impressionsError } = await supabase
+      .from('ad_impressions')
+      .select('view_duration_seconds, viewed_at_2s')
+      .eq('viewer_session_id', adSessionId);
+
+    if (impressionsError) {
+      console.error('Error fetching impressions:', impressionsError);
+    }
+
+    // Calculate billing based on actual viewer watch time
+    // Only count valid impressions (2-second threshold met)
+    const validImpressions = impressions?.filter(i => i.viewed_at_2s) || [];
+    const totalSeconds = validImpressions.reduce((sum, i) => sum + (i.view_duration_seconds || 0), 0);
+    const totalMinutes = totalSeconds / 60;
+
+    // Calculate billing: total_minutes × rate_per_minute
+    // CPM rate is per 1000 impressions, so rate_per_minute = cpm_rate / 1000
+    const ratePerMinute = adSession.ads.cpm_rate / 1000;
+    const billingAmount = totalMinutes * ratePerMinute;
+
+    // Fraud detection: compare actual impressions vs reported viewer count
+    const actualImpressionCount = validImpressions.length;
+    if (actualImpressionCount > viewerCount * 1.2) {
+      console.warn('Potential fraud detected:', {
+        actualImpressions: actualImpressionCount,
+        reportedViewers: viewerCount,
+        adSessionId,
+      });
+    }
     
     console.log('Billing calculation:', {
-      durationMinutes,
-      cmpRate: adSession.ads.cmp_rate,
-      viewerCount,
-      billingAmount
+      totalSeconds,
+      totalMinutes,
+      ratePerMinute,
+      validImpressions: validImpressions.length,
+      reportedViewerCount: viewerCount,
+      actualImpressionCount,
+      billingAmount,
     });
 
     // Check if advertiser has enough budget
