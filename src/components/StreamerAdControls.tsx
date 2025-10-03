@@ -20,21 +20,25 @@ interface Ad {
 interface StreamerAdControlsProps {
   eventId: string;
   onAdTriggered: (ad: Ad, sessionId: string) => void;
+  onAdComplete?: (adId: string, durationWatched: number, actualViewerCount: number) => void;
   isEventFree: boolean;
-  viewerCount: number;
+  currentViewerCount: number;
 }
 
 export const StreamerAdControls: React.FC<StreamerAdControlsProps> = ({
   eventId,
   onAdTriggered,
+  onAdComplete,
   isEventFree,
-  viewerCount,
+  currentViewerCount,
 }) => {
   const [availableAds, setAvailableAds] = useState<Ad[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [scheduledAds, setScheduledAds] = useState<{ [key: string]: number }>(
     {}
   );
+  const [currentAd, setCurrentAd] = useState<Ad | null>(null);
+  const [adStartTime, setAdStartTime] = useState<number>(0);
   const { toast } = useToast();
 
   // Fetch available ads with enhanced debugging
@@ -125,7 +129,7 @@ export const StreamerAdControls: React.FC<StreamerAdControlsProps> = ({
     console.log("🎯 StreamerAdControls effect:", {
       isEventFree,
       eventId,
-      viewerCount,
+      currentViewerCount,
       componentMounted: true,
     });
 
@@ -135,6 +139,21 @@ export const StreamerAdControls: React.FC<StreamerAdControlsProps> = ({
       console.log("⚠️ Event is not free, hiding ad controls");
     }
   }, [isEventFree, eventId]);
+
+  // Handle ad completion
+  const handleAdComplete = () => {
+    if (currentAd && onAdComplete) {
+      const durationWatched = Math.floor((Date.now() - adStartTime) / 1000);
+      console.log('🎬 Ad Complete - Calling parent with:', {
+        adId: currentAd.id,
+        durationWatched,
+        actualViewerCount: currentViewerCount
+      });
+      onAdComplete(currentAd.id, durationWatched, currentViewerCount);
+    }
+    setCurrentAd(null);
+    setAdStartTime(0);
+  };
 
   // Get random active ad
   const getRandomAd = (): Ad | null => {
@@ -198,12 +217,16 @@ export const StreamerAdControls: React.FC<StreamerAdControlsProps> = ({
           body: {
             eventId,
             adId: ad.id,
-            viewerCount,
+            viewerCount: currentViewerCount,
           },
         }
       );
 
       if (error) throw error;
+
+      // Store current ad and start time for completion tracking
+      setCurrentAd(ad);
+      setAdStartTime(Date.now());
 
       // Trigger callback to parent
       onAdTriggered(ad, data.sessionId);
@@ -288,7 +311,7 @@ export const StreamerAdControls: React.FC<StreamerAdControlsProps> = ({
             {availableAds.length} ads available
           </Badge>
           <span>•</span>
-          <span>{viewerCount} viewers</span>
+          <span>{currentViewerCount} viewers</span>
           {isLoading && (
             <>
               <span>•</span>

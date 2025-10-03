@@ -77,6 +77,7 @@ interface StreamerInterfaceProps {
   generateToken: () => Promise<string>;
   ticketPrice?: number;
   onAdTriggered?: (ad: any, sessionId: string) => void;
+  onAdComplete?: (adId: string, durationWatched: number, actualViewerCount: number) => void;
 }
 
 export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
@@ -91,6 +92,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   generateToken,
   ticketPrice,
   onAdTriggered,
+  onAdComplete,
 }) => {
   const { localParticipant } = useLocalParticipant();
   const participants = useParticipants();
@@ -1080,8 +1082,9 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
               <StreamerAdControls
                 eventId={eventId}
                 onAdTriggered={onAdTriggered}
+                onAdComplete={onAdComplete}
                 isEventFree={!ticketPrice || ticketPrice <= 0}
-                viewerCount={viewerCount}
+                currentViewerCount={viewerCount}
               />
             )}
 

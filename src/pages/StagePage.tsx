@@ -358,17 +358,25 @@ const StagePage: React.FC = () => {
     setAdSessionId(sessionId);
   };
 
-  const handleAdComplete = async (adId: string, durationWatched: number) => {
+  const handleAdComplete = async (adId: string, durationWatched: number, actualViewerCount: number) => {
     try {
       if (!adSessionId) return;
 
       const supabase = supabaseBrowser();
-      // Process billing
+      
+      console.log('🎬 Ad Complete - Billing Details:', {
+        adId,
+        durationWatched,
+        actualViewerCount,  // ✅ REAL-TIME LIVEKIT COUNT
+        adSessionId
+      });
+      
+      // Process billing with real-time viewer count
       await supabase.functions.invoke('process-ad-billing', {
         body: {
           adSessionId,
           durationSeconds: durationWatched,
-          viewerCount: eventData?.viewer_count || 0
+          viewerCount: actualViewerCount  // ✅ USE REAL-TIME COUNT
         }
       });
 
@@ -451,6 +459,7 @@ const StagePage: React.FC = () => {
           generateToken={generateToken}
           ticketPrice={eventData?.ticket_price || 0}
           onAdTriggered={handleAdTriggered}
+          onAdComplete={handleAdComplete}
         />
       </LiveKitRoomLazy>
     </Suspense>
