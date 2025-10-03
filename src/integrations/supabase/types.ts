@@ -199,7 +199,6 @@ export type Database = {
           end_date: string | null
           estimated_impressions: number | null
           id: string
-          media_urls: string[] | null
           skip_after_seconds: number | null
           spend_amount: number | null
           start_date: string | null
@@ -228,7 +227,6 @@ export type Database = {
           end_date?: string | null
           estimated_impressions?: number | null
           id?: string
-          media_urls?: string[] | null
           skip_after_seconds?: number | null
           spend_amount?: number | null
           start_date?: string | null
@@ -257,7 +255,6 @@ export type Database = {
           end_date?: string | null
           estimated_impressions?: number | null
           id?: string
-          media_urls?: string[] | null
           skip_after_seconds?: number | null
           spend_amount?: number | null
           start_date?: string | null
