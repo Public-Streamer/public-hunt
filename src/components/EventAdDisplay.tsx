@@ -33,9 +33,10 @@ const EventAdDisplay = ({ adData, onAdComplete, viewerCount }: EventAdDisplayPro
   const {
     startTracking,
     markTwoSecondThreshold,
+    updateDuration,
     completeTracking,
     cleanup,
-  } = useAdImpressionTracking(adData.id, adData.event_id || '', isPlaying);
+  } = useAdImpressionTracking(adData.id, adData.event_id || '');
 
   // Video event handlers
   useEffect(() => {
@@ -90,6 +91,16 @@ const EventAdDisplay = ({ adData, onAdComplete, viewerCount }: EventAdDisplayPro
     }
   }, [currentTime, twoSecondMarked, markTwoSecondThreshold]);
 
+  // Heartbeat interval for duration updates
+  useEffect(() => {
+    if (!isPlaying) return;
+
+    const heartbeatInterval = setInterval(() => {
+      updateDuration(currentTime);
+    }, 5000);
+
+    return () => clearInterval(heartbeatInterval);
+  }, [isPlaying, currentTime, updateDuration]);
 
   const handleCtaClick = () => {
     if (adData.cta_url) {

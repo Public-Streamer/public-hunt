@@ -9,7 +9,7 @@ interface AdImpressionTrackingState {
   lastHeartbeat: number;
 }
 
-export const useAdImpressionTracking = (adId: string, eventId: string, isPlaying: boolean) => {
+export const useAdImpressionTracking = (adId: string, eventId: string) => {
   const [state, setState] = useState<AdImpressionTrackingState>({
     sessionId: null,
     startTime: null,
@@ -35,12 +35,6 @@ export const useAdImpressionTracking = (adId: string, eventId: string, isPlaying
 
     // Start heartbeat interval (every 5 seconds)
     heartbeatInterval.current = setInterval(() => {
-      // Only send heartbeat if video is playing
-      if (!isPlaying) {
-        console.log('⏸️ Skipping heartbeat - video paused');
-        return;
-      }
-
       const currentTime = Date.now();
       const duration = Math.floor((currentTime - startTime) / 1000);
       
@@ -56,8 +50,6 @@ export const useAdImpressionTracking = (adId: string, eventId: string, isPlaying
       }).then(({ error }) => {
         if (error) {
           console.error('Heartbeat error:', error);
-        } else {
-          console.log(`✅ Heartbeat: ${duration}s (playing: ${isPlaying})`);
         }
       });
 
@@ -65,7 +57,7 @@ export const useAdImpressionTracking = (adId: string, eventId: string, isPlaying
     }, 5000);
 
     return sessionId;
-  }, [adId, eventId, isPlaying]);
+  }, [adId, eventId]);
 
   // Mark 2-second threshold reached
   const markTwoSecondThreshold = useCallback(async () => {
@@ -164,40 +156,13 @@ export const useAdImpressionTracking = (adId: string, eventId: string, isPlaying
     }
   }, [state.sessionId, adId, eventId]);
 
-  // Cleanup on unmount - save final duration
+  // Cleanup on unmount
   const cleanup = useCallback(() => {
     if (heartbeatInterval.current) {
       clearInterval(heartbeatInterval.current);
       heartbeatInterval.current = null;
     }
-
-    // Save final duration before unmount/exit
-    if (state.sessionId && state.startTime) {
-      const finalDuration = Math.floor((Date.now() - state.startTime) / 1000);
-      console.log('🚪 Cleanup - saving final duration:', finalDuration);
-      
-      // Use sendBeacon for reliable exit tracking
-      const supabaseUrl = 'https://zmfugicftfwvuudensdo.supabase.co';
-      const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptZnVnaWNmdGZ3dnV1ZGVuc2RvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwNjU2ODUsImV4cCI6MjA2NzY0MTY4NX0.J8CA_K_oxhcd2wlQf0KvEarwi0ejq0nBgAVMEhQlXE8';
-      
-      const payload = JSON.stringify({
-        sessionId: state.sessionId,
-        adId,
-        eventId,
-        duration: finalDuration,
-        isFinal: true,
-      });
-      
-      // sendBeacon works even when page is closing
-      const blob = new Blob([payload], { type: 'application/json' });
-      const url = `${supabaseUrl}/functions/v1/record-ad-impression`;
-      
-      if (navigator.sendBeacon) {
-        navigator.sendBeacon(url, blob);
-        console.log('✅ Final duration sent via sendBeacon');
-      }
-    }
-  }, [state.sessionId, state.startTime, adId, eventId]);
+  }, []);
 
   return {
     sessionId: state.sessionId,
