@@ -688,6 +688,15 @@ const EventPage: React.FC = () => {
                         viewerCount={eventData?.viewer_count || 0}
                         eventHostId={eventData?.created_by}
                       />
+                      
+                      {/* Ad Display Overlay */}
+                      {currentAd && (
+                        <EventAdDisplay
+                          adData={currentAd}
+                          onAdComplete={handleAdComplete}
+                          viewerCount={eventData?.viewer_count || 0}
+                        />
+                      )}
                     </div>
                     <RoomAudioRendererLazy />
 
