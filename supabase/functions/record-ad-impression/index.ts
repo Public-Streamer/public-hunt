@@ -63,7 +63,7 @@ serve(async (req) => {
         .select('id')
         .eq('viewer_session_id', sessionId)
         .eq('ad_id', adId)
-        .single();
+        .maybeSingle();
 
       if (existing) {
         console.log('Impression already exists for session:', sessionId);
