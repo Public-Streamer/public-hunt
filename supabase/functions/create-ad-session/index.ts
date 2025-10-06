@@ -95,7 +95,7 @@ serve(async (req) => {
     // Verify ad exists and has budget
     const { data: ad, error: adError } = await supabase
       .from('ads')
-      .select('id, title, budget_remaining, status')
+      .select('id, title, budget_remaining, campaign_status')
       .eq('id', adId)
       .single();
 
@@ -109,7 +109,7 @@ serve(async (req) => {
       );
     }
 
-    if (ad.status !== 'active') {
+    if (ad.campaign_status !== 'active') {
       return new Response(
         JSON.stringify({ error: 'Ad is not active' }),
         { 
