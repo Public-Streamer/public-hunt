@@ -278,7 +278,7 @@ const AdvertiserDashboard: React.FC = () => {
               <p className="text-white/60 text-xs">Views</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-green-300">${metrics.spend}</p>
+              <p className="text-2xl font-bold text-green-300">${metrics.spend.toFixed(2)}</p>
               <p className="text-white/60 text-xs">Spent</p>
             </div>
           </div>
@@ -287,7 +287,7 @@ const AdvertiserDashboard: React.FC = () => {
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-white/80">Budget Used</span>
-              <span className="text-white/80">${metrics.spend} / ${campaign.budget}</span>
+              <span className="text-white/80">${metrics.spend.toFixed(2)} / ${campaign.budget}</span>
             </div>
             <Progress value={budgetUsed} className="h-2" />
           </div>
@@ -322,7 +322,7 @@ const AdvertiserDashboard: React.FC = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => publishCampaign(campaign)}
-                className="flex-1 border-green-500/50 text-green-300 hover:bg-green-500/20"
+                className="flex-1 border-green-500/50 bg-white text-green-700 hover:bg-green-50"
               >
                 <Play className="h-4 w-4 mr-1" />
                 Publish
@@ -332,7 +332,7 @@ const AdvertiserDashboard: React.FC = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => updateCampaignStatus(campaign.id, 'paused')}
-                className="flex-1 border-white/20 text-white hover:bg-white/10"
+                className="flex-1 border-white/20 bg-white text-gray-900 hover:bg-gray-100"
               >
                 <Pause className="h-4 w-4 mr-1" />
                 Pause
@@ -342,7 +342,7 @@ const AdvertiserDashboard: React.FC = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => updateCampaignStatus(campaign.id, 'active')}
-                className="flex-1 border-white/20 text-white hover:bg-white/10"
+                className="flex-1 border-white/20 bg-white text-gray-900 hover:bg-gray-100"
               >
                 <Play className="h-4 w-4 mr-1" />
                 Resume
@@ -443,7 +443,7 @@ const AdvertiserDashboard: React.FC = () => {
           <Card className="bg-white/10 backdrop-blur-sm border-white/20">
             <CardContent className="p-4 text-center">
               <DollarSign className="h-8 w-8 text-green-300 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-white">${realTimeMetrics.totalSpend}</p>
+              <p className="text-2xl font-bold text-white">${realTimeMetrics.totalSpend.toFixed(2)}</p>
               <p className="text-white/60 text-sm">Total Spend</p>
             </CardContent>
           </Card>
