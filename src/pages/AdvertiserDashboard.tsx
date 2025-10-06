@@ -47,6 +47,7 @@ interface Campaign {
   actual_impressions?: number;
   estimated_impressions?: number;
   cpm_rate?: number;
+  viewed_duration?: number;
 }
 
 interface CampaignMetrics {
@@ -78,7 +79,7 @@ const AdvertiserDashboard: React.FC = () => {
     spend: campaign.spend_amount || 0,
     ctr: campaign.actual_impressions > 0 ? 2.0 : 0, // Estimated CTR
     cpm: campaign.cpm_rate || 5.0,
-    viewDuration: 30, // Estimated average view duration
+    viewDuration: campaign.viewed_duration || 0, // Total viewed duration in seconds
   });
 
   const [realTimeMetrics, setRealTimeMetrics] = useState({
@@ -111,7 +112,8 @@ const AdvertiserDashboard: React.FC = () => {
           budget_remaining,
           actual_impressions,
           estimated_impressions,
-          cpm_rate
+          cpm_rate,
+          viewed_duration
         `
         )
         .eq("user_id", user.id)
@@ -346,9 +348,9 @@ const AdvertiserDashboard: React.FC = () => {
             </div>
             <div>
               <p className="text-white font-semibold">
-                {metrics.viewDuration}s
+                {Math.floor(metrics.viewDuration / 60)}m
               </p>
-              <p className="text-white/60 text-xs">Avg View</p>
+              <p className="text-white/60 text-xs">Watch Time</p>
             </div>
           </div>
 
@@ -769,16 +771,19 @@ const AdvertiserDashboard: React.FC = () => {
                       >
                         <p className="text-white font-bold text-lg">
                           {typeof value === "number"
-                            ? key.includes("ctr") || key.includes("cpm")
+                            ? key === "viewDuration"
+                              ? `${Math.floor(value / 60)}m ${value % 60}s`
+                              : key.includes("ctr") || key.includes("cpm")
                               ? value.toFixed(2)
                               : value.toLocaleString()
                             : value}
                           {key.includes("ctr") ? "%" : ""}
                           {key.includes("cpm") ? "$" : ""}
-                          {key === "viewDuration" ? "s" : ""}
                         </p>
                         <p className="text-white/60 text-xs capitalize">
-                          {key.replace(/([A-Z])/g, " $1").toLowerCase()}
+                          {key === "viewDuration" 
+                            ? "Total Watch Time"
+                            : key.replace(/([A-Z])/g, " $1").toLowerCase()}
                         </p>
                       </div>
                     ))}

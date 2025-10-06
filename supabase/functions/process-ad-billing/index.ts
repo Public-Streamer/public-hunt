@@ -39,7 +39,8 @@ serve(async (req) => {
           cpm_rate, 
           budget_remaining, 
           spend_amount, 
-          actual_impressions
+          actual_impressions,
+          viewed_duration
         )
       `)
       .eq('id', adSessionId)
@@ -126,6 +127,7 @@ serve(async (req) => {
           spend_amount: adSession.ads.spend_amount + remainingAmount,
           budget_remaining: 0,
           actual_impressions: adSession.ads.actual_impressions + viewerCount,
+          viewed_duration: (adSession.ads.viewed_duration || 0) + totalSeconds,
           status: 'completed', // Mark ad as completed when budget is exhausted
           updated_at: new Date().toISOString()
         })
@@ -176,6 +178,7 @@ serve(async (req) => {
       spend_amount: newSpendAmount,
       budget_remaining: newBudgetRemaining,
       actual_impressions: adSession.ads.actual_impressions + viewerCount,
+      viewed_duration: (adSession.ads.viewed_duration || 0) + totalSeconds,
       updated_at: new Date().toISOString()
     };
 
