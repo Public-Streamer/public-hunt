@@ -36,7 +36,7 @@ const EventAdDisplay = ({ adData, onAdComplete, viewerCount }: EventAdDisplayPro
     updateDuration,
     completeTracking,
     cleanup,
-  } = useAdImpressionTracking(adData.id, adData.event_id || '');
+  } = useAdImpressionTracking(adData.id, adData.event_id ?? null);
 
   // Video event handlers
   useEffect(() => {

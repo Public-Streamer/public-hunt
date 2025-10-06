@@ -9,7 +9,7 @@ interface AdImpressionTrackingState {
   lastHeartbeat: number;
 }
 
-export const useAdImpressionTracking = (adId: string, eventId: string) => {
+export const useAdImpressionTracking = (adId: string, eventId: string | null) => {
   const [state, setState] = useState<AdImpressionTrackingState>({
     sessionId: null,
     startTime: null,
@@ -43,7 +43,7 @@ export const useAdImpressionTracking = (adId: string, eventId: string) => {
         body: {
           sessionId,
           adId,
-          eventId,
+          eventId: eventId ?? null,
           duration,
           isHeartbeat: true,
         },
@@ -69,7 +69,7 @@ export const useAdImpressionTracking = (adId: string, eventId: string) => {
       body: {
         sessionId: state.sessionId,
         adId,
-        eventId,
+        eventId: eventId ?? null,
         duration: 2,
         twoSecondThreshold: true,
       },
@@ -90,7 +90,7 @@ export const useAdImpressionTracking = (adId: string, eventId: string) => {
       body: {
         sessionId: state.sessionId,
         adId,
-        eventId,
+        eventId: eventId ?? null,
         duration: Math.floor(currentSeconds),
         isHeartbeat: true,
       },
@@ -111,7 +111,7 @@ export const useAdImpressionTracking = (adId: string, eventId: string) => {
       body: {
         sessionId: state.sessionId,
         adId,
-        eventId,
+        eventId: eventId ?? null,
         duration: Math.floor(currentSeconds),
         skipClicked: true,
         isFinal: true,
@@ -139,7 +139,7 @@ export const useAdImpressionTracking = (adId: string, eventId: string) => {
       body: {
         sessionId: state.sessionId,
         adId,
-        eventId,
+        eventId: eventId ?? null,
         duration: Math.floor(finalDuration),
         isFinal: true,
       },

@@ -9,13 +9,19 @@ const corsHeaders = {
 interface ImpressionRequest {
   sessionId: string;
   adId: string;
-  eventId: string;
+  eventId?: string | null;
   duration: number;
   twoSecondThreshold?: boolean;
   skipClicked?: boolean;
   isHeartbeat?: boolean;
   isFinal?: boolean;
 }
+
+const isValidUuid = (str: string | null | undefined): boolean => {
+  if (!str) return false;
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+};
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -50,6 +56,24 @@ serve(async (req) => {
       isFinal,
     });
 
+    // Validate adId (required and must be valid UUID)
+    if (!isValidUuid(adId)) {
+      console.error('Invalid adId provided:', adId);
+      return new Response(
+        JSON.stringify({ error: 'Invalid ad ID format' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    // Normalize eventId - set to null if invalid or empty
+    const safeEventId = isValidUuid(eventId) ? eventId : null;
+    if (eventId && !safeEventId) {
+      console.warn('Invalid eventId provided, setting to null:', eventId);
+    }
+
     // Extract viewer metadata
     const viewerIp = req.headers.get('x-forwarded-for') || 
                      req.headers.get('x-real-ip') || 
@@ -81,7 +105,7 @@ serve(async (req) => {
         .from('ad_impressions')
         .insert({
           ad_id: adId,
-          event_id: eventId,
+          event_id: safeEventId,
           viewer_session_id: sessionId,
           viewer_ip: viewerIp,
           user_agent: userAgent,
@@ -91,7 +115,16 @@ serve(async (req) => {
         });
 
       if (insertError) {
-        console.error('Error inserting impression:', insertError);
+        console.error('Error inserting impression:', {
+          error: insertError,
+          code: insertError.code,
+          message: insertError.message,
+          details: insertError.details,
+          hint: insertError.hint,
+          adId,
+          eventId: safeEventId,
+          sessionId
+        });
         return new Response(
           JSON.stringify({ error: 'Failed to record impression' }),
           { 
