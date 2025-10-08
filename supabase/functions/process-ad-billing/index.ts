@@ -1,4 +1,4 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+  import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
@@ -77,8 +77,8 @@ serve(async (req) => {
     const totalMinutes = totalSeconds / 60;
 
     // Calculate billing: total_minutes × rate_per_minute
-    // CPM rate is per 1000 impressions, so rate_per_minute = cpm_rate / 1000
-    const ratePerMinute = adSession.ads.cpm_rate / 1000;
+    // Flat rate billing at $0.10 per minute
+    const ratePerMinute = 0.1;
     const billingAmount = totalMinutes * ratePerMinute;
 
     // Fraud detection: compare actual impressions vs reported viewer count
