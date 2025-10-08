@@ -574,19 +574,19 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                     Events
                   </Link>
                 </TooltipWrapper>
-                {/* <TooltipWrapper content="Create and manage advertising campaigns">
+                <TooltipWrapper content="Create and manage advertising campaigns">
                   <Link
-                    to="/advertisers"
+                    to="/advertiser-dashboard"
                     className={`px-2 md:px-3 lg:px-4 py-2 rounded-lg font-semibold text-white border-2 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl drop-shadow-lg text-center text-sm lg:text-base ${
-                      isActive("/advertisers")
+                      isActive("/advertise")
                         ? "bg-red-600 border-red-500 shadow-red-400/30"
                         : "bg-slate-600 border-slate-500 hover:bg-slate-700 hover:border-slate-400"
                     }`}
                     style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.5)" }}
                   >
-                    Advertisers
+                    Advertise
                   </Link>
-                </TooltipWrapper> */}
+                </TooltipWrapper>
                 <TooltipWrapper content="Get help and learn about Public Streamer">
                   <Link
                     to="/qa"

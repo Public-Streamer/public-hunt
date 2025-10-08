@@ -33,6 +33,9 @@ interface ManageRoomResponse {
     enabledCodecs: string[];
     metadata: string;
   };
+  info?: string;
+  cleaned?: number;
+  total?: number;
   error?: string;
 }
 
@@ -171,7 +174,7 @@ serve(async (req) => {
           console.error("Error closing room:", error);
           response = {
             success: false,
-            error: error.message,
+            error: (error as Error).message,
           };
         }
         break;
@@ -207,7 +210,7 @@ serve(async (req) => {
           console.error("Error getting room info:", error);
           response = {
             success: false,
-            error: error.message,
+            error: (error as Error).message,
           };
         }
         break;
@@ -226,7 +229,7 @@ serve(async (req) => {
 
           if (!inactiveRooms || inactiveRooms.length === 0) {
             console.log(`✅ No inactive rooms to clean up`);
-            response = { success: true, message: "No rooms to clean up" };
+            response = { success: true, info: "No rooms to clean up" };
             break;
           }
 
@@ -246,7 +249,7 @@ serve(async (req) => {
             } catch (roomDelError) {
               console.warn(
                 `⚠️ Failed to delete room ${room.room_name}:`,
-                roomDelError.message
+                (roomDelError as Error).message
               );
               // Continue with other rooms even if one fails
             }
@@ -254,7 +257,7 @@ serve(async (req) => {
 
           response = {
             success: true,
-            message: `Cleaned up ${cleanedCount}/${inactiveRooms.length} rooms`,
+            info: `Cleaned up ${cleanedCount}/${inactiveRooms.length} rooms`,
             cleaned: cleanedCount,
             total: inactiveRooms.length,
           };
@@ -266,7 +269,7 @@ serve(async (req) => {
           console.error("❌ Error during cleanup:", error);
           response = {
             success: false,
-            error: error.message,
+            error: (error as Error).message,
           };
         }
         break;
@@ -283,7 +286,7 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error("Error in manage-livekit-room:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: (error as Error).message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

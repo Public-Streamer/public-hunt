@@ -11,6 +11,10 @@ interface StreamPreviewContainerProps {
   isLoggedIn: boolean;
   eventId: string;
   mediaUrls: string[];
+  currentAd?: any;
+  onAdComplete?: (adId: string, duration: number) => void;
+  viewerCount?: number;
+  eventHostId?: string;
 }
 
 // Lazy-loaded inner content that uses LiveKit hooks/components so we don't statically import them in this file
@@ -23,7 +27,11 @@ const StreamTracksContentLazy = lazy(() =>
       isLive: boolean;
       eventId: string;
       mediaUrls: string[];
-    }> = ({ eventName, isLive, eventId, mediaUrls }) => {
+      currentAd?: any;
+      onAdComplete?: (adId: string, duration: number) => void;
+      viewerCount?: number;
+      eventHostId?: string;
+    }> = ({ eventName, isLive, eventId, mediaUrls, currentAd, onAdComplete, viewerCount, eventHostId }) => {
       const [selectedTrackIndex, setSelectedTrackIndex] = useState<number>(0);
       const [isMuted, setIsMuted] = useState(false);
       const TrackSource = useLiveKitTrackSource();
@@ -103,6 +111,10 @@ const StreamTracksContentLazy = lazy(() =>
             setIsMuted={setIsMuted}
             isMuted={isMuted}
             eventId={eventId}
+            currentAd={currentAd}
+            onAdComplete={onAdComplete}
+            viewerCount={viewerCount}
+            eventHostId={eventHostId}
           />
 
           <StartAudio label="Start Audio" className="btn btn-primary" />
@@ -135,6 +147,10 @@ const StreamPreviewContainer: React.FC<StreamPreviewContainerProps> = ({
   isLoggedIn,
   eventId,
   mediaUrls,
+  currentAd,
+  onAdComplete,
+  viewerCount,
+  eventHostId,
 }) => {
   // If user is not logged in, show blurred preview
   if (!isLoggedIn) {
@@ -182,6 +198,10 @@ const StreamPreviewContainer: React.FC<StreamPreviewContainerProps> = ({
         isLive={isLive}
         eventId={eventId}
         mediaUrls={mediaUrls}
+        currentAd={currentAd}
+        onAdComplete={onAdComplete}
+        viewerCount={viewerCount}
+        eventHostId={eventHostId}
       />
     </Suspense>
   );

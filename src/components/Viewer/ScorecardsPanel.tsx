@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, Users, Clock } from "lucide-react";
 import type { Scorecard } from "@/lib/viewerState";
-import { FullScorecardGrid } from "@/components/scorecard/FullScorecardGrid";
+import { FullScorecardGrid } from "@/components/Scorecard/FullScorecardGrid";
 import type { FullScorecardDTO } from "@/lib/types";
 import { supabase } from "@/integrations/supabase/client";
 

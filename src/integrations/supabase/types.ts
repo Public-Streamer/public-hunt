@@ -20,12 +20,15 @@ export type Database = {
           created_at: string
           feedback_text: string | null
           id: string
+          impression_at_2s: boolean | null
           is_flagged: boolean | null
           is_moderated: boolean | null
           selected_tags: string[] | null
+          skip_clicked: boolean | null
           star_rating: number
           updated_at: string
           user_agent: string | null
+          view_duration_seconds: number | null
           viewer_ip: string | null
           viewer_session_id: string
         }
@@ -34,12 +37,15 @@ export type Database = {
           created_at?: string
           feedback_text?: string | null
           id?: string
+          impression_at_2s?: boolean | null
           is_flagged?: boolean | null
           is_moderated?: boolean | null
           selected_tags?: string[] | null
+          skip_clicked?: boolean | null
           star_rating: number
           updated_at?: string
           user_agent?: string | null
+          view_duration_seconds?: number | null
           viewer_ip?: string | null
           viewer_session_id: string
         }
@@ -48,16 +54,72 @@ export type Database = {
           created_at?: string
           feedback_text?: string | null
           id?: string
+          impression_at_2s?: boolean | null
           is_flagged?: boolean | null
           is_moderated?: boolean | null
           selected_tags?: string[] | null
+          skip_clicked?: boolean | null
           star_rating?: number
           updated_at?: string
           user_agent?: string | null
+          view_duration_seconds?: number | null
           viewer_ip?: string | null
           viewer_session_id?: string
         }
         Relationships: []
+      }
+      ad_impressions: {
+        Row: {
+          ad_id: string | null
+          created_at: string | null
+          event_id: string | null
+          id: string
+          impression_time: string | null
+          skip_clicked: boolean | null
+          stream_name: string | null
+          user_agent: string | null
+          view_duration_seconds: number | null
+          viewed_at_2s: boolean | null
+          viewer_ip: string | null
+          viewer_session_id: string
+        }
+        Insert: {
+          ad_id?: string | null
+          created_at?: string | null
+          event_id?: string | null
+          id?: string
+          impression_time?: string | null
+          skip_clicked?: boolean | null
+          stream_name?: string | null
+          user_agent?: string | null
+          view_duration_seconds?: number | null
+          viewed_at_2s?: boolean | null
+          viewer_ip?: string | null
+          viewer_session_id: string
+        }
+        Update: {
+          ad_id?: string | null
+          created_at?: string | null
+          event_id?: string | null
+          id?: string
+          impression_time?: string | null
+          skip_clicked?: boolean | null
+          stream_name?: string | null
+          user_agent?: string | null
+          view_duration_seconds?: number | null
+          viewed_at_2s?: boolean | null
+          viewer_ip?: string | null
+          viewer_session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_impressions_ad_id_fkey"
+            columns: ["ad_id"]
+            isOneToOne: false
+            referencedRelation: "ads"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       admin_user_assignments: {
         Row: {
@@ -121,13 +183,24 @@ export type Database = {
       }
       ads: {
         Row: {
+          actual_impressions: number | null
+          ad_name: string | null
           ad_type: string | null
           budget: number
+          budget_remaining: number | null
+          campaign_status: string | null
+          cpm_rate: number | null
           created_at: string
+          creative_valid: boolean | null
+          cta_label: string | null
+          cta_url: string | null
+          daily_cap: number | null
           description: string | null
           end_date: string | null
+          estimated_impressions: number | null
           id: string
-          media_urls: string[] | null
+          skip_after_seconds: number | null
+          spend_amount: number | null
           start_date: string | null
           status: string | null
           stripe_account_id: string | null
@@ -135,15 +208,28 @@ export type Database = {
           title: string
           updated_at: string
           user_id: string
+          video_url: string | null
+          viewed_duration: number | null
         }
         Insert: {
+          actual_impressions?: number | null
+          ad_name?: string | null
           ad_type?: string | null
           budget: number
+          budget_remaining?: number | null
+          campaign_status?: string | null
+          cpm_rate?: number | null
           created_at?: string
+          creative_valid?: boolean | null
+          cta_label?: string | null
+          cta_url?: string | null
+          daily_cap?: number | null
           description?: string | null
           end_date?: string | null
+          estimated_impressions?: number | null
           id?: string
-          media_urls?: string[] | null
+          skip_after_seconds?: number | null
+          spend_amount?: number | null
           start_date?: string | null
           status?: string | null
           stripe_account_id?: string | null
@@ -151,15 +237,28 @@ export type Database = {
           title: string
           updated_at?: string
           user_id: string
+          video_url?: string | null
+          viewed_duration?: number | null
         }
         Update: {
+          actual_impressions?: number | null
+          ad_name?: string | null
           ad_type?: string | null
           budget?: number
+          budget_remaining?: number | null
+          campaign_status?: string | null
+          cpm_rate?: number | null
           created_at?: string
+          creative_valid?: boolean | null
+          cta_label?: string | null
+          cta_url?: string | null
+          daily_cap?: number | null
           description?: string | null
           end_date?: string | null
+          estimated_impressions?: number | null
           id?: string
-          media_urls?: string[] | null
+          skip_after_seconds?: number | null
+          spend_amount?: number | null
           start_date?: string | null
           status?: string | null
           stripe_account_id?: string | null
@@ -167,93 +266,10 @@ export type Database = {
           title?: string
           updated_at?: string
           user_id?: string
+          video_url?: string | null
+          viewed_duration?: number | null
         }
         Relationships: []
-      }
-      ai_highlights: {
-        Row: {
-          analysis_metadata: Json | null
-          confidence_score: number
-          created_at: string
-          end_time_seconds: number
-          engagement_score: number
-          highlight_type: string
-          id: string
-          source_event_id: string
-          start_time_seconds: number
-          title: string
-        }
-        Insert: {
-          analysis_metadata?: Json | null
-          confidence_score: number
-          created_at?: string
-          end_time_seconds: number
-          engagement_score: number
-          highlight_type: string
-          id?: string
-          source_event_id: string
-          start_time_seconds: number
-          title: string
-        }
-        Update: {
-          analysis_metadata?: Json | null
-          confidence_score?: number
-          created_at?: string
-          end_time_seconds?: number
-          engagement_score?: number
-          highlight_type?: string
-          id?: string
-          source_event_id?: string
-          start_time_seconds?: number
-          title?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ai_highlights_source_event_id_fkey"
-            columns: ["source_event_id"]
-            isOneToOne: false
-            referencedRelation: "past_events"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      blog_answers: {
-        Row: {
-          author: string
-          content: string
-          created_at: string | null
-          id: number
-          is_ai_generated: boolean | null
-          likes: number | null
-          post_id: number | null
-        }
-        Insert: {
-          author: string
-          content: string
-          created_at?: string | null
-          id?: number
-          is_ai_generated?: boolean | null
-          likes?: number | null
-          post_id?: number | null
-        }
-        Update: {
-          author?: string
-          content?: string
-          created_at?: string | null
-          id?: number
-          is_ai_generated?: boolean | null
-          likes?: number | null
-          post_id?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "blog_answers_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "blog_posts"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       blog_posts: {
         Row: {
@@ -720,11 +736,64 @@ export type Database = {
             referencedRelation: "channels"
             referencedColumns: ["id"]
           },
+        ]
+      }
+      event_ad_sessions: {
+        Row: {
+          ad_id: string
+          billing_amount: number | null
+          created_at: string
+          duration_seconds: number | null
+          event_id: string
+          id: string
+          session_end: string | null
+          session_start: string
+          status: string | null
+          triggered_by: string
+          updated_at: string
+          viewer_count: number | null
+        }
+        Insert: {
+          ad_id: string
+          billing_amount?: number | null
+          created_at?: string
+          duration_seconds?: number | null
+          event_id: string
+          id?: string
+          session_end?: string | null
+          session_start?: string
+          status?: string | null
+          triggered_by: string
+          updated_at?: string
+          viewer_count?: number | null
+        }
+        Update: {
+          ad_id?: string
+          billing_amount?: number | null
+          created_at?: string
+          duration_seconds?: number | null
+          event_id?: string
+          id?: string
+          session_end?: string | null
+          session_start?: string
+          status?: string | null
+          triggered_by?: string
+          updated_at?: string
+          viewer_count?: number | null
+        }
+        Relationships: [
           {
-            foreignKeyName: "episodes_source_event_id_fkey"
-            columns: ["source_event_id"]
+            foreignKeyName: "event_ad_sessions_ad_id_fkey"
+            columns: ["ad_id"]
             isOneToOne: false
-            referencedRelation: "past_events"
+            referencedRelation: "ads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_ad_sessions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
             referencedColumns: ["id"]
           },
         ]
@@ -1268,6 +1337,60 @@ export type Database = {
           },
         ]
       }
+      host_earnings: {
+        Row: {
+          ad_session_id: string
+          created_at: string
+          earning_amount: number
+          earning_percentage: number
+          event_id: string
+          host_user_id: string
+          id: string
+          payout_date: string | null
+          payout_status: string | null
+          updated_at: string
+        }
+        Insert: {
+          ad_session_id: string
+          created_at?: string
+          earning_amount?: number
+          earning_percentage?: number
+          event_id: string
+          host_user_id: string
+          id?: string
+          payout_date?: string | null
+          payout_status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ad_session_id?: string
+          created_at?: string
+          earning_amount?: number
+          earning_percentage?: number
+          event_id?: string
+          host_user_id?: string
+          id?: string
+          payout_date?: string | null
+          payout_status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "host_earnings_ad_session_id_fkey"
+            columns: ["ad_session_id"]
+            isOneToOne: false
+            referencedRelation: "event_ad_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "host_earnings_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       host_stripe_accounts: {
         Row: {
           account_status: string | null
@@ -1466,69 +1589,6 @@ export type Database = {
           title?: string
           type?: string
           user_id?: string
-        }
-        Relationships: []
-      }
-      past_events: {
-        Row: {
-          category: string | null
-          channel_id: string | null
-          channel_master_id: string | null
-          created_at: string | null
-          description: string | null
-          duration: number | null
-          event_master_id: string | null
-          id: string
-          is_saved: boolean | null
-          price: number | null
-          recorded_at: string | null
-          tags: string[] | null
-          thumbnail_url: string | null
-          title: string
-          updated_at: string | null
-          video_url: string | null
-          view_count: number | null
-          visibility: string | null
-        }
-        Insert: {
-          category?: string | null
-          channel_id?: string | null
-          channel_master_id?: string | null
-          created_at?: string | null
-          description?: string | null
-          duration?: number | null
-          event_master_id?: string | null
-          id?: string
-          is_saved?: boolean | null
-          price?: number | null
-          recorded_at?: string | null
-          tags?: string[] | null
-          thumbnail_url?: string | null
-          title: string
-          updated_at?: string | null
-          video_url?: string | null
-          view_count?: number | null
-          visibility?: string | null
-        }
-        Update: {
-          category?: string | null
-          channel_id?: string | null
-          channel_master_id?: string | null
-          created_at?: string | null
-          description?: string | null
-          duration?: number | null
-          event_master_id?: string | null
-          id?: string
-          is_saved?: boolean | null
-          price?: number | null
-          recorded_at?: string | null
-          tags?: string[] | null
-          thumbnail_url?: string | null
-          title?: string
-          updated_at?: string | null
-          video_url?: string | null
-          view_count?: number | null
-          visibility?: string | null
         }
         Relationships: []
       }

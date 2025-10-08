@@ -44,6 +44,8 @@ import { useQuery } from "@tanstack/react-query";
 import LiveDiscussionSection from "@/components/LiveDiscussionSection";
 import TrendingAnalyticsPanel from "@/components/TrendingAnalyticsPanel";
 import { ViewerCountDisplay } from "@/components/ViewerCountDisplay";
+import AdSelector from "@/components/AdSelector";
+import EventAdDisplay from "@/components/EventAdDisplay";
 
 type EventData = Database["public"]["Tables"]["events"]["Row"];
 
@@ -64,6 +66,10 @@ const EventPage: React.FC = () => {
   const [serverUrl, setServerUrl] = useState<string | null>(null);
   const [isStreamer, setIsStreamer] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
+  
+  // Ad state
+  const [currentAd, setCurrentAd] = useState<any>(null);
+  const [adSessionId, setAdSessionId] = useState<string | null>(null);
 
   // Separate state for frequently changing data to prevent full re-renders
 
@@ -286,6 +292,30 @@ const EventPage: React.FC = () => {
     generateViewerToken,
   ]);
 
+  // Real-time ad synchronization for viewers
+  useEffect(() => {
+    if (!eventData?.id || isEventHost) return;
+
+    const channel = supabase.channel(`event-ads-${eventData?.id}`);
+    
+    channel
+      .on('broadcast', { event: 'ad_started' }, (payload) => {
+        console.log('Ad started broadcast received:', payload);
+        setCurrentAd(payload.payload.ad);
+        setAdSessionId(payload.payload.sessionId);
+      })
+      .on('broadcast', { event: 'ad_ended' }, (payload) => {
+        console.log('Ad ended broadcast received:', payload);
+        setCurrentAd(null);
+        setAdSessionId(null);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [eventData?.id, isEventHost]);
+
   const fetchEventData = async () => {
     try {
       // Import utility functions
@@ -406,6 +436,85 @@ const EventPage: React.FC = () => {
       title: "Success!",
       description: "Your ticket has been purchased successfully",
     });
+  };
+
+  // Ad handling functions
+  const handleAdSelected = async (ad: any) => {
+    try {
+      // Create ad session
+      const { data, error } = await supabase.functions.invoke('create-ad-session', {
+        body: {
+          eventId: eventData?.id,
+          adId: ad.id,
+          viewerCount: eventData?.viewer_count || 0
+        }
+      });
+
+      if (error) throw error;
+
+      // Set current ad and session ID
+      setCurrentAd(ad);
+      setAdSessionId(data.sessionId);
+
+      // Broadcast ad to all viewers via real-time
+      const channel = supabase.channel(`event-ads-${eventData?.id}`);
+      await channel.send({
+        type: 'broadcast',
+        event: 'ad_started',
+        payload: {
+          ad: ad,
+          sessionId: data.sessionId
+        }
+      });
+
+    } catch (error) {
+      console.error('Error starting ad:', error);
+      toast({
+        title: "Error",
+        description: "Failed to start ad",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleAdComplete = async (adId: string, durationWatched: number) => {
+    try {
+      if (!adSessionId) return;
+
+      // Process billing
+      await supabase.functions.invoke('process-ad-billing', {
+        body: {
+          adSessionId,
+          durationSeconds: durationWatched,
+          viewerCount: eventData?.viewer_count || 0
+        }
+      });
+
+      // Clear current ad
+      setCurrentAd(null);
+      setAdSessionId(null);
+
+      // Broadcast ad end to all viewers
+      const channel = supabase.channel(`event-ads-${eventData?.id}`);
+      await channel.send({
+        type: 'broadcast',
+        event: 'ad_ended',
+        payload: { adId }
+      });
+
+      toast({
+        title: "Ad Completed",
+        description: "Ad billing has been processed"
+      });
+
+    } catch (error) {
+      console.error('Error completing ad:', error);
+      toast({
+        title: "Error",
+        description: "Failed to process ad completion",
+        variant: "destructive"
+      });
+    }
   };
 
   const goToStage = () => {
@@ -566,14 +675,29 @@ const EventPage: React.FC = () => {
                     }}
                     connect={true}
                   >
-                    <StreamPreviewContainer
-                      mediaUrls={eventData?.media_urls || ["/placeholder.gif"]}
-                      eventName={eventData?.name}
-                      isLive={isLive}
-                      hasAccess={hasTicket || canEnterStage}
-                      isLoggedIn={!!currentUser}
-                      eventId={eventData?.id}
-                    />
+                    <div className="relative">
+                      <StreamPreviewContainer
+                        mediaUrls={eventData?.media_urls || ["/placeholder.gif"]}
+                        eventName={eventData?.name}
+                        isLive={isLive}
+                        hasAccess={hasTicket || canEnterStage}
+                        isLoggedIn={!!currentUser}
+                        eventId={eventData?.id}
+                        currentAd={currentAd}
+                        onAdComplete={handleAdComplete}
+                        viewerCount={eventData?.viewer_count || 0}
+                        eventHostId={eventData?.created_by}
+                      />
+                      
+                      {/* Ad Display Overlay */}
+                      {currentAd && (
+                        <EventAdDisplay
+                          adData={currentAd}
+                          onAdComplete={handleAdComplete}
+                          viewerCount={eventData?.viewer_count || 0}
+                        />
+                      )}
+                    </div>
                     <RoomAudioRendererLazy />
 
                     {/* Pinned Message Section */}
@@ -773,6 +897,34 @@ const EventPage: React.FC = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Ad Controls for Hosts (Free Events Only) */}
+            {isEventHost && (!eventData?.ticket_price || eventData?.ticket_price <= 0) && (
+              <Card>
+                <CardHeader className="p-3 sm:p-3">
+                  <CardTitle className="text-base sm:text-lg">
+                    Ad Controls
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-3 sm:p-3">
+                  <div className="space-y-3">
+                    <p className="text-sm text-gray-600">
+                      Insert ads to earn revenue from your free event
+                    </p>
+                    <AdSelector
+                      eventId={eventData?.id || ""}
+                      onAdSelected={handleAdSelected}
+                      disabled={!!currentAd}
+                    />
+                    {currentAd && (
+                      <div className="text-sm text-blue-600">
+                        Ad playing: "{currentAd.title}"
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Share Event Card */}
             <Card>

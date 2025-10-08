@@ -63,6 +63,7 @@ import { EventSocialSection } from "./EventSocialSection";
 import { useStreamName } from "@/hooks/useStreamName";
 import { useRealtimeViewerCount } from "@/hooks/useRealtimeViewerCount";
 import { StreamNameEditor } from "@/components/StreamNameEditor";
+import { StreamerAdControls } from "@/components/StreamerAdControls";
 
 interface StreamerInterfaceProps {
   eventId: string;
@@ -74,6 +75,9 @@ interface StreamerInterfaceProps {
   streamId?: string;
   autoGoLive?: boolean;
   generateToken: () => Promise<string>;
+  ticketPrice?: number;
+  onAdTriggered?: (ad: any, sessionId: string) => void;
+  onAdComplete?: (adId: string, durationWatched: number, actualViewerCount: number) => void;
 }
 
 export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
@@ -86,6 +90,9 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   streamId,
   autoGoLive,
   generateToken,
+  ticketPrice,
+  onAdTriggered,
+  onAdComplete,
 }) => {
   const { localParticipant } = useLocalParticipant();
   const participants = useParticipants();
@@ -1069,6 +1076,17 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                 )}
               </CardContent>
             </Card>
+
+            {/* Ad Controls - Only for hosts of free events */}
+            {userRole === "host" && (!ticketPrice || ticketPrice <= 0) && onAdTriggered && (
+              <StreamerAdControls
+                eventId={eventId}
+                onAdTriggered={onAdTriggered}
+                onAdComplete={onAdComplete}
+                isEventFree={!ticketPrice || ticketPrice <= 0}
+                currentViewerCount={viewerCount}
+              />
+            )}
 
             {userRole === "host" && (
               <StageShareMenu eventId={eventId} eventTitle={eventTitle} />

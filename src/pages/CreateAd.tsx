@@ -1,171 +1,165 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Progress } from "@/components/ui/progress";
-import { toast } from "sonner";
-import { 
-  Upload, 
-  PlayCircle, 
-  Music, 
-  Wand2, 
-  Download, 
-  Save, 
-  ArrowRight, 
-  Info,
-  Video,
-  Image as ImageIcon,
-  FileImage,
-  Sparkles,
-  Volume2,
-  Eye,
-  Settings,
-  Zap,
-  MessageSquare
-} from "lucide-react";
-import AdWithFeedback from "@/components/AdWithFeedback";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { Upload, Video, X, FileText, Settings, Eye, Info, Sparkles, Lightbulb, ArrowRight } from 'lucide-react';
+import AdPreview from '@/components/AdPreview';
 
-interface MediaFile {
-  id: string;
-  name: string;
-  type: string;
-  size: number;
-  url: string;
-  file: File;
-}
+const CreateAd = () => {
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [budget, setBudget] = useState('');
+  const [ctaLabel, setCtaLabel] = useState('');
+  const [ctaUrl, setCtaUrl] = useState('');
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoPreviewUrl, setVideoPreviewUrl] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
-interface MusicTrack {
-  id: string;
-  name: string;
-  mood: string;
-  duration: string;
-  previewUrl: string;
-}
+  const handleFileSelection = (file: File) => {
+    if (!file) return;
 
-const CreateAd: React.FC = () => {
-  const navigate = useNavigate();
-  const [uploadedMedia, setUploadedMedia] = useState<MediaFile[]>([]);
-  const [adDescription, setAdDescription] = useState("");
-  const [selectedMusicTrack, setSelectedMusicTrack] = useState<MusicTrack | null>(null);
-  const [selectedStyle, setSelectedStyle] = useState("");
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generationProgress, setGenerationProgress] = useState(0);
-  const [generatedAdUrl, setGeneratedAdUrl] = useState<string | null>(null);
-  const [currentStep, setCurrentStep] = useState(1);
+    // Validate file size (50MB limit)
+    if (file.size > 50 * 1024 * 1024) {
+      toast.error('Video file must be less than 50MB');
+      return;
+    }
 
-  // Sample music tracks
-  const musicTracks: MusicTrack[] = [
-    { id: "1", name: "Upbeat Energy", mood: "upbeat", duration: "2:30", previewUrl: "#" },
-    { id: "2", name: "Professional Focus", mood: "professional", duration: "3:00", previewUrl: "#" },
-    { id: "3", name: "Chill Vibes", mood: "chill", duration: "2:45", previewUrl: "#" },
-    { id: "4", name: "Dramatic Impact", mood: "dramatic", duration: "2:15", previewUrl: "#" },
-    { id: "5", name: "Modern Tech", mood: "tech", duration: "2:50", previewUrl: "#" }
-  ];
+    // Validate file type
+    if (!file.type.startsWith('video/')) {
+      toast.error('Please upload a valid video file');
+      return;
+    }
 
-  const stylePresets = [
-    { id: "upbeat", name: "Upbeat & Energetic", description: "Fast transitions, bright colors" },
-    { id: "professional", name: "Clean & Professional", description: "Smooth transitions, minimal text" },
-    { id: "dramatic", name: "Bold & Dramatic", description: "Strong effects, impactful music" },
-    { id: "chill", name: "Calm & Relaxed", description: "Gentle transitions, soft tones" },
-    { id: "modern", name: "Modern & Tech", description: "Sharp cuts, dynamic effects" }
-  ];
+    // Store file locally and create preview URL
+    setVideoFile(file);
+    const previewUrl = URL.createObjectURL(file);
+    setVideoPreviewUrl(previewUrl);
+    toast.success('Video selected successfully!');
+  };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files) return;
+  const uploadVideoToStorage = async (file: File): Promise<string> => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('You must be logged in to upload videos');
+    }
 
-    Array.from(files).forEach((file) => {
-      // Validate file type
-      const validTypes = ['video/mp4', 'video/mov', 'image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
-      if (!validTypes.includes(file.type)) {
-        toast.error(`${file.name} is not a supported file type`);
+    // Create unique filename with user folder structure
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+
+    // Upload to Supabase Storage
+    const { data, error } = await supabase.storage
+      .from('ad-videos')
+      .upload(fileName, file);
+
+    if (error) {
+      throw new Error('Failed to upload video: ' + error.message);
+    }
+
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('ad-videos')
+      .getPublicUrl(data.path);
+
+    return publicUrl;
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleFileSelection(file);
+    }
+  };
+
+  const removeVideo = () => {
+    // Clean up preview URL to prevent memory leaks
+    if (videoPreviewUrl) {
+      URL.revokeObjectURL(videoPreviewUrl);
+    }
+    setVideoFile(null);
+    setVideoPreviewUrl('');
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!title || !description || !budget || !videoFile) {
+      toast.error('Please fill in all fields and upload a video file');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('You must be logged in to create ads');
         return;
       }
 
-      // Validate file size (50MB limit)
-      if (file.size > 50 * 1024 * 1024) {
-        toast.error(`${file.name} is too large. Please use files under 50MB.`);
+      // First upload the video to storage
+      toast.info('Uploading video...');
+      const videoUrl = await uploadVideoToStorage(videoFile);
+      
+      // Then create the ad record with the uploaded video URL
+      toast.info('Creating ad campaign...');
+      const { error } = await supabase
+        .from('ads')
+        .insert({
+          title,
+          description,
+          budget: parseFloat(budget),
+          video_url: videoUrl,
+          user_id: user.id,
+          cta_label: ctaLabel || null,
+          cta_url: ctaUrl || null,
+          status: 'draft',
+          campaign_status: 'draft'
+        });
+
+      if (error) {
+        console.error('Error creating ad:', error);
+        toast.error('Failed to create ad: ' + error.message);
         return;
       }
 
-      const mediaFile: MediaFile = {
-        id: Math.random().toString(36).substr(2, 9),
-        name: file.name,
-        type: file.type,
-        size: file.size,
-        url: URL.createObjectURL(file),
-        file
-      };
-
-      setUploadedMedia(prev => [...prev, mediaFile]);
-      toast.success(`${file.name} uploaded successfully!`);
-    });
+      toast.success('Ad campaign created successfully!');
+      
+      // Clean up preview URL and reset form
+      if (videoPreviewUrl) {
+        URL.revokeObjectURL(videoPreviewUrl);
+      }
+      setTitle('');
+      setDescription('');
+      setBudget('');
+      setCtaLabel('');
+      setCtaUrl('');
+      setVideoFile(null);
+      setVideoPreviewUrl('');
+    } catch (error) {
+      console.error('Error creating ad:', error);
+      toast.error('Failed to create ad: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const removeMedia = (id: string) => {
-    setUploadedMedia(prev => prev.filter(media => media.id !== id));
-  };
-
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
-  const generateAdPreview = async () => {
-    if (uploadedMedia.length === 0) {
-      toast.error("Please upload at least one media file first");
+  const handleGeneratePreview = () => {
+    if (!videoFile || !description || !title) {
+      toast.error('Please fill in the title, description, and upload a video first');
       return;
     }
-    if (!adDescription.trim()) {
-      toast.error("Please tell us what your ad is about");
-      return;
-    }
-    if (!selectedStyle) {
-      toast.error("Please select a style preset");
-      return;
-    }
-
-    setIsGenerating(true);
-    setGenerationProgress(0);
-
-    // Simulate AI generation process
-    const steps = [
-      "Analyzing your media...",
-      "Applying style preset...",
-      "Adding transitions...",
-      "Syncing background music...",
-      "Finalizing your ad..."
-    ];
-
-    for (let i = 0; i < steps.length; i++) {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      setGenerationProgress((i + 1) * 20);
-      toast.info(steps[i]);
-    }
-
-    // Mock generated ad URL
-    setGeneratedAdUrl("/mock-generated-ad.mp4");
-    setIsGenerating(false);
-    setCurrentStep(4);
-    toast.success("Your ad has been generated successfully!");
+    
+    setShowPreview(true);
   };
 
-  const saveAd = () => {
-    toast.success("Ad saved to your profile!");
-  };
-
-  const downloadAd = () => {
-    toast.success("Ad download started!");
-  };
-
-  const goToRunAd = () => {
-    navigate("/advertisers");
+  const handleClosePreview = () => {
+    setShowPreview(false);
   };
 
   return (
@@ -189,9 +183,9 @@ const CreateAd: React.FC = () => {
                 <Info className="text-blue-300 h-6 w-6 mt-1 flex-shrink-0" />
                 <div className="text-white/90 text-left">
                   <p className="text-lg leading-relaxed">
-                    <strong>Not sure how to advertise or where to start? Need help creating an ad?</strong> That's what this page is for! 
-                    Just upload your media, tell us what your ad is about, and we'll help you create a professional-looking ad 
-                    you can run immediately on Public Streamer channels and events — and even save for future use.
+                    <strong>Create professional video ads in minutes.</strong> Upload your video content, set your budget, 
+                    and target specific channels or let our system find the best placement for your ad. Your ads will appear 
+                    on live streams and events across the Public Streamer network, reaching engaged audiences in real-time.
                   </p>
                 </div>
               </div>
@@ -204,21 +198,15 @@ const CreateAd: React.FC = () => {
           <div className="flex items-center space-x-4">
             {[
               { step: 1, label: "Upload Media", icon: Upload },
-              { step: 2, label: "Describe Ad", icon: FileImage },
+              { step: 2, label: "Describe Ad", icon: FileText },
               { step: 3, label: "Customize", icon: Settings },
               { step: 4, label: "Preview & Save", icon: Eye }
             ].map(({ step, label, icon: Icon }, index) => (
               <div key={step} className="flex items-center">
-                <div className={`flex items-center justify-center w-10 h-10 rounded-full ${
-                  currentStep >= step 
-                    ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white' 
-                    : 'bg-white/20 text-white/60'
-                }`}>
+                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-white">
                   <Icon className="h-5 w-5" />
                 </div>
-                <span className={`ml-2 text-sm ${
-                  currentStep >= step ? 'text-white' : 'text-white/60'
-                }`}>
+                <span className="ml-2 text-sm text-white">
                   {label}
                 </span>
                 {index < 3 && (
@@ -242,58 +230,57 @@ const CreateAd: React.FC = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="border-2 border-dashed border-white/30 rounded-lg p-8 text-center hover:border-white/50 transition-colors">
-                  <input
-                    type="file"
-                    multiple
-                    accept="video/mp4,video/mov,image/jpeg,image/jpg,image/png,image/gif"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                    id="media-upload"
-                  />
-                  <label htmlFor="media-upload" className="cursor-pointer">
-                    <div className="space-y-3">
-                      <div className="flex justify-center">
-                        <div className="bg-gradient-to-r from-blue-500 to-purple-500 p-3 rounded-full">
-                          <Upload className="h-8 w-8 text-white" />
+                  {!videoFile ? (
+                    <>
+                      <input
+                        type="file"
+                        accept="video/*"
+                        onChange={handleFileChange}
+                        className="hidden"
+                        id="media-upload"
+                        disabled={uploading}
+                      />
+                      <label htmlFor="media-upload" className="cursor-pointer">
+                        <div className="space-y-3">
+                          <div className="flex justify-center">
+                            <div className="bg-gradient-to-r from-blue-500 to-purple-500 p-3 rounded-full">
+                              <Upload className="h-8 w-8 text-white" />
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-white font-medium">Click to upload or drag and drop</p>
+                            <p className="text-white/60 text-sm">MP4, MOV, JPG, PNG, GIF (max 50MB)</p>
+                          </div>
                         </div>
-                      </div>
-                      <div>
-                        <p className="text-white font-medium">Click to upload or drag and drop</p>
-                        <p className="text-white/60 text-sm">MP4, MOV, JPG, PNG, GIF (max 50MB)</p>
-                      </div>
-                    </div>
-                  </label>
-                </div>
-
-                {/* Uploaded Files */}
-                {uploadedMedia.length > 0 && (
-                  <div className="space-y-3">
-                    <h4 className="text-white font-medium">Uploaded Media ({uploadedMedia.length})</h4>
-                    {uploadedMedia.map((media) => (
-                      <div key={media.id} className="flex items-center space-x-3 bg-white/5 rounded-lg p-3">
-                        <div className="flex-shrink-0">
-                          {media.type.startsWith('video/') ? (
-                            <Video className="h-8 w-8 text-blue-300" />
-                          ) : (
-                            <ImageIcon className="h-8 w-8 text-green-300" />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-white text-sm font-medium truncate">{media.name}</p>
-                          <p className="text-white/60 text-xs">{formatFileSize(media.size)}</p>
+                      </label>
+                    </>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between p-4 bg-white/5 rounded">
+                        <div className="flex items-center space-x-3">
+                          <Video className="h-6 w-6 text-blue-300" />
+                          <span className="text-white text-sm font-medium">{videoFile.name}</span>
                         </div>
                         <Button
+                          type="button"
                           variant="ghost"
                           size="sm"
-                          onClick={() => removeMedia(media.id)}
+                          onClick={removeVideo}
                           className="text-red-300 hover:text-red-200 hover:bg-red-500/20"
                         >
-                          Remove
+                          <X className="h-4 w-4" />
                         </Button>
                       </div>
-                    ))}
-                  </div>
-                )}
+                      {videoPreviewUrl && (
+                        <video 
+                          src={videoPreviewUrl} 
+                          controls 
+                          className="w-full rounded-lg max-h-64"
+                        />
+                      )}
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
 
@@ -301,279 +288,163 @@ const CreateAd: React.FC = () => {
             <Card className="bg-white/10 backdrop-blur-sm border-white/20">
               <CardHeader>
                 <CardTitle className="text-white flex items-center space-x-2">
-                  <FileImage className="h-5 w-5" />
+                  <FileText className="h-5 w-5" />
                   <span>2. What is your ad about?</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <Textarea
-                  placeholder="Tell us about your product, service, or offer. What makes it special? Who is it for? Include any key details like pricing, benefits, or special offers..."
-                  value={adDescription}
-                  onChange={(e) => {
-                    setAdDescription(e.target.value);
-                    if (e.target.value.trim() && currentStep < 2) setCurrentStep(2);
-                  }}
-                  className="min-h-[120px] bg-white/10 border-white/20 text-white placeholder:text-white/50 resize-none"
-                />
-                <p className="text-white/60 text-xs mt-2">
-                  {adDescription.length}/500 characters
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Step 3: Style & Music */}
-            <Card className="bg-white/10 backdrop-blur-sm border-white/20">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center space-x-2">
-                  <Settings className="h-5 w-5" />
-                  <span>3. Customize Your Ad</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Style Presets */}
-                <div>
-                  <h4 className="text-white font-medium mb-3">Choose a Style</h4>
-                  <div className="grid grid-cols-1 gap-3">
-                    {stylePresets.map((preset) => (
-                      <div
-                        key={preset.id}
-                        className={`cursor-pointer rounded-lg border-2 p-3 transition-all ${
-                          selectedStyle === preset.id
-                            ? 'border-blue-400 bg-blue-500/20'
-                            : 'border-white/20 bg-white/5 hover:border-white/40'
-                        }`}
-                        onClick={() => {
-                          setSelectedStyle(preset.id);
-                          if (currentStep < 3) setCurrentStep(3);
-                        }}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-white font-medium">{preset.name}</p>
-                            <p className="text-white/60 text-sm">{preset.description}</p>
-                          </div>
-                          <Sparkles className={`h-5 w-5 ${
-                            selectedStyle === preset.id ? 'text-blue-300' : 'text-white/40'
-                          }`} />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Music Selection */}
-                <div>
-                  <h4 className="text-white font-medium mb-3 flex items-center space-x-2">
-                    <Music className="h-4 w-4" />
-                    <span>Background Music (Optional)</span>
-                  </h4>
-                  <div className="space-y-2">
-                    <div
-                      className={`cursor-pointer rounded-lg border-2 p-3 transition-all ${
-                        !selectedMusicTrack
-                          ? 'border-blue-400 bg-blue-500/20'
-                          : 'border-white/20 bg-white/5 hover:border-white/40'
-                      }`}
-                      onClick={() => setSelectedMusicTrack(null)}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <Wand2 className="h-5 w-5 text-purple-300" />
-                        <div>
-                          <p className="text-white font-medium">Auto-match music for me</p>
-                          <p className="text-white/60 text-sm">We'll pick the perfect track</p>
-                        </div>
-                      </div>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <Textarea
+                    placeholder="Tell us about your product, service, or offer. What makes it special? Who is it for? Include any key details like pricing, benefits, or special offers..."
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="min-h-[120px] bg-white/10 border-white/20 text-white placeholder:text-white/50 resize-none"
+                    required
+                  />
+                  <p className="text-white/60 text-xs">
+                    {description.length}/500 characters
+                  </p>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <Label className="text-white">Ad Title</Label>
+                      <Input
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        placeholder="Enter your ad title"
+                        className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                        required
+                      />
                     </div>
-                    {musicTracks.slice(0, 3).map((track) => (
-                      <div
-                        key={track.id}
-                        className={`cursor-pointer rounded-lg border-2 p-3 transition-all ${
-                          selectedMusicTrack?.id === track.id
-                            ? 'border-blue-400 bg-blue-500/20'
-                            : 'border-white/20 bg-white/5 hover:border-white/40'
-                        }`}
-                        onClick={() => setSelectedMusicTrack(track)}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <Volume2 className="h-4 w-4 text-green-300" />
-                            <div>
-                              <p className="text-white text-sm font-medium">{track.name}</p>
-                              <div className="flex items-center space-x-2">
-                                <Badge variant="secondary" className="text-xs">{track.mood}</Badge>
-                                <span className="text-white/60 text-xs">{track.duration}</span>
-                              </div>
-                            </div>
-                          </div>
-                          <Button variant="ghost" size="sm" className="text-white/60 hover:text-white">
-                            <PlayCircle className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
+                    
+                    <div>
+                      <Label className="text-white">Budget ($)</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="5"
+                        value={budget}
+                        onChange={(e) => setBudget(e.target.value)}
+                        placeholder="Enter your budget (minimum $5)"
+                        className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="text-white">Call-to-Action Button Text (Optional)</Label>
+                      <Input
+                        value={ctaLabel}
+                        onChange={(e) => setCtaLabel(e.target.value)}
+                        placeholder="e.g., Learn More, Shop Now, Sign Up"
+                        maxLength={25}
+                        className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                      />
+                      <p className="text-white/60 text-xs mt-1">
+                        {ctaLabel.length}/25 characters
+                      </p>
+                    </div>
+
+                    <div>
+                      <Label className="text-white">CTA URL (Optional)</Label>
+                      <Input
+                        type="url"
+                        value={ctaUrl}
+                        onChange={(e) => setCtaUrl(e.target.value)}
+                        placeholder="https://your-website.com"
+                        className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                      />
+                    </div>
+
+                    <Button 
+                      type="submit" 
+                      className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white" 
+                      disabled={isSubmitting || !videoFile || parseFloat(budget) < 5 || !budget}
+                    >
+                      {isSubmitting ? 'Creating Campaign...' : 'Create Campaign'}
+                    </Button>
                   </div>
-                </div>
+                </form>
               </CardContent>
             </Card>
           </div>
 
-          {/* Right Column - Generation & Preview */}
+          {/* Right Column - Magic & Tips */}
           <div className="space-y-6">
-            {/* Generate Button */}
+            {/* Ready to Create Magic */}
             <Card className="bg-white/10 backdrop-blur-sm border-white/20">
               <CardContent className="p-6 text-center">
                 <div className="space-y-4">
-                  <div className="bg-gradient-to-r from-blue-500 to-purple-500 p-3 rounded-full w-16 h-16 mx-auto flex items-center justify-center">
-                    <Wand2 className="h-8 w-8 text-white" />
+                  <div className="flex justify-center">
+                    <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-4 rounded-full">
+                      <Sparkles className="h-8 w-8 text-white" />
+                    </div>
                   </div>
                   <div>
                     <h3 className="text-white text-xl font-bold mb-2">Ready to Create Magic?</h3>
-                    <p className="text-white/70 mb-4">
+                    <p className="text-white/80 text-sm">
                       We'll combine your media with professional effects and create an amazing ad in seconds!
                     </p>
                   </div>
-                  
-                  {!isGenerating && !generatedAdUrl && (
-                    <Button
-                      onClick={generateAdPreview}
-                      disabled={uploadedMedia.length === 0 || !adDescription.trim() || !selectedStyle}
-                      className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 text-lg font-bold shadow-lg hover:shadow-xl transition-all duration-200"
-                    >
-                      <Sparkles className="h-5 w-5 mr-2" />
-                      Generate Ad Preview for Me
-                    </Button>
-                  )}
-
-                  {isGenerating && (
-                    <div className="space-y-4">
-                      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-lg">
-                        <Zap className="h-5 w-5 mr-2 inline animate-spin" />
-                        Creating your amazing ad...
-                      </div>
-                      <Progress value={generationProgress} className="w-full" />
-                      <p className="text-white/70 text-sm">
-                        This usually takes 30-60 seconds
-                      </p>
-                    </div>
-                  )}
+                  <Button 
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+                    disabled={!videoFile || !description || !title}
+                    onClick={handleGeneratePreview}
+                  >
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Generate Ad Preview for Me
+                  </Button>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Preview & Actions */}
-            {generatedAdUrl && (
-              <Card className="bg-white/10 backdrop-blur-sm border-white/20">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center space-x-2">
-                    <Eye className="h-5 w-5" />
-                    <span>4. Your Ad Preview</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Video Preview */}
-                  <div className="bg-black rounded-lg overflow-hidden">
-                    <div className="aspect-video flex items-center justify-center text-white">
-                      <div className="text-center">
-                        <PlayCircle className="h-16 w-16 mx-auto mb-3 text-white/60" />
-                        <p className="text-white/80">Your Generated Ad Preview</p>
-                        <p className="text-white/60 text-sm">Click to play</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="space-y-3">
-                    <Button
-                      onClick={() => toast.info("Playing your ad preview...")}
-                      className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold py-3"
-                    >
-                      <PlayCircle className="h-5 w-5 mr-2" />
-                      Preview My Ad
-                    </Button>
-                    
-                    <Separator className="bg-white/20" />
-                    
-                    <div className="grid grid-cols-2 gap-3">
-                      <Button
-                        onClick={saveAd}
-                        variant="secondary"
-                        className="bg-white/10 border border-white/30 text-white hover:bg-white/20"
-                      >
-                        <Save className="h-4 w-4 mr-2" />
-                        Save Ad
-                      </Button>
-                      <Button
-                        onClick={downloadAd}
-                        variant="secondary"
-                        className="bg-white/10 border border-white/30 text-white hover:bg-white/20"
-                      >
-                        <Download className="h-4 w-4 mr-2" />
-                        Download
-                      </Button>
-                    </div>
-                    
-                    <Button
-                      onClick={goToRunAd}
-                      className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-bold py-3"
-                    >
-                      <Zap className="h-5 w-5 mr-2" />
-                      Run My Ad Now
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Ad with Feedback Demo */}
-            {generatedAdUrl && (
-              <Card className="bg-white/10 backdrop-blur-sm border-white/20">
-                <CardHeader>
-                  <CardTitle className="text-white text-lg flex items-center gap-2">
-                    <MessageSquare className="h-5 w-5" />
-                    Preview: How Viewers Will See Your Ad
-                  </CardTitle>
-                  <p className="text-white/80 text-sm">
-                    This shows how your ad will appear to viewers with the feedback system
-                  </p>
-                </CardHeader>
-                <CardContent>
-                  <div className="max-w-sm mx-auto">
-                    <AdWithFeedback
-                      adId={`demo-${Date.now()}`}
-                      adName={adDescription || "Your Amazing Ad"}
-                      adType="video"
-                      adDuration={30}
-                      thumbnailUrl={generatedAdUrl}
-                    />
-                  </div>
-                  <div className="mt-4 p-3 bg-black/20 rounded-lg">
-                    <p className="text-white/80 text-xs text-center">
-                      📝 Try watching the full ad to see the feedback popup in action!
-                      <br />
-                      Viewer feedback helps you improve future ads.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Helper Tips */}
-            <Card className="bg-white/10 backdrop-blur-sm border-white/20 relative z-0">
+            {/* Pro Tips */}
+            <Card className="bg-white/10 backdrop-blur-sm border-white/20">
               <CardHeader>
-                <CardTitle className="text-white text-lg">💡 Pro Tips</CardTitle>
+                <CardTitle className="text-white flex items-center space-x-2">
+                  <Lightbulb className="h-5 w-5 text-yellow-400" />
+                  <span>Pro Tips</span>
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <ul className="text-white/80 text-sm space-y-2">
-                  <li>• Use high-quality images and videos for best results</li>
-                  <li>• Keep your description clear and compelling</li>
-                  <li>• Square or landscape formats work best for ads</li>
-                  <li>• Background music can increase engagement by 40%</li>
-                </ul>
+                <div className="space-y-3 text-white/80 text-sm">
+                  <div className="flex items-start space-x-2">
+                    <span className="text-green-400">•</span>
+                    <span>Use high-quality images and videos for best results</span>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <span className="text-green-400">•</span>
+                    <span>Keep your description clear and compelling</span>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <span className="text-green-400">•</span>
+                    <span>Square or landscape formats work best for ads</span>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <span className="text-green-400">•</span>
+                    <span>Background music can increase engagement by 40%</span>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
         </div>
       </div>
+
+      {/* Ad Preview Modal */}
+      {showPreview && (
+        <AdPreview
+          adData={{
+            title,
+            description,
+            videoUrl: videoPreviewUrl,
+            budget,
+            ctaLabel,
+            ctaUrl
+          }}
+          onClose={handleClosePreview}
+        />
+      )}
     </div>
   );
 };
