@@ -7,7 +7,17 @@ import {
   Maximize,
   Minimize,
   Trash2,
+  Heart,
+  ThumbsUp,
+  Flame,
+  Smile,
+  HandMetal,
 } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import {
@@ -27,6 +37,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useScreenSize } from "@/hooks/use-mobile";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { formatDistanceToNow } from "date-fns";
+import { TippingModal } from "./TippingModal";
+import { REACTION_EMOJIS, ReactionPicker } from "./chat/ReactionPicker";
+import { MessageModerationMenu, type ModerationAction } from "./chat/MessageModerationMenu";
 
 interface InStreamChatOverlayProps {
   eventId: string;
@@ -39,6 +52,7 @@ interface InStreamChatOverlayProps {
   className?: string;
   eventHostId?: string;
   camName?: string;
+  hostStripeAccountId?: string | null;
 }
 
 const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
@@ -52,12 +66,19 @@ const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
   camName,
   className = "",
   eventHostId,
+  hostStripeAccountId,
 }) => {
-  const { messages, sendMessage, deleteMessage } = useSupabaseChatMessages(
+  const { messages, sendMessage, deleteMessage, sendReaction, typingUsers, handleTyping, moderateUser } = useSupabaseChatMessages(
     eventId,
     camName
   );
+
   const { currentUserProfile } = useAppContext();
+  const isHost = eventHostId === currentUserProfile?.user_id;
+
+  const handleModeration = async (action: ModerationAction, targetUserId: string, messageId: string, duration?: number) => {
+    await moderateUser(action, targetUserId, messageId, duration);
+  };
   const screenSize = useScreenSize();
   const { toast } = useToast();
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -169,9 +190,8 @@ const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
         <div
           ref={chatContainerRef}
           onScroll={handleChatScroll}
-          className={`absolute bottom-0 left-0 h-full w-2/4 overflow-y-auto pointer-events-auto transition-opacity duration-300 bg-[linear-gradient(90deg,_rgba(0,60,84,0.8)_0%,_rgba(87,199,133,0)_99%)] ${
-            isFullscreen && !showControls ? "opacity-0" : "opacity-100 z-0"
-          }`}
+          className={`absolute bottom-0 left-0 h-full w-2/4 overflow-y-auto pointer-events-auto transition-opacity duration-300 bg-[linear-gradient(90deg,_rgba(0,60,84,0.8)_0%,_rgba(87,199,133,0)_99%)] ${isFullscreen && !showControls ? "opacity-0" : "opacity-100 z-0"
+            }`}
           style={{
             scrollBehavior: "smooth",
             scrollbarWidth: "thin",
@@ -267,6 +287,52 @@ const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
                         </div>
                       )}
                     </div>
+
+                    {/* Reactions */}
+                    <div className="flex flex-wrap items-center gap-1.5 mt-1 ml-8 min-h-[20px]">
+                      {Object.entries(message.reactions || {}).map(([type, count]) => {
+                        if (count <= 0) return null;
+                        const hasReacted = message.user_reaction === type;
+                        return (
+                          <button
+                            key={type}
+                            onClick={() => sendReaction(message.id, type)}
+                            className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] sm:text-xs transition-colors border ${hasReacted
+                              ? "bg-primary/20 border-primary/50 text-white"
+                              : "bg-black/20 border-white/10 text-white/70 hover:bg-white/10"
+                              }`}
+                          >
+                            <span>{REACTION_EMOJIS[type] || type}</span>
+                            <span>{count}</span>
+                          </button>
+                        );
+                      })}
+
+                      {/* Message Actions */}
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {/* Reaction Picker */}
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <button className="p-1 hover:bg-white/10 rounded">
+                              <Smile className="w-4 h-4 text-white/70" />
+                            </button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0 border-none bg-transparent">
+                            <ReactionPicker onSelect={(reaction) => sendReaction(message.id, reaction)} />
+                          </PopoverContent>
+                        </Popover>
+
+                        {/* Moderation Menu (Host Only) */}
+                        {isHost && message.user_id !== currentUserProfile?.user_id && (
+                          <MessageModerationMenu
+                            messageId={message.id}
+                            userId={message.user_id}
+                            userName={message.display_name}
+                            onAction={handleModeration}
+                          />
+                        )}
+                      </div>
+                    </div>
                   </div>
                 );
               })
@@ -287,27 +353,45 @@ const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
       )} */}
 
       {/* Scroll to bottom button - Fixed position */}
-      {isVisible && !isScrolledToBottom && messages.length > 0 && (
-        <div
-          className={`absolute bottom-12 left-2 bg-black/60 backdrop-blur-sm text-white rounded-full p-2 cursor-pointer hover:bg-black/80 transition-all duration-200 shadow-lg z-30 ${
-            isFullscreen && !showControls ? "opacity-0" : "opacity-100"
-          }`}
-          onClick={() => {
-            if (chatContainerRef.current) {
-              chatContainerRef.current.scrollTop =
-                chatContainerRef.current.scrollHeight;
-            }
-          }}
-        >
-          <span className="text-xs">↓</span>
+      {
+        isVisible && !isScrolledToBottom && messages.length > 0 && (
+          <div
+            className={`absolute bottom-12 left-2 bg-black/60 backdrop-blur-sm text-white rounded-full p-2 cursor-pointer hover:bg-black/80 transition-all duration-200 shadow-lg z-30 ${isFullscreen && !showControls ? "opacity-0" : "opacity-100"
+              }`}
+            onClick={() => {
+              if (chatContainerRef.current) {
+                chatContainerRef.current.scrollTop =
+                  chatContainerRef.current.scrollHeight;
+              }
+            }}
+          >
+            <span className="text-xs">↓</span>
+          </div>
+        )
+      }
+
+      {/* Typing Indicator */}
+      {Object.keys(typingUsers).length > 0 && (
+        <div className="absolute bottom-16 left-0 right-0 px-3 py-2 z-20">
+          <div className="text-xs text-white/70 italic flex items-center gap-2 bg-black/40 backdrop-blur-sm rounded-lg px-3 py-2 w-fit">
+            <div className="flex gap-1">
+              <span className="w-1.5 h-1.5 bg-white/70 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+              <span className="w-1.5 h-1.5 bg-white/70 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+              <span className="w-1.5 h-1.5 bg-white/70 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+            </div>
+            <span>
+              {Object.keys(typingUsers).length === 1
+                ? `${Object.values(typingUsers)[0]} is typing...`
+                : `${Object.keys(typingUsers).length} people are typing...`}
+            </span>
+          </div>
         </div>
       )}
 
       {/* Unified Bottom Control Bar */}
       <div
-        className={`absolute bottom-0 left-0 right-0 transition-opacity duration-300 mt-3 z-20 ${
-          isFullscreen && !showControls ? "opacity-0" : "opacity-100"
-        }`}
+        className={`absolute bottom-0 left-0 right-0 transition-opacity duration-300 mt-3 z-20 ${isFullscreen && !showControls ? "opacity-0" : "opacity-100"
+          }`}
       >
         <div className="flex items-center gap-4 rounded-lg p-2 shadow-lg">
           {/* Chat Input - Left Side */}
@@ -315,7 +399,10 @@ const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
             <div className="flex-1 relative max-w-sm">
               <Input
                 value={chatMessage}
-                onChange={(e) => setChatMessage(e.target.value)}
+                onChange={(e) => {
+                  setChatMessage(e.target.value);
+                  handleTyping(); // Trigger typing indicator
+                }}
                 onKeyPress={handleKeyPress}
                 placeholder="Send Message"
                 className="w-full bg-black/20 backdrop-blur-sm text-white placeholder:text-white/80 h-10 md:h-12 text-sm rounded-lg pl-4 pr-16 focus-visible:ring-1 focus-visible:ring-white/40 focus-visible:ring-offset-0 focus-visible:border-white/40"
@@ -333,9 +420,8 @@ const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
 
           {/* Control Buttons - Right Side with more spacing */}
           <div
-            className={`flex items-center gap-4 ${
-              !isVisible ? "flex-1 justify-start" : ""
-            }`}
+            className={`flex items-center gap-4 ${!isVisible ? "flex-1 justify-start" : ""
+              }`}
           >
             {/* Chat Toggle Button */}
             <Button
@@ -369,9 +455,29 @@ const InStreamChatOverlay: React.FC<InStreamChatOverlayProps> = ({
                 )}
               </Button>
             )}
+
+
+            {/* Tipping Button (Small) */}
+            {hostStripeAccountId && (
+              <TippingModal
+                eventId={eventId}
+                hostAccountId={hostStripeAccountId}
+                trigger={
+                  <Button
+                    size={screenSize === "mobile" ? "sm" : "default"}
+                    variant="outline"
+                    className="bg-pink-600/80 border-pink-400/50 text-white hover:bg-pink-600 h-8 md:h-10 px-3 shadow-lg backdrop-blur-sm"
+                  >
+                    <Heart className="h-4 w-4 mr-2 fill-current" />
+                    <span className="text-sm hidden sm:inline">Tip</span>
+                  </Button>
+                }
+              />
+            )}
           </div>
         </div>
       </div>
+
     </div>
   );
 };

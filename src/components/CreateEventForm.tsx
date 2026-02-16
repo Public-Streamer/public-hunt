@@ -15,6 +15,8 @@ import { useAppContext } from "@/contexts/AppContext";
 import { Link } from "react-router-dom";
 import { useFormValidation, validationRules } from "@/hooks/useFormValidation";
 import ValidationMessage from "@/components/ValidationMessage";
+import { EventTemplateManager } from "@/components/event/EventTemplateManager";
+import { AutoRecordToggle } from "@/components/streaming/AutoRecordToggle";
 
 interface MediaFile {
   id: string;
@@ -66,6 +68,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
     []
   );
   const [teamConfirmed, setTeamConfirmed] = useState(false);
+  const [autoRecord, setAutoRecord] = useState(false);
   // Channel functionality completely disabled
   const { toast } = useToast();
   const { user } = useAppContext();
@@ -512,6 +515,27 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
           </span>
         </div>
       )}
+
+      {/* Event Templates */}
+      <div className="mb-4">
+        <EventTemplateManager
+          currentConfig={{
+            name: formData.name,
+            description: formData.description,
+            ticket_price: ticketPrice,
+            location: formData.location,
+            category: formData.category,
+          }}
+          onTemplateLoad={(config) => {
+            if (config.name) onInputChange('name', config.name);
+            if (config.description) onInputChange('description', config.description);
+            if (config.ticket_price !== undefined) setTicketPrice(config.ticket_price);
+            if (config.location) onInputChange('location', config.location);
+            if (config.category) onInputChange('category', config.category);
+          }}
+        />
+      </div>
+
       <form onSubmit={handleCreateEvent} className="space-y-6">
         {/* Event Information and other form fields will go here */}
         <Card>
@@ -639,6 +663,14 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
                 onUpload={handleMediaUpload}
                 maxFiles={5}
                 acceptedTypes={["image/jpeg", "image/png", "image/gif"]}
+              />
+            </div>
+
+            {/* Auto-Record Toggle */}
+            <div className="mt-4">
+              <AutoRecordToggle
+                enabled={autoRecord}
+                onChange={setAutoRecord}
               />
             </div>
 

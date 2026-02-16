@@ -44,6 +44,12 @@ import { useQuery } from "@tanstack/react-query";
 import LiveDiscussionSection from "@/components/LiveDiscussionSection";
 import TrendingAnalyticsPanel from "@/components/TrendingAnalyticsPanel";
 import { ViewerCountDisplay } from "@/components/ViewerCountDisplay";
+import IntegratedViewerInterface from "@/components/IntegratedViewerInterface";
+import ViewerInterface from "@/components/livekit/ViewerInterface";
+import PermissionGuard from "@/components/access/PermissionGuard";
+import { downloadEventICS, detectUserTimezone, formatDateInTimezone } from "@/lib/calendarUtils";
+import { BulletinBoard } from "@/components/bulletin/BulletinBoard";
+import { CalendarPlus } from "lucide-react";
 
 type EventData = Database["public"]["Tables"]["events"]["Row"];
 
@@ -551,7 +557,7 @@ const EventPage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {/* Left Column - Main Event Content */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-            {/* Event Preview Card - Always show StreamPreviewContainer in pink area */}
+            {/* Event Preview Card - Use IntegratedViewerInterface for live streams */}
             <Card className="overflow-hidden">
               {isLive && roomName && livekitToken && serverUrl ? (
                 <Suspense
@@ -566,42 +572,15 @@ const EventPage: React.FC = () => {
                     }}
                     connect={true}
                   >
-                    <StreamPreviewContainer
-                      mediaUrls={eventData?.media_urls || ["/placeholder.gif"]}
+                    <ViewerInterface
+                      eventId={eventData?.id}
                       eventName={eventData?.name}
                       isLive={isLive}
-                      hasAccess={hasTicket || canEnterStage}
-                      isLoggedIn={!!currentUser}
-                      eventId={eventData?.id}
+                      mediaUrls={eventData?.media_urls || ["/placeholder.gif"]}
+                      eventHostId={eventData?.created_by}
+                      showUpgradePrompt={true}
                     />
                     <RoomAudioRendererLazy />
-
-                    {/* Pinned Message Section */}
-                    <div className="">
-                      <PinnedMessageSection
-                        eventId={eventData?.id}
-                        isHost={false}
-                      />
-                    </div>
-
-                    {/* Scoreboard - Show only when there are teams (ticketed viewers or stage access) */}
-                    {currentUser &&
-                      showScoreboard &&
-                      (hasTicket || canEnterStage) && (
-                        <div className="p-5">
-                          {selectedGameType === "custom" ? (
-                            <CustomScoreboard
-                              eventId={eventData?.id}
-                              isHost={false}
-                            />
-                          ) : selectedGameType === "coon_hunt" ? (
-                            <CoonhoundScorecardViewer
-                              eventId={eventData?.id}
-                              isViewer={isViewer}
-                            />
-                          ) : null}
-                        </div>
-                      )}
                   </LiveKitRoomLazy>
                 </Suspense>
               ) : (
@@ -690,12 +669,12 @@ const EventPage: React.FC = () => {
               currentUserProfile={
                 currentUserProfile
                   ? {
-                      id: currentUserProfile.id,
-                      username: currentUserProfile.display_name || "User",
-                      display_name: currentUserProfile.display_name || "User",
-                      profile_picture_url:
-                        currentUserProfile.profile_picture_url || "",
-                    }
+                    id: currentUserProfile.id,
+                    username: currentUserProfile.display_name || "User",
+                    display_name: currentUserProfile.display_name || "User",
+                    profile_picture_url:
+                      currentUserProfile.profile_picture_url || "",
+                  }
                   : undefined
               }
             />
@@ -724,13 +703,13 @@ const EventPage: React.FC = () => {
                   )}
                   {(!eventData?.ticket_price ||
                     eventData?.ticket_price <= 0) && (
-                    <Badge className="bg-green-600 text-white text-xs">
-                      Full Access (Free Event)
-                    </Badge>
-                  )}
+                      <Badge className="bg-green-600 text-white text-xs">
+                        Full Access (Free Event)
+                      </Badge>
+                    )}
                   {hasTicket &&
-                  eventData?.ticket_price &&
-                  eventData?.ticket_price > 0 ? (
+                    eventData?.ticket_price &&
+                    eventData?.ticket_price > 0 ? (
                     <Badge className="bg-green-600 text-white text-xs">
                       ✓ Paid
                     </Badge>
@@ -756,9 +735,9 @@ const EventPage: React.FC = () => {
                   <div className="flex items-center text-xs sm:text-sm">
                     <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 text-gray-500 flex-shrink-0" />
                     <span className="truncate">
-                      <ViewerCountDisplay 
+                      <ViewerCountDisplay
                         eventId={eventId}
-                        variant="text" 
+                        variant="text"
                         size="sm"
                         className="text-muted-foreground"
                       />
@@ -788,6 +767,53 @@ const EventPage: React.FC = () => {
                   prettyUrl={eventUrl}
                   description={eventData?.description}
                 />
+              </CardContent>
+            </Card>
+
+            {/* Add to Calendar Card */}
+            {eventData?.date && (
+              <Card>
+                <CardHeader className="p-3 sm:p-3">
+                  <CardTitle className="text-base sm:text-lg">
+                    Add to Calendar
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-3 sm:p-3">
+                  <Button
+                    variant="outline"
+                    className="w-full flex items-center gap-2"
+                    onClick={() => {
+                      if (eventData) {
+                        downloadEventICS({
+                          id: eventData.id,
+                          title: eventData.name || 'Event',
+                          description: eventData.description || undefined,
+                          date: eventData.date,
+                          location: eventData.location || undefined,
+                          duration: 60 // Default 1 hour
+                        });
+                      }
+                    }}
+                  >
+                    <CalendarPlus className="h-4 w-4" />
+                    Download .ics
+                  </Button>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Opens in your default calendar app
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Host Updates / Bulletin Board */}
+            <Card>
+              <CardHeader className="p-3 sm:p-3">
+                <CardTitle className="text-base sm:text-lg">
+                  Updates
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-3 sm:p-3">
+                <BulletinBoard eventId={eventData?.id || ''} />
               </CardContent>
             </Card>
 

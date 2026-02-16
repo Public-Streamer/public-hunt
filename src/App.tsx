@@ -36,6 +36,10 @@ import Privacy from "./pages/Privacy";
 import ReportDMCA from "./pages/ReportDMCA";
 import ResetPasswordForm from "./components/ResetPasswordForm";
 import SetNewPassword from "./pages/SetNewPassword";
+import HostDashboard from "./pages/HostDashboard";
+import TipReceipt from "./pages/TipReceipt";
+import MyTickets from "./pages/MyTickets";
+import TicketScanner from "./pages/TicketScanner";
 
 const queryClient = new QueryClient();
 
@@ -122,6 +126,10 @@ const App = () => {
                     <Route path="/privacy" element={<Privacy />} />
                     <Route path="/report" element={<ReportDMCA />} />
                     <Route path="/post/:postId" element={<Post />} />
+                    <Route path="/host-dashboard" element={<HostDashboard />} />
+                    <Route path="/tip-receipt/:paymentIntentId" element={<TipReceipt />} />
+                    <Route path="/my-tickets" element={<MyTickets />} />
+                    <Route path="/ticket-scanner" element={<TicketScanner />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Layout>

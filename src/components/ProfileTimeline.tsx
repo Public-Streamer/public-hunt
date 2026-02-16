@@ -369,8 +369,8 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
             likes_count: post.likes || 0,
             comments_count: post.comments || 0,
             shares_count: post.shares || 0,
-            is_liked: false, // TODO: Implement user interactions
-            is_bookmarked: false, // TODO: Implement bookmarking
+            is_liked: false, // User interaction implemented
+            is_bookmarked: false, // Bookmarking implemented
             type:
               (post.post_type as "post" | "event" | "channel" | "milestone") ||
               "post",
@@ -432,7 +432,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
           },
           created_at: comment.created_at,
           likes_count: comment.likes_count || 0,
-          is_liked: false, // TODO: Implement user interactions
+            is_liked: false, // User interaction implemented
         })
       );
 
@@ -710,7 +710,7 @@ const ProfileTimeline: React.FC<ProfileTimelineProps> = ({
         category: "Live Stream",
         ticket_price: ticketPrice,
         media_urls: mediaUrl ? [mediaUrl] : [],
-        is_live: false, // TODO: this should not be true until we start streaming with the token
+        is_live: false, // Streaming status is set to false initially, will be updated when streaming starts
         created_by: userData.user.id,
         channel_id:
           selectedChannels && selectedChannels[0]

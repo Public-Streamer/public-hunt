@@ -9,10 +9,17 @@ import {
   Loader2,
   AlertCircle,
   RefreshCw,
+  Info,
+  ShieldCheck,
+  DollarSign,
+  Clock,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { useAppContext } from "@/contexts/AppContext";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
 
 interface StripeAccount {
   id: string;
@@ -20,6 +27,14 @@ interface StripeAccount {
   account_status: string;
   onboarding_completed: boolean;
   payouts_enabled: boolean;
+}
+
+interface SetupStep {
+  id: number;
+  title: string;
+  description: string;
+  completed: boolean;
+  icon: React.ReactNode;
 }
 
 const StripeAccountForm: React.FC = () => {
@@ -30,6 +45,8 @@ const StripeAccountForm: React.FC = () => {
     null
   );
   const [checkingAccount, setCheckingAccount] = useState(true);
+  const [setupProgress, setSetupProgress] = useState(0);
+  const [isPolling, setIsPolling] = useState(false);
   const { toast } = useToast();
   const { user } = useAppContext();
 
@@ -104,7 +121,7 @@ const StripeAccountForm: React.FC = () => {
         });
 
         // Start polling for account status
-        // pollAccountStatus(data.accountId);
+        pollAccountStatus(data.accountId);
       }
     } catch (err: unknown) {
       const errorMessage =
@@ -122,42 +139,46 @@ const StripeAccountForm: React.FC = () => {
     }
   };
 
-  // const pollAccountStatus = async (accountId: string) => {
-  //   const maxAttempts = 30; // Poll for 5 minutes
-  //   let attempts = 0;
+  const pollAccountStatus = async (accountId: string) => {
+    const maxAttempts = 30; // Poll for 5 minutes
+    let attempts = 0;
+    setIsPolling(true);
 
-  //   const poll = async () => {
-  //     try {
-  //       const { data, error } = await supabase
-  //         .from("host_stripe_accounts")
-  //         .select("*")
-  //         .eq("stripe_account_id", accountId)
-  //         .single();
+    const poll = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("host_stripe_accounts")
+          .select("*")
+          .eq("stripe_account_id", accountId)
+          .single();
 
-  //       if (error) throw error;
+        if (error) throw error;
 
-  //       setStripeAccount(data);
+        // If status changed to active/completed
+        if (data.onboarding_completed && data.payouts_enabled) {
+          setStripeAccount(data); // Update local state
+          toast({
+            title: "Account Setup Complete",
+            description: "Your Stripe account is now ready for payments!",
+          });
+          setIsPolling(false);
+          return;
+        }
 
-  //       if (data.onboarding_completed && data.payouts_enabled) {
-  //         toast({
-  //           title: "Account Setup Complete",
-  //           description: "Your Stripe account is now ready for payments!",
-  //         });
+        attempts++;
+        if (attempts < maxAttempts) {
+          setTimeout(poll, 10000); // Poll every 10 seconds
+        } else {
+          setIsPolling(false);
+        }
+      } catch (err) {
+        console.error("Error polling account status:", err);
+        setIsPolling(false);
+      }
+    };
 
-  //         return;
-  //       }
-
-  //       attempts++;
-  //       if (attempts < maxAttempts) {
-  //         setTimeout(poll, 10000); // Poll every 10 seconds
-  //       }
-  //     } catch (err) {
-  //       console.error("Error polling account status:", err);
-  //     }
-  //   };
-
-  //   poll();
-  // };
+    poll();
+  };
 
   const checkStripeAccountStatus = async () => {
     // if (!stripeAccount) return;
@@ -258,7 +279,7 @@ const StripeAccountForm: React.FC = () => {
           <Alert>
             <AlertDescription>
               {stripeAccount.onboarding_completed &&
-              stripeAccount.payouts_enabled
+                stripeAccount.payouts_enabled
                 ? "Your Stripe account is fully set up and ready to receive payments!"
                 : "Complete your Stripe account setup to start receiving payments."}
             </AlertDescription>
@@ -273,7 +294,6 @@ const StripeAccountForm: React.FC = () => {
             <ExternalLink className="h-4 w-4 mr-2" />
             Login to Stripe
           </Button>
-          {/* 
           <Button
             onClick={checkStripeAccountStatus}
             disabled={isCheckingStatus}
@@ -291,7 +311,7 @@ const StripeAccountForm: React.FC = () => {
                 Refresh Account Status
               </>
             )}
-          </Button> */}
+          </Button>
 
           {error && (
             <Alert variant="destructive">
@@ -303,7 +323,39 @@ const StripeAccountForm: React.FC = () => {
     );
   }
 
-  // If no account exists, show the simple setup button
+  // Setup steps for new account creation
+  const setupSteps: SetupStep[] = [
+    {
+      id: 1,
+      title: "Create Account",
+      description: "Set up your Stripe Express account",
+      completed: false,
+      icon: <CreditCard className="h-5 w-5" />,
+    },
+    {
+      id: 2,
+      title: "Verify Identity",
+      description: "Complete identity verification",
+      completed: false,
+      icon: <ShieldCheck className="h-5 w-5" />,
+    },
+    {
+      id: 3,
+      title: "Add Bank Account",
+      description: "Set up your payout bank account",
+      completed: false,
+      icon: <DollarSign className="h-5 w-5" />,
+    },
+    {
+      id: 4,
+      title: "Enable Payouts",
+      description: "Activate your account for payments",
+      completed: false,
+      icon: <CheckCircle className="h-5 w-5" />,
+    },
+  ];
+
+  // If no account exists, show the enhanced setup guide
   return (
     <Card>
       <CardHeader>
@@ -312,25 +364,111 @@ const StripeAccountForm: React.FC = () => {
           Stripe Account Setup
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <Alert>
-          <AlertDescription>
-            To collect payments for your events, you need to set up a Stripe
-            account.
-          </AlertDescription>
+      <CardContent className="space-y-6">
+        <Alert className="bg-blue-50 border-blue-200">
+          <div className="flex items-start gap-3">
+            <Info className="h-5 w-5 text-blue-600 mt-0.5" />
+            <AlertDescription className="text-blue-800">
+              <strong>Secure Payment Processing</strong>
+              <p className="mt-2 text-sm">
+                PublicStreamer uses Stripe to securely process payments. Your financial
+                information is protected and never stored on our servers.
+              </p>
+              <p className="mt-2 text-sm">
+                Setup takes about 5 minutes and requires identity verification.
+              </p>
+            </AlertDescription>
+          </div>
         </Alert>
+
+        <div className="space-y-4">
+          <h3 className="font-semibold text-lg">Setup Process</h3>
+          <div className="space-y-3">
+            {setupSteps.map((step) => (
+              <div key={step.id} className="flex items-start gap-3">
+                <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${step.completed ? "bg-green-100" : "bg-gray-100"
+                  }`}>
+                  {step.icon}
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium text-sm">{step.title}</h4>
+                    {step.completed && (
+                      <Badge variant="success" className="text-xs">
+                        Completed
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {step.description}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <Separator />
+
+        <div className="space-y-4">
+          <h3 className="font-semibold text-lg">Benefits</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex items-start gap-3">
+              <ShieldCheck className="h-5 w-5 text-green-600 mt-0.5" />
+              <div>
+                <h4 className="font-medium text-sm">Secure & Compliant</h4>
+                <p className="text-sm text-muted-foreground">
+                  PCI-compliant payment processing with fraud protection
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <DollarSign className="h-5 w-5 text-green-600 mt-0.5" />
+              <div>
+                <h4 className="font-medium text-sm">Fast Payouts</h4>
+                <p className="text-sm text-muted-foreground">
+                  Receive payments directly to your bank account
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <Clock className="h-5 w-5 text-green-600 mt-0.5" />
+              <div>
+                <h4 className="font-medium text-sm">Automatic Processing</h4>
+                <p className="text-sm text-muted-foreground">
+                  Instant payment confirmation for your customers
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <CreditCard className="h-5 w-5 text-green-600 mt-0.5" />
+              <div>
+                <h4 className="font-medium text-sm">Multiple Payment Methods</h4>
+                <p className="text-sm text-muted-foreground">
+                  Support for cards, digital wallets, and more
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <Button
           onClick={handleCreateStripeAccount}
           disabled={loading}
-          className="w-full"
+          className="w-full text-lg py-6 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+          size="lg"
         >
           {loading ? (
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            <>
+              <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+              Starting Setup...
+            </>
           ) : (
-            <ExternalLink className="h-4 w-4 mr-2" />
+            <>
+              <ExternalLink className="h-5 w-5 mr-2" />
+              Start Stripe Setup
+            </>
           )}
-          Start Setup
         </Button>
 
         {error && (
@@ -338,6 +476,13 @@ const StripeAccountForm: React.FC = () => {
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
+
+        <Alert variant="info" className="text-sm">
+          <AlertDescription>
+            <strong>Note:</strong> After completing the setup in the new window,
+            refresh this page to see your updated account status.
+          </AlertDescription>
+        </Alert>
       </CardContent>
     </Card>
   );

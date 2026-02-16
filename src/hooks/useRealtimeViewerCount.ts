@@ -5,6 +5,7 @@ import { mergeSnapshot, applyStreamDelta, type ViewerState } from '@/lib/viewerS
 
 interface UseRealtimeViewerCountOptions {
   eventId: string;
+  hostId?: string; // For milestone notifications
   participantCount?: number;
   streamerCount?: number;
   debounceMs?: number;
@@ -19,6 +20,7 @@ interface ViewerCountResult {
 
 export function useRealtimeViewerCount({
   eventId,
+  hostId,
   participantCount = 0,
   streamerCount = 0,
   debounceMs = 1000
@@ -27,16 +29,48 @@ export function useRealtimeViewerCount({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  
+
   const debounceTimerRef = useRef<NodeJS.Timeout>();
   const subscriptionRef = useRef<{ dispose: () => void } | null>(null);
   const viewerStateRef = useRef<ViewerState | null>(null);
+  const prevViewerCountRef = useRef<number>(0);
+  const notifiedMilestonesRef = useRef<Set<number>>(new Set());
+
+  // Milestone thresholds
+  const MILESTONES = [100, 500, 1000, 5000, 10000];
+
+  // Function to check and notify milestones
+  const checkMilestones = async (newCount: number, prevCount: number) => {
+    if (!hostId) return;
+
+    for (const milestone of MILESTONES) {
+      if (prevCount < milestone && newCount >= milestone && !notifiedMilestonesRef.current.has(milestone)) {
+        notifiedMilestonesRef.current.add(milestone);
+
+        // Send notification via Supabase channel
+        const supabase = supabaseBrowser();
+        await supabase.channel(`notifications:${hostId}`).send({
+          type: 'broadcast',
+          event: 'notification',
+          payload: {
+            title: '🎉 Viewer Milestone!',
+            message: `You just hit ${milestone.toLocaleString()} viewers!`,
+            type: 'viewer_milestone',
+            milestone,
+            eventId
+          }
+        });
+
+        console.log(`[Milestone] ${milestone} viewers reached for event ${eventId}`);
+      }
+    }
+  };
 
   // Function to update viewer count in database
   const updateViewerCountInDb = async (count: number) => {
     try {
       const supabase = supabaseBrowser();
-      
+
       // Use our new database function for accurate updates
       const { error } = await supabase.rpc('update_event_viewer_count_filtered', {
         event_id_param: eventId,
@@ -62,7 +96,7 @@ export function useRealtimeViewerCount({
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
-    
+
     debounceTimerRef.current = setTimeout(() => {
       updateViewerCountInDb(count);
     }, debounceMs);
@@ -71,11 +105,11 @@ export function useRealtimeViewerCount({
   // Calculate viewer count from participant data
   const calculateViewerCount = (state: ViewerState | null): number => {
     if (!state) return Math.max(0, participantCount - streamerCount);
-    
+
     // Get active streams count to determine streamers
     const activeStreams = Object.values(state.streams).filter(s => s.status === 'live');
     const activeStreamersCount = activeStreams.length;
-    
+
     // Calculate viewers = total participants - active streamers
     return Math.max(0, participantCount - activeStreamersCount);
   };
@@ -84,16 +118,21 @@ export function useRealtimeViewerCount({
   const handleDeltas = (deltas: DeltaEvent[]) => {
     try {
       let currentState = viewerStateRef.current;
-      
+
       for (const delta of deltas) {
         if (delta.type === 'stream' && currentState) {
           currentState = applyStreamDelta(currentState, delta.data, delta.operation);
         }
       }
-      
+
       if (currentState) {
         viewerStateRef.current = currentState;
         const newCount = calculateViewerCount(currentState);
+
+        // Check milestones before updating
+        checkMilestones(newCount, prevViewerCountRef.current);
+        prevViewerCountRef.current = newCount;
+
         setViewerCount(newCount);
         debouncedUpdate(newCount);
       }
@@ -106,14 +145,14 @@ export function useRealtimeViewerCount({
   // Initialize and fetch current state
   useEffect(() => {
     let mounted = true;
-    
+
     const initializeViewerCount = async () => {
       try {
         setIsLoading(true);
         setError(null);
-        
+
         const supabase = supabaseBrowser();
-        
+
         // Fetch current event state
         const { data: eventData, error: eventError } = await supabase
           .from('events')
@@ -158,11 +197,11 @@ export function useRealtimeViewerCount({
         });
 
         viewerStateRef.current = initialState;
-        
+
         // Calculate initial viewer count
         const initialCount = calculateViewerCount(initialState);
         setViewerCount(initialCount);
-        
+
         // Subscribe to realtime updates
         const subscription = subscribeEvent(eventId, handleDeltas);
         subscriptionRef.current = subscription;

@@ -19,6 +19,7 @@ import Notifications from "@/components/Notifications";
 import BottomSlidePanel from "@/components/BottomSlidePanel";
 import { supabase } from "@/lib/supabase";
 import type { Database } from "@/integrations/supabase/types";
+import { FollowedChannelsList } from "@/components/social/FollowedChannelsList";
 
 type currentUserProfile = Database["public"]["Tables"]["user_profiles"]["Row"];
 
@@ -127,6 +128,7 @@ const Profile: React.FC = () => {
           <TabsTrigger value="media">Media</TabsTrigger>
           <TabsTrigger value="events">Events</TabsTrigger>
           <TabsTrigger value="channels">Channels</TabsTrigger>
+          <TabsTrigger value="following">Following</TabsTrigger>
           {isOwnProfile && (
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           )}
@@ -183,6 +185,10 @@ const Profile: React.FC = () => {
 
         <TabsContent value="channels" className="mt-6">
           <UserChannelsList userId={profile.id} />
+        </TabsContent>
+
+        <TabsContent value="following" className="mt-6">
+          <FollowedChannelsList />
         </TabsContent>
 
         {isOwnProfile && (

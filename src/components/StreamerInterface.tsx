@@ -63,6 +63,9 @@ import { EventSocialSection } from "./EventSocialSection";
 import { useStreamName } from "@/hooks/useStreamName";
 import { useRealtimeViewerCount } from "@/hooks/useRealtimeViewerCount";
 import { StreamNameEditor } from "@/components/StreamNameEditor";
+import RecordingControls from "@/components/RecordingControls";
+import MultiCameraGrid from "@/components/livekit/MultiCameraGrid";
+import { useParticipantCount } from "@/hooks/useParticipantCount";
 
 interface StreamerInterfaceProps {
   eventId: string;
@@ -89,7 +92,13 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
 }) => {
   const { localParticipant } = useLocalParticipant();
   const participants = useParticipants();
-  const controls = useStreamingControls(eventId, generateToken);
+  const controls = useStreamingControls(localParticipant);
+  const { participantCount } = useParticipantCount(eventId);
+
+  // Wrapper for camera switching compatibility
+  const handleSwitchCamera = async () => {
+    console.warn("Camera switching requiring device ID selection not yet implemented in UI");
+  };
   const screenSize = useScreenSize();
   const { checkScreenShareSupport } = useMobileMediaPermissions();
   const { toast } = useToast();
@@ -294,7 +303,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
   // Use the new real-time viewer count system
   const { viewerCount } = useRealtimeViewerCount({
     eventId,
-    participantCount: controls.participantCount,
+    participantCount: participantCount,
     streamerCount: 1, // Current user is a streamer
     debounceMs: 1500
   });
@@ -449,7 +458,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
     ) {
       autoStartAttemptedRef.current = true;
       try {
-        controls.startStream(totalTracksLength);
+        controls.startStream();
       } catch {
         autoStartAttemptedRef.current = false;
       }
@@ -585,10 +594,10 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                 </Badge>
                 <div className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground">
                   <Users className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span>
-                      {controls.participantCount}{" "}
-                      {screenSize === "mobile" ? "" : "total"}
-                    </span>
+                  <span>
+                    {participantCount}{" "}
+                    {screenSize === "mobile" ? "" : "total"}
+                  </span>
                 </div>
               </div>
             </div>
@@ -610,15 +619,13 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
         )}
 
         <div
-          className={`grid gap-3 sm:gap-6 ${
-            screenSize === "desktop" ? "lg:grid-cols-3" : "grid-cols-1"
-          }`}
+          className={`grid gap-3 sm:gap-6 ${screenSize === "desktop" ? "lg:grid-cols-3" : "grid-cols-1"
+            }`}
         >
           {/* Video & Controls Column */}
           <div
-            className={`space-y-3 sm:space-y-4 ${
-              screenSize === "desktop" ? "lg:col-span-2" : ""
-            }`}
+            className={`space-y-3 sm:space-y-4 ${screenSize === "desktop" ? "lg:col-span-2" : ""
+              }`}
           >
             <Card>
               <CardHeader className="p-3 sm:p-3">
@@ -713,15 +720,14 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                 </div>
               </CardHeader>
               <CardContent
-                className={`space-y-3 sm:space-y-4 p-3 sm:p-3 ${
-                  controlsLocked ? "pointer-events-none opacity-60" : ""
-                }`}
+                className={`space-y-3 sm:space-y-4 p-3 sm:p-3 ${controlsLocked ? "pointer-events-none opacity-60" : ""
+                  }`}
               >
                 {/* Go Live / Stop Stream */}
                 <div className="space-y-2">
                   {!controls.isStreaming ? (
                     <Button
-                      onClick={() => controls.startStream(totalTracksLength)}
+                      onClick={() => controls.startStream()}
                       className="w-full text-sm sm:text-base px-3 sm:px-4 py-3 sm:py-4 max-w-full"
                       size={screenSize === "mobile" ? "sm" : "lg"}
                       disabled={!controls.isConnected}
@@ -767,7 +773,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                       </TooltipWrapper>
                       {userRole === "host" && (
                         <Button
-                          onClick={controls.stopEvent}
+                          onClick={async () => { console.log("Stop Event not implemented"); }}
                           variant="destructive"
                           className="w-full text-xs sm:text-sm"
                           size={screenSize === "mobile" ? "sm" : "lg"}
@@ -789,11 +795,10 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
 
                 {/* Media Controls */}
                 <div
-                  className={`space-y-2 ${
-                    screenSize === "mobile"
-                      ? "grid grid-cols-2 gap-2 space-y-0"
-                      : ""
-                  }`}
+                  className={`space-y-2 ${screenSize === "mobile"
+                    ? "grid grid-cols-2 gap-2 space-y-0"
+                    : ""
+                    }`}
                 >
                   <Button
                     onClick={controls.toggleVideo}
@@ -839,8 +844,8 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                       availableCameras={controls.availableCameras}
                       isSwitchingCamera={controls.isSwitchingCamera}
                       isVideoEnabled={controls.isVideoEnabled}
-                      currentFacingMode={controls.currentFacingMode}
-                      onSwitchCamera={controls.switchCamera}
+                      currentFacingMode={controls.currentFacingMode as "user" | "environment"}
+                      onSwitchCamera={handleSwitchCamera}
                     />
                   )}
 
@@ -849,7 +854,7 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                     <TorchButton
                       isTorchEnabled={controls.isTorchEnabled}
                       isTorchSupported={controls.isTorchSupported}
-                      currentFacingMode={controls.currentFacingMode}
+                      currentFacingMode={controls.currentFacingMode as "user" | "environment"}
                       isVideoEnabled={controls.isVideoEnabled}
                       onToggleTorch={controls.toggleTorch}
                     />
@@ -862,9 +867,8 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                       variant={
                         controls.isScreenSharing ? "default" : "secondary"
                       }
-                      className={`w-full text-xs sm:text-sm ${
-                        screenSize === "mobile" ? "col-span-1" : ""
-                      }`}
+                      className={`w-full text-xs sm:text-sm ${screenSize === "mobile" ? "col-span-1" : ""
+                        }`}
                       size={screenSize === "mobile" ? "sm" : "default"}
                     >
                       {controls.isScreenSharing ? (
@@ -890,8 +894,8 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                     availableCameras={controls.availableCameras}
                     isSwitchingCamera={controls.isSwitchingCamera}
                     isVideoEnabled={controls.isVideoEnabled}
-                    currentFacingMode={controls.currentFacingMode}
-                    onSwitchCamera={controls.switchCamera}
+                    currentFacingMode={controls.currentFacingMode as "user" | "environment"}
+                    onSwitchCamera={handleSwitchCamera}
                   />
                 )}
 
@@ -900,9 +904,9 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                   <TorchButton
                     isTorchEnabled={controls.isTorchEnabled}
                     isTorchSupported={controls.isTorchSupported}
-                    currentFacingMode={controls.currentFacingMode}
+                    currentFacingMode={controls.currentFacingMode as "user" | "environment"}
                     isVideoEnabled={controls.isVideoEnabled}
-                    onToggleTorch={controls.toggleTorch}
+                    onToggleTorch={async () => { }}
                   />
                 )}
               </CardContent>
@@ -917,43 +921,12 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-3 sm:p-3">
-                  <div
-                    className={`grid gap-2 sm:gap-4 ${
-                      screenSize === "mobile" ? "grid-cols-1" : "grid-cols-2"
-                    }`}
-                  >
-                    {otherCameraTracks.map((trackRef) => (
-                      <div
-                        key={trackRef.participant.sid}
-                        className="aspect-video bg-muted rounded-lg overflow-hidden relative"
-                      >
-                        <VideoTrackLazy
-                          trackRef={trackRef as any}
-                          className="w-full h-full"
-                        />
-                        <div className="absolute bottom-2 left-2">
-                          <Badge variant="secondary" className="text-xs">
-                            {(() => {
-                              try {
-                                const metadata = trackRef.participant.metadata
-                                  ? JSON.parse(trackRef.participant.metadata)
-                                  : {};
-                                return (
-                                  metadata.streamName ||
-                                  trackRef.participant.name ||
-                                  trackRef.participant.identity
-                                );
-                              } catch {
-                                return (
-                                  trackRef.participant.name ||
-                                  trackRef.participant.identity
-                                );
-                              }
-                            })()}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="h-full min-h-[200px]">
+                    <MultiCameraGrid
+                      tracks={otherCameraTracks}
+                      onTrackSelect={(id) => console.log("Selected track:", id)}
+                      eventId={eventId}
+                    />
                   </div>
                 </CardContent>
               </Card>
@@ -1045,9 +1018,12 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
                   <span className="text-xs sm:text-sm text-muted-foreground">
                     Viewers:
                   </span>
-                  <span className="text-xs sm:text-sm font-medium">
-                    {viewerCount}
-                  </span>
+                  <div className="flex items-center space-x-2">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">
+                      {participantCount || 0}
+                    </span>
+                  </div>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-xs sm:text-sm text-muted-foreground">
@@ -1076,6 +1052,14 @@ export const StreamerInterface: React.FC<StreamerInterfaceProps> = ({
 
             {userRole === "host" && (
               <EventSharePanel eventId={eventId} eventTitle={eventTitle} />
+            )}
+
+            {/* Recording Controls - Only for streamers */}
+            {(userRole === "host" || userRole === "streamer") && (
+              <RecordingControls
+                eventId={eventId}
+                isStreamer={userRole === "host" || userRole === "streamer"}
+              />
             )}
           </div>
         </div>

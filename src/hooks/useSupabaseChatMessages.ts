@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppContext } from "@/contexts/AppContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface ChatMessage {
   id: string;
@@ -11,16 +12,28 @@ interface ChatMessage {
   message: string;
   message_type: string;
   created_at: string;
+  reactions?: Record<string, number>; // Map of reaction_type -> count
+  user_reaction?: string | null; // Current user's reaction
+}
+
+interface ReactionPayload {
+  message_id: string;
+  reaction_type: string;
+  user_id: string;
 }
 
 export const useSupabaseChatMessages = (eventId: string, camName?: string) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [typingUsers, setTypingUsers] = useState<Record<string, string>>({}); // userId -> displayName
   const [connectionStatus, setConnectionStatus] = useState<
     "connecting" | "connected" | "disconnected" | "error"
   >("connecting");
   const { currentUserProfile, isAuthenticated, user } = useAppContext();
-  
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const { toast } = useToast();
+  const [bannedUsers, setBannedUsers] = useState<Set<string>>(new Set());
+
   // Always use authenticated user's identity, never contaminate with camName email addresses
 
   // Fetch existing messages
@@ -50,14 +63,14 @@ export const useSupabaseChatMessages = (eventId: string, camName?: string) => {
   console.log(messages)
 
   let streamerName;
-  if(camName == user?.email || ""){
+  if (camName == user?.email || "") {
     streamerName = currentUserProfile?.display_name;
   }
-  else{
+  else {
     streamerName = camName;
   }
 
-  
+
 
   // Send message function
   const sendMessage = useCallback(
@@ -208,12 +221,226 @@ export const useSupabaseChatMessages = (eventId: string, camName?: string) => {
     };
   }, [eventId, fetchMessages]);
 
+  // Subscribe to reactions
+  useEffect(() => {
+    if (!eventId) return;
+
+    const channel = supabase
+      .channel(`message-reactions-${eventId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "message_reactions",
+        },
+        async (payload) => {
+          const messageId = (payload.new as any)?.message_id || (payload.old as any)?.message_id;
+          if (!messageId) return;
+
+          // Fetch updated reactions for this message
+          const { data: reactions } = await supabase
+            .from("message_reactions" as any)
+            .select("reaction_type, user_id")
+            .eq("message_id", messageId);
+
+          const reactionCounts: Record<string, number> = {};
+          (reactions as any[])?.forEach((r) => {
+            reactionCounts[r.reaction_type] = (reactionCounts[r.reaction_type] || 0) + 1;
+          });
+
+          // Check if current user has reacted
+          const userReaction = (reactions as any[])?.find((r) => r.user_id === user?.id)?.reaction_type || null;
+
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === messageId
+                ? { ...msg, reactions: reactionCounts, user_reaction: userReaction }
+                : msg
+            )
+          );
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [eventId, user?.id]);
+
+  // Subscribe to typing indicators
+  useEffect(() => {
+    if (!eventId) return;
+
+    const channel = supabase
+      .channel(`typing:${eventId}`)
+      .on(
+        'broadcast',
+        { event: 'typing' },
+        (payload) => {
+          const { userId, displayName, isTyping } = payload.payload as {
+            userId: string;
+            displayName: string;
+            isTyping: boolean;
+          };
+
+          // Don't show own typing indicator
+          if (userId === user?.id) return;
+
+          setTypingUsers((prev) => {
+            const updated = { ...prev };
+            if (isTyping) {
+              updated[userId] = displayName;
+              // Auto-clear after 3 seconds
+              setTimeout(() => {
+                setTypingUsers((current) => {
+                  const { [userId]: _, ...rest } = current;
+                  return rest;
+                });
+              }, 3000);
+            } else {
+              delete updated[userId];
+            }
+            return updated;
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [eventId, user?.id]);
+
+  // Broadcast typing indicator
+  const broadcastTyping = useCallback(
+    (isTyping: boolean) => {
+      if (!eventId || !currentUserProfile) return;
+
+      const channel = supabase.channel(`typing:${eventId}`);
+      channel.send({
+        type: 'broadcast',
+        event: 'typing',
+        payload: {
+          userId: currentUserProfile.user_id,
+          displayName: currentUserProfile.display_name,
+          isTyping,
+        },
+      });
+    },
+    [eventId, currentUserProfile]
+  );
+
+  // Debounced typing handler
+  const handleTyping = useCallback(() => {
+    broadcastTyping(true);
+
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Set new timeout to stop typing after 500ms of inactivity
+    typingTimeoutRef.current = setTimeout(() => {
+      broadcastTyping(false);
+    }, 500);
+  }, [broadcastTyping]);
+
+  // Send reaction function
+  const sendReaction = useCallback(
+    async (messageId: string, reactionType: string) => {
+      if (!isAuthenticated || !messageId) return;
+
+      try {
+        // Optimistic update
+        setMessages((prev) =>
+          prev.map((msg) => {
+            if (msg.id !== messageId) return msg;
+
+            // Toggle logic imitation
+            const currentCount = msg.reactions?.[reactionType] || 0;
+            const hasReacted = msg.user_reaction === reactionType;
+
+            // If already reacted with this type, remove it. If different type, switch it?
+            // The edge function handles toggle.
+            // Let's assume simple toggle for optimistic UI
+            const newCount = hasReacted ? Math.max(0, currentCount - 1) : currentCount + 1;
+
+            return {
+              ...msg,
+              reactions: {
+                ...msg.reactions,
+                [reactionType]: newCount
+              },
+              user_reaction: hasReacted ? null : reactionType
+            };
+          })
+        );
+
+        await supabase.functions.invoke("manage-event-messages", {
+          body: {
+            action: "react",
+            eventId,
+            messageId,
+            reactionType,
+          },
+        });
+      } catch (error) {
+        console.error("Error sending reaction:", error);
+      }
+    },
+    [eventId, isAuthenticated]
+  );
+
+  // Moderate user function
+  const moderateUser = useCallback(
+    async (action: 'ban' | 'timeout' | 'delete' | 'unban', targetUserId: string, messageId?: string, duration?: number) => {
+      try {
+        const { error } = await supabase.functions.invoke('manage-event-messages', {
+          body: {
+            action: 'moderate',
+            eventId,
+            userId: targetUserId,
+            messageId, // Optional for unban/ban if just targeting user
+            moderationType: action,
+            duration
+          }
+        });
+
+        if (error) throw error;
+
+        toast({
+          title: 'Moderation Action Applied',
+          description: `${action.charAt(0).toUpperCase() + action.slice(1)} applied successfully`,
+        });
+
+        // Optimistic updates could be added here, but real-time subscription handles it
+        if (action === 'ban') {
+          setBannedUsers(prev => new Set(prev).add(targetUserId));
+        }
+      } catch (err) {
+        console.error('Moderation error:', err);
+        toast({
+          title: 'Moderation Failed',
+          description: 'Failed to apply moderation action. Please try again.',
+          variant: 'destructive',
+        });
+      }
+    },
+    [eventId, toast]
+  );
+
   return {
-    messages,
+    messages: messages.filter(m => !bannedUsers.has(m.user_id)),
     loading,
     sendMessage,
     deleteMessage,
+    sendReaction,
+    typingUsers,
+    handleTyping,
+    moderateUser,
     canSend: isAuthenticated && currentUserProfile,
     connectionStatus,
+    isBanned: user ? bannedUsers.has(user.id) : false,
   };
 };

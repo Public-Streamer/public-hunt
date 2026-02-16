@@ -142,10 +142,23 @@ const CheckoutForm: React.FC<StripeCheckoutProps> = ({
       // }
       if (paymentIntent?.status === "succeeded") {
         toast({
-          title: "Payment Successful",
-          description: "Your payment has been processed successfully.",
-          variant: "default",
+          title: "🎟️ Ticket Purchased!",
+          description: "Check your email for confirmation and entry details. You can also view your ticket in 'My Tickets'.",
+          duration: 8000,
+          className: "bg-green-600 text-white border-none",
         });
+
+        // Finalize ticket on backend (email, QR code, db)
+        // Note: Similar to tip, we might want a 'finalize-ticket' function if process-ticket-payment only does intent. 
+        // But checking process-ticket-payment, it just creates intent.
+        // It does not insert the ticket row yet.
+        // So we need a finalize step or we need to rely on webhook.
+        // Given we used finalize-tip for immediate feedback, let's use finalize-ticket too.
+
+        supabase.functions.invoke('finalize-ticket', {
+          body: { paymentIntentId: paymentIntent.id }
+        });
+
         onSuccess();
       }
     } catch (error) {

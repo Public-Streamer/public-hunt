@@ -29,3 +29,6 @@ dist-ssr
 
 # Temporary files
 stats.html
+node_modules/
+.next/
+*.log

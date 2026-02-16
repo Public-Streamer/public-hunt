@@ -19,6 +19,7 @@ import {
   Target,
   IdCard,
   CreditCard,
+  BarChart2,
 } from "lucide-react";
 import { useAppContext } from "@/contexts/AppContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -127,6 +128,15 @@ const MobileNav: React.FC<MobileNavProps> = ({
           >
             <CreditCard className="h-5 w-5 text-gray-600" />
             <span className="font-medium">Payments</span>
+          </Link>
+
+          <Link
+            to="/host-dashboard"
+            onClick={onClose}
+            className="flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <BarChart2 className="h-5 w-5 text-gray-600" />
+            <span className="font-medium">Host Dashboard</span>
           </Link>
 
           <Link

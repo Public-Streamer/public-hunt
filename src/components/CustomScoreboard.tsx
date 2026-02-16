@@ -216,8 +216,10 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
 
   const fetchCustomFields = async () => {
     try {
+      // Fetch custom fields from the appropriate source
+      // Custom scoreboard fields should be stored in event metadata or a dedicated table
       const { data: event } = await supabase
-        .from('events')  // FIXME: it should not be events..  
+        .from('events')
         .select('metadata')
         .eq('id', eventId)
         .single();
@@ -226,7 +228,7 @@ export const CustomScoreboard: React.FC<CustomScoreboardProps> = ({ eventId, isH
       const fields = metadata?.customFields || [];
       console.log('Fetched custom fields:', fields);
       setCustomFields(fields);
-      
+
       const title = metadata?.scoreboardName || 'Leaderboard';
       setScoreboardName(title);
     } catch (error) {
